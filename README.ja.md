@@ -2,7 +2,7 @@
 
 A tiny Selenium wrapper written in pure VBA.
 
-[🇬🇧English version is here](https://github.com/uezo/TinySeleniumVBA/blob/master/README.md)
+[🇬🇧English version is here](https://github.com/uezo/TinySeleniumVBA/blob/main/README.md)
 
 # ✨ 特長
 
