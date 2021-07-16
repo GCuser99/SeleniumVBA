@@ -167,7 +167,9 @@ Public CMD_SWITCH_TO_CONTEXT
 Public CMD_FULLSCREEN_WINDOW
 Public CMD_MINIMIZE_WINDOW
 Public CMD_SHUTDOWN
-
+'
+Private Const DRIVE_URL = "http://localhost:9515"
+'
 Private Const ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf"
 
 Public Enum By
@@ -184,12 +186,12 @@ End Enum
 ' ==========================================================================
 
 ' Launch Edge Driver
-Public Sub Edge(ByVal driverPath As String, Optional ByVal driverUrl As String = "http://localhost:9515")
+Public Sub Edge(ByVal driverPath As String, Optional ByVal driverUrl As String = DRIVE_URL)
     Start driverPath, driverUrl
 End Sub
 
 ' Launch Chrome Driver
-Public Sub Chrome(ByVal driverPath As String, Optional ByVal driverUrl As String = "http://localhost:9151")
+Public Sub Chrome(ByVal driverPath As String, Optional ByVal driverUrl As String = DRIVE_URL)
     Start driverPath, driverUrl
 End Sub
 
