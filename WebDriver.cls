@@ -312,20 +312,31 @@ Public Function FindElements(by_ As By, value As String, Optional parentElementI
     FindElements = ret
 End Function
 
-' by* to CSS selector
+' by* to CSS selector or Xpath
 Private Function ToSelector(by_ As By, ByVal value As String) As Dictionary
-    If by_ = By.ID Then
-        value = "[id=""" + value + """]"
-    ElseIf by_ = By.ClassName Then
-        value = "." + value
-    ElseIf by_ = By.Name Then
-        value = "[name=""" + value + """]"
-    End If
-    
+    '
     Dim data As New Dictionary
-    data.Add "using", "css selector"
+    '
+    If (by_ = By.Xpath) Then
+        '
+        'Locator Strategy XPath
+        data.Add "using", "xpath"
+    Else:
+        '
+        'Use Css Selector for Locator strategies other than
+        data.Add "using", "css selector"
+        '
+        If by_ = By.ID Then
+            value = "[id=""" + value + """]"
+        ElseIf by_ = By.ClassName Then
+            value = "." + value
+        ElseIf by_ = By.Name Then
+            value = "[name=""" + value + """]"
+        End If
+    End If
+    '
     data.Add "value", value
-    
+    '
     Set ToSelector = data
 End Function
 
