@@ -176,6 +176,7 @@ Public Enum By
     ClassName = 2
     Name = 3
     CssSelector = 4
+    Xpath = 5
 End Enum
 
 
