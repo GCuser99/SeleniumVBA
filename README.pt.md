@@ -2,6 +2,8 @@
 
 Um pequeno Selenium wrapper escrito em puro VBA.
 
+[🇬🇧English version is here](https://github.com/uezo/TinySeleniumVBA/blob/main/README.md)
+
 [🇯🇵日本語のREADMEはこちら](https://github.com/uezo/TinySeleniumVBA/blob/main/README.ja.md)
 
 # ✨ Características
