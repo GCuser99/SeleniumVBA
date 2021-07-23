@@ -6,7 +6,7 @@ A tiny Selenium wrapper written in pure VBA.
 
 # ✨ Features
 
-- No insatallation: Everyone even who doesn't have permissions to install can automate browser operations.
+- No installation: Everyone even who doesn't have permissions to install can automate browser operations.
 - Useful helper Methods: FindElement(s)By*, Get/Set value to form, click and more.
 - Open spec: Basically this wrapper is just a HTTP client of WebDriver server. Learning this wrapper equals to learning WebDriver.
 https://www.w3.org/TR/webdriver/
