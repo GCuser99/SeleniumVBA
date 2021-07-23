@@ -4,6 +4,9 @@ A tiny Selenium wrapper written in pure VBA.
 
 [🇯🇵日本語のREADMEはこちら](https://github.com/uezo/TinySeleniumVBA/blob/main/README.ja.md)
 
+[🇧🇷Versão em Português](https://github.com/tdmsoares/TinySeleniumVBA/blob/ReadmeInPortuguese/README.pt.md)
+
+
 # ✨ Features
 
 - No installation: Everyone even who doesn't have permissions to install can automate browser operations.
