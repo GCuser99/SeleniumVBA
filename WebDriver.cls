@@ -190,7 +190,7 @@ Public Sub Edge(ByVal driverPath As String, Optional ByVal driverUrl As String =
 End Sub
 
 ' Launch Chrome Driver
-Public Sub Chrome(ByVal driverPath As String, Optional ByVal driverUrl As String = "http://localhost:9151")
+Public Sub Chrome(ByVal driverPath As String, Optional ByVal driverUrl As String = "http://localhost:9515")
     Start driverPath, driverUrl
 End Sub
 
