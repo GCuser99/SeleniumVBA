@@ -1,11 +1,8 @@
-# TinySeleniumVBA
+# NotSoTinySeleniumVBA
 
-A tiny Selenium wrapper written in pure VBA.
+A Selenium wrapper written in pure VBA based on JSon wire protocol.
 
-[🇯🇵日本語のREADMEはこちら](https://github.com/uezo/TinySeleniumVBA/blob/main/README.ja.md)
-
-[🇧🇷Versão em Português](https://github.com/tdmsoares/TinySeleniumVBA/blob/ReadmeInPortuguese/README.pt.md)
-
+Modified from https://github.com/uezo/TinySeleniumVBA/
 
 # ✨ Features
 
