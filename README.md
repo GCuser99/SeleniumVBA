@@ -2,7 +2,7 @@
 
 A Selenium wrapper written in VBA based on JSon wire protocol.
 
-Modified from https://github.com/uezo/TinySeleniumVBA/
+Modified extensively from https://github.com/uezo/TinySeleniumVBA/
 
 # ✨ Features
 
