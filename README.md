@@ -1,6 +1,6 @@
 # NotSoTinySeleniumVBA
 
-A Selenium wrapper written in pure VBA based on JSon wire protocol.
+A Selenium wrapper written in VBA based on JSon wire protocol.
 
 Modified from https://github.com/uezo/TinySeleniumVBA/
 
