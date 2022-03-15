@@ -1,6 +1,6 @@
 # NotSoTinySeleniumVBA
 
-A Selenium wrapper written in VBA based on JSon wire protocol.
+A Selenium wrapper written in Windows VBA based on JSon wire protocol.
 
 Modified extensively from https://github.com/uezo/TinySeleniumVBA/
 
@@ -27,34 +27,10 @@ https://www.w3.org/TR/webdriver/
 
 ```vb
 Public Sub main()
-    ' Start WebDriver (Edge)
-    Dim Driver As New WebDriver
-    Driver.Edge "path\to\msedgedriver.exe"
-    
-    ' Open browser
-    Driver.OpenBrowser
-    
-    ' Navigate to Google
-    Driver.Navigate "https://www.google.co.jp/?q=selenium"
 
-    ' Get search textbox
-    Dim searchInput
-    Set searchInput = Driver.FindElement(By.Name, "q")
-    
-    ' Get value from textbox
-    Debug.Print searchInput.GetValue
-    
-    ' Set value to textbox
-    searchInput.SetValue "yomoda soba"
-    
-    ' Click search button
-    Driver.FindElement(By.Name, "btnK").Click
-    
-    ' Refresh - you can use Execute with driver command even if the method is not provided
-    Driver.Execute Driver.CMD_REFRESH
 End Sub
 ```
 
-# ❤️ Thanks
+# Credits
 
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA helps me a lot to make HTTP client and this awesome library is included in the release under its license. Thank you!
