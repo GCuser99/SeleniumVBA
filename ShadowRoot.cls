@@ -13,11 +13,11 @@ Private Driver_ As WebDriver
 Private SessionId_ As String
 Private ShadowRootId_ As String
 
-Friend Property Set driver(objWebDriver As WebDriver)
+Friend Property Set Driver(objWebDriver As WebDriver)
     Set Driver_ = objWebDriver
 End Property
 
-Friend Property Let sessionId(ByVal val)
+Friend Property Let SessionId(ByVal val)
     SessionId_ = val
 End Property
 
