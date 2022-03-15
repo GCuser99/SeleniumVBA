@@ -7,7 +7,7 @@ Modified extensively from https://github.com/uezo/TinySeleniumVBA/
 # Features
 
 - No installation permissions required
-- Wrappers for most of Selenium JSon wire protocol
+- Wrappers for most of Selenium's JSon wire protocol
 - Support for Action Chains, SendKeys, Shadow Roots, Cookies, and Capabilities
 - Optional Browser/WebDriver version alignment via WebDriverManager class
 - Open spec: Basically this wrapper is just a HTTP client of WebDriver server. Learning this wrapper equals to learning WebDriver.
@@ -35,4 +35,5 @@ End Sub
 
 # Credits
 
+[TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/) by Uezo and other contributors to that project
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA helps me a lot to make HTTP client and this awesome library is included in the release under its license. Thank you!
