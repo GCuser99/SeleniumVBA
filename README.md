@@ -4,15 +4,16 @@ A Selenium wrapper written in Windows VBA based on JSon wire protocol.
 
 Modified extensively from https://github.com/uezo/TinySeleniumVBA/
 
-# ✨ Features
+# Features
 
-- No installation: Everyone even who doesn't have permissions to install can automate browser operations.
-- Useful helper Methods: FindElement(s)By*, Get/Set value to form, click and more.
+- No installation permissions required
+- Wrappers for most of Selenium JSon wire protocol
+- Optional Browser/WebDriver version alignment via WebDriverManager class
 - Open spec: Basically this wrapper is just a HTTP client of WebDriver server. Learning this wrapper equals to learning WebDriver.
 https://www.w3.org/TR/webdriver/
 
 
-# 📦 Setup
+# Setup
 
 1. Set reference to `Microsoft Scripting Runtime`
 
@@ -23,7 +24,7 @@ https://www.w3.org/TR/webdriver/
     - Edge: https://
     - Chrome: https://
 
-# 🪄 Usage
+# Usage
 
 ```vb
 Public Sub main()
