@@ -6,7 +6,6 @@ Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 
 # Features
 
-- No installation permissions required
 - Wrappers for most of Selenium's JSon wire protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, and Capabilities
 - Optional Browser/WebDriver version alignment via WebDriverManager class
