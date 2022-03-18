@@ -1,11 +1,12 @@
 # NotSoTinySeleniumVBA
 
-A Selenium wrapper written in Windows VBA based on JSon wire protocol.
+A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 
 Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 
 # Features
 
+- Edge and Chrome browser support
 - Wrappers for most of Selenium's JSon wire protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, and Capabilities
 - Optional Browser/WebDriver version alignment via WebDriverManager class
