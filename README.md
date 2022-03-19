@@ -19,7 +19,7 @@ https://www.w3.org/TR/webdriver/
 1. Set reference to `Microsoft Scripting Runtime`
 
 1. Add bla bla to your VBA Project
-    - Latest (v0.1.1): https://
+    - Latest (v0.0.1): https://
 
 1. Download WebDriver (driver and browser should be the same version)
     - Edge: https://
