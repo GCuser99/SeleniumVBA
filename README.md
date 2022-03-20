@@ -16,20 +16,33 @@ https://www.w3.org/TR/webdriver/
 
 # Setup
 
-1. Set reference to `Microsoft Scripting Runtime`
-
-1. Add bla bla to your VBA Project
-    - Latest (v0.0.1): https://
-
-1. Download WebDriver (driver and browser should be the same version)
+1. Import standard modules and classes to Excel VBA
+2. Set the following references:
+<img src="https://user-images.githubusercontent.com/26237126/159189311-001ed714-0378-496f-abc7-5f26dfeb054e.png" width="300" height="200">`
+3. OR... download Excel file seleniumvba_v0.0.1.xlsm
+4. Download WebDriver (driver and browser should be the same version)
     - Edge: https://
     - Chrome: https://
 
 # Usage
 
 ```vb
-Public Sub main()
+Sub Main()
+    Dim Driver As New WebDriver
+    Dim keys As New Keyboard
+    
+    Driver.Chrome
+    Driver.OpenBrowser
+    
+    Driver.Navigate "https://www.google.com/"
+    Driver.Wait 1000
+    
+    Driver.FindElement(by.name, "q").SendKeys "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
 
+    Driver.Wait 2000
+    
+    Driver.CloseBrowser
+    Driver.Shutdown
 End Sub
 ```
 
