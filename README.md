@@ -16,13 +16,17 @@ https://www.w3.org/TR/webdriver/
 
 # Setup
 
-1. Import standard modules and classes to Excel VBA
-2. Set the following references:
+1. Import standard modules and classes from this repository into into Excel VBA
+2. Set the following VBA references:
+
 <img src="https://user-images.githubusercontent.com/26237126/159189311-001ed714-0378-496f-abc7-5f26dfeb054e.png" width="300" height="200">`
-3. OR... download Excel file seleniumvba_v0.0.1.xlsm
-4. Download WebDriver (driver and browser should be the same version)
-    - Edge: https://
-    - Chrome: https://
+
+3. Or alternatively... download the zipped Excel file seleniumvba_v0.0.1.xlsm
+4. Download WebDrivers into same directory as the Excel file (each driver should be same major version as corresponding browser)
+   
+   Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+   
+   Chrome: https://chromedriver.chromium.org/downloads
 
 # Usage
 
