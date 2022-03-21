@@ -10,7 +10,7 @@ Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 - Wrappers for most of Selenium's JSon wire protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, and Capabilities
 - Optional Browser/WebDriver version alignment via WebDriverManager class
-- Open spec: Basically this wrapper is just a HTTP client of WebDriver server. Learning this wrapper equals to learning WebDriver.
+- Open spec: Basically this wrapper is just a HTTP client of the Selenium WebDriver server. Learning this wrapper equals to learning WebDriver.
 https://www.w3.org/TR/webdriver/
 
 
