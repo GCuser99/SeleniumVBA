@@ -1,7 +1,5 @@
 Attribute VB_Name = "test_ExecuteScript"
-Sub test_scroll_ops()
-    'see https://www.guru99.com/scroll-up-down-selenium-webdriver.html
-    'for more info and tutorials see https://www.guru99.com/selenium-tutorial.html
+Sub test_executescript()
     Dim Driver As WebDriver, webelem As WebElement
     
     Set Driver = New WebDriver
