@@ -112,7 +112,7 @@ Private CMD_W3C_DISMISS_ALERT
 Private CMD_W3C_ACCEPT_ALERT
 Private CMD_W3C_SET_ALERT_VALUE
 Private CMD_W3C_GET_ALERT_TEXT
-Private CMD_CLICK                                    'this clicks (mouse down, mouse release) at current position
+Private CMD_CLICK
 'Private CMD_W3C_ACTIONS                              'used in Action.cls
 'Private CMD_W3C_CLEAR_ACTIONS                        'used in Action.cls
 Private CMD_SET_WINDOW_RECT
