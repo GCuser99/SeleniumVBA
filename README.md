@@ -16,7 +16,7 @@ https://www.w3.org/TR/webdriver/
 
 # Setup
 
-1. Import standard modules and classes from this repository into into Excel VBA
+1. Import class and standard modules from this repository into into Excel VBA
 2. Set the following VBA references:
 
 <img src="https://user-images.githubusercontent.com/26237126/159189311-001ed714-0378-496f-abc7-5f26dfeb054e.png" width="300" height="200">`
