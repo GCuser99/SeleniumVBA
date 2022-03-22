@@ -21,7 +21,7 @@ https://www.w3.org/TR/webdriver/
 
 <img src="https://user-images.githubusercontent.com/26237126/159189311-001ed714-0378-496f-abc7-5f26dfeb054e.png" width="300" height="200">`
 
-3. Or alternatively... download the zipped Excel file seleniumvba_v0.0.1.zip
+3. Or alternatively... download the zipped Excel file seleniumvba_v0.0.2.zip
 4. Download WebDrivers into same directory as the Excel file (each driver should be same major version as corresponding browser)
    
    Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
