@@ -159,7 +159,7 @@ Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 Private Declare Sub Sleep Lib "kernel32" (ByVal millisecond As Long)
 #End If
 
-' GetSystemMetrics              '2021/7/13 add ishi
+'GetSystemMetrics
 Private Const SM_CXSCREEN = 0           'Screen Withd (DPI)
 Private Const SM_CYSCREEN = 1           'Screen Hright (DPI)
 Private Const SM_CMOUSEBUTTONS = 43     'Mouse Bottons
