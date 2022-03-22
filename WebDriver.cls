@@ -117,8 +117,8 @@ Private CMD_W3C_ACCEPT_ALERT
 Private CMD_W3C_SET_ALERT_VALUE
 Private CMD_W3C_GET_ALERT_TEXT
 Private CMD_CLICK
-'Private CMD_W3C_ACTIONS                              'used in Action.cls
-'Private CMD_W3C_CLEAR_ACTIONS                        'used in Action.cls
+'Private CMD_W3C_ACTIONS                              'used in ActionChain.cls
+'Private CMD_W3C_CLEAR_ACTIONS                        'used in ActionChain.cls
 Private CMD_SET_WINDOW_RECT
 Private CMD_GET_WINDOW_RECT
 Private CMD_W3C_MAXIMIZE_WINDOW
@@ -683,8 +683,8 @@ Private Sub InitCommands()
     CMD_W3C_SET_ALERT_VALUE = Array("POST", "/session/$sessionId/alert/text")
     CMD_W3C_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
     CMD_CLICK = Array("POST", "/session/$sessionId/click")
-    'CMD_W3C_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in Action.cls
-    'CMD_W3C_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in Action.cls
+    'CMD_W3C_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in ActionChain.cls
+    'CMD_W3C_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in ActionChain.cls
     CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
     CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
     CMD_W3C_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
