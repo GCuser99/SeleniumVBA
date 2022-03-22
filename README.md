@@ -44,7 +44,6 @@ Sub Main()
     Driver.Wait 1000
     
     Driver.FindElement(by.name, "q").SendKeys "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
-
     Driver.Wait 2000
     
     Driver.CloseBrowser
