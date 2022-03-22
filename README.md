@@ -1,6 +1,6 @@
 # SeleniumVBA
 
-A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+A Selenium wrapper for Edge and Chrome written in Windows Excel VBA based on JSon wire protocol.
 
 Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 
