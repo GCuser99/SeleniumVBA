@@ -37,7 +37,7 @@ Sub test_action_chain()
     'an alternative method to Drag and Drop
     actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton.Wait (1000)
     actions.Perform 'do all the actions defined above
-    
+  
     driver.CloseBrowser
     driver.Shutdown
     
