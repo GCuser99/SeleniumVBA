@@ -30,7 +30,7 @@ https://www.w3.org/TR/webdriver/
 
 5. Or alternatively... let WebDriverManager class download and install drivers automatically (you will be prompted when you instantiate the WebDriver)
 
-# Usage
+# Example Usage
 
 ```vb
 Sub Main()
