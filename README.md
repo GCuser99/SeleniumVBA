@@ -19,7 +19,7 @@ https://www.w3.org/TR/webdriver/
 1. Import class and standard modules from this repository into into Excel VBA
 2. Set the following VBA references:
 
-<img src="https://user-images.githubusercontent.com/26237126/159189311-001ed714-0378-496f-abc7-5f26dfeb054e.png" width="300" height="200">`
+<img src="https://github.com/GCuser99/SeleniumVBA/blob/main/references.png" width="300" height="200">`
 
 3. Or alternatively... download the zipped Excel file seleniumvba_vx.x.x.zip - setup and ready to go...
 4. Download WebDrivers into same directory as the Excel file (each driver should be same major version as corresponding browser)
