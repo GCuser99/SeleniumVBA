@@ -127,7 +127,7 @@ Private CMD_SET_LOCATION                             'not wrapped yet
 Private CMD_GET_APP_CACHE_STATUS                     'not wrapped yet
 Private CMD_GET_NETWORK_CONNECTION                   'not wrapped yet
 Private CMD_SET_NETWORK_CONNECTION                   'not wrapped yet
-'Private CMD_GET_LOG                                  'see logging option in Edge and Chrome methods
+'Private CMD_GET_LOG                                  'see logging option in StartEdge and StartChrome methods
 'Private CMD_GET_AVAILABLE_LOG_TYPES                  'see logging option in Edge and Chrome methods
 Private CMD_CURRENT_CONTEXT_HANDLE                   'not wrapped yet
 Private CMD_CONTEXT_HANDLES                          'not wrapped yet
