@@ -128,7 +128,7 @@ Private CMD_GET_APP_CACHE_STATUS                     'not wrapped yet
 Private CMD_GET_NETWORK_CONNECTION                   'not wrapped yet
 Private CMD_SET_NETWORK_CONNECTION                   'not wrapped yet
 'Private CMD_GET_LOG                                  'see logging option in StartEdge and StartChrome methods
-'Private CMD_GET_AVAILABLE_LOG_TYPES                  'see logging option in Edge and Chrome methods
+'Private CMD_GET_AVAILABLE_LOG_TYPES                  'see logging option in StartEdge and StartChrome methods
 Private CMD_CURRENT_CONTEXT_HANDLE                   'not wrapped yet
 Private CMD_CONTEXT_HANDLES                          'not wrapped yet
 Private CMD_SWITCH_TO_CONTEXT                        'not wrapped yet
@@ -1659,8 +1659,8 @@ Private Sub InitCommands()
     CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
     CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
     CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
-    'CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in Edge and Chrome methods
-    'CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in Edge and Chrome methods
+    'CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
+    'CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
     CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
     CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
     CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
