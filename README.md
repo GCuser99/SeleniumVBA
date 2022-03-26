@@ -1,4 +1,4 @@
-# SeleniumVBA v0.0.5
+# SeleniumVBA v0.0.6
 
 A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA based on JSon wire protocol.
 
@@ -37,7 +37,7 @@ Sub Main()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
     
-    driver.Chrome
+    driver.StartChrome
     driver.OpenBrowser
     
     driver.Navigate "https://www.google.com/"
