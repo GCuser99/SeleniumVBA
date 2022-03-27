@@ -58,7 +58,7 @@ Attribute VB_Exposed = True
 'Microsoft Scripting Runtime for Scripting.FileSystemObject,Scripting.Dictionary  CreateObject("Scripting.Dictionary")
 'Microsoft HTML Object Library
 
-Private Const CheckDriverBrowserVersionAlignment = True 'change to True if auto-check-and-update desired
+Private Const CheckDriverBrowserVersionAlignment = False 'change to True if auto-check-and-update desired
 Private sessionId_ As String
 Private urlBase As String
 
