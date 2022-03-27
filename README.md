@@ -40,7 +40,7 @@ Sub Main()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.Navigate "https://www.google.com/"
+    driver.NavigateTo "https://www.google.com/"
     driver.Wait 1000
     
     driver.FindElement(by.name, "q").SendKeys "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
