@@ -10,7 +10,7 @@ Attribute VB_Exposed = True
 Attribute VB_HelpID = 2900
 Attribute VB_Description = "A programmable timer object."
 ' ==========================================================================
-' SeleniumVBA v0.1.0
+' SeleniumVBA v1.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
