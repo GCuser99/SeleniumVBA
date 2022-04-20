@@ -45,7 +45,7 @@ Sub Main()
     
     keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver.FindElement(by.name, "q").SendKeys keyseq
+    driver.FindElement(by.name, "q").SendKeys keySeq
     driver.Wait 2000
     
     driver.CloseBrowser
