@@ -9,7 +9,7 @@ Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 - Edge and Chrome browser support
 - Wrappers for most of Selenium's JSon Wire Protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
-- Optional Browser/WebDriver version alignment via WebDriverManager class (see test_UpdateDriver.bas)
+- Automated Browser/WebDriver version alignment via WebDriverManager class (see test_UpdateDriver.bas)
 - Open spec: Basically this wrapper is just a HTTP client of the Selenium WebDriver server. Learning this wrapper equals to learning WebDriver.
 https://www.w3.org/TR/webdriver/
 
