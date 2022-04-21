@@ -57,6 +57,7 @@ End Sub
 
 ```vb
 Sub updateEdgeDriver()
+    'this checks for compatibility and then conditionally installs based on user response
     Dim mngr As New WebDriverManager
     
     driverPath = ".\msedgedriver.exe"
