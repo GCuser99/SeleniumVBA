@@ -53,6 +53,30 @@ Sub Main()
 End Sub
 ```
 
+# WebDriver/Browser Version Alignment
+
+```vb
+Sub updateEdgeDriver()
+    Dim mngr As New WebDriverManager
+    
+    driverPath = ".\msedgedriver.exe"
+    browserName = "msedge"
+    
+    browserVer = mngr.GetInstalledBrowserVersion(browserName)
+    
+    If Not mngr.IsInstalledDriverCompatible(browserName, , driverPath) Then
+        resp = MsgBox("Edge" & " " & "WebDriver is not compatible with installed browser - would you like to install the compatible WebDriver?", vbYesNo)
+        If resp = vbNo Then Exit Sub
+        driverVerCompat = mngr.GetCompatibleDriverVersion(browserName, browserVer)
+        mngr.DownloadAndInstall browserName, driverVerCompat, driverPath
+    End If
+    
+    driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
+    
+    MsgBox "Edge " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
+End Sub
+```
+
 # Credits
 
 [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/) by Uezo and other contributors to that project
