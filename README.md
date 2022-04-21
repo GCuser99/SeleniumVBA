@@ -57,7 +57,7 @@ End Sub
 
 ```vb
 Sub updateEdgeDriver()
-    'this checks for compatibility and then conditionally installs based on user response
+    'this checks for compatibility and then if not, installs based on user response
     Dim mngr As New WebDriverManager
     
     driverPath = ".\msedgedriver.exe" 'relative paths are supported
@@ -66,8 +66,6 @@ Sub updateEdgeDriver()
     browserVer = mngr.GetInstalledBrowserVersion(browserName)
     
     If Not mngr.IsInstalledDriverCompatible(browserName, , driverPath) Then
-        resp = MsgBox("Edge" & " " & "WebDriver is not compatible with installed browser - would you like to install the compatible WebDriver?", vbYesNo)
-        If resp = vbNo Then Exit Sub
         driverVerCompat = mngr.GetCompatibleDriverVersion(browserName, browserVer)
         mngr.DownloadAndInstall browserName, driverVerCompat, driverPath
     End If
