@@ -33,7 +33,7 @@ https://www.w3.org/TR/webdriver/
 # Example Usage
 
 ```vb
-Sub Main()
+Sub main()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
     
