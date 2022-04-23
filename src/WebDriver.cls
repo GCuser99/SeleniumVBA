@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.0
+' SeleniumVBA v1.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -53,10 +53,9 @@ Attribute VB_Exposed = True
 ' ==========================================================================
 
 'References:
-'Microsoft Script Control 1.0 for 'CreateObject("ScriptControl") MSScriptControl.ScriptControl
-'Microsoft XML, v6.0  for MSXML2.ServerXMLHTTP60, MSXML2.DOMDocument60 'CreateObject("MSXML2.DOMDocument")
-'Microsoft Scripting Runtime for Scripting.FileSystemObject,Scripting.Dictionary  CreateObject("Scripting.Dictionary")
-'Microsoft HTML Object Library
+'Microsoft Script Control 1.0
+'Microsoft XML, v6.0
+'Microsoft Scripting Runtime
 
 'change to True if auto-check-and-update desired
 Private Const checkDriverBrowserVersionAlignment = False
@@ -188,7 +187,8 @@ Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", O
     End If
     
     If checkDriverBrowserVersionAlignment Then
-        If Not AlignDriverAndBrowser(browserName, driverPath) Then End 'execution
+        Dim mngr As New WebDriverManager
+        mngr.AlignDriverAndBrowser browserName, driverPath, True, svbaMajor
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -212,7 +212,8 @@ Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe",
     End If
     
     If checkDriverBrowserVersionAlignment Then
-        If Not AlignDriverAndBrowser(browserName, driverPath) Then End 'execution
+        Dim mngr As New WebDriverManager
+        mngr.AlignDriverAndBrowser browserName, driverPath, True, svbaMajor
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -223,26 +224,6 @@ Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe",
     Start driverPath, localHostPort, serviceArgs
 
 End Sub
-
-Private Function AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String) As Boolean
-    Dim wdmgr As New WebDriverManager
-    
-    driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\msedgedriver.exe"
-    
-    AlignDriverAndBrowser = True
-    
-    If Not wdmgr.IsInstalledDriverCompatible(browserName, , driverPath) Then
-        resp = MsgBox("WebDriver is not compatible with installed browser - would you like to install the compatible WebDriver?", vbYesNo)
-        If resp = vbYes Then
-            bverInstalled = wdmgr.GetInstalledBrowserVersion(browserName)
-            dverCompat = wdmgr.GetCompatibleDriverVersion(browserName, bverInstalled)
-            wdmgr.DownloadAndInstall browserName, dverCompat, driverPath
-        Else
-            AlignDriverAndBrowser = False
-        End If
-    End If
-
-End Function
 
 Private Sub Start(ByVal driverPath As String, ByVal localHostPort As Long, Optional ByVal serviceArgs As String = vbNullString)
     Dim port As String
@@ -259,8 +240,7 @@ Private Sub Start(ByVal driverPath As String, ByVal localHostPort As Long, Optio
     
     ' Start WebDriver executable
     If shell(driverPath & serviceArgs & port, AppWinStyle) = 0 Then
-        MsgBox "Failed in starting WebDriver." & vbCrLf & _
-               "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
+        MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
         End
     End If
     
@@ -271,6 +251,7 @@ End Sub
 
 Public Sub Shutdown()
     'this will shut down all WebDriver instances, not just the one it is being called from
+    'which is can be a good thing if there are multiple "rogue" instances lurking
     Execute CMD_SHUTDOWN
 End Sub
 
@@ -279,7 +260,7 @@ Public Sub OpenBrowser(Optional caps As Capabilities, Optional ByVal invisible A
     
     If sessionId_ <> "" Then
         MsgBox "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this.", , "SeleniumVBA"
-        End
+        End 'execution
     End If
     
     If caps Is Nothing Then
@@ -920,7 +901,7 @@ Private Function ScriptDictToConvertedDict(dict As Variant) As Object
     End If
     Dim ret As New Dictionary
     Dim key
-    For Each key In dict
+    For Each key In dict.keys
         If TypeName(dict(key)) = "Collection" Then
             ret(key) = ScriptCollectionToConvertedArray(dict(key))
         ElseIf TypeName(dict(key)) = "Dictionary" Then
@@ -1473,6 +1454,7 @@ Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRo
 End Function
 
 Public Sub UploadFile(element As WebElement, ByVal filePath As String)
+    'this is just a special wrapper for sendkeys (upload file mode)
     filePath = GetAbsolutePath(filePath)
     SendKeys element, filePath
 End Sub
@@ -1498,7 +1480,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
         parameters.Add "sessionId", sessionId_
     End If
     
-    For Each parmKey In parameters
+    For Each parmKey In parameters.keys
         If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
             Path = Replace(Path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
@@ -1563,8 +1545,6 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
     client.Open method, url
     
     If method = "POST" Or method = "PUT" Then
-        'client.setTimeouts
-        'client.setRequestHeader "Content-Type", "application/json" 'original
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
         client.send jc.ConvertToJson(data)  '
@@ -1576,11 +1556,8 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
         DoEvents
     Loop
 
-    Dim json As Object
-    Set json = jc.ParseJSON(client.responseText)
-    Set SendRequest = json
-    
-    'Debug.Print jc.ConvertToJson(Json, 4) 'this will get browser info
+    Set SendRequest = jc.ParseJSON(client.responseText)
+
 End Function
 
 Private Function params(ParamArray keysAndValues()) As Dictionary
@@ -1672,16 +1649,15 @@ Private Sub InitCommands()
 End Sub
 
 Private Sub Class_Initialize()
-    'baseArrayIdx = LBound(Array())
     InitCommands
     AppWinStyle = vbHide 'hides the command window
 End Sub
 
-Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal Path As String = ".\snippet.html")
-    'this is used to save test snippets to file for subsequent browser navigation
+Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As String = ".\snippet.html")
+    'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject, ts As textstream
-    Path = GetAbsolutePath(Path)
-    Set ts = fs.CreateTextFile(Path, True)
+    filePath = GetAbsolutePath(filePath)
+    Set ts = fs.CreateTextFile(filePath, True)
     ts.Write snippet
     ts.Close
 End Sub

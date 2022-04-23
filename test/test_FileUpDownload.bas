@@ -3,12 +3,11 @@ Sub test_file_upload()
     'see https://www.guru99.com/upload-download-file-selenium-webdriver.html
     Dim driver As New WebDriver, str
     
-    str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
-    
-    filePath = ".\snippet.html"
-    
     driver.StartChrome
     driver.OpenBrowser
+    
+    str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
+    filePath = ".\snippet.html"
     
     driver.SaveHTMLToFile str, filePath
     
@@ -37,13 +36,13 @@ Sub test_file_download()
     'see https://www.browserstack.com/guide/download-file-using-selenium-python
     Dim driver As New WebDriver, caps As Capabilities
     
-    filePath = ".\" 'download to same directory as this excel file
+    dirPath = ".\" 'download to same directory as this excel file
     
     driver.StartChrome
     
     Set caps = driver.CreateCapabilities
 
-    caps.AddPref "download.default_directory", filePath
+    caps.AddPref "download.default_directory", dirPath
     caps.AddPref "download.prompt_for_download", False
     
     'caps.SetDownloadPrefs filepath 'this does the above in one line

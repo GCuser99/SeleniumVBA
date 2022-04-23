@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.0
+' SeleniumVBA v1.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -175,7 +175,7 @@ Friend Function ToDictionary() As Dictionary
     
     data.Add "margin", margins
     data.Add "page", page
-    data.Add "pageRanges", mPageRanges 'one-based Array("1-2", "4-7", 13, "15")
+    data.Add "pageRanges", mPageRanges 'eg. Array("1-2", "4-7", 13, "15")
     data.Add "scale", mPrintScale
     data.Add "shrinkToFit", mShrinkToFit
     

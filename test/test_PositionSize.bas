@@ -2,7 +2,7 @@ Attribute VB_Name = "test_PositionSize"
 Sub test_Position_Size()
     Dim driver As New WebDriver, webElem As WebElement, rect As Dictionary
     
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     url = "https://www.google.com/"

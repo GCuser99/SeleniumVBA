@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.0
+' SeleniumVBA v1.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -43,14 +43,32 @@ Attribute VB_Exposed = True
 'This class was written by GCUser99 for use in Selenium VBA projects to manage webdriver-browser version compatibility
 
 'References:
-'Windows Script Host Model for IWshRuntimeLibrary.WshShell and IWshRuntimeLibrary.FileSystemObject; CreateObject("WScript.Shell")
-'Microsoft ActiveX Data Objects 6.1 Library for ADODB.Stream
-'Microsoft Shell Controls and Automation for Shell32.Shell ;CreateObject("Shell.Application")
-'Microsoft XML, V6.0 for MSXML2.ServerXMLHTTP60
-'Microsoft WMI Scripting V1.2 Library for WbemScripting.SWbemServices; GetObject("winmgmts:"), WbemScripting.SWbemObjectSet
+'Windows Script Host Model
+'Microsoft ActiveX Data Objects 6.1 Library
+'Microsoft Shell Controls and Automation
+'Microsoft XML, V6.0
+'Microsoft WMI Scripting V1.2 Library
 
-Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal compatibilityLevel As Long = 1, Optional ByVal driverPath) As Boolean
-    Dim fso As New IWshRuntimeLibrary.FileSystemObject
+Private mSupressWarnings As Boolean
+
+Public Enum svbaCompatibility
+    svbaNotCompatible = 0
+    svbaMajor = 1
+    svbaMinor = 2
+    svbaBuildMajor = 3
+    svbaBuildMinor = 4
+End Enum
+
+Property Let supressWarnings(ByVal val As Boolean)
+    mSupressWarnings = val
+End Property
+
+Property Get supressWarnings() As Boolean
+    supressWarnings = mSupressWarnings
+End Property
+
+Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal driverPath, Optional ByVal compatibilityLevel As svbaCompatibility = svbaMajor) As Boolean
+    Dim fso As New IWshRuntimeLibrary.FileSystemObject, clevel As svbaCompatibility
     
     browserName = LCase(browserName)
     If IsMissing(driverPath) Then
@@ -60,14 +78,14 @@ Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optiona
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "driver not installed"
+        If Not mSupressWarnings Then MsgBox "driver not installed"
         IsInstalledDriverCompatible = False
         Exit Function
     End If
     
     bverInstalled = Me.GetInstalledBrowserVersion(browserName)
     If bverInstalled = "browser not installed" Then
-        MsgBox "browser not installed"
+        If Not mSupressWarnings Then MsgBox "browser not installed"
         IsInstalledDriverCompatible = False
         Exit Function
     End If
@@ -97,7 +115,7 @@ Public Function GetInstalledDriverVersion(ByVal browserName As String, Optional 
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "driver not installed"
+        If Not mSupressWarnings Then MsgBox "driver not installed"
         GetInstalledDriverVersion = "driver not found"
         Exit Function
     End If
@@ -107,7 +125,7 @@ Public Function GetInstalledDriverVersion(ByVal browserName As String, Optional 
 
 End Function
 
-Public Function CheckCompatibilityLevel(ByVal installedVersion As String, ByVal compatibleVersion As String) As Long
+Public Function CheckCompatibilityLevel(ByVal installedVersion As String, ByVal compatibleVersion As String) As svbaCompatibility
     
     If installedVersion = "driver not found" Then CheckComptibilityLevel = -1: Exit Function
     vermajor1 = Split(installedVersion, ".")(0)
@@ -125,31 +143,31 @@ Public Function CheckCompatibilityLevel(ByVal installedVersion As String, ByVal 
     End If
     
     If vermajor1 <> vermajor2 Then
-        CheckCompatibilityLevel = 0
+        CheckCompatibilityLevel = svbaNotCompatible
         Exit Function
     End If
     
     If verminor1 <> verminor2 Then
-        CheckCompatibilityLevel = 1
+        CheckCompatibilityLevel = svbaMajor
         Exit Function
     End If
     
     If verbuildmajor1 <> verbuildmajor2 Then
-        CheckCompatibilityLevel = 2
+        CheckCompatibilityLevel = svbaMinor
         Exit Function
     End If
     
     If verbuildminor1 <> verbuildminor2 Then
-        CheckCompatibilityLevel = 3
+        CheckCompatibilityLevel = svbaBuildMajor
         Exit Function
     End If
     
-    CheckCompatibilityLevel = 4
+    CheckCompatibilityLevel = svbaBuildMinor
     
 End Function
 
 Public Function GetLatestDriverVersion(ByVal browserName As String) As String
-    'this function is here for completeness, although not sure how to use
+    'this function is here for completeness, although not used
     
     browserName = LCase(browserName)
     
@@ -163,7 +181,11 @@ Public Function GetLatestDriverVersion(ByVal browserName As String) As String
             try = try + 1
             'Debug.Print "try: " & try
             DoEvents
-            If try > 10 Then MsgBox "could not connect to msedgedriver server": GetLatestDriverVersion = False: Exit Function
+            If try > 10 Then
+                If Not mSupressWarnings Then MsgBox "could not connect to msedgedriver server"
+                GetLatestDriverVersion = False
+                Exit Function
+            End If
         Loop Until responseText <> False
         GetLatestDriverVersion = Replace(responseText, vbCrLf, "")
     Case "chrome"
@@ -202,7 +224,11 @@ Public Function GetCompatibleDriverVersion(ByVal browserName As String, ByVal br
                 try = try + 1
                 'Debug.Print "try: " & try
                 DoEvents
-                If try > 10 Then MsgBox "could not connect to msedgedriver server": GetCompatibleDriverVersion = False: Exit Function
+                If try > 10 Then
+                    If Not mSupressWarnings Then MsgBox "could not connect to msedgedriver server"
+                    GetCompatibleDriverVersion = False
+                    Exit Function
+                End If
             Loop Until responseText <> False
             
             GetCompatibleDriverVersion = Replace(responseText, vbCrLf, "")
@@ -228,7 +254,7 @@ Public Function GetCompatibleDriverVersion(ByVal browserName As String, ByVal br
         
         If InStr(GetCompatibleDriverVersion, "Error") = 0 Then Exit Function
         
-        'if exact match failed, then maybe we have a Dev or Canary channelsearch
+        'if exact match failed, then maybe we have a Dev or Canary channel
         'so search for major version match, decrementing by one until success
         vermajorsearch = vermajor
         Do While vermajorsearch >= 70
@@ -247,7 +273,6 @@ End Function
 
 Public Function GetInstalledBrowserVersion(ByVal browserName As String) As String
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
-    'this needs to trap condition where browser isn't installed
     
     browserName = LCase(browserName)
     
@@ -258,7 +283,7 @@ Public Function GetInstalledBrowserVersion(ByVal browserName As String) As Strin
         regkey = "HKEY_CURRENT_USER\Software\Microsoft\Edge\BLBeacon\version"
     End Select
     
-    'this throws error if key doesnt exist - report back to user if browser insnt installed
+    'this throws error if key doesnt exist - report back to user if browser isn't installed
     On Error Resume Next
     resp = wsh.RegRead(regkey)
     If Err.Number <> 0 Then
@@ -269,7 +294,7 @@ Public Function GetInstalledBrowserVersion(ByVal browserName As String) As Strin
     
 End Function
 
-Public Sub DownloadAndInstall(ByVal browserName As String, ByVal driverVersion As String, Optional ByVal driverPath)
+Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVersion As String, Optional ByVal driverPath)
     Dim url As String
     Dim BinaryStream As New ADODB.stream 'deals with binary - FileSystemObject does not
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
@@ -302,8 +327,14 @@ Public Sub DownloadAndInstall(ByVal browserName As String, ByVal driverVersion A
         tmpZipDriverFilename = "chromedriver.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     Case "msedge"
-        url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_win64.zip"
-        tmpInstallZipPath = tmpInstallFolder & "edgedriver_win64.zip"
+        'test for 64 bit vs 32 bit
+        If InStr(Application.OperatingSystem, "64-bit") Then
+            url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_win64.zip"
+            tmpInstallZipPath = tmpInstallFolder & "edgedriver_win64.zip"
+        Else
+            url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_win32.zip"
+            tmpInstallZipPath = tmpInstallFolder & "edgedriver_win32.zip"
+        End If
         tmpZipDriverFilename = "msedgedriver.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     End Select
@@ -322,12 +353,12 @@ Public Sub DownloadAndInstall(ByVal browserName As String, ByVal driverVersion A
 
     shll.Namespace(tmpInstallFolder).CopyHere shll.Namespace(tmpInstallZipPath).Items.Item(tmpZipDriverFilename)
 
-    'check if driver exists and if it does, make sure it isn't in use before we overwrite
+    'check if driver exists and if it does, make sure it isn't in use before overwrite
     If fso.FileExists(driverPath) Then
         If IsProcessRunning(driverFileName) Then TaskKill driverFileName
     End If
 
-    fso.CopyFile tmpInstallDriverpath, driverPath, True   'this works by itself
+    fso.CopyFile tmpInstallDriverpath, driverPath, True
     
     'if created tmp folder, then delete it
     If createdTmpFolder Then
@@ -336,14 +367,22 @@ Public Sub DownloadAndInstall(ByVal browserName As String, ByVal driverVersion A
     
 End Sub
 
+Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String, Optional ByVal supressWarnings As Boolean = False, Optional ByVal compatibilityLevel As svbaCompatibility = svbaMajor)
+    mSupressWarnings = supressWarnings
+    If Not IsInstalledDriverCompatible(browserName, driverPath, compatibilityLevel) Then
+        bverInstalled = GetInstalledBrowserVersion(browserName)
+        dverCompat = GetCompatibleDriverVersion(browserName, bverInstalled)
+        DownloadAndInstallDriver browserName, dverCompat, driverPath
+    End If
+End Sub
+
 Public Function GetSeleniumBasicFolder()
-    'this may be of use if this class is being used for updating drivers for SeleniumBasic
-    GetSeleniumBasicFolder = Environ$("LocalAppData") & "\SeleniumBasic"
+    'this may be of use for updating drivers for SeleniumBasic
+    GetSeleniumBasicFolder = Environ$("LocalAppData") & "\SeleniumBasic\"
 End Function
 
 Public Function GetUserTempFolder()
-    'Should we decide to use this folder - be carefull not to delete!
-    GetUserTempFolder = Environ$("LocalAppData") & "\Temp"
+    GetUserTempFolder = Environ$("LocalAppData") & "\Temp\"
 End Function
 
 Private Function IsProcessRunning(ByVal process As String)
@@ -407,3 +446,7 @@ Private Function GetAbsolutePath(ByVal strPath As String) As String
     ChDrive saveppath
     ChDir saveppath
 End Function
+
+Private Sub Class_Initialize()
+    mSupressWarnings = False
+End Sub

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.0
+' SeleniumVBA v1.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -59,7 +59,7 @@ Attribute VB_Exposed = True
 '
 'NOTES:
 '
-'   I have designed this version to clear actions that are already stored locally and on the remote end
+'   This version clears actions that are already stored locally and on the remote end
 '   after the Perform Method is executed.
 '
 '   Use Keyboard class for advanced SendKeys support
@@ -576,7 +576,7 @@ Public Function SendKeys(ByVal keys As String, Optional element As WebElement) A
     
     j = -1
     For i = 1 To Len(keys)
-        If Mid(keys, i, 4) = "\ue0" Then
+        If Mid(keys, i, 4) = "\ue0" Then 'its a special key
             j = j + 1
             charArray(j) = Mid(keys, i, 6)
             i = i + 5
@@ -661,7 +661,7 @@ Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As 
     End If
 
     ReDim actions(0 To 3)
-    Set actions(0) = ActionKeyDown("\ue009")
+    Set actions(0) = ActionKeyDown("\ue009") 'control key
     Set actions(1) = ActionKeyDown(key)
     Set actions(2) = ActionKeyUp(key)
     Set actions(3) = ActionKeyUp("\ue009")
@@ -694,7 +694,7 @@ Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As
     End If
     
     ReDim actions(0 To 3)
-    Set actions(0) = ActionKeyDown("\ue008")
+    Set actions(0) = ActionKeyDown("\ue008") 'shift key
     Set actions(1) = ActionKeyDown(key)
     Set actions(2) = ActionKeyUp(key)
     Set actions(3) = ActionKeyUp("\ue008")
@@ -778,6 +778,8 @@ Public Sub Perform()
     'or we execute one input channel at a time in the order in which the inputs were added,
     'making multi-calls to CMD_ACTIONS
     
+    'Note for future: Firefox webdriver does not support wheel actions
+    
     If data_.Exists("actions") Then
         
         'multi-call method:
@@ -793,7 +795,6 @@ Public Sub Perform()
         driver_.Execute CMD_ACTIONS, SyncChannels(data_)
         
         'it seems that reset actions should always been done on Perform, but Selenium Python doesn't(?)
-        'comment below if Selenium Python compatibility is important
         
         ResetActions
         
@@ -925,7 +926,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
 
 End Function
 
-'make this public for compatibility with Selenium Python (see Perform method)
+'make this public for compatibility with Selenium Python? (see Perform method)
 Private Sub ResetActions()
     'clears actions that are already stored locally and on the remote end
     driver_.Execute CMD_CLEAR_ACTIONS, data_ 'remote end clear
