@@ -28,7 +28,7 @@ https://www.w3.org/TR/webdriver/
    
    Chrome: https://chromedriver.chromium.org/downloads
 
-5. Or alternatively... let WebDriverManager class download and install drivers automatically (see test_UpdateDriver.bas)
+5. Or alternatively... let WebDriverManager class download and install drivers automatically (see [test_UpdateDriver.bas](https://github.com/GCuser99/SeleniumVBA/tree/main/test))
 
 # Example Usage
 
