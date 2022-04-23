@@ -60,8 +60,8 @@ Sub updateEdgeDriver()
     'this checks for installed driver compatibility and then if not, installs updated driver
     Dim mngr As New WebDriverManager
     
-    browserName = "msedge"
-    driverPath = ".\msedgedriver.exe"
+    browserName = "msedge" 'or "chrome"
+    driverPath = ".\msedgedriver.exe" 'or ".\chromedriver.exe"
     
     mngr.AlignDriverAndBrowser browserName, driverPath
     
