@@ -60,16 +60,12 @@ Sub updateEdgeDriver()
     'this checks for installed driver compatibility and then if not, installs updated driver
     Dim mngr As New WebDriverManager
     
-    driverPath = ".\msedgedriver.exe" 'relative paths are supported
-    browserName = "msedge" 'or "chrome"
+    browserName = "msedge"
+    driverPath = ".\msedgedriver.exe"
+    
+    mngr.AlignDriverAndBrowser browserName, driverPath
     
     browserVer = mngr.GetInstalledBrowserVersion(browserName)
-    
-    If Not mngr.IsInstalledDriverCompatible(browserName, , driverPath) Then
-        driverVerCompat = mngr.GetCompatibleDriverVersion(browserName, browserVer)
-        mngr.DownloadAndInstall browserName, driverVerCompat, driverPath
-    End If
-    
     driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
     
     MsgBox "Edge " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
