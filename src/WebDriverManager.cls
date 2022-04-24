@@ -67,7 +67,7 @@ Property Get supressWarnings() As Boolean
     supressWarnings = mSupressWarnings
 End Property
 
-Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal driverPath, Optional ByVal compatibilityLevel As svbaCompatibility = svbaMajor) As Boolean
+Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal driverPath, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaMajor) As Boolean
     Dim fso As New IWshRuntimeLibrary.FileSystemObject, clevel As svbaCompatibility
     
     browserName = LCase(browserName)
@@ -94,7 +94,7 @@ Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optiona
     dverCompat = Me.GetCompatibleDriverVersion(browserName, bverInstalled)
     clevel = Me.CheckCompatibilityLevel(dverinstalled, dverCompat)
     
-    If clevel < compatibilityLevel Then
+    If clevel < minCompatibilityLevel Then
         IsInstalledDriverCompatible = False
     Else
         IsInstalledDriverCompatible = True
