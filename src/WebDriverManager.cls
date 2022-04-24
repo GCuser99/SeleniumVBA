@@ -367,9 +367,9 @@ Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVer
     
 End Sub
 
-Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String, Optional ByVal supressWarnings As Boolean = False, Optional ByVal compatibilityLevel As svbaCompatibility = svbaMajor)
+Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String, Optional ByVal supressWarnings As Boolean = False, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaMajor)
     mSupressWarnings = supressWarnings
-    If Not IsInstalledDriverCompatible(browserName, driverPath, compatibilityLevel) Then
+    If Not IsInstalledDriverCompatible(browserName, driverPath, minCompatibilityLevel) Then
         bverInstalled = GetInstalledBrowserVersion(browserName)
         dverCompat = GetCompatibleDriverVersion(browserName, bverInstalled)
         DownloadAndInstallDriver browserName, dverCompat, driverPath
