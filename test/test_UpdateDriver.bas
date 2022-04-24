@@ -25,7 +25,7 @@ Attribute VB_Name = "test_UpdateDriver"
 '
 '---------------------------------------------------------------------------------------------------------------
 '
-'Otherwise if to install the WebDrivers manually, then downloaded from:
+'Otherwise if to install the WebDrivers manually, then download from:
 '
 'Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 '
