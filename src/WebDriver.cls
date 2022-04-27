@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.1
+' SeleniumVBA v1.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -188,7 +188,8 @@ Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", O
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
-        mngr.AlignDriverAndBrowser browserName, driverPath, True, svbaMajor
+        mngr.SupressWarnings = True
+        mngr.AlignDriverAndBrowser browserName, driverPath
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -213,7 +214,8 @@ Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe",
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
-        mngr.AlignDriverAndBrowser browserName, driverPath, True, svbaMajor
+        mngr.SupressWarnings = True
+        mngr.AlignDriverAndBrowser browserName, driverPath
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -276,6 +278,16 @@ Public Sub OpenBrowser(Optional caps As Capabilities, Optional ByVal invisible A
     
     sessionId_ = resp("sessionId")
     
+    'here's some more info that can be extracted if needed...
+    'browserName = resp("capabilities")("browserName")
+    'browserVersion = resp("capabilities")("browserVersion")
+    'driverVersion = resp("capabilities")("chrome")("chromedriverVersion")
+    'driverVersion = resp("capabilities")("msedge")("msedgedriverVersion")
+    'userDataDir = resp("capabilities")("chrome")("userDataDir")
+    'userDataDir = resp("capabilities")("msedge")("userDataDir")
+    'DebuggerAddress = resp("capabilities")("goog:chromeOptions")("debuggerAddress")
+    'DebuggerAddress = resp("capabilities")("ms:edgeOptions")("debuggerAddress")
+    
 End Sub
 
 Public Sub CloseBrowser()
@@ -285,7 +297,7 @@ Public Sub CloseBrowser()
 End Sub
 
 Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Optional ByVal raise As Boolean = True) As Boolean
-    Dim data As New Dictionary, resp As Dictionary, savtimeOutms As Integer
+    Dim data As New Dictionary, resp As Dictionary, savTimeOutms As Long
     
     If Left(url, 8) = "file:///" Then
         url = "file:///" & GetAbsolutePath(Mid(url, 9, 99999))
@@ -293,14 +305,14 @@ Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Option
     
     data.Add "url", url
     If Not IsMissing(timeOutms) Then
-        savtimeOutms = GetPageLoadTimeout()
-        If savtimeOutms <> timeOutms Then SetPageLoadTimeout timeOutms
+        savTimeOutms = GetPageLoadTimeout()
+        If savTimeOutms <> timeOutms Then SetPageLoadTimeout timeOutms
     End If
     
     Set resp = Execute(CMD_GET, data, raise)
 
     If Not IsMissing(timeOutms) Then
-        If savtimeOutms <> timeOutms Then SetPageLoadTimeout savtimeOutms
+        If savTimeOutms <> timeOutms Then SetPageLoadTimeout savTimeOutms
     End If
     
     If IsResponseError(resp) Then
@@ -1131,17 +1143,17 @@ Public Sub SetScriptTimeout(Optional ByVal millisecond As Long = 30000)
     Execute CMD_SET_TIMEOUTS, data
 End Sub
 
-Public Function GetImplicitlyWait() As Double
+Public Function GetImplicitlyWait() As Long
     Dim data As New Dictionary
     GetImplicitlyWait = Execute(CMD_GET_TIMEOUTS, data)("value")("implicit")
 End Function
 
-Public Function GetPageLoadTimeout() As Double
+Public Function GetPageLoadTimeout() As Long
     Dim data As New Dictionary
     GetPageLoadTimeout = Execute(CMD_GET_TIMEOUTS, data)("value")("pageLoad")
 End Function
 
-Public Function GetScriptTimeout() As Double
+Public Function GetScriptTimeout() As Long
     Dim data As New Dictionary
     GetScriptTimeout = Execute(CMD_GET_TIMEOUTS, data)("value")("script")
 End Function
@@ -1162,7 +1174,7 @@ Public Sub Wait(Optional ByVal milliseconds As Long = 300)
 End Sub
 
 Public Function IsPresent(by_ As by, ByVal Value As String) As Boolean
-    Dim timeout As Double, resp As Dictionary, data As Dictionary
+    Dim timeout As Long, resp As Dictionary, data As Dictionary
     
     timeout = GetImplicitlyWait()
     If timeout <> 0 Then SetImplicitlyWait 0
@@ -1463,6 +1475,14 @@ Public Sub DragAndDrop(source As WebElement, target As WebElement)
     ActionChain().DragAndDrop(source, target).Perform
 End Sub
 
+Public Function GetUserAgent() As String
+    If sessionId_ <> "" Then
+        GetUserAgent = ExecuteScript("return navigator.userAgent;")
+    Else
+        Debug.Print "GetUserAgent must be executed after OpenBrowser!"
+    End If
+End Function
+
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
     Dim method As String, Path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
@@ -1543,6 +1563,8 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
     Set client = New MSXML2.ServerXMLHTTP60
 
     client.Open method, url
+    
+    client.setTimeouts 0, 0, 0, 0
     
     If method = "POST" Or method = "PUT" Then
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
@@ -1662,7 +1684,7 @@ Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As St
     ts.Close
 End Sub
 
-Private Sub TimerWait(ByVal durationMS As Integer)
+Private Sub TimerWait(ByVal durationMS As Long)
     'pause in milliseconds
     Dim startTime As Single, endTime As Single, nowTime As Single, elapsedTime As Single
     startTime = VBA.timer()
