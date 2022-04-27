@@ -72,6 +72,35 @@ Sub updateEdgeDriver()
 End Sub
 ```
 
+# Action Chain Example
+```vb
+Sub main()
+    Dim driver As New WebDriver
+    Dim keys As New Keyboard
+    Dim actions As ActionChain
+    Dim elemSearch As WebElement
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://www.google.com/"
+    driver.Wait 1000
+    
+    Set elemSearch = driver.FindElement(by.name, "btnK")
+    
+    Set actions = driver.ActionChain
+    
+    'build the chain and then execute with Perform method
+    actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
+    actions.Wait(500).MoveToElement(elemSearch).Click().Perform
+
+    driver.Wait 2000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+```
+
 # Credits
 
 [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/) by Uezo and other contributors to that project
