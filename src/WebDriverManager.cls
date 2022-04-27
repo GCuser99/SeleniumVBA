@@ -494,7 +494,7 @@ Private Function GetAbsolutePath(ByVal strPath As String) As String
     ChDir saveppath
 End Function
 
-Private Sub Class_Initialize()
+                                                                    Private Sub Class_Initialize()
     mSupressWarnings = False
     mMinCompatibilityLevel = svbaMajor
 End Sub
