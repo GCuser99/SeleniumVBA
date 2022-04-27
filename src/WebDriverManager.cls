@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.1
+' SeleniumVBA v1.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -38,18 +38,58 @@ Attribute VB_Exposed = True
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
-
-
-'This class was written by GCUser99 for use in Selenium VBA projects to manage webdriver-browser version compatibility
-
-'References:
-'Windows Script Host Model
-'Microsoft ActiveX Data Objects 6.1 Library
-'Microsoft Shell Controls and Automation
-'Microsoft XML, V6.0
-'Microsoft WMI Scripting V1.2 Library
+'
+'DESCRIPTION:
+'
+'    This class was written for use in Selenium VBA projects to manage webdriver-browser
+'    version compatibility.
+'
+'USAGE(S):
+'
+'    Method-Easy: Specify browser name ["chrome","msedge"], and associated driver path inputs to the
+'    AlignDriverBrowser method, which will check if driver is installed and if version-compatible with browser, and
+'    then if not, will download and install a compatible updated driver. The method can run in stealth mode.
+'
+'    Dim mngr As New WebDriverManager
+'    mngr.AlignDriverAndBrowser "msedge", ".\msedgedriver.exe"
+'
+'    Method-Less-Easy: Possibility to control with more granularity, as in the following perturbation...
+'
+'    Dim mngr As New WebDriverManager
+'    driverPath = ".\chromedriver.exe"
+'    browserName = "chrome"
+'    If Not mngr.IsInstalledDriverCompatible(browserName, driverPath) Then
+'        resp = MsgBox("WebDriver is not compatible with installed browser - would you like to install the compatible WebDriver?", vbYesNo)
+'        If resp = vbYes Then
+'            bverInstalled = mngr.GetInstalledBrowserVersion(browserName)
+'            dverCompat = mngr.GetCompatibleDriverVersion(browserName, bverInstalled)
+'            mngr.DownloadAndInstallDriver browserName, dverCompat, driverPath
+'            MsgBox "Chrome" & " " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & bverInstalled & vbCrLf & "Driver version:    " & dverCompat, , "SeleniumVBA"
+'        End If
+'    Else
+'        MsgBox "Chrome " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & wdmgr.GetInstalledBrowserVersion(browserName) & vbCrLf & "Driver version:    " & wdmgr.GetInstalledDriverVersion(browserName), , "SeleniumVBA"
+'    End If
+'
+'NOTES:
+'
+'   Relative driver paths are supported (e.g. ".\msedgedriver.exe").
+'   User warnings such as "Driver Not Installed" can be suppressed by setting SupressWarnings property = True
+'   Different levels of version compatibility can be specified [svbaMajor, svbaMinor, svbaBuildMajor, svbaBuildMinor]
+'   For example the default is set to svbaMajor, meaning that only the major version numbers to the left of the first
+'   period need to match to deem the browser and driver are compatible. In fact this seems to be the consensus on
+'   coding sites but just in case that is not always the case, this has been designed to accomodate a more stringent
+'   test if needed.
+'
+'REFERENCES:
+'
+'   Windows Script Host Model
+'   Microsoft ActiveX Data Objects 6.1 Library
+'   Microsoft Shell Controls and Automation
+'   Microsoft XML, V6.0
+'   Microsoft WMI Scripting V1.2 Library
 
 Private mSupressWarnings As Boolean
+Private mMinCompatibilityLevel As svbaCompatibility
 
 Public Enum svbaCompatibility
     svbaNotCompatible = 0
@@ -59,15 +99,23 @@ Public Enum svbaCompatibility
     svbaBuildMinor = 4
 End Enum
 
-Property Let supressWarnings(ByVal val As Boolean)
+Property Let SupressWarnings(ByVal val As Boolean)
     mSupressWarnings = val
 End Property
 
-Property Get supressWarnings() As Boolean
-    supressWarnings = mSupressWarnings
+Property Get SupressWarnings() As Boolean
+    SupressWarnings = mSupressWarnings
 End Property
 
-Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal driverPath, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaMajor) As Boolean
+Property Let MinCompatibilityLevel(ByVal val As svbaCompatibility)
+    mMinCompatibilityLevel = val
+End Property
+
+Property Get MinCompatibilityLevel() As svbaCompatibility
+    MinCompatibilityLevel = mMinCompatibilityLevel
+End Property
+
+Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal driverPath) As Boolean
     Dim fso As New IWshRuntimeLibrary.FileSystemObject, clevel As svbaCompatibility
     
     browserName = LCase(browserName)
@@ -94,10 +142,10 @@ Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optiona
     dverCompat = Me.GetCompatibleDriverVersion(browserName, bverInstalled)
     clevel = Me.CheckCompatibilityLevel(dverinstalled, dverCompat)
     
-    If clevel < minCompatibilityLevel Then
-        IsInstalledDriverCompatible = False
-    Else
+    If clevel >= mMinCompatibilityLevel Then
         IsInstalledDriverCompatible = True
+    Else
+        IsInstalledDriverCompatible = False
     End If
 
 End Function
@@ -105,7 +153,7 @@ End Function
 Public Function GetInstalledDriverVersion(ByVal browserName As String, Optional ByVal driverPath) As String
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
-
+    
     browserName = LCase(browserName)
 
     If IsMissing(driverPath) Then
@@ -367,9 +415,9 @@ Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVer
     
 End Sub
 
-Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String, Optional ByVal supressWarnings As Boolean = False, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaMajor)
-    mSupressWarnings = supressWarnings
-    If Not IsInstalledDriverCompatible(browserName, driverPath, minCompatibilityLevel) Then
+Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String)
+    mSupressWarnings = SupressWarnings
+    If Not IsInstalledDriverCompatible(browserName, driverPath) Then
         bverInstalled = GetInstalledBrowserVersion(browserName)
         dverCompat = GetCompatibleDriverVersion(browserName, bverInstalled)
         DownloadAndInstallDriver browserName, dverCompat, driverPath
@@ -397,7 +445,6 @@ Private Function IsProcessRunning(ByVal process As String)
     Else
         IsProcessRunning = False
     End If
-
 End Function
 
 Private Function TaskKill(ByVal taskName As String)
@@ -449,4 +496,5 @@ End Function
 
 Private Sub Class_Initialize()
     mSupressWarnings = False
+    mMinCompatibilityLevel = svbaMajor
 End Sub
