@@ -1,4 +1,4 @@
-# SeleniumVBA v1.1
+# SeleniumVBA v1.2
 
 A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA based on JSon wire protocol.
 
