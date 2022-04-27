@@ -51,7 +51,7 @@ Attribute VB_Exposed = True
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
-
+'
 'References:
 'Microsoft Script Control 1.0
 'Microsoft XML, v6.0
