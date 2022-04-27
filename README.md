@@ -1,10 +1,10 @@
-# SeleniumVBA v1.2
+## SeleniumVBA v1.2
 
 A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA based on JSon wire protocol.
 
 Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 
-# Features
+## Features
 
 - Edge and Chrome browser support
 - Wrappers for most of Selenium's JSon Wire Protocol
@@ -14,7 +14,7 @@ Modified/extended from https://github.com/uezo/TinySeleniumVBA/
 https://www.w3.org/TR/webdriver/
 
 
-# Setup
+## Setup
 
 1. Import class and standard modules from this repository into into Excel VBA
 2. Set the following VBA references:
@@ -30,7 +30,7 @@ https://www.w3.org/TR/webdriver/
 
 5. Or alternatively... let WebDriverManager class download and install drivers automatically (see [test_UpdateDriver.bas](https://github.com/GCuser99/SeleniumVBA/tree/main/test))
 
-# Example Usage
+## Example Usage
 
 ```vb
 Sub main()
@@ -53,7 +53,7 @@ Sub main()
 End Sub
 ```
 
-# WebDriver/Browser Version Alignment
+## WebDriver/Browser Version Alignment
 
 ```vb
 Sub updateEdgeDriver()
@@ -72,7 +72,7 @@ Sub updateEdgeDriver()
 End Sub
 ```
 
-# Action Chain Example
+## Action Chain Example
 ```vb
 Sub main()
     Dim driver As New WebDriver
@@ -101,7 +101,7 @@ Sub main()
 End Sub
 ```
 
-# Credits
+## Credits
 
 [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/) by Uezo and other contributors to that project
 
