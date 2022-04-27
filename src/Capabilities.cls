@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.1
+' SeleniumVBA v1.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -197,9 +197,14 @@ Public Sub AddArgument(ByVal argument As String)
     args = arguments
 End Sub
 
-Public Sub SetArguments(ByVal Value As String, Optional ByVal delimiter As String = " ")
-    SetOption "args", Split(Value, delimiter)
+Public Sub SetArguments(ByVal val As String, Optional ByVal delimiter As String = " ")
+    SetOption "args", Split(val, delimiter)
 End Sub
+
+Public Property Let SetUserAgent(ByVal val As String)
+    If Left(val, 13) <> "--user-agent=" Then val = "--user-agent=" & val
+    AddArgument val
+End Property
 
 ' Helper method to add prefs
 Public Sub AddPref(ByVal key As String, ByVal Value As String)

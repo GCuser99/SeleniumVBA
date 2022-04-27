@@ -54,7 +54,7 @@ Sub test_screenshot()
     
 End Sub
 
-Sub test_screenshot2()
+Sub test_element_screenshot()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
     Dim caps As Capabilities

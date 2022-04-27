@@ -31,8 +31,8 @@ Attribute VB_Name = "test_UpdateDriver"
 '
 'Chrome: https://chromedriver.chromium.org/downloads
 '
-'Be sure to install drivers with the same major version as corresponding browser.
-'Place the driver(s) in the same directory as where this Excel file resides.
+'Be sure to install drivers with the same major version (number to left of first period)
+'as corresponding browser. Place the driver(s) in the same directory as where this Excel file resides.
 '
 '---------------------------------------------------------------------------------------------------------------
 
