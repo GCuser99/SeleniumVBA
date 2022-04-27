@@ -51,7 +51,7 @@ Attribute VB_Exposed = True
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
-
+'
 ' Spec for capabilities:
 ' - Chrome: https://chromedriver.chromium.org/capabilities
 ' - Edge: https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options
