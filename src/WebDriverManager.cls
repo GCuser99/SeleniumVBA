@@ -115,6 +115,15 @@ Property Get MinCompatibilityLevel() As svbaCompatibility
     MinCompatibilityLevel = mMinCompatibilityLevel
 End Property
 
+'this one does it all
+Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String)
+    If Not IsInstalledDriverCompatible(browserName, driverPath) Then
+        bverInstalled = GetInstalledBrowserVersion(browserName)
+        dverCompat = GetCompatibleDriverVersion(browserName, bverInstalled)
+        DownloadAndInstallDriver browserName, dverCompat, driverPath
+    End If
+End Sub
+
 Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optional ByVal driverPath) As Boolean
     Dim fso As New IWshRuntimeLibrary.FileSystemObject, clevel As svbaCompatibility
     
@@ -216,7 +225,6 @@ End Function
 
 Public Function GetLatestDriverVersion(ByVal browserName As String) As String
     'this function is here for completeness, although not used
-    
     browserName = LCase(browserName)
     
     Select Case browserName
@@ -415,15 +423,6 @@ Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVer
     
 End Sub
 
-Public Sub AlignDriverAndBrowser(ByVal browserName As String, ByVal driverPath As String)
-    mSupressWarnings = SupressWarnings
-    If Not IsInstalledDriverCompatible(browserName, driverPath) Then
-        bverInstalled = GetInstalledBrowserVersion(browserName)
-        dverCompat = GetCompatibleDriverVersion(browserName, bverInstalled)
-        DownloadAndInstallDriver browserName, dverCompat, driverPath
-    End If
-End Sub
-
 Public Function GetSeleniumBasicFolder()
     'this may be of use for updating drivers for SeleniumBasic
     GetSeleniumBasicFolder = Environ$("LocalAppData") & "\SeleniumBasic\"
@@ -494,7 +493,7 @@ Private Function GetAbsolutePath(ByVal strPath As String) As String
     ChDir saveppath
 End Function
 
-                                                                    Private Sub Class_Initialize()
+Private Sub Class_Initialize()
     mSupressWarnings = False
     mMinCompatibilityLevel = svbaMajor
 End Sub
