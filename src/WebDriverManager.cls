@@ -87,7 +87,7 @@ Attribute VB_Exposed = True
 '   Microsoft Shell Controls and Automation
 '   Microsoft XML, V6.0
 '   Microsoft WMI Scripting V1.2 Library
-
+'
 Private mSupressWarnings As Boolean
 Private mMinCompatibilityLevel As svbaCompatibility
 
