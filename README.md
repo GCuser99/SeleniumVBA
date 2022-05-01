@@ -33,7 +33,7 @@ https://www.w3.org/TR/webdriver/
 ## SendKeys Example
 
 ```vb
-Sub main()
+Sub doSendKeys()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
     
@@ -74,7 +74,7 @@ End Sub
 
 ## Action Chain Example
 ```vb
-Sub main()
+Sub doActionChain()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
     Dim actions As ActionChain
