@@ -92,7 +92,7 @@ Sub doActionChain()
     
     'build the chain and then execute with Perform method
     actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
-    actions.Wait(500).MoveToElement(elemSearch).Click().Perform
+    actions.MoveToElement(elemSearch).Click().Perform
 
     driver.Wait 2000
     
