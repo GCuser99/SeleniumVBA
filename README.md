@@ -2,7 +2,7 @@
 
 A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA.
 
-Modified/extended from https://github.com/uezo/TinySeleniumVBA/
+Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
 ## Features
 
