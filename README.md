@@ -9,7 +9,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 - Edge and Chrome browser support
 - Wrappers for most of Selenium's JSon Wire Protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
-- Automated Browser/WebDriver version alignment via WebDriverManager class (see test_UpdateDriver.bas)
+- Automated Browser/WebDriver version alignment via WebDriverManager class (see [test_UpdateDriver.bas](https://github.com/GCuser99/SeleniumVBA/tree/main/test))
 - Open spec: This wrapper is an HTTP client of the Selenium WebDriver server, conforming to [W3C standards](https://www.w3.org/TR/webdriver/).
 
 
@@ -90,7 +90,7 @@ Sub doActionChain()
     Set actions = driver.ActionChain
     
     'build the chain and then execute with Perform method
-    actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
+    actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp(keys.ShiftKey)
     actions.MoveToElement(elemSearch).Click().Perform
 
     driver.Wait 2000
