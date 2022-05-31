@@ -1,4 +1,4 @@
-## SeleniumVBA v1.2
+## SeleniumVBA v1.3
 
 A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA.
 
@@ -20,7 +20,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 
 <img src="https://github.com/GCuser99/SeleniumVBA/blob/main/src/references.png" width="300" height="200">`
 
-3. Or alternatively... download the zipped Excel file [seleniumvba_v1.2.zip](https://github.com/GCuser99/SeleniumVBA/tree/main/dist/) - it's ready to go...
+3. Or alternatively... download the zipped Excel file [seleniumvba_v1.3.zip](https://github.com/GCuser99/SeleniumVBA/tree/main/dist/) - it's ready to go...
 4. Download WebDrivers into same directory as the Excel file (each driver should be same major version as corresponding browser)
    
    Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
