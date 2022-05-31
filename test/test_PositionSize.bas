@@ -32,5 +32,4 @@ Sub test_Position_Size()
 
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub

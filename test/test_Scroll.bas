@@ -2,9 +2,9 @@ Attribute VB_Name = "test_Scroll"
 Sub test_scroll_ops()
     'see https://www.guru99.com/scroll-up-down-selenium-webdriver.html
     'for more info and tutorials see https://www.guru99.com/selenium-tutorial.html
-    Dim driver As WebDriver, webElem As WebElement
+    Dim driver As New WebDriver
+    Dim webElem As WebElement
     
-    Set driver = New WebDriver
     driver.StartChrome
     driver.OpenBrowser
 
@@ -44,5 +44,4 @@ Sub test_scroll_ops()
     
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub

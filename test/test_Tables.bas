@@ -81,5 +81,4 @@ Sub test_table()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub

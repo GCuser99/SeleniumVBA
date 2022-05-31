@@ -12,21 +12,21 @@ Sub test_select()
     Set fruits = driver.FindElement(by.ID, "fruits")
     
     fruits.SelectByVisibleText "Banana"
-    driver.Wait 500
+    driver.Wait
     fruits.SelectByIndex 2 'Apple
-    driver.Wait 500
+    driver.Wait
     fruits.SelectByValue "orange"
-    driver.Wait 500
+    driver.Wait
     fruits.DeSelectAll
-    driver.Wait 500
+    driver.Wait
     fruits.SelectAll
-    driver.Wait 500
+    driver.Wait
     fruits.DeSelectByVisibleText "Banana"
-    driver.Wait 500
+    driver.Wait
     fruits.DeSelectByIndex 2 'Apple
-    driver.Wait 500
+    driver.Wait
     fruits.DeSelectByValue "orange"
-    driver.Wait 500
+    driver.Wait
     
     Debug.Print fruits.GetAllSelectedOptionsText()(1) 'Grape
 

@@ -38,7 +38,6 @@ Sub test_windows1()
 
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
 
 Sub test_windows2()
@@ -74,7 +73,7 @@ Sub test_windows2()
     driver.SwitchToWindow mainWindow
     
     driver.Wait 2000
+    
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub

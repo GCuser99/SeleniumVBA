@@ -5,7 +5,6 @@ Sub test_cookies()
     Dim driver As New WebDriver, cks As New Cookies
 
     driver.StartChrome
-
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
@@ -30,9 +29,9 @@ Sub test_cookies()
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 500
+    
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
 
 Sub test_cookies2()
@@ -40,7 +39,6 @@ Sub test_cookies2()
     Dim driver As New WebDriver, cks As Cookies, ck As Cookie
 
     driver.StartChrome
-
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
@@ -69,9 +67,9 @@ Sub test_cookies2()
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 500
+    
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
 
 Sub test_cookies3()
@@ -79,7 +77,6 @@ Sub test_cookies3()
     Dim driver As New WebDriver, cks As New Cookies, ck As Cookie
     
     driver.StartChrome
-
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
@@ -114,7 +111,7 @@ Sub test_cookies3()
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 500
+    
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub

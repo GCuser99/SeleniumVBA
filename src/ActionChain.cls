@@ -39,6 +39,7 @@ Attribute VB_Exposed = True
 ' SOFTWARE.
 ' ==========================================================================
 '
+'DESCRIPTION:
 '
 'This class was written to emulate Selenium Webdriver ActionChains
 '
@@ -88,6 +89,7 @@ Attribute VB_Exposed = True
 'SendKeys               Sends keys to current focused element (see Keyboard class for special keys support)
 'ShiftKey               Sends a Shift-[Key] sequence to focused element
 'Wait                   Pause all inputs for the specified duration in milliseconds
+'
 
 Private Const DEFAULT_PAUSE_DURATION = 300
 Private driver_ As WebDriver
@@ -122,13 +124,15 @@ Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolea
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     If SetFocus Then 'add click after move
-        ReDim actions(0 To 2)
+        ReDim actions(0 To 3)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPointerUp
+        Set actions(3) = ActionPause
     Else
         ReDim actions(0 To 0)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        'ActionPointerMove already has pause built in
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -159,14 +163,18 @@ Public Function Click(Optional element As WebElement) As ActionChain
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     If element Is Nothing Then
-        ReDim actions(0 To 1)
+        ReDim actions(0 To 3)
         Set actions(0) = ActionPointerDown
         Set actions(1) = ActionPointerUp
+        Set actions(2) = ActionPause
+        Set actions(3) = ActionPause
     Else
-        ReDim actions(0 To 2)
+        ReDim actions(0 To 4)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPointerUp
+        Set actions(3) = ActionPause
+        Set actions(4) = ActionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -197,12 +205,14 @@ Public Function ClickAndHold(Optional element As WebElement) As ActionChain
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     If element Is Nothing Then
-        ReDim actions(0 To 0)
-        Set actions(0) = ActionPointerDown
-    Else
         ReDim actions(0 To 1)
+        Set actions(0) = ActionPointerDown
+        Set actions(1) = ActionPause
+    Else
+        ReDim actions(0 To 2)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
         Set actions(1) = ActionPointerDown
+        Set actions(2) = ActionPause
     End If
         
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -233,14 +243,18 @@ Public Function ClickContext(Optional element As WebElement) As ActionChain
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     If element Is Nothing Then
-        ReDim actions(0 To 1)
+        ReDim actions(0 To 3)
         Set actions(0) = ActionPointerDown(rightButton)
         Set actions(1) = ActionPointerUp(rightButton)
+        Set actions(2) = ActionPause
+        Set actions(3) = ActionPause
     Else
-        ReDim actions(0 To 2)
+        ReDim actions(0 To 4)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
         Set actions(1) = ActionPointerDown(rightButton)
         Set actions(2) = ActionPointerUp(rightButton)
+        Set actions(3) = ActionPause
+        Set actions(4) = ActionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -271,18 +285,22 @@ Public Function DoubleClick(Optional element As WebElement) As ActionChain
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     If element Is Nothing Then
-        ReDim actions(0 To 3)
+        ReDim actions(0 To 5)
         Set actions(0) = ActionPointerDown
         Set actions(1) = ActionPointerUp
         Set actions(2) = ActionPointerDown
         Set actions(3) = ActionPointerUp
+        Set actions(4) = ActionPause
+        Set actions(5) = ActionPause
     Else
-        ReDim actions(0 To 4)
+        ReDim actions(0 To 6)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPointerUp
         Set actions(3) = ActionPointerDown
         Set actions(4) = ActionPointerUp
+        Set actions(5) = ActionPause
+        Set actions(6) = ActionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -313,12 +331,14 @@ Public Function ReleaseButton(Optional element As WebElement) As ActionChain
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     If element Is Nothing Then
-        ReDim actions(0 To 0)
-        Set actions(0) = ActionPointerUp
-    Else
         ReDim actions(0 To 1)
+        Set actions(0) = ActionPointerUp
+        Set actions(1) = ActionPause
+    Else
+        ReDim actions(0 To 2)
         Set actions(0) = ActionPointerMove(, , , , , element.elementId)
         Set actions(1) = ActionPointerUp
+        Set actions(2) = ActionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -348,11 +368,12 @@ Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebEle
     
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
-    ReDim actions(0 To 3)
+    ReDim actions(0 To 4)
     Set actions(0) = ActionPointerMove(, , , , , sourceElement.elementId)
     Set actions(1) = ActionPointerDown
     Set actions(2) = ActionPointerMove(, , , , , targetElement.elementId)
     Set actions(3) = ActionPointerUp
+    Set actions(4) = ActionPause
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -381,11 +402,12 @@ Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long
     
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
-    ReDim actions(0 To 3)
+    ReDim actions(0 To 4)
     Set actions(0) = ActionPointerMove(, , , , , element.elementId)
     Set actions(1) = ActionPointerDown
     Set actions(2) = ActionPointerMove(xOffset, yOffset, , , "pointer")
     Set actions(3) = ActionPointerUp
+    Set actions(4) = ActionPause
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -414,11 +436,12 @@ Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, By
     
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
-    ReDim actions(0 To 3)
+    ReDim actions(0 To 4)
     Set actions(0) = ActionPointerMove(, , , , , element.elementId)
     Set actions(1) = ActionPointerDown
     Set actions(2) = ActionPointerMove(x, y, , , "viewport")
     Set actions(3) = ActionPointerUp
+    Set actions(4) = ActionPause
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -448,8 +471,9 @@ Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElem
         Me.Click element  'get focus
     End If
     
-    ReDim actions(0 To 0)
+    ReDim actions(0 To 1)
     Set actions(0) = ActionKeyDown(modifierKey)
+    Set actions(1) = ActionPause
     
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -478,8 +502,9 @@ Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElemen
         Me.Click element  'get focus
     End If
 
-    ReDim actions(0 To 0)
+    ReDim actions(0 To 1)
     Set actions(0) = ActionKeyUp(modifierKey)
+    Set actions(1) = ActionPause
     
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -541,11 +566,13 @@ Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optio
         Set rect = element.GetRect()
         x = rect("x") + xOffset
         y = rect("y") + yOffset
-        ReDim actions(0 To 0)
+        ReDim actions(0 To 1)
         Set actions(0) = ActionPointerMove(x, y)
+        'ActionPointerMove has built in pause
     Else
         ReDim actions(0 To 0)
         Set actions(0) = ActionPointerMove(xOffset, yOffset, , , "pointer")
+        'ActionPointerMove has built in pause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -592,11 +619,13 @@ Public Function SendKeys(ByVal keys As String, Optional element As WebElement) A
         Me.Click element  'get focus
     End If
     
-    ReDim actions(0 To 2 * UBound(charArray) + 1)
+    ReDim actions(0 To 2 * UBound(charArray) + 2)
     For i = 0 To UBound(charArray)
         Set actions(i * 2) = ActionKeyDown(charArray(i))
         Set actions(i * 2 + 1) = ActionKeyUp(charArray(i))
     Next i
+    
+    Set actions(2 * UBound(charArray) + 2) = ActionPause
     
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -625,13 +654,14 @@ Public Function Clear(Optional element As WebElement) As ActionChain
         Me.Click element  'get focus
     End If
     
-    ReDim actions(0 To 5)
+    ReDim actions(0 To 6)
     Set actions(0) = ActionKeyDown("\ue009") 'control key
     Set actions(1) = ActionKeyDown("a")
     Set actions(2) = ActionKeyUp("a")
     Set actions(3) = ActionKeyUp("\ue009")
     Set actions(4) = ActionKeyDown("\ue017") 'delete key
     Set actions(5) = ActionKeyUp("\ue017")
+    Set actions(6) = ActionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -660,11 +690,12 @@ Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As 
         Me.Click element  'get focus
     End If
 
-    ReDim actions(0 To 3)
+    ReDim actions(0 To 4)
     Set actions(0) = ActionKeyDown("\ue009") 'control key
     Set actions(1) = ActionKeyDown(key)
     Set actions(2) = ActionKeyUp(key)
     Set actions(3) = ActionKeyUp("\ue009")
+    Set actions(4) = ActionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -693,11 +724,12 @@ Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As
         Me.Click element  'get focus
     End If
     
-    ReDim actions(0 To 3)
+    ReDim actions(0 To 4)
     Set actions(0) = ActionKeyDown("\ue008") 'shift key
     Set actions(1) = ActionKeyDown(key)
     Set actions(2) = ActionKeyUp(key)
     Set actions(3) = ActionKeyUp("\ue008")
+    Set actions(4) = ActionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -789,7 +821,7 @@ Public Sub Perform()
         '    driver_.Execute CMD_ACTIONS, data_
         'Next i
         
-        '... or synchronize input channels and call Execute once method
+        '... or synchronize input channels and call Execute method once
         'for typical action chains, this is 5-10% faster...
         
         driver_.Execute CMD_ACTIONS, SyncChannels(data_)
@@ -831,7 +863,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     End If
     
     'this is a computationally expensive step so do it once up front!!
-    Set pause = ActionPause(0)
+    Set pause = ActionPause(0) 'dummy pause
     
     'determine in advance the sync'd action array sizes
     numActions = 0
@@ -859,7 +891,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
                 Set mouseActions(numActions - 1) = actionsToAppend(j)
                 Set keyActions(numActions - 1) = pause
                 Set scrollActions(numActions - 1) = pause
-                lastMouseAction = numActions 'last non-pause action
+                lastMouseAction = numActions 'last non-dummy-pause action
             Next j
             hasMouseAction = True
         Case "keyboardDevice"
@@ -868,7 +900,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
                 Set mouseActions(numActions - 1) = pause
                 Set keyActions(numActions - 1) = actionsToAppend(j)
                 Set scrollActions(numActions - 1) = pause
-                lastKeyAction = numActions 'last non-pause action
+                lastKeyAction = numActions 'last non-dummy-pause action
             Next j
             hasKeyAction = True
         Case "wheelDevice"
@@ -877,7 +909,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
                 Set mouseActions(numActions - 1) = pause
                 Set keyActions(numActions - 1) = pause
                 Set scrollActions(numActions - 1) = actionsToAppend(j)
-                lastScrollAction = numActions 'last non-pause action
+                lastScrollAction = numActions 'last non-dummy-pause action
             Next j
             hasScrollAction = True
         End Select
@@ -889,7 +921,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     chanNum = 0
     
     If hasMouseAction Then
-        'if channel has a string of pauses until the end, then we should eliminate these for better performance
+        'if channel has a string of dummy-pauses until the end, then we should eliminate these for better performance
         ReDim Preserve mouseActions(0 To lastMouseAction - 1)
         parameters.Add "pointerType", "mouse" 'required for pointer type
         inputMouseChan.Add "id", "pointerDevice"
@@ -901,7 +933,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     End If
     
     If hasKeyAction Then
-        'if channel has a string of pauses until the end, then we should eliminate these for better performance
+        'if channel has a string of dummy-pauses until the end, then we should eliminate these for better performance
         ReDim Preserve keyActions(0 To lastKeyAction - 1)
         inputKeyChan.Add "id", "keyboardDevice"
         inputKeyChan.Add "type", "key"
@@ -911,7 +943,7 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     End If
     
     If hasScrollAction Then
-        'if channel has a string of pauses until the end, then we should eliminate these for better performance
+        'if channel has a string of dummy-pauses until the end, then we should eliminate these for better performance
         ReDim Preserve scrollActions(0 To lastScrollAction - 1)
         inputScrollChan.Add "id", "wheelDevice"
         inputScrollChan.Add "type", "wheel"

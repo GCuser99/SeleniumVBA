@@ -19,5 +19,5 @@ Sub test_headless()
 
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
+

@@ -77,7 +77,7 @@ Attribute VB_Exposed = True
 '   Different levels of version compatibility can be specified [svbaMajor, svbaMinor, svbaBuildMajor, svbaBuildMinor]
 '   For example the default is set to svbaMajor, meaning that only the major version numbers to the left of the first
 '   period need to match to deem the browser and driver are compatible. In fact this seems to be the consensus on
-'   coding sites but just in case that is not always the case, this has been designed to accomodate a more stringent
+'   coding sites but just in case that is not always the case, this has been designed to accommodate a more stringent
 '   test if needed.
 '
 'REFERENCES:
@@ -87,7 +87,8 @@ Attribute VB_Exposed = True
 '   Microsoft Shell Controls and Automation
 '   Microsoft XML, V6.0
 '   Microsoft WMI Scripting V1.2 Library
-'
+
+
 Private mSupressWarnings As Boolean
 Private mMinCompatibilityLevel As svbaCompatibility
 
@@ -178,6 +179,7 @@ Public Function GetInstalledDriverVersion(ByVal browserName As String, Optional 
     End If
     
     resp = wsh.Exec(Chr(34) & driverPath & Chr(34) & " --version").StdOut.ReadAll
+    
     GetInstalledDriverVersion = Split(resp, " ")(1)
 
 End Function
@@ -497,3 +499,5 @@ Private Sub Class_Initialize()
     mSupressWarnings = False
     mMinCompatibilityLevel = svbaMajor
 End Sub
+
+

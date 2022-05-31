@@ -9,7 +9,6 @@ Sub test_logging()
 
     'True enables verbose logging - default log file found in same directory as WebDriver executable
     driver.StartEdge , , True
-
     driver.OpenBrowser
 
     driver.NavigateTo "https://jsbin.com/osebed/2"

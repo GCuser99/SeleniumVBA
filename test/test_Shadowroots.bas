@@ -31,6 +31,5 @@ Sub test_shadow_roots_clear_browser_history()
     
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
 

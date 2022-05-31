@@ -63,7 +63,7 @@ Public Sub StartIt()
 Attribute StartIt.VB_Description = "Starts the timer."
 Attribute StartIt.VB_HelpID = 2830
     'Store the starting time
-    mStartTime = timer 'timeGetTime
+    mStartTime = Timer 'timeGetTime
     mIsRunning = True
 End Sub
 
@@ -81,7 +81,7 @@ Attribute elapsedTime.VB_HelpID = 1650
     'Return the elapsed time.
     'This is meaningless unless we're running, of course
     If IsRunning Then
-        elapsedTime = (timer - mStartTime)
+        elapsedTime = (Timer - mStartTime)
     Else
         elapsedTime = (mStopTime - mStartTime)
     End If
@@ -112,7 +112,7 @@ Attribute StopIt.VB_HelpID = 2880
     'the start time to 0 (so IsRunning will
     'think you're not currently running)
     If IsRunning Then
-        mStopTime = timer
+        mStopTime = Timer
         StopIt = (mStopTime - mStartTime)
         mIsRunning = False
     Else

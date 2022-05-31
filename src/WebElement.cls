@@ -239,6 +239,10 @@ Public Sub UploadFile(ByVal filePath As String)
     driver_.UploadFile Me, filePath
 End Sub
 
+Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS = 30000) As WebElement
+    Set WaitUntilReady = driver_.WaitUntilReady(Me, maxWaitTimeMS)
+End Function
+
 Private Sub Class_Terminate()
     Set driver_ = Nothing
 End Sub

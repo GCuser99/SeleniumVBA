@@ -9,7 +9,6 @@ Sub test_action_chain()
     Dim elem As WebElement
     
     driver.StartChrome
-    
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
@@ -30,16 +29,43 @@ Sub test_action_chain()
     
     Set actions = driver.ActionChain
     actions.ScrollBy , 500
-    actions.DragAndDrop(from1, to1).Wait
-    actions.DragAndDrop(from2, to2).Wait
-    actions.DragAndDrop(from3, to3).Wait
+    actions.DragAndDrop from1, to1
+    actions.DragAndDrop from2, to2
+    actions.DragAndDrop from3, to3
     'an alternative method to Drag and Drop
-    actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton.Wait (1000)
+    actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton
     actions.Perform 'do all the actions defined above
+    
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
+End Sub
+
+Sub test_action_chain2()
+    Dim driver As New WebDriver
+    Dim keys As New Keyboard
+    Dim actions As ActionChain
+    Dim elemSearch As WebElement
     
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://www.google.com/"
+    driver.Wait 1000
+    
+    Set elemSearch = driver.FindElement(by.name, "btnK")
+    
+    Set actions = driver.ActionChain
+    
+    'build the chain and then execute with Perform method
+    actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
+    actions.MoveToElement(elemSearch).Click().Perform
+
+    driver.Wait 2000
+    
+    driver.CloseBrowser
+    driver.Shutdown
 End Sub
 
 Sub test_drag_and_drop()
@@ -50,7 +76,6 @@ Sub test_drag_and_drop()
     Dim from4 As WebElement, to4 As WebElement
     
     driver.StartChrome
-    
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
@@ -69,18 +94,14 @@ Sub test_drag_and_drop()
     
     driver.ScrollTo , 500
     
-    'WebDriver and WebElement DragAndDrop made from action chains
+    'WebDriver and WebElement DragAndDrop method made from action chains
     from1.DragAndDrop to1
-    driver.Wait 500
     from2.DragAndDrop to2
-    driver.Wait 500
     from3.DragAndDrop to3
-    driver.Wait 500
     from4.DragAndDrop to4
     driver.Wait 2000
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 

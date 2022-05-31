@@ -4,7 +4,6 @@ Sub test_print()
     Dim settings As New PrintSettings
     
     driver.StartChrome
-    
     'must open browser in headless (invisible) mode for PrintToPDF to work
     driver.OpenBrowser , True
     
@@ -23,13 +22,13 @@ Sub test_print()
     'settings.PageRanges 1, 2   'prints the first 2 pages
     settings.PageRanges 2       'prints only the 2nd page
     
+    'prints pdf file to specified filePath parameter (defaults to .\printpage.pdf)
     driver.PrintToPDF , settings
 
     driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 
 Sub test_screenshot()
@@ -39,7 +38,6 @@ Sub test_screenshot()
     Dim params As New Dictionary
     
     driver.StartChrome
-
     driver.OpenBrowser
     
     driver.NavigateTo "https://www.google.com/"
@@ -51,7 +49,6 @@ Sub test_screenshot()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 
 Sub test_element_screenshot()
@@ -61,7 +58,6 @@ Sub test_element_screenshot()
     Dim params As New Dictionary
     
     driver.StartChrome
-
     driver.OpenBrowser
     
     driver.NavigateTo "https://www.google.com/"
@@ -75,5 +71,4 @@ Sub test_element_screenshot()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub

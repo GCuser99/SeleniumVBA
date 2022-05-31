@@ -51,7 +51,7 @@ Attribute VB_Exposed = True
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
-'
+
 'References:
 'Microsoft Script Control 1.0
 'Microsoft XML, v6.0
@@ -1164,7 +1164,8 @@ Public Sub Wait(Optional ByVal milliseconds As Long = 300)
     TimerWait milliseconds
     'Sleep milliseconds 'this works great, but lets try to do without windows api if possible
     '
-    'these native methods below mysteriously interfere with/accept browser alerts - maybe because they are browser-level?
+    'these native methods below mysteriously interfere with/accept browser alerts -
+    'maybe because they are browser-level, not system-level?
     '
     'ActionChain.Wait(milliseconds).Perform
     '
@@ -1472,8 +1473,30 @@ Public Sub UploadFile(element As WebElement, ByVal filePath As String)
 End Sub
 
 Public Sub DragAndDrop(source As WebElement, target As WebElement)
-    ActionChain().DragAndDrop(source, target).Perform
+    ActionChain.DragAndDrop(source, target).Perform
 End Sub
+
+Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS = 30000) As WebElement
+    'waits until element is interactable, returns the input element for further action
+    'such as "Click" on same line
+    'see https://www.w3.org/TR/webdriver/#element-displayedness
+    startTime = VBA.Timer
+    nowTime = startTime
+    endTime = startTime + maxWaitTimeMS / 1000#
+    
+    Do While nowTime < endTime
+        If element.IsDisplayed Then Exit Do
+        nowTime = VBA.Timer()
+        If nowTime < startTime Then 'oops - someone is burning the midnight oil!
+            endTime = endTime - elapsedTime
+            startTime = 0
+        End If
+        elapsedTime = nowTime - startTime
+        DoEvents    'yield to other processes.
+    Loop
+
+    Set WaitUntilReady = element
+End Function
 
 Public Function GetUserAgent() As String
     If sessionId_ <> "" Then
@@ -1512,7 +1535,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(method, driverUrl_ + Path, cmdArgs)
+    Set response = SendRequest(method, driverUrl_ & Path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -1564,7 +1587,8 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
 
     client.Open method, url
     
-    client.setTimeouts 0, 0, 0, 0
+    'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
+    client.setTimeouts 0, 60000, 30000, 0
     
     If method = "POST" Or method = "PUT" Then
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
@@ -1687,10 +1711,11 @@ End Sub
 Private Sub TimerWait(ByVal durationMS As Long)
     'pause in milliseconds
     Dim startTime As Single, endTime As Single, nowTime As Single, elapsedTime As Single
-    startTime = VBA.timer()
+    startTime = VBA.Timer()
+    nowTime = startTime
     endTime = startTime + durationMS / 1000#
     Do While nowTime < endTime
-        nowTime = VBA.timer()
+        nowTime = VBA.Timer()
         If nowTime < startTime Then 'oops - someone is burning the midnight oil!
             endTime = endTime - elapsedTime
             startTime = 0

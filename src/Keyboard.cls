@@ -38,8 +38,10 @@ Attribute VB_Exposed = True
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
-
-'A class to handle special keys for SendKeys and Actions
+'
+'This class was written to handle special keys for SendKeys and Action Chains
+'
+'
 Private mNullKey As String
 Private mCancelKey As String
 Private mHelpKey As String
