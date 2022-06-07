@@ -2,7 +2,7 @@ Attribute VB_Name = "test_Alerts"
 Sub test_Alerts()
     'see https://www.guru99.com/alert-popup-handling-selenium.html
     Dim driver As New WebDriver
-    
+
     driver.StartChrome
     driver.OpenBrowser
 

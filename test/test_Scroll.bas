@@ -4,7 +4,7 @@ Sub test_scroll_ops()
     'for more info and tutorials see https://www.guru99.com/selenium-tutorial.html
     Dim driver As New WebDriver
     Dim webElem As WebElement
-    
+
     driver.StartChrome
     driver.OpenBrowser
 

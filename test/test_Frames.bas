@@ -2,8 +2,8 @@ Attribute VB_Name = "test_Frames"
 Sub test_frames_with_frameset()
     Dim driver As New WebDriver
     Dim elem As WebElement
-    
-    driver.StartEdge
+
+    driver.StartChrome
     driver.OpenBrowser
     
     'save content for top frame
@@ -47,8 +47,8 @@ End Sub
 Sub test_frames_with_embed_objects()
     Dim driver As New WebDriver
     Dim elemObject As WebElement, elemEmbed As WebElement
-    
-    driver.StartChrome
+
+    driver.StartEdge
     driver.OpenBrowser
     
     'save content for top frame
@@ -99,7 +99,7 @@ End Sub
 Sub test_frames_with_iframes()
     Dim driver As New WebDriver
     Dim elem As WebElement
-    
+
     driver.StartChrome
     driver.OpenBrowser
     
@@ -145,8 +145,8 @@ End Sub
 Sub test_frames_with_nested_iframes()
     Dim driver As New WebDriver
     Dim elems As WebElements, elem As WebElement
-    
-    driver.StartChrome
+
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://demoqa.com/nestedframes"
@@ -155,7 +155,7 @@ Sub test_frames_with_nested_iframes()
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
     Debug.Print "Number of frames: " & driver.FindElements(by.tagName, "iframe").Count
     
-    Set elem = driver.FindElementByID("frame1")
+    Set elem = driver.FindElementByID("frame1") 'cant find this element
     
     'switch to top-level (parent) frame
     driver.SwitchToFrame elem

@@ -1,9 +1,8 @@
 Attribute VB_Name = "test_Cookies"
-
 Sub test_cookies()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
     Dim driver As New WebDriver, cks As New Cookies
-
+    
     driver.StartChrome
     driver.OpenBrowser
     
@@ -21,14 +20,14 @@ Sub test_cookies()
     driver.DeleteAllCookies
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
-    driver.Wait 500
+    driver.Wait 1000
     
     'load and set saved cookies from file
     driver.SetCookies cks.LoadFromFile(".\cookies.txt")
 
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
-    driver.Wait 500
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
@@ -38,7 +37,7 @@ Sub test_cookies2()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
     Dim driver As New WebDriver, cks As Cookies, ck As Cookie
 
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
@@ -75,7 +74,7 @@ End Sub
 Sub test_cookies3()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
     Dim driver As New WebDriver, cks As New Cookies, ck As Cookie
-    
+
     driver.StartChrome
     driver.OpenBrowser
     

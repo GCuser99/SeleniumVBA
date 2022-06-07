@@ -1,7 +1,7 @@
 Attribute VB_Name = "test_ExecuteScript"
 Sub test_executescript()
     Dim driver As New WebDriver, webElem As WebElement
-    
+
     driver.StartChrome
     driver.OpenBrowser
 
@@ -14,6 +14,7 @@ Sub test_executescript()
     
     driver.Wait 1000
     driver.MaximizeWindow
+    driver.Wait
     
     'ExecuteScript returns a WebElement object if script results in a WebElement object
     Set webElem = driver.ExecuteScript("return document.getElementById('philadelphia-field-submit')")
@@ -38,7 +39,9 @@ Sub test_executescriptasync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
     Dim driver As New WebDriver, webElem As WebElement, jc As New JSonConverter
     
-    driver.StartChrome
+    driver.CommandWindowStyle = vbNormalFocus
+    
+    driver.StartEdge
     driver.OpenBrowser
     
     url = "https://www.google.com/"

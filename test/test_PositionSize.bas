@@ -1,7 +1,7 @@
 Attribute VB_Name = "test_PositionSize"
-Sub test_Position_Size()
+Sub test_position_size()
     Dim driver As New WebDriver, webElem As WebElement, rect As Dictionary
-    
+
     driver.StartEdge
     driver.OpenBrowser
     

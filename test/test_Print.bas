@@ -2,7 +2,7 @@ Attribute VB_Name = "test_Print"
 Sub test_print()
     Dim driver As New WebDriver
     Dim settings As New PrintSettings
-    
+
     driver.StartChrome
     'must open browser in headless (invisible) mode for PrintToPDF to work
     driver.OpenBrowser , True
@@ -20,7 +20,7 @@ Sub test_print()
     settings.PrintScale = 1
     'settings.PageRanges "1-2"  'prints the first 2 pages
     'settings.PageRanges 1, 2   'prints the first 2 pages
-    settings.PageRanges 2       'prints only the 2nd page
+    'settings.PageRanges 2       'prints only the 2nd page
     
     'prints pdf file to specified filePath parameter (defaults to .\printpage.pdf)
     driver.PrintToPDF , settings
@@ -57,14 +57,14 @@ Sub test_element_screenshot()
     Dim caps As Capabilities
     Dim params As New Dictionary
     
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 1000
     
     driver.FindElement(by.name, "q").SendKeys "This is COOL!" & vbCrLf
-    
+    driver.Wait 1000
     driver.FindElement(by.name, "q").SaveScreenshot
 
     driver.Wait 1000

@@ -2,8 +2,9 @@ Attribute VB_Name = "test_Sendkeys"
 Sub test_sendkeys()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
+
+    driver.StartEdge
     
-    driver.StartChrome
     driver.OpenBrowser
     
     driver.NavigateTo "https://www.google.com/"

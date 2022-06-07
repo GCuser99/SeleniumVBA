@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.3
+' SeleniumVBA v1.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -232,7 +232,7 @@ Public Function ToJson() As String
     ToJson = jc.ConvertToJson(data_, 4)
 End Function
 
-Public Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey As String)
+Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey As String)
     Set data_ = New Dictionary
     data_.Add "browserName", browserName
     data_.Add "alwaysMatch", New Dictionary
@@ -254,10 +254,8 @@ Public Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey A
     Select Case LCase(browserName)
         Case "chrome"
             browserOptionKey = "goog:chromeOptions"
-
         Case "msedge"
             browserOptionKey = "ms:edgeOptions"
-
         Case Else
             browserOptionKey = optionKey
     End Select
@@ -269,12 +267,13 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\
     
     downloadDirectoryPath = GetAbsolutePath(downloadDirectoryPath)
     'these work for both Chrome and Edge
-    
+
     Me.AddPref "download.default_directory", downloadDirectoryPath
     Me.AddPref "download.directory_upgrade", True
     Me.AddPref "download.prompt_for_download", userPrompt 'false disables prompting user for download permission
     Me.AddPref "safebrowsing.enabled", True
     'Me.AddPref "safebrowsing.disable_download_protection", True
+    
 End Sub
 
 Public Sub InitializeForChrome()
@@ -292,8 +291,8 @@ End Sub
 Private Function GetAbsolutePath(ByVal strPath As String) As String
     Dim fso As New FileSystemObject
     saveppath = CurDir()
-    ChDrive ThisWorkbook.Path
-    ChDir ThisWorkbook.Path
+    ChDrive ThisWorkbook.path
+    ChDir ThisWorkbook.path
     GetAbsolutePath = fso.GetAbsolutePathName(strPath)
     ChDrive saveppath
     ChDir saveppath

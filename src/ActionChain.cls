@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.3
+' SeleniumVBA v1.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -109,7 +109,7 @@ Friend Property Set WebDriver(ByRef obj As WebDriver)
     Set driver_ = obj
 End Property
 
-Friend Property Set data(ByRef obj As Dictionary)
+Friend Property Set Data(ByRef obj As Dictionary)
     Set data_ = obj
 End Property
 
@@ -150,7 +150,7 @@ Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolea
     'now set things up for next link in chain
     Set MoveToElement = New ActionChain
     Set MoveToElement.WebDriver = driver_
-    Set MoveToElement.data = data_
+    Set MoveToElement.Data = data_
     
 End Function
 
@@ -192,7 +192,7 @@ Public Function Click(Optional element As WebElement) As ActionChain
     'now set things up for next link in chain
     Set Click = New ActionChain
     Set Click.WebDriver = driver_
-    Set Click.data = data_
+    Set Click.Data = data_
     
 End Function
 
@@ -230,7 +230,7 @@ Public Function ClickAndHold(Optional element As WebElement) As ActionChain
     'now set things up for next link in chain
     Set ClickAndHold = New ActionChain
     Set ClickAndHold.WebDriver = driver_
-    Set ClickAndHold.data = data_
+    Set ClickAndHold.Data = data_
     
 End Function
 
@@ -272,7 +272,7 @@ Public Function ClickContext(Optional element As WebElement) As ActionChain
     'now set things up for next link in chain
     Set ClickContext = New ActionChain
     Set ClickContext.WebDriver = driver_
-    Set ClickContext.data = data_
+    Set ClickContext.Data = data_
     
 End Function
 
@@ -318,7 +318,7 @@ Public Function DoubleClick(Optional element As WebElement) As ActionChain
     'now set things up for next link in chain
     Set DoubleClick = New ActionChain
     Set DoubleClick.WebDriver = driver_
-    Set DoubleClick.data = data_
+    Set DoubleClick.Data = data_
     
 End Function
 
@@ -356,7 +356,7 @@ Public Function ReleaseButton(Optional element As WebElement) As ActionChain
     'now set things up for next link in chain
     Set ReleaseButton = New ActionChain
     Set ReleaseButton.WebDriver = driver_
-    Set ReleaseButton.data = data_
+    Set ReleaseButton.Data = data_
     
 End Function
 
@@ -390,7 +390,7 @@ Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebEle
     'now set things up for next link in chain
     Set DragAndDrop = New ActionChain
     Set DragAndDrop.WebDriver = driver_
-    Set DragAndDrop.data = data_
+    Set DragAndDrop.Data = data_
     
 End Function
 
@@ -424,7 +424,7 @@ Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long
     'now set things up for next link in chain
     Set DragAndDropByOffset = New ActionChain
     Set DragAndDropByOffset.WebDriver = driver_
-    Set DragAndDropByOffset.data = data_
+    Set DragAndDropByOffset.Data = data_
     
 End Function
 
@@ -458,7 +458,7 @@ Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, By
     'now set things up for next link in chain
     Set DragAndDropToPosition = New ActionChain
     Set DragAndDropToPosition.WebDriver = driver_
-    Set DragAndDropToPosition.data = data_
+    Set DragAndDropToPosition.Data = data_
     
 End Function
 
@@ -489,7 +489,7 @@ Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElem
     'now set things up for next link in chain
     Set KeyDown = New ActionChain
     Set KeyDown.WebDriver = driver_
-    Set KeyDown.data = data_
+    Set KeyDown.Data = data_
     
 End Function
 
@@ -520,7 +520,7 @@ Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElemen
     'now set things up for next link in chain
     Set KeyUp = New ActionChain
     Set KeyUp.WebDriver = driver_
-    Set KeyUp.data = data_
+    Set KeyUp.Data = data_
     
 End Function
 
@@ -550,7 +550,7 @@ Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION)
     'now set things up for next link in chain
     Set Wait = New ActionChain
     Set Wait.WebDriver = driver_
-    Set Wait.data = data_
+    Set Wait.Data = data_
     
 End Function
 
@@ -590,7 +590,7 @@ Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optio
     'now set things up for next link in chain
     Set MoveByOffset = New ActionChain
     Set MoveByOffset.WebDriver = driver_
-    Set MoveByOffset.data = data_
+    Set MoveByOffset.Data = data_
 
 End Function
 
@@ -641,7 +641,7 @@ Public Function SendKeys(ByVal keys As String, Optional element As WebElement) A
     'now set things up for next link in chain
     Set SendKeys = New ActionChain
     Set SendKeys.WebDriver = driver_
-    Set SendKeys.data = data_
+    Set SendKeys.Data = data_
     
 End Function
 
@@ -677,7 +677,7 @@ Public Function Clear(Optional element As WebElement) As ActionChain
     'now set things up for next link in chain
     Set Clear = New ActionChain
     Set Clear.WebDriver = driver_
-    Set Clear.data = data_
+    Set Clear.Data = data_
 
 End Function
 
@@ -711,7 +711,7 @@ Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As 
     'now set things up for next link in chain
     Set CtrlKey = New ActionChain
     Set CtrlKey.WebDriver = driver_
-    Set CtrlKey.data = data_
+    Set CtrlKey.Data = data_
 
 End Function
 
@@ -745,7 +745,7 @@ Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As
     'now set things up for next link in chain
     Set ShiftKey = New ActionChain
     Set ShiftKey.WebDriver = driver_
-    Set ShiftKey.data = data_
+    Set ShiftKey.Data = data_
     
 End Function
 
@@ -770,7 +770,7 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     'now set things up for next link in chain
     Set ScrollToElement = New ActionChain
     Set ScrollToElement.WebDriver = driver_
-    Set ScrollToElement.data = data_
+    Set ScrollToElement.Data = data_
 
 End Function
 
@@ -795,7 +795,7 @@ Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOff
     'now set things up for next link in chain
     Set ScrollBy = New ActionChain
     Set ScrollBy.WebDriver = driver_
-    Set ScrollBy.data = data_
+    Set ScrollBy.Data = data_
 
 End Function
 
@@ -810,7 +810,7 @@ Public Sub Perform()
     'or we execute one input channel at a time in the order in which the inputs were added,
     'making multi-calls to CMD_ACTIONS
     
-    'Note for future: Firefox webdriver does not support wheel actions
+    'Note for future: Firefox and IEdriverServer doe not support wheel actions
     
     If data_.Exists("actions") Then
         
@@ -823,7 +823,7 @@ Public Sub Perform()
         
         '... or synchronize input channels and call Execute method once
         'for typical action chains, this is 5-10% faster...
-        
+        'but does not work for IE mode or Firefox
         driver_.Execute CMD_ACTIONS, SyncChannels(data_)
         
         'it seems that reset actions should always been done on Perform, but Selenium Python doesn't(?)
@@ -831,10 +831,9 @@ Public Sub Perform()
         ResetActions
         
     End If
-    
 End Sub
 
-Private Function SyncChannels(data As Dictionary) As Dictionary
+Private Function SyncChannels(Data As Dictionary) As Dictionary
     'this private function aggregates an unsynchronized set of action input channels
     'to create a three-channel (keyboard, pointer, and wheel) synchronized set
     'that can be passed as a single call to the Selenium action processor
@@ -855,10 +854,10 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     Dim syncdInputChans() As Variant
     Dim pause As Dictionary
     
-    inputChans = data("actions")
+    inputChans = Data("actions")
                 
     If UBound(inputChans) = 0 Then 'only one channel - no need to sync
-        Set SyncChannels = data
+        Set SyncChannels = Data
         Exit Function
     End If
     
@@ -952,9 +951,9 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
         Set syncdInputChans(chanNum - 1) = inputScrollChan
     End If
     
-    data("actions") = syncdInputChans
+    Data("actions") = syncdInputChans
     
-    Set SyncChannels = data
+    Set SyncChannels = Data
 
 End Function
 

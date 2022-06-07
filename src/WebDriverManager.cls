@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.3
+' SeleniumVBA v1.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -130,7 +130,7 @@ Public Function IsInstalledDriverCompatible(ByVal browserName As String, Optiona
     
     browserName = LCase(browserName)
     If IsMissing(driverPath) Then
-        driverPath = ThisWorkbook.Path & "\" & browserName & "driver.exe"
+        driverPath = ThisWorkbook.path & "\" & browserName & "driver.exe"
     Else
         driverPath = GetAbsolutePath(driverPath)
     End If
@@ -167,7 +167,7 @@ Public Function GetInstalledDriverVersion(ByVal browserName As String, Optional 
     browserName = LCase(browserName)
 
     If IsMissing(driverPath) Then
-        driverPath = ThisWorkbook.Path & "\" & browserName & "driver.exe"
+        driverPath = ThisWorkbook.path & "\" & browserName & "driver.exe"
     Else
         driverPath = GetAbsolutePath(driverPath)
     End If
@@ -180,7 +180,26 @@ Public Function GetInstalledDriverVersion(ByVal browserName As String, Optional 
     
     resp = wsh.Exec(Chr(34) & driverPath & Chr(34) & " --version").StdOut.ReadAll
     
-    GetInstalledDriverVersion = Split(resp, " ")(1)
+    'IEDriverServer.exe 4.2.0.0 (32-bit)
+    'IEDriverServer.exe 4.2.0.0 (64-bit)
+    'cannot get bitness from Edge
+    'Microsoft Edge WebDriver 102.0.1245.30 (8f49f1a4740db8559bf9e49b4a7b6c754f80250d)
+    'ChromeDriver 102.0.5005.61 (0e59bcc00cc4985ce39ad31c150065f159d95ad3-refs/branch-heads/5005@{#819})
+    'should caller parse this
+    
+    'ipos = InStr(resp, ".")
+    'iposStart = InStrRev(resp, " ", ipos) + 1
+    'iposEnd = InStr(iposStart, resp, " ") - 1
+    
+    vparts = Split(resp, " ")
+    For i = 0 To UBound(vparts)
+        If IsNumeric(Replace(vparts(i), ".", "")) Then
+            ver = vparts(i)
+            Exit For
+        End If
+    Next i
+    
+    GetInstalledDriverVersion = ver 'Mid(resp, iposStart, iposEnd - iposStart + 1)
 
 End Function
 
@@ -361,13 +380,13 @@ Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVer
     browserName = LCase(browserName)
     
     If IsMissing(driverPath) Then
-        driverPath = ThisWorkbook.Path & "\" & browserName & "driver.exe"
+        driverPath = ThisWorkbook.path & "\" & browserName & "driver.exe"
     Else
         driverPath = GetAbsolutePath(driverPath)
     End If
     
     driverFolder = fso.GetParentFolderName(driverPath)
-    driverFileName = fso.GetFileName(driverPath)
+    driverFilename = fso.GetFileName(driverPath)
     
     tmpInstallFolder = driverFolder & "\tmp\"
     
@@ -386,7 +405,7 @@ Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVer
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     Case "msedge"
         'test for 64 bit vs 32 bit
-        If InStr(Application.OperatingSystem, "64-bit") Then
+        If InStr(GetObject("winmgmts:Win32_OperatingSystem=@").OSArchitecture, "64") Then
             url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_win64.zip"
             tmpInstallZipPath = tmpInstallFolder & "edgedriver_win64.zip"
         Else
@@ -413,7 +432,7 @@ Public Sub DownloadAndInstallDriver(ByVal browserName As String, ByVal driverVer
 
     'check if driver exists and if it does, make sure it isn't in use before overwrite
     If fso.FileExists(driverPath) Then
-        If IsProcessRunning(driverFileName) Then TaskKill driverFileName
+        If IsProcessRunning(driverFilename) Then TaskKill driverFilename
     End If
 
     fso.CopyFile tmpInstallDriverpath, driverPath, True
@@ -488,8 +507,8 @@ End Function
 Private Function GetAbsolutePath(ByVal strPath As String) As String
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
     saveppath = CurDir()
-    ChDrive ThisWorkbook.Path
-    ChDir ThisWorkbook.Path
+    ChDrive ThisWorkbook.path
+    ChDir ThisWorkbook.path
     GetAbsolutePath = fso.GetAbsolutePathName(strPath)
     ChDrive saveppath
     ChDir saveppath

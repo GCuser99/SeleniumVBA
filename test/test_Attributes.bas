@@ -7,7 +7,7 @@ Sub test_element_attributes_and_properties()
     str = "<!DOCTYPE html><html><body><input id=""the-input"" type=""text"" value=""Sally""></body></html>"
     filePath = ".\snippet.html"
     
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.SaveHTMLToFile str, filePath
@@ -58,8 +58,8 @@ End Sub
 
 Sub test_css_property()
     Dim driver As New WebDriver, str As String, color As String
-    
-    driver.StartChrome
+
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://example.com"
@@ -77,11 +77,11 @@ End Sub
 
 Sub test_element_aria()
     Dim driver As New WebDriver, str As String
-    
+
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
     filePath = ".\snippet.html"
-    
+
     driver.StartChrome
     driver.OpenBrowser
     
@@ -91,7 +91,6 @@ Sub test_element_aria()
     
     driver.Wait 1000
     
-    'sends "John" to input box
     Debug.Print "Label: " & driver.FindElementByClassName("xyz").GetAriaLabel
     Debug.Print "Role: " & driver.FindElementByClassName("xyz").GetAriaRole
     

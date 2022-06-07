@@ -2,8 +2,8 @@ Attribute VB_Name = "test_FileUpDownload"
 Sub test_file_upload()
     'see https://www.guru99.com/upload-download-file-selenium-webdriver.html
     Dim driver As New WebDriver, str
-    
-    driver.StartChrome
+
+    driver.StartEdge
     driver.OpenBrowser
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
@@ -37,8 +37,8 @@ Sub test_file_download()
     Dim driver As New WebDriver, caps As Capabilities
     
     dirPath = ".\" 'download to same directory as this excel file
-    
-    driver.StartChrome
+
+    driver.StartEdge
     
     Set caps = driver.CreateCapabilities
 

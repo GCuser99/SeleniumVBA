@@ -1,12 +1,31 @@
 Attribute VB_Name = "test_Shadowroots"
+Sub test_shadowroot()
+    Dim driver As New WebDriver, shadowHost As WebElement
+    Dim shadowContent As WebElement, shadowRootelem As ShadowRoot
+    
+    driver.StartEdge
+    driver.OpenBrowser
+    
+    driver.NavigateTo "http://watir.com/examples/shadow_dom.html"
+    
+    Set shadowHost = driver.FindElement(by.ID, "shadow_host")
+    
+    Set shadowRootelem = shadowHost.GetShadowRoot()
+    
+    Set shadowContent = shadowRootelem.FindElement(by.ID, "shadow_content")
+    
+    Debug.Print shadowContent.GetText  'should return "some text"
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
 
-Sub test_shadow_roots_clear_browser_history()
-
+Sub test_shadowroots_clear_browser_history()
     Dim driver As New WebDriver
     Dim webelem1 As WebElement, webelem2 As WebElement, webelem3 As WebElement
     Dim webelem4 As WebElement, webelem5 As WebElement, webelem6 As WebElement
     Dim clearData As WebElement
-        
+
     driver.StartChrome 'this is a chome-only demo
     driver.OpenBrowser
     

@@ -3,7 +3,7 @@ Sub test_WaitUntilReady()
     Dim driver As New WebDriver
     Dim searchButton As WebElement
     
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://www.google.com/"

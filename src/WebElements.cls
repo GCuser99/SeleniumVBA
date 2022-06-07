@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "Cookies"
+Attribute VB_Name = "WebElements"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -39,122 +39,72 @@ Attribute VB_Exposed = True
 ' SOFTWARE.
 ' ==========================================================================
 '
-' This class was written to support collection of Cookie objects
+' This class was written to support collection of WebElement objects
 '
 ' ==========================================================================
 
-Private colCookie As Collection
+Private colWebElement As Collection
 
-Public Function Add(cke As Cookie) As Cookie
-    colCookie.Add cke, cke.name
-    Set Add = cke
+Public Function Add(element As WebElement) As WebElement
+    colWebElement.Add element, element.elementId
+    Set Add = element
 End Function
 
 Public Property Get Count() As Integer
-   Count = colCookie.Count
+   Count = colWebElement.Count
 End Property
 
 Public Property Get Size() As Integer
-   Size = colCookie.Count
+   Size = colWebElement.Count
 End Property
 
-Public Sub Remove(indexOrCookie As Variant)
-    If TypeName(indexOrCookie) = "Cookie" Then
-        colCookie.Remove indexOrCookie.name
+Public Sub Remove(indexOrWebElement As Variant)
+    If TypeName(indexOrWebElement) = "WebElement" Then
+        colWebElement.Remove indexOrWebElement.elementId
     Else
-        colCookie.Remove indexOrCookie
+        colWebElement.Remove indexOrWebElement
     End If
 End Sub
 
-Public Property Get Item(ByVal name As Variant) As Cookie
+Public Property Get Item(ByVal index As Variant) As WebElement
 Attribute Item.VB_UserMemId = 0
     'Attribute Dictionary.VB_UserMemId = 0
     'uncomment line above in text editor to make this the default property
-    Set Item = colCookie.Item(name)
+    Set Item = colWebElement.Item(index)
 End Property
 
 Friend Sub RemoveAll()
-    Do While colCookie.Count > 0
-        colCookie.Remove 1
+    Do While colWebElement.Count > 0
+        colWebElement.Remove 1
     Loop
 End Sub
 
-Public Function IsMember(ByVal cke As Cookie) As Boolean
-    Dim i As Long, ckeName As String
-    ckeName = cke.name
+Public Function IsMember(element As WebElement) As Boolean
+    Dim i As Long, elemId As String
+    elemId = element.elementId
     IsMember = False
     For i = 1 To Me.Count
-        If Me.Item(i).name = ckeName Then
+        If Me.Item(i).elementId = elemId Then
             IsMember = True
             Exit For
         End If
     Next i
 End Function
 
-Public Sub SaveToFile(Optional ByVal path As String = ".\cookies.txt")
-    Dim fs As New FileSystemObject, ts As textstream, darray() As Dictionary, i
-    Dim jc As New JSonConverter
-    path = GetAbsolutePath(path)
-    Set ts = fs.CreateTextFile(path, True)
-    ReDim darray(1 To Me.Count)
-    For i = 1 To Me.Count
-        Set darray(i) = Me.Item(i).ToDictionary
-    Next i
-    ts.Write jc.ConvertToJson(darray(), 4)
-    ts.Close
-End Sub
-
-Public Function LoadFromFile(Optional ByVal path As String = ".\cookies.txt") As Cookies
-    Dim fs As New FileSystemObject, ts As textstream, str As String, v As Collection, ck As Cookie
-    Dim jc As New JSonConverter
-    
-    Me.RemoveAll
-    
-    path = GetAbsolutePath(path)
-    
-    Set ts = fs.OpenTextFile(path)
-    str = ts.ReadAll
-    ts.Close
-    Set v = jc.ParseJSON(str)
-    
-    For i = 1 To v.Count
-        Set ck = New Cookie
-        ck.name = v(i)("name")
-        ck.Domain = v(i)("domain")
-        ck.ExpiryUnix = v(i)("expiry")
-        ck.HttpOnly = v(i)("httpOnly")
-        ck.SameSite = v(i)("sameSite")
-        ck.Secure = v(i)("secure")
-        ck.Value = v(i)("value")
-        ck.path = v(i)("path")
-        Me.Add ck
-    Next i
-    Set LoadFromFile = Me
-End Function
-
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
     'Attribute NewEnum.VB_UserMemID = -4
     'uncomment line above in text editor to enable For Each iteration in for loop
-    Set NewEnum = colCookie.[_NewEnum]
+    Set NewEnum = colWebElement.[_NewEnum]
 End Function
 
 Private Sub Class_Initialize()
-    Set colCookie = New Collection
+    Set colWebElement = New Collection
 End Sub
 
 Private Sub Class_Terminate()
     RemoveAll
-    Set colCookie = Nothing
+    Set colWebElement = Nothing
 End Sub
 
-Private Function GetAbsolutePath(ByVal strPath As String) As String
-    Dim fso As New FileSystemObject
-    saveppath = CurDir()
-    ChDrive ThisWorkbook.path
-    ChDir ThisWorkbook.path
-    GetAbsolutePath = fso.GetAbsolutePathName(strPath)
-    ChDrive saveppath
-    ChDir saveppath
-End Function
 

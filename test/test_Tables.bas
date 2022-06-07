@@ -1,10 +1,9 @@
 Attribute VB_Name = "test_Tables"
-
 Sub test_table()
     'see https://www.guru99.com/selenium-webtable.html
     Dim driver As New WebDriver
-    
-    driver.StartChrome
+
+    driver.StartEdge
     driver.OpenBrowser
     
     'how to write XPath for table in Selenium

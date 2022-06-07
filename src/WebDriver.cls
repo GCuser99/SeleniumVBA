@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.3
+' SeleniumVBA v1.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -70,8 +70,8 @@ Private Const baseDomIdx = 1
 
 Private sessionId_ As String
 Private driverUrl_ As String
-Private browserName As String
-Private AppWinStyle As VbAppWinStyle
+Private browserName_ As String
+Private appWinStyle As VbAppWinStyle
 
 Private Const ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf"
 Private Const SHADOW_KEY = "shadow-6066-11e4-a52e-4f735466cecf"
@@ -175,10 +175,14 @@ End Enum
 'Private Declare Sub Sleep Lib "kernel32" (ByVal millisecond As Long)
 '#End If
 
+Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
+    appWinStyle = style
+End Property
+
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge_verbose.log")
     Dim fso As New Scripting.FileSystemObject
     
-    browserName = "msedge"
+    browserName_ = "msedge"
     driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\msedgedriver.exe"
     
     If enableLogging Then
@@ -189,7 +193,7 @@ Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", O
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
         mngr.SupressWarnings = True
-        mngr.AlignDriverAndBrowser browserName, driverPath
+        mngr.AlignDriverAndBrowser browserName_, driverPath
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -204,7 +208,7 @@ End Sub
 Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome_verbose.log")
     Dim fso As New Scripting.FileSystemObject
     
-    browserName = "chrome"
+    browserName_ = "chrome"
     driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\chromedriver.exe"
     
     If enableLogging Then
@@ -215,7 +219,7 @@ Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe",
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
         mngr.SupressWarnings = True
-        mngr.AlignDriverAndBrowser browserName, driverPath
+        mngr.AlignDriverAndBrowser browserName_, driverPath
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -241,7 +245,7 @@ Private Sub Start(ByVal driverPath As String, ByVal localHostPort As Long, Optio
     End If
     
     ' Start WebDriver executable
-    If shell(driverPath & serviceArgs & port, AppWinStyle) = 0 Then
+    If shell(driverPath & serviceArgs & port, appWinStyle) = 0 Then
         MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
         End
     End If
@@ -254,6 +258,8 @@ End Sub
 Public Sub Shutdown()
     'this will shut down all WebDriver instances, not just the one it is being called from
     'which is can be a good thing if there are multiple "rogue" instances lurking
+    If sessionId_ <> "" Then CloseBrowser
+    
     Execute CMD_SHUTDOWN
 End Sub
 
@@ -279,7 +285,7 @@ Public Sub OpenBrowser(Optional caps As Capabilities, Optional ByVal invisible A
     sessionId_ = resp("sessionId")
     
     'here's some more info that can be extracted if needed...
-    'browserName = resp("capabilities")("browserName")
+    'browserName_ = resp("capabilities")("browserName")
     'browserVersion = resp("capabilities")("browserVersion")
     'driverVersion = resp("capabilities")("chrome")("chromedriverVersion")
     'driverVersion = resp("capabilities")("msedge")("msedgedriverVersion")
@@ -291,25 +297,26 @@ Public Sub OpenBrowser(Optional caps As Capabilities, Optional ByVal invisible A
 End Sub
 
 Public Sub CloseBrowser()
-    Dim data As New Dictionary
-    Execute CMD_QUIT, data
+    Dim Data As New Dictionary
+
+    Execute CMD_QUIT, Data
     sessionId_ = ""
 End Sub
 
 Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Optional ByVal raise As Boolean = True) As Boolean
-    Dim data As New Dictionary, resp As Dictionary, savTimeOutms As Long
+    Dim Data As New Dictionary, resp As Dictionary, savTimeOutms As Long
     
     If Left(url, 8) = "file:///" Then
         url = "file:///" & GetAbsolutePath(Mid(url, 9, 99999))
     End If
     
-    data.Add "url", url
+    Data.Add "url", url
     If Not IsMissing(timeOutms) Then
         savTimeOutms = GetPageLoadTimeout()
         If savTimeOutms <> timeOutms Then SetPageLoadTimeout timeOutms
     End If
     
-    Set resp = Execute(CMD_GET, data, raise)
+    Set resp = Execute(CMD_GET, Data, raise)
 
     If Not IsMissing(timeOutms) Then
         If savTimeOutms <> timeOutms Then SetPageLoadTimeout savTimeOutms
@@ -325,36 +332,36 @@ Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Option
 End Function
 
 Public Function FindElement(by_ As by, ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Dim data As Dictionary
+    Dim Data As Dictionary
     Dim cmd As Variant
-    Set data = ToSelector(by_, Value)
+    Set Data = ToSelector(by_, Value)
     If Not parentElement Is Nothing Then
-        data.Add "id", parentElement.elementId
+        Data.Add "id", parentElement.elementId
         cmd = CMD_FIND_CHILD_ELEMENT
     Else
         cmd = CMD_FIND_ELEMENT
     End If
     
-    Set FindElement = ToWebElement(Execute(cmd, data)("value")(ELEMENT_KEY))
+    Set FindElement = ToWebElement(Execute(cmd, Data)("value")(ELEMENT_KEY))
 End Function
 
 Public Function FindElements(by_ As by, ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Dim data As Dictionary
+    Dim Data As Dictionary
     Dim i As Integer
     Dim cmd As Variant
     Dim elements As Collection
     Dim elems As New WebElements
     
-    Set data = ToSelector(by_, Value)
+    Set Data = ToSelector(by_, Value)
     
     If Not parentElement Is Nothing Then
-        data.Add "id", parentElement.elementId
+        Data.Add "id", parentElement.elementId
         cmd = CMD_FIND_CHILD_ELEMENTS
     Else
         cmd = CMD_FIND_ELEMENTS
     End If
     
-    Set elements = Execute(cmd, data)("value")
+    Set elements = Execute(cmd, Data)("value")
     
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
@@ -364,13 +371,13 @@ Public Function FindElements(by_ As by, ByVal Value As String, Optional parentEl
 End Function
 
 Public Function FindChildElements(element As WebElement) As WebElements
-    Dim data As New Dictionary, elements As Collection
+    Dim Data As New Dictionary, elements As Collection
     Dim elems As New WebElements
     Dim i As Integer
-    data.Add "using", "css selector"
-    data.Add "value", "option"
-    data.Add "id", element.elementId
-    Set elements = Execute(CMD_FIND_CHILD_ELEMENTS, data)("value") 'returns 1-based Collection
+    Data.Add "using", "css selector"
+    Data.Add "value", "option"
+    Data.Add "id", element.elementId
+    Set elements = Execute(CMD_FIND_CHILD_ELEMENTS, Data)("value") 'returns 1-based Collection
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
     Next
@@ -378,38 +385,38 @@ Public Function FindChildElements(element As WebElement) As WebElements
 End Function
 
 Private Function ToSelector(by_ As by, ByVal Value As String) As Dictionary
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Select Case by_
     Case by.ID
-        data.Add "using", "css selector"
-        data.Add "value", "[id=""" + Value + """]"
+        Data.Add "using", "css selector"
+        Data.Add "value", "[id=""" + Value + """]"
     Case by.tagName
-        data.Add "using", "css selector"
-        data.Add "value", Value
+        Data.Add "using", "css selector"
+        Data.Add "value", Value
     Case by.className
-        data.Add "using", "css selector"
-        data.Add "value", "." + Value
+        Data.Add "using", "css selector"
+        Data.Add "value", "." + Value
     Case by.name
-        data.Add "using", "css selector"
-        data.Add "value", "[name=""" + Value + """]"
+        Data.Add "using", "css selector"
+        Data.Add "value", "[name=""" + Value + """]"
     Case by.cssSelector
-        data.Add "using", "css selector"
-        data.Add "value", Value
+        Data.Add "using", "css selector"
+        Data.Add "value", Value
     Case by.XPath
-        data.Add "using", "xpath"
-        data.Add "value", Value
+        Data.Add "using", "xpath"
+        Data.Add "value", Value
     Case by.linkText
-        data.Add "using", "link text"
-        data.Add "value", Value
+        Data.Add "using", "link text"
+        Data.Add "value", Value
     Case by.PartialLinkText
-        data.Add "using", "partial link text"
-        data.Add "value", Value
+        Data.Add "using", "partial link text"
+        Data.Add "value", Value
     Case Else
-        data.Add "using", "css selector"
-        data.Add "value", Value
+        Data.Add "using", "css selector"
+        Data.Add "value", Value
     End Select
     
-    Set ToSelector = data
+    Set ToSelector = Data
 End Function
 
 Public Function FindElementByID(ByVal Value As String, Optional parentElement As WebElement) As WebElement
@@ -477,12 +484,12 @@ Public Function FindElementsByPartialLinkText(ByVal Value As String, Optional pa
 End Function
 
 Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearBeforeTyping As Boolean = True)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim chunk() As String
     Dim chars() As String
     
-    data.Add "id", element.elementId
-    If clearBeforeTyping = True Then Execute CMD_CLEAR_ELEMENT, data
+    Data.Add "id", element.elementId
+    If clearBeforeTyping = True Then Execute CMD_CLEAR_ELEMENT, Data
     
     'split key sequence into chunks with special keys (pattern "\ue0*") by themselves
     ReDim chunk(0 To Len(keys) - 1)
@@ -508,8 +515,8 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
     ReDim Preserve chunk(0 To i)
     
     'initialize param keys
-    data.Add "text", ""
-    data.Add "value", ""
+    Data.Add "text", ""
+    Data.Add "value", ""
     
     'loop through and send text chunks to target
     For i = 0 To UBound(chunk)
@@ -522,20 +529,20 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
                 chars(j) = Mid(chunk(i), j + 1, 1)
             Next j
         End If
-        data("text") = chunk(i)
-        data("value") = chars
-        Execute CMD_SEND_KEYS_TO_ELEMENT, data
+        Data("text") = chunk(i)
+        Data("value") = chars
+        Execute CMD_SEND_KEYS_TO_ELEMENT, Data
     Next i
     
 End Sub
 
 Public Sub Click(Optional element As WebElement)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     If Not element Is Nothing Then
-        data.Add "id", element.elementId
-        Execute CMD_CLICK_ELEMENT, data
+        Data.Add "id", element.elementId
+        Execute CMD_CLICK_ELEMENT, Data
     Else
-        Execute CMD_CLICK, data
+        Execute CMD_CLICK, Data
     End If
 End Sub
 
@@ -544,47 +551,47 @@ Public Sub Submit(element As WebElement)
 End Sub
 
 Public Function GetText(element As WebElement) As String
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    GetText = Execute(CMD_GET_ELEMENT_TEXT, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    GetText = Execute(CMD_GET_ELEMENT_TEXT, Data)("value")
 End Function
 
 Public Sub GoBack()
-    Dim data As New Dictionary
-    Execute CMD_GO_BACK, data
+    Dim Data As New Dictionary
+    Execute CMD_GO_BACK, Data
 End Sub
 
 Public Sub GoForward()
-    Dim data As New Dictionary
-    Execute CMD_GO_FORWARD, data
+    Dim Data As New Dictionary
+    Execute CMD_GO_FORWARD, Data
 End Sub
 
 Public Sub Refresh()
-    Dim data As New Dictionary
-    Execute CMD_REFRESH, data
+    Dim Data As New Dictionary
+    Execute CMD_REFRESH, Data
 End Sub
 
 Public Function GetCurrentURL() As String
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim encodeURL As String
-    encodeURL = Execute(CMD_GET_CURRENT_URL, data)("value")
+    encodeURL = Execute(CMD_GET_CURRENT_URL, Data)("value")
     GetCurrentURL = ExecuteScript("return decodeURI('" & encodeURL & "')")
 End Function
 
 Public Function GetActiveElement() As WebElement
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
    ' Return element
-    Set GetActiveElement = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, data)("value")(ELEMENT_KEY))
+    Set GetActiveElement = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
 End Function
 
 Public Function GetProperty(ByVal name As String, element As WebElement) As String
     'This returns the current state of a DOM node object, such as the value of an input box.
     'If the property does not exist, then this returns vbNullString
-    Dim data As New Dictionary, resp As Dictionary
-    data.Add "name", name
-    data.Add "id", element.elementId
+    Dim Data As New Dictionary, resp As Dictionary
+    Data.Add "name", name
+    Data.Add "id", element.elementId
     
-    Set resp = Execute(CMD_GET_ELEMENT_PROPERTY, data)
+    Set resp = Execute(CMD_GET_ELEMENT_PROPERTY, Data)
     
     If IsNull(resp("value")) Then
         GetProperty = ""
@@ -606,10 +613,10 @@ Public Function GetAttribute(ByVal name As String, element As WebElement) As Str
     'then a DOM node object with properties is created.
     'To access the state of a DOM node property - such as an input box value, use GetProperty.
     'If the attribute does not exist, then this returns vbNullString
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    data.Add "name", name
-    Set resp = Execute(CMD_GET_ELEMENT_ATTRIBUTE, data)
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    Data.Add "name", name
+    Set resp = Execute(CMD_GET_ELEMENT_ATTRIBUTE, Data)
     If IsNull(resp("value")) Then
         GetAttribute = ""
     Else
@@ -624,9 +631,9 @@ Public Sub SetAttribute(element As WebElement, ByVal name As String, ByVal Value
 End Sub
 
 Public Function GetAriaRole(element As WebElement) As String
-    Dim data As New Dictionary, resp As Dictionary
-    data.Add "id", element.elementId
-    Set resp = Execute(CMD_GET_ELEMENT_ARIA_ROLE, data)
+    Dim Data As New Dictionary, resp As Dictionary
+    Data.Add "id", element.elementId
+    Set resp = Execute(CMD_GET_ELEMENT_ARIA_ROLE, Data)
     If IsNull(resp("value")) Then
         GetAriaRole = ""
     Else
@@ -635,9 +642,9 @@ Public Function GetAriaRole(element As WebElement) As String
 End Function
 
 Public Function GetAriaLabel(element As WebElement) As String
-    Dim data As New Dictionary, resp As Dictionary
-    data.Add "id", element.elementId
-    Set resp = Execute(CMD_GET_ELEMENT_ARIA_LABEL, data)
+    Dim Data As New Dictionary, resp As Dictionary
+    Data.Add "id", element.elementId
+    Set resp = Execute(CMD_GET_ELEMENT_ARIA_LABEL, Data)
     If IsNull(resp("value")) Then
         GetAriaLabel = ""
     Else
@@ -646,30 +653,30 @@ Public Function GetAriaLabel(element As WebElement) As String
 End Function
 
 Public Function GetTagName(element As WebElement) As String
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    GetTagName = Execute(CMD_GET_ELEMENT_TAG_NAME, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    GetTagName = Execute(CMD_GET_ELEMENT_TAG_NAME, Data)("value")
 End Function
 
 Public Sub SelectByValue(ByVal Value As String, element As WebElement)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim elem As WebElement
-    data.Add "using", "css selector"
-    data.Add "value", "option[value =" & """" & Value & """" & "]"
-    data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, data)("value")(ELEMENT_KEY))
+    Data.Add "using", "css selector"
+    Data.Add "value", "option[value =" & """" & Value & """" & "]"
+    Data.Add "id", element.elementId
+    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
     If Not IsSelected(elem) Then
         elem.Click
     End If
 End Sub
 
 Public Sub SelectByVisibleText(ByVal Text As String, element As WebElement)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim elem As WebElement
-    data.Add "using", "xpath"
-    data.Add "value", ".//option[normalize-space(.) = " & """" & Text & """" & "]"
-    data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, data)("value")(ELEMENT_KEY))
+    Data.Add "using", "xpath"
+    Data.Add "value", ".//option[normalize-space(.) = " & """" & Text & """" & "]"
+    Data.Add "id", element.elementId
+    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
     If Not IsSelected(elem) Then
         elem.Click
     End If
@@ -719,31 +726,31 @@ Public Function GetSelectedOptionText(element As WebElement) As String
 End Function
 
 Public Sub DeSelectByValue(ByVal Value As String, element As WebElement)
-    Dim data As New Dictionary, elem As WebElement
-    data.Add "using", "css selector"
-    data.Add "value", "option[value =" & """" & Value & """" & "]"
-    data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, data)("value")(ELEMENT_KEY))
+    Dim Data As New Dictionary, elem As WebElement
+    Data.Add "using", "css selector"
+    Data.Add "value", "option[value =" & """" & Value & """" & "]"
+    Data.Add "id", element.elementId
+    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
     If IsSelected(elem) Then
         elem.Click
     End If
 End Sub
 
 Public Sub DeSelectByVisibleText(ByVal Text As String, element As WebElement)
-    Dim data As New Dictionary, elem As WebElement
-    data.Add "using", "xpath"
-    data.Add "value", ".//option[normalize-space(.) = " & """" & Text & """" & "]"
-    data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, data)("value")(ELEMENT_KEY))
+    Dim Data As New Dictionary, elem As WebElement
+    Data.Add "using", "xpath"
+    Data.Add "value", ".//option[normalize-space(.) = " & """" & Text & """" & "]"
+    Data.Add "id", element.elementId
+    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
     If IsSelected(elem) Then
         elem.Click
     End If
 End Sub
 
 Public Function IsSelected(element As WebElement) As Boolean
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    IsSelected = Execute(CMD_IS_ELEMENT_SELECTED, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    IsSelected = Execute(CMD_IS_ELEMENT_SELECTED, Data)("value")
 End Function
 
 Public Function IsMultiSelect(selectElement As WebElement) As Boolean
@@ -785,11 +792,11 @@ Public Sub DeSelectByIndex(ByVal index As Integer, element As WebElement)
 End Sub
 
 Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs() As Variant)
-    Dim data As New Dictionary, ElmData As New Dictionary
+    Dim Data As New Dictionary, ElmData As New Dictionary
     Dim resp As Dictionary
     Dim args()
     
-    data.Add "script", script
+    Data.Add "script", script
     
     If UBound(scriptArgs) >= 0 Then
         ReDim args(0 To UBound(scriptArgs))
@@ -804,9 +811,9 @@ Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs
             End If
         Next i
     End If
-    data.Add "args", args
+    Data.Add "args", args
     
-    Set resp = Execute(CMD_EXECUTE_SCRIPT_ASYNC, data)
+    Set resp = Execute(CMD_EXECUTE_SCRIPT_ASYNC, Data)
     
     Select Case TypeName(resp("value"))
     Case "Collection"
@@ -841,11 +848,11 @@ Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs
 End Function
 
 Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As Variant)
-    Dim data As New Dictionary, ElmData As New Dictionary
+    Dim Data As New Dictionary, ElmData As New Dictionary
     Dim resp As Dictionary
     Dim args()
     
-    data.Add "script", script
+    Data.Add "script", script
     
     If UBound(scriptArgs) >= 0 Then
         ReDim args(0 To UBound(scriptArgs))
@@ -860,9 +867,9 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
             End If
         Next i
     End If
-    data.Add "args", args
+    Data.Add "args", args
     
-    Set resp = Execute(CMD_EXECUTE_SCRIPT, data)
+    Set resp = Execute(CMD_EXECUTE_SCRIPT, Data)
     
     Select Case TypeName(resp("value"))
     Case "Collection"
@@ -949,117 +956,124 @@ Private Function ScriptCollectionToConvertedArray(col As Variant) As Variant()
 End Function
 
 Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png", Optional element As WebElement)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim pngstr As String
         
     filePath = GetAbsolutePath(filePath)
     
     If element Is Nothing Then
-        pngstr = Execute(CMD_SCREENSHOT, data)("value")
+        pngstr = Execute(CMD_SCREENSHOT, Data)("value")
     Else
-        data.Add "id", element.elementId
-        pngstr = Execute(CMD_ELEMENT_SCREENSHOT, data)("value")
+        Data.Add "id", element.elementId
+        pngstr = Execute(CMD_ELEMENT_SCREENSHOT, Data)("value")
     End If
     
     SaveByteArrayToFile DecodeBase64(pngstr), filePath
 End Sub
 
 Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As PrintSettings)
-    Dim data As New Dictionary, pdfstr As String
+    Dim Data As New Dictionary, pdfstr As String
     
     filePath = GetAbsolutePath(filePath)
     
     If Not settings Is Nothing Then
-        Set data = settings.ToDictionary
+        Set Data = settings.ToDictionary
     End If
     
-    pdfstr = Execute(CMD_PRINT_PAGE, data)("value")
+    pdfstr = Execute(CMD_PRINT_PAGE, Data)("value")
 
     SaveByteArrayToFile DecodeBase64(pdfstr), filePath
 End Sub
 
 Public Function GetRect(element As WebElement) As Dictionary
     'returns dictionary with following keys x, y, width, height
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    Set GetRect = Execute(CMD_GET_ELEMENT_RECT, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    Set GetRect = Execute(CMD_GET_ELEMENT_RECT, Data)("value")
 End Function
 
 Public Function GetPageSource() As String
-    Dim data As New Dictionary
-    GetPageSource = Execute(CMD_GET_PAGE_SOURCE, data)("value")
+    Dim Data As New Dictionary
+    GetPageSource = Execute(CMD_GET_PAGE_SOURCE, Data)("value")
 End Function
 
 Public Function GetCurrentWindowHandle() As String
-    Dim data As New Dictionary
-    GetCurrentWindowHandle = Execute(CMD_GET_CURRENT_WINDOW_HANDLE, data)("value")
+    Dim Data As New Dictionary
+    GetCurrentWindowHandle = Execute(CMD_GET_CURRENT_WINDOW_HANDLE, Data)("value")
 End Function
 
 Public Function GetWindowHandles() As String()
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim handles As Collection
     Dim ret() As String
     Dim i As Integer
-    Set handles = Execute(CMD_GET_WINDOW_HANDLES, data)("value")
+    
+    Set handles = Execute(CMD_GET_WINDOW_HANDLES, Data)("value")
+    
     'To array of handles
     ReDim ret(baseArrayIdx To handles.Count - 1 + baseArrayIdx)
     For i = 1 To handles.Count   ' handles is Collection, not array
         ret(i - 1 + baseArrayIdx) = handles.Item(i)
     Next
+    
     GetWindowHandles = ret
 End Function
 
 Public Function SwitchToNewWindow(Optional ByVal windowType As svbaWindowType = svbaTab) As String
-    Dim data As New Dictionary, hndl As String
+    Dim Data As New Dictionary, hndl As String
+    
     If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
-    data.Add "type", wtype 'tab or window
-    hndl = Execute(CMD_NEW_WINDOW, data)("value")("handle")
+    
+    Data.Add "type", wtype 'tab or window
+    hndl = Execute(CMD_NEW_WINDOW, Data)("value")("handle")
+    
     SwitchToWindow hndl 'above just creates a new window - we still need to switch to it
+    
     SwitchToNewWindow = hndl
 End Function
 
 Public Function SwitchToWindow(ByVal handleOrIndex As Variant) As String
-    Dim data As New Dictionary, handle As String
+    Dim Data As New Dictionary, hndl As String
     
     If IsNumeric(handleOrIndex) Then
-        handle = GetWindowHandles()(handleOrIndex)
+        hndl = GetWindowHandles()(handleOrIndex)
     Else
-        handle = handleOrIndex
+        hndl = handleOrIndex
     End If
     
-    data.Add "handle", handle
-    Execute CMD_SWITCH_TO_WINDOW, data
+    Data.Add "handle", hndl
+    Execute CMD_SWITCH_TO_WINDOW, Data
     
-    SwitchToWindow = handle
+    SwitchToWindow = hndl
 End Function
 
 Public Sub CloseWindow(Optional ByVal handleOrIndex As Variant)
     If Not IsMissing(handleOrIndex) Then SwitchToWindow handleOrIndex
     'closes the active window
-    Dim data As New Dictionary
-    Execute CMD_CLOSE, data
+    Dim Data As New Dictionary
+    Execute CMD_CLOSE, Data
 End Sub
 
 Public Function GetWindowRect() As Dictionary
     'returns dictionary with following keys x, y, width, height
-    Dim data As New Dictionary
-    Set GetWindowRect = Execute(CMD_GET_WINDOW_RECT, data)("value")
+    Dim Data As New Dictionary
+    Set GetWindowRect = Execute(CMD_GET_WINDOW_RECT, Data)("value")
 End Function
 
 Public Function SetWindowRect(Optional ByVal x As Variant, Optional ByVal y As Variant, Optional ByVal width As Variant, Optional ByVal height As Variant) As Dictionary
     'returns dictionary with following keys x, y, width, height
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim rect As Dictionary
     Set rect = GetWindowRect
     If IsMissing(width) Then width = rect("width")
     If IsMissing(height) Then height = rect("height")
     If IsMissing(x) Then x = rect("x")
     If IsMissing(y) Then y = rect("y")
-    data.Add "x", x
-    data.Add "y", y
-    data.Add "width", width
-    data.Add "height", height
-    Set SetWindowRect = Execute(CMD_SET_WINDOW_RECT, data)("value")
+    Data.Add "x", x
+    Data.Add "y", y
+    Data.Add "width", width
+    Data.Add "height", height
+    Set SetWindowRect = Execute(CMD_SET_WINDOW_RECT, Data)("value")
 End Function
 
 Public Sub SetWindowSize(Optional ByVal width As Variant, Optional ByVal height As Variant)
@@ -1080,45 +1094,45 @@ Public Sub SetWindowPosition(Optional ByVal x As Variant, Optional ByVal y As Va
 End Sub
 
 Public Sub MaximizeWindow()
-    Dim data As New Dictionary
-    Execute CMD_MAXIMIZE_WINDOW, data
+    Dim Data As New Dictionary
+    Execute CMD_MAXIMIZE_WINDOW, Data
 End Sub
 
 Public Sub FullScreenWindow()
-    Dim data As New Dictionary
-    Execute CMD_FULLSCREEN_WINDOW, data
+    Dim Data As New Dictionary
+    Execute CMD_FULLSCREEN_WINDOW, Data
 End Sub
 
 Public Sub MinimizeWindow()
-    Dim data As New Dictionary
-    Execute CMD_MINIMIZE_WINDOW, data
+    Dim Data As New Dictionary
+    Execute CMD_MINIMIZE_WINDOW, Data
 End Sub
 
 Public Sub SwitchToFrame(frameElement As WebElement)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim elem As New Dictionary
     elem.Add ELEMENT_KEY, frameElement.elementId
-    data.Add "id", elem
-    Execute CMD_SWITCH_TO_FRAME, data
+    Data.Add "id", elem
+    Execute CMD_SWITCH_TO_FRAME, Data
 End Sub
 
 Public Sub SwitchToFrameByIndex(ByVal index As Integer)
-    Dim data As New Dictionary
-    data.Add "id", index - baseDomIdx
-    Execute CMD_SWITCH_TO_FRAME, data
+    Dim Data As New Dictionary
+    Data.Add "id", index - baseDomIdx
+    Execute CMD_SWITCH_TO_FRAME, Data
 End Sub
 
 Public Sub SwitchToDefaultContent()
     'switches to main document
-    Dim data As New Dictionary
-    data.Add "id", Null
-    Execute CMD_SWITCH_TO_FRAME, data
+    Dim Data As New Dictionary
+    Data.Add "id", Null
+    Execute CMD_SWITCH_TO_FRAME, Data
 End Sub
 
 Public Sub SwitchToParentFrame()
     'if top-level frame then this switches to main document
-    Dim data As New Dictionary
-    Execute CMD_SWITCH_TO_PARENT_FRAME, data
+    Dim Data As New Dictionary
+    Execute CMD_SWITCH_TO_PARENT_FRAME, Data
 End Sub
 
 Public Function GetCurrentFrameName() As String
@@ -1126,36 +1140,36 @@ Public Function GetCurrentFrameName() As String
 End Function
 
 Public Sub SetImplicitlyWait(Optional ByVal millisecond As Long = 0)
-    Dim data As New Dictionary
-    data.Add "implicit", millisecond
-    Execute CMD_SET_TIMEOUTS, data
+    Dim Data As New Dictionary
+    Data.Add "implicit", millisecond
+    Execute CMD_SET_TIMEOUTS, Data
 End Sub
 
 Public Sub SetPageLoadTimeout(Optional ByVal millisecond As Long = 300000)
-    Dim data As New Dictionary
-    data.Add "pageLoad", millisecond
-    Execute CMD_SET_TIMEOUTS, data
+    Dim Data As New Dictionary
+    Data.Add "pageLoad", millisecond
+    Execute CMD_SET_TIMEOUTS, Data
 End Sub
 
 Public Sub SetScriptTimeout(Optional ByVal millisecond As Long = 30000)
-    Dim data As New Dictionary
-    data.Add "script", millisecond
-    Execute CMD_SET_TIMEOUTS, data
+    Dim Data As New Dictionary
+    Data.Add "script", millisecond
+    Execute CMD_SET_TIMEOUTS, Data
 End Sub
 
 Public Function GetImplicitlyWait() As Long
-    Dim data As New Dictionary
-    GetImplicitlyWait = Execute(CMD_GET_TIMEOUTS, data)("value")("implicit")
+    Dim Data As New Dictionary
+    GetImplicitlyWait = Execute(CMD_GET_TIMEOUTS, Data)("value")("implicit")
 End Function
 
 Public Function GetPageLoadTimeout() As Long
-    Dim data As New Dictionary
-    GetPageLoadTimeout = Execute(CMD_GET_TIMEOUTS, data)("value")("pageLoad")
+    Dim Data As New Dictionary
+    GetPageLoadTimeout = Execute(CMD_GET_TIMEOUTS, Data)("value")("pageLoad")
 End Function
 
 Public Function GetScriptTimeout() As Long
-    Dim data As New Dictionary
-    GetScriptTimeout = Execute(CMD_GET_TIMEOUTS, data)("value")("script")
+    Dim Data As New Dictionary
+    GetScriptTimeout = Execute(CMD_GET_TIMEOUTS, Data)("value")("script")
 End Function
 
 Public Sub Wait(Optional ByVal milliseconds As Long = 300)
@@ -1175,12 +1189,12 @@ Public Sub Wait(Optional ByVal milliseconds As Long = 300)
 End Sub
 
 Public Function IsPresent(by_ As by, ByVal Value As String) As Boolean
-    Dim timeout As Long, resp As Dictionary, data As Dictionary
+    Dim timeout As Long, resp As Dictionary, Data As Dictionary
     
     timeout = GetImplicitlyWait()
     If timeout <> 0 Then SetImplicitlyWait 0
-    Set data = ToSelector(by_, Value)
-    Set resp = Execute(CMD_FIND_ELEMENT, data, False) 'don't raise an error if not present
+    Set Data = ToSelector(by_, Value)
+    Set resp = Execute(CMD_FIND_ELEMENT, Data, False) 'don't raise an error if not present
     If IsResponseError(resp) Then
         IsPresent = False
     Else
@@ -1191,41 +1205,45 @@ Public Function IsPresent(by_ As by, ByVal Value As String) As Boolean
 End Function
 
 Public Function IsEnabled(element As WebElement) As Boolean
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    IsEnabled = Execute(CMD_IS_ELEMENT_ENABLED, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    IsEnabled = Execute(CMD_IS_ELEMENT_ENABLED, Data)("value")
 End Function
 
 Public Function IsDisplayed(element As WebElement) As Boolean
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    IsDisplayed = Execute(CMD_IS_ELEMENT_DISPLAYED, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    IsDisplayed = Execute(CMD_IS_ELEMENT_DISPLAYED, Data)("value")
+End Function
+
+Public Function GetBrowserName() As String
+    GetBrowserName = browserName_
 End Function
 
 Public Function GetAlertText() As String
-    Dim data As New Dictionary
-    GetAlertText = Execute(CMD_GET_ALERT_TEXT, data)("value")
+    Dim Data As New Dictionary
+    GetAlertText = Execute(CMD_GET_ALERT_TEXT, Data)("value")
 End Function
 
 Public Sub SetAlertText(ByVal alertText As String)
-    Dim data As New Dictionary
-    data.Add "text", alertText
-    Execute CMD_SET_ALERT_VALUE, data
+    Dim Data As New Dictionary
+    Data.Add "text", alertText
+    Execute CMD_SET_ALERT_VALUE, Data
 End Sub
 
 Public Sub AcceptAlert()
-    Dim data As New Dictionary
-    Execute CMD_ACCEPT_ALERT, data
+    Dim Data As New Dictionary
+    Execute CMD_ACCEPT_ALERT, Data
 End Sub
 
 Public Sub DismissAlert()
-    Dim data As New Dictionary
-    Execute CMD_DISMISS_ALERT, data
+    Dim Data As New Dictionary
+    Execute CMD_DISMISS_ALERT, Data
 End Sub
 
 Public Function IsAlertPresent() As Boolean
-    Dim data As New Dictionary, resp As Dictionary
-    Set resp = Execute(CMD_GET_ALERT_TEXT, data, False)
+    Dim Data As New Dictionary, resp As Dictionary
+    Set resp = Execute(CMD_GET_ALERT_TEXT, Data, False)
     If IsResponseError(resp) Then
         IsAlertPresent = False
     Else
@@ -1234,30 +1252,30 @@ Public Function IsAlertPresent() As Boolean
 End Function
 
 Public Sub Clear(element As WebElement)
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    data.Add "text", vbNullString
-    data.Add "value", vbNullString
-    Execute CMD_CLEAR_ELEMENT, data
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    Data.Add "text", vbNullString
+    Data.Add "value", vbNullString
+    Execute CMD_CLEAR_ELEMENT, Data
 End Sub
 
 Public Function GetTitle() As String
-    Dim data As New Dictionary
-    GetTitle = Execute(CMD_GET_TITLE, data)("value")
+    Dim Data As New Dictionary
+    GetTitle = Execute(CMD_GET_TITLE, Data)("value")
 End Function
 
 Public Function GetShadowRoot(element As WebElement) As ShadowRoot
-    Dim data As New Dictionary, resp As Dictionary
-    data.Add "id", element.elementId
-    Set resp = Execute(CMD_GET_ELEMENT_SHADOW_ROOT, data)
+    Dim Data As New Dictionary, resp As Dictionary
+    Data.Add "id", element.elementId
+    Set resp = Execute(CMD_GET_ELEMENT_SHADOW_ROOT, Data)
     Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOW_KEY))
 End Function
 
 Public Function GetCSSProperty(ByVal name As String, element As WebElement) As String
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    data.Add "name", name
-    GetCSSProperty = Execute(CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, data)("value")
+    Dim Data As New Dictionary
+    Data.Add "id", element.elementId
+    Data.Add "name", name
+    GetCSSProperty = Execute(CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, Data)("value")
 End Function
 
 Public Function GetInnerHTML(Optional element As WebElement) As String
@@ -1285,12 +1303,17 @@ End Function
 ' Get default capabilities for current browser
 Public Function CreateCapabilities() As Capabilities
     Dim Capabilities As New Capabilities
+    
     'insure that this function is being called in the correct order
-    If browserName = "" Or sessionId_ <> "" Then
+    If browserName_ = "" Or sessionId_ <> "" Then
         MsgBox "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
         End 'execution
     End If
-    Capabilities.InitializeFor browserName
+    
+    'now initialize Capabilities
+
+    Capabilities.InitializeFor browserName_
+
     Set CreateCapabilities = Capabilities
 End Function
 
@@ -1346,8 +1369,8 @@ Public Function GetScrollHeight() As Integer
 End Function
 
 Public Function GetAllCookies() As Cookies
-    Dim data As New Dictionary, resp As Collection, ck As Cookie, cks As New Cookies
-    Set resp = Execute(CMD_GET_ALL_COOKIES, data)("value")
+    Dim Data As New Dictionary, resp As Collection, ck As Cookie, cks As New Cookies
+    Set resp = Execute(CMD_GET_ALL_COOKIES, Data)("value")
     'Dim jc As New JSonConverter
     'Debug.Print jc.ConvertToJson(resp, 4)
     For i = 1 To resp.Count
@@ -1359,16 +1382,16 @@ Public Function GetAllCookies() As Cookies
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
 End Function
 
 Public Function GetCookie(ByVal cookieName) As Cookie
-    Dim data As New Dictionary, resp As Dictionary, ck As New Cookie
-    data.Add "name", cookieName
-    Set resp = Execute(CMD_GET_COOKIE, data)("value")
+    Dim Data As New Dictionary, resp As Dictionary, ck As New Cookie
+    Data.Add "name", cookieName
+    Set resp = Execute(CMD_GET_COOKIE, Data)("value")
     If resp.Exists("name") Then ck.name = resp("name")
     If resp.Exists("domain") Then ck.Domain = resp("domain")
     If resp.Exists("expiry") Then ck.ExpiryUnix = resp("expiry")
@@ -1376,24 +1399,24 @@ Public Function GetCookie(ByVal cookieName) As Cookie
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.Path = resp("path")
+    If resp.Exists("path") Then ck.path = resp("path")
     Set GetCookie = ck
 End Function
 
 Public Sub DeleteCookie(ByVal cookieName As String)
-    Dim data As New Dictionary
-    data.Add "name", cookieName
-    Execute CMD_DELETE_COOKIE, data
+    Dim Data As New Dictionary
+    Data.Add "name", cookieName
+    Execute CMD_DELETE_COOKIE, Data
 End Sub
 
 Public Sub SetCookie(ck As Cookie)
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     'value can take a number string greater than 15 digits
     'need to set the following in JSonConverter else  will get an error on execute (see sendRequest):
     'jc.OptionsUseDoubleForLargeNumbers = True
     If ck.name <> "" And ck.Value <> "" Then
-        data.Add "cookie", ck.ToDictionary
-        Execute CMD_ADD_COOKIE, data
+        Data.Add "cookie", ck.ToDictionary
+        Execute CMD_ADD_COOKIE, Data
     End If
 End Sub
 
@@ -1404,8 +1427,8 @@ Public Sub SetCookies(cks As Cookies)
 End Sub
 
 Public Sub DeleteAllCookies()
-    Dim data As New Dictionary
-    Execute CMD_DELETE_ALL_COOKIES, data
+    Dim Data As New Dictionary
+    Execute CMD_DELETE_ALL_COOKIES, Data
 End Sub
 
 Public Function IsPageFound(ByVal url As String) As Boolean
@@ -1438,26 +1461,26 @@ Public Function ActionChain() As ActionChain
     Set ActionChain = New ActionChain
     'pass a reference of the driver to each link
     Set ActionChain.WebDriver = Me
-    Set ActionChain.data = data_
+    Set ActionChain.Data = data_
 End Function
 
 Public Function FindElementFromShadowRoot(by_ As by, ByVal Value As String, sRoot As ShadowRoot) As WebElement
-    Dim data As Dictionary
-    Set data = ToSelector(by_, Value)
-    data.Add "sid", sRoot.shadowRootId
-    Set FindElementFromShadowRoot = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, data)("value")(ELEMENT_KEY))
+    Dim Data As Dictionary
+    Set Data = ToSelector(by_, Value)
+    Data.Add "sid", sRoot.shadowRootId
+    Set FindElementFromShadowRoot = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
 End Function
 
 Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRoot As ShadowRoot) As WebElements
-    Dim data As Dictionary
+    Dim Data As Dictionary
     Dim elements As Collection
     Dim elems As WebElements
     Dim i As Integer
     
-    Set data = ToSelector(by_, Value)
-    data.Add "sid", sRoot.shadowRootId
+    Set Data = ToSelector(by_, Value)
+    Data.Add "sid", sRoot.shadowRootId
     
-    Set elements = Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, data)("value")
+    Set elements = Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")
     
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
@@ -1507,12 +1530,12 @@ Public Function GetUserAgent() As String
 End Function
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim method As String, Path As String
+    Dim method As String, path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
     method = driverCommand(0)
-    Path = driverCommand(1)
+    path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1524,8 +1547,8 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
-            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
+        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
+            path = Replace(path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -1535,7 +1558,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(method, driverUrl_ & Path, cmdArgs)
+    Set response = SendRequest(method, driverUrl_ & path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -1581,7 +1604,7 @@ Private Function IsResponseError(resp As Dictionary) As Boolean
     End If
 End Function
 
-Private Function SendRequest(ByVal method As String, ByVal url As String, Optional data As Dictionary = Nothing) As Dictionary
+Private Function SendRequest(ByVal method As String, ByVal url As String, Optional Data As Dictionary = Nothing) As Dictionary
     Dim client As MSXML2.ServerXMLHTTP60, jc As New JSonConverter
     Set client = New MSXML2.ServerXMLHTTP60
 
@@ -1593,7 +1616,7 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
     If method = "POST" Or method = "PUT" Then
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
-        client.send jc.ConvertToJson(data)  '
+        client.send jc.ConvertToJson(Data)  '
     Else
         client.send
     End If
@@ -1606,6 +1629,24 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
 
 End Function
 
+Private Function IsProcessRunning(ByVal process As String)
+    Dim objServices As WbemScripting.SWbemServices
+    Dim objProcessList As WbemScripting.SWbemObjectSet
+    
+    Set objServices = GetObject("winmgmts:")
+    Set objProcessList = objServices.ExecQuery("select * from win32_process where name='" & process & "'")
+    
+    If objProcessList.Count > 0 Then
+        IsProcessRunning = True
+    Else
+        IsProcessRunning = False
+    End If
+End Function
+
+Private Function TaskKill(ByVal taskName As String)
+    Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
+    TaskKill = wsh.Run("taskkill /f /im " & taskName, 0, True)
+End Function
 Private Function params(ParamArray keysAndValues()) As Dictionary
     Dim dict As New Dictionary
     Dim i As Integer
@@ -1696,7 +1737,7 @@ End Sub
 
 Private Sub Class_Initialize()
     InitCommands
-    AppWinStyle = vbHide 'hides the command window
+    CommandWindowStyle = vbHide 'hides the command window
 End Sub
 
 Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As String = ".\snippet.html")
@@ -1747,8 +1788,8 @@ End Sub
 Private Function GetAbsolutePath(ByVal strPath As String) As String
     Dim fso As New FileSystemObject
     saveppath = CurDir()
-    ChDrive ThisWorkbook.Path
-    ChDir ThisWorkbook.Path
+    ChDrive ThisWorkbook.path
+    ChDir ThisWorkbook.path
     GetAbsolutePath = fso.GetAbsolutePathName(strPath)
     ChDrive saveppath
     ChDir saveppath

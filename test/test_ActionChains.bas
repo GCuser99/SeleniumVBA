@@ -1,7 +1,6 @@
 Attribute VB_Name = "test_ActionChains"
 Sub test_action_chain()
     Dim driver As New WebDriver, actions As ActionChain
-    
     Dim from1 As WebElement, to1 As WebElement
     Dim from2 As WebElement, to2 As WebElement
     Dim from3 As WebElement, to3 As WebElement
@@ -12,6 +11,8 @@ Sub test_action_chain()
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
+    
+    driver.Wait 1000 'this is needed for 32 bit IE
     
     Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
     Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")
@@ -25,14 +26,13 @@ Sub test_action_chain()
     Set from4 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
     Set to4 = driver.FindElement(by.XPath, "//*[@id='amt8']/li")
     
-    driver.Wait 1000
+    driver.Wait 500
     
     Set actions = driver.ActionChain
     actions.ScrollBy , 500
     actions.DragAndDrop from1, to1
     actions.DragAndDrop from2, to2
     actions.DragAndDrop from3, to3
-    'an alternative method to Drag and Drop
     actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton
     actions.Perform 'do all the actions defined above
     
@@ -42,25 +42,27 @@ Sub test_action_chain()
     driver.Shutdown
 End Sub
 
-Sub test_action_chain2()
+Sub test_action_chain_sendkeys()
     Dim driver As New WebDriver
     Dim keys As New Keyboard
     Dim actions As ActionChain
-    Dim elemSearch As WebElement
+    Dim searchBox As WebElement
     
-    driver.StartChrome
+    driver.StartEdge
+    
     driver.OpenBrowser
     
     driver.NavigateTo "https://www.google.com/"
-    driver.Wait 1000
+    driver.Wait 500
     
-    Set elemSearch = driver.FindElement(by.name, "btnK")
+    Set searchBox = driver.FindElement(by.name, "q")
     
     Set actions = driver.ActionChain
     
     'build the chain and then execute with Perform method
+    actions.MoveToElement(searchBox).Click
     actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
-    actions.MoveToElement(elemSearch).Click().Perform
+    actions.SendKeys(keys.ReturnKey).Perform
 
     driver.Wait 2000
     
@@ -79,6 +81,8 @@ Sub test_drag_and_drop()
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
+    
+    driver.Wait 500 'this is needed for 32 bit IE
     
     Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
     Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")

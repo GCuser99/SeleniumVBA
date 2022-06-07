@@ -43,7 +43,7 @@ End Sub
 Sub test_windows2()
     Dim driver As New WebDriver
     
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "http://demo.guru99.com/popup.php"
@@ -60,6 +60,7 @@ Sub test_windows2()
     For i = 1 To UBound(whdls)
         If whdls(i) <> mainWindow Then
             driver.SwitchToWindow whdls(i)
+            driver.Wait
             driver.FindElement(by.name, "emailid").SendKeys "gaurav.3n@gmail.com"
             driver.Wait 2000
             driver.FindElement(by.name, "btnLogin").Click
@@ -77,3 +78,4 @@ Sub test_windows2()
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+

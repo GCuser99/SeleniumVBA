@@ -2,8 +2,8 @@ Attribute VB_Name = "test_Dropdowns"
 Sub test_select()
     'https://www.guru99.com/select-option-dropdown-selenium-webdriver.html
     Dim driver As New WebDriver, fruits As WebElement
-    
-    driver.StartChrome
+
+    driver.StartEdge
     driver.OpenBrowser
 
     driver.NavigateTo "https://jsbin.com/osebed/2"
