@@ -1,4 +1,4 @@
-## SeleniumVBA v1.3
+## SeleniumVBA v1.4
 
 A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA.
 
@@ -11,6 +11,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment via WebDriverManager class (see [test_UpdateDriver.bas](https://github.com/GCuser99/SeleniumVBA/tree/main/test))
 - Open spec: This wrapper is an HTTP client of the Selenium WebDriver server, conforming to [W3C standards](https://www.w3.org/TR/webdriver/).
+- Limited support for Firefox and Edge IE Mode (download [seleniumvba_v1.4-dev.zip](https://github.com/GCuser99/SeleniumVBA/tree/main/dist/))
 
 
 ## Setup
@@ -20,7 +21,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 
 <img src="https://github.com/GCuser99/SeleniumVBA/blob/main/src/references.png" width="300" height="200">`
 
-3. Or alternatively... download the zipped Excel file [seleniumvba_v1.3.zip](https://github.com/GCuser99/SeleniumVBA/tree/main/dist/) - it's ready to go...
+3. Or alternatively... download the zipped Excel file [seleniumvba_v1.4.zip](https://github.com/GCuser99/SeleniumVBA/tree/main/dist/) - it's ready to go...
 4. Download WebDrivers into same directory as the Excel file (each driver should be same major version as corresponding browser)
    
    Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
