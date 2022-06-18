@@ -272,6 +272,7 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\
     Me.AddPref "download.directory_upgrade", True
     Me.AddPref "download.prompt_for_download", userPrompt 'false disables prompting user for download permission
     Me.AddPref "safebrowsing.enabled", True
+    Me.AddPref "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer                                        
     'Me.AddPref "safebrowsing.disable_download_protection", True
     
 End Sub
