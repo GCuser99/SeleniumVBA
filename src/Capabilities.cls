@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.4.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -207,14 +207,14 @@ Public Property Let SetUserAgent(ByVal val As String)
 End Property
 
 ' Helper method to add prefs
-Public Sub AddPref(ByVal key As String, ByVal Value As String)
+Public Sub AddPref(ByVal key As String, ByVal value As Variant)
     If Prefs Is Nothing Then
         SetOption "prefs", New Dictionary
     End If
     
-    If key = "download.default_directory" Then Value = GetAbsolutePath(Value)
+    If key = "download.default_directory" Then value = GetAbsolutePath(value)
     
-    Prefs(key) = Value
+    Prefs(key) = value
 End Sub
 
 ' Convert to Dictionary (WebDriver takes Dictionary)
