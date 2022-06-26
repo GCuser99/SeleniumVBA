@@ -1,6 +1,6 @@
 ## SeleniumVBA v1.4
 
-A comprehensive Selenium wrapper for Edge and Chrome written in Windows Excel VBA.
+A comprehensive Selenium wrapper for automating Edge and Chrome written in Windows Excel VBA.
 
 Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
