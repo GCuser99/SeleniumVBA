@@ -61,9 +61,9 @@ Sub test_windows2()
         If whdls(i) <> mainWindow Then
             driver.SwitchToWindow whdls(i)
             driver.Wait
-            driver.FindElement(by.name, "emailid").SendKeys "gaurav.3n@gmail.com"
+            driver.FindElement(by.Name, "emailid").SendKeys "gaurav.3n@gmail.com"
             driver.Wait 2000
-            driver.FindElement(by.name, "btnLogin").Click
+            driver.FindElement(by.Name, "btnLogin").Click
             driver.Wait 2000
             driver.CloseWindow
             Exit For

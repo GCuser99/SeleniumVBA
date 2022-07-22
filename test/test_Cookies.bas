@@ -1,16 +1,18 @@
 Attribute VB_Name = "test_Cookies"
 Sub test_cookies()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
-    Dim driver As New WebDriver, cks As New Cookies
+    Dim driver As New WebDriver, cks As New WebCookies
     
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
     
-    driver.FindElement(by.name, "username").SendKeys ("abc123")
-    driver.FindElement(by.name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.name, "submit").Click
+    driver.Wait 500
+    
+    driver.FindElement(by.Name, "username").SendKeys ("abc123")
+    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(by.Name, "submit").Click
     
     driver.Wait 500
     
@@ -24,7 +26,9 @@ Sub test_cookies()
     
     'load and set saved cookies from file
     driver.SetCookies cks.LoadFromFile(".\cookies.txt")
-
+    
+    driver.Wait 1000
+    
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 1000
@@ -35,33 +39,37 @@ End Sub
 
 Sub test_cookies2()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
-    Dim driver As New WebDriver, cks As Cookies, ck As Cookie
+    Dim driver As New WebDriver, cks As WebCookies, ck As WebCookie
 
     driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
     
-    driver.FindElement(by.name, "username").SendKeys ("abc123")
-    driver.FindElement(by.name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.name, "submit").Click
-    
     driver.Wait 500
+    
+    driver.FindElement(by.Name, "username").SendKeys ("abc123")
+    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(by.Name, "submit").Click
     
     'get and save the important cookie for this domain
     Set cks = driver.GetAllCookies
     
     For Each ck In cks
-        Debug.Print ck.name
+        Debug.Print ck.Name
     Next ck
     
     driver.DeleteAllCookies  'this does not affect the cks object
+    
+    driver.Wait 500
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
     driver.Wait 500
     
     'set a specific saved cookie
     driver.SetCookie cks("Selenium")
+    
+    driver.Wait 500
 
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
@@ -73,16 +81,18 @@ End Sub
 
 Sub test_cookies3()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
-    Dim driver As New WebDriver, cks As New Cookies, ck As Cookie
+    Dim driver As New WebDriver, cks As New WebCookies, ck As WebCookie
 
     driver.StartChrome
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
     
-    driver.FindElement(by.name, "username").SendKeys ("abc123")
-    driver.FindElement(by.name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.name, "submit").Click
+    driver.Wait 500
+    
+    driver.FindElement(by.Name, "username").SendKeys ("abc123")
+    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(by.Name, "submit").Click
     
     driver.Wait 500
     
@@ -90,7 +100,7 @@ Sub test_cookies3()
     cks.Add driver.GetCookie("Selenium")
     
     For Each ck In cks
-        Debug.Print ck.name
+        Debug.Print ck.Name
     Next ck
     
     'save cookie(s) to file
@@ -106,6 +116,8 @@ Sub test_cookies3()
     
     'set saved cookie(s) from file
     driver.SetCookies cks
+    
+    driver.Wait 500
 
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     

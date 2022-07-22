@@ -24,7 +24,7 @@ Sub test_file_upload()
     driver.FindElement(by.ID, "terms").Click
 
     'click the "Submit File" button
-    driver.FindElement(by.name, "send").Click
+    driver.FindElement(by.Name, "send").Click
     
     driver.Wait 1000
             
@@ -34,35 +34,34 @@ End Sub
 
 Sub test_file_download()
     'see https://www.browserstack.com/guide/download-file-using-selenium-python
-    Dim driver As New WebDriver, caps As Capabilities
+    Dim driver As New WebDriver, caps As WebCapabilities
     
     dirPath = ".\" 'download to same directory as this excel file
 
-    driver.StartEdge
+    driver.StartChrome
+    
+    driver.DeleteFiles ".\BrowserStack - List of devices to test on*.csv"
     
     Set caps = driver.CreateCapabilities
 
     caps.AddPref "download.default_directory", dirPath
     caps.AddPref "download.prompt_for_download", False
+    'caps.AddPref "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
     
     'caps.SetDownloadPrefs filepath 'this does the above in one line
 
     driver.OpenBrowser caps
     
     driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
-
     driver.Wait 500
     
     driver.FindElementByID("accept-cookie-notification").Click
-    
     driver.Wait 500
     
     driver.FindElementByCssSelector(".icon-csv").ScrollToElement , -150
-    
     driver.Wait 1000
     
     driver.FindElementByCssSelector(".icon-csv").Click
-        
     driver.Wait 2000
             
     driver.CloseBrowser

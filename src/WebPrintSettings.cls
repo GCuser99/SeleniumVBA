@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "PrintSettings"
+Attribute VB_Name = "WebPrintSettings"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -38,6 +38,8 @@ Attribute VB_Exposed = True
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
+
+Option Explicit
 
 Private mMarginBottom As Single
 Private mMarginTop As Single
@@ -155,6 +157,7 @@ Friend Function ToDictionary() As Dictionary
     Dim page As New Dictionary
     Dim Data As New Dictionary
     
+    Dim ufact As Single
     If mUnits = svbaInches Then ufact = 2.54 Else ufact = 1
     
     margins.Add "bottom", mMarginBottom * ufact
@@ -173,6 +176,7 @@ Friend Function ToDictionary() As Dictionary
         Data.Add "orientation", "landscape"
     End If
     
+    Dim i As Long
     For i = 0 To UBound(mPageRanges)
         mPageRanges(i) = CStr(mPageRanges(i))
     Next i

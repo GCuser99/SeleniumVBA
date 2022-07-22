@@ -1,5 +1,5 @@
 Attribute VB_Name = "test_UpdateDriver"
-'ATTENTION!!!!
+'IMPORTANT!!!!
 '---------------------------------------------------------------------------------------------------------------
 '
 'To immediately check on the version alignment between installed Selenium WebDrivers and Browsers, and to then
@@ -40,25 +40,17 @@ Sub test_UpdateDriversForSeleniumVBA()
     'this checks for installed driver compatibility and then if not, installs updated driver
     Dim mngr As New WebDriverManager
     
-    browserName = "msedge"
     driverPath = ".\msedgedriver.exe"
     
-    mngr.AlignDriverAndBrowser browserName, driverPath
+    MsgBox mngr.AlignEdgeDriverWithBrowser(driverPath), , "SeleniumVBA"
     
-    browserVer = mngr.GetInstalledBrowserVersion(browserName)
-    driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
-    
-    MsgBox "Edge " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
-
-    browserName = "chrome"
     driverPath = ".\chromedriver.exe"
     
-    mngr.AlignDriverAndBrowser browserName, driverPath
+    MsgBox mngr.AlignChromeDriverWithBrowser(driverPath), , "SeleniumVBA"
     
-    browserVer = mngr.GetInstalledBrowserVersion(browserName)
-    driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
+    driverPath = ".\geckodriver.exe"
     
-    MsgBox "Chrome " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
+    MsgBox mngr.AlignFirefoxDriverWithBrowser(driverPath), , "SeleniumVBA"
 End Sub
 
 Sub test_UpdateDriversForSeleniumBasic()
@@ -66,23 +58,16 @@ Sub test_UpdateDriversForSeleniumBasic()
     'there may be a permission issue for writing to this directory so you may have to run as administrator
     Dim mngr As New WebDriverManager
     
-    browserName = "msedge"
     driverPath = mngr.GetSeleniumBasicFolder & "edgedriver.exe"
     
-    mngr.AlignDriverAndBrowser browserName, driverPath
+    MsgBox mngr.AlignEdgeDriverWithBrowser(driverPath), , "SeleniumVBA"
     
-    browserVer = mngr.GetInstalledBrowserVersion(browserName)
-    driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
-    
-    MsgBox "Edge " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
-
-    browserName = "chrome"
     driverPath = mngr.GetSeleniumBasicFolder & "chromedriver.exe"
     
-    mngr.AlignDriverAndBrowser browserName, driverPath
+    MsgBox mngr.AlignChromeDriverWithBrowser(driverPath), , "SeleniumVBA"
     
-    browserVer = mngr.GetInstalledBrowserVersion(browserName)
-    driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
+    driverPath = mngr.GetSeleniumBasicFolder & "geckodriver.exe"
     
-    MsgBox "Chrome " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
+    MsgBox mngr.AlignFirefoxDriverWithBrowser(driverPath), , "SeleniumVBA"
 End Sub
+

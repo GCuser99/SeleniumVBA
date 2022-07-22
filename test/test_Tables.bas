@@ -8,7 +8,7 @@ Sub test_table()
     
     'how to write XPath for table in Selenium
     driver.NavigateTo "https://demo.guru99.com/test/write-xpath-table.html"
-    driver.Wait 2000
+    driver.Wait 1000
     Debug.Print driver.FindElement(by.XPath, "//table/tbody/tr[1]/td[1]").GetText
     Debug.Print driver.FindElement(by.XPath, "//table/tbody/tr[1]/td[2]").GetText
     Debug.Print driver.FindElement(by.XPath, "//table/tbody/tr[2]/td[1]").GetText
@@ -16,7 +16,7 @@ Sub test_table()
     
     'accessing nested tables
     driver.NavigateTo "https://demo.guru99.com/test/accessing-nested-table.html"
-    driver.Wait 2000
+    driver.Wait 1000
     Debug.Print driver.FindElement(by.XPath, "//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText
     Debug.Print driver.FindElement(by.XPath, "//table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText
     Debug.Print driver.FindElement(by.XPath, "//table/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText
@@ -24,7 +24,7 @@ Sub test_table()
     
     'using attributes as predicates
     driver.NavigateTo "https://demo.guru99.com/test/newtours/"
-    driver.Wait 2000
+    driver.Wait 1000
     Debug.Print driver.FindElement(by.XPath, "//table[@width='270']/tbody/tr[4]/td").GetText
     
     'use inspect element
@@ -38,7 +38,7 @@ Sub test_table()
     
     'example: fetch number of rows and columns from Dynamic WebTable
     driver.NavigateTo "https://demo.guru99.com/test/web-table-element.php"
-    driver.Wait 2000
+    driver.Wait 1000
     
     Set webCols = driver.FindElements(by.XPath, ".//*[@id='leftcontainer']/table/thead/tr/th")
     Debug.Print "No of cols are : " & webCols.Count
@@ -58,7 +58,7 @@ Sub test_table()
     
     'example: get all the values of a Dynamic Table
     driver.NavigateTo "https://demo.guru99.com/test/table.html"
-    driver.Wait 2000
+    driver.Wait 1000
     
     Dim mytable As WebElement
     Dim rowsTable As WebElements, columnsRow As WebElements

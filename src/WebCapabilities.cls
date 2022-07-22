@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "Capabilities"
+Attribute VB_Name = "WebCapabilities"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4.1
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -56,8 +56,11 @@ Attribute VB_Exposed = True
 ' - Chrome: https://chromedriver.chromium.org/capabilities
 ' - Edge: https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options
 
+Option Explicit
+
 Private data_ As New Dictionary
 Private browserOptionKey As String
+Private browserName_ As String
 
 Public Property Let args(Value() As String)
     SetOption "args", Value
@@ -207,14 +210,15 @@ Public Property Let SetUserAgent(ByVal val As String)
 End Property
 
 ' Helper method to add prefs
-Public Sub AddPref(ByVal key As String, ByVal value As Variant)
+Public Sub AddPref(ByVal key As String, ByVal Value As Variant)
     If Prefs Is Nothing Then
         SetOption "prefs", New Dictionary
     End If
     
-    If key = "download.default_directory" Then value = GetAbsolutePath(value)
-    
-    Prefs(key) = value
+    If key = "download.default_directory" Then Value = GetAbsolutePath(Value)
+    If key = "browser.download.dir" Then Value = GetAbsolutePath(Value)
+
+    Prefs(key) = Value
 End Sub
 
 ' Convert to Dictionary (WebDriver takes Dictionary)
@@ -228,14 +232,16 @@ End Function
 
 ' Convert to JSON string for debugging
 Public Function ToJson() As String
-    Dim jc As New JSonConverter
+    Dim jc As New WebJSonConverter
     ToJson = jc.ConvertToJson(data_, 4)
 End Function
 
 Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey As String)
+    
     Set data_ = New Dictionary
     data_.Add "browserName", browserName
     data_.Add "alwaysMatch", New Dictionary
+    browserName_ = browserName
     
     Dim browserOptions As New Dictionary
     browserOptions.Add "args", Nothing
@@ -256,6 +262,8 @@ Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey A
             browserOptionKey = "goog:chromeOptions"
         Case "msedge"
             browserOptionKey = "ms:edgeOptions"
+        Case "firefox"
+            browserOptionKey = "moz:firefoxOptions"
         Case Else
             browserOptionKey = optionKey
     End Select
@@ -263,18 +271,27 @@ Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey A
     data_("alwaysMatch").Add browserOptionKey, browserOptions
 End Sub
 
-Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\", Optional userPrompt As Boolean = False)
-    
+Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
     downloadDirectoryPath = GetAbsolutePath(downloadDirectoryPath)
-    'these work for both Chrome and Edge
 
-    Me.AddPref "download.default_directory", downloadDirectoryPath
-    Me.AddPref "download.directory_upgrade", True
-    Me.AddPref "download.prompt_for_download", userPrompt 'false disables prompting user for download permission
-    Me.AddPref "safebrowsing.enabled", True
-    Me.AddPref "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer                                        
-    'Me.AddPref "safebrowsing.disable_download_protection", True
-    
+    Select Case browserName_
+    Case "chrome", "msedge"
+        Me.AddPref "download.default_directory", downloadDirectoryPath
+        Me.AddPref "download.directory_upgrade", True
+        Me.AddPref "download.prompt_for_download", False 'false disables prompting user for download permission
+        Me.AddPref "safebrowsing.enabled", True
+        Me.AddPref "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer
+        'Me.AddPref "safebrowsing.disable_download_protection", True
+    Case "firefox"
+        Me.AddPref "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
+        Me.AddPref "browser.download.dir", downloadDirectoryPath
+        Me.AddPref "pdfjs.disabled", True  'disable the built-in PDF viewer
+        'Me.AddPref "browser.download.manager.showWhenStarting", False
+        'Me.AddPref "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
+        'Me.AddPref "browser.download.useDownloadDir", True
+        'Me.AddPref "browser.download.viewableInternally.enabledTypes", ""
+        'this is needed to prevent a pdf from being opened instead of downloaded
+    End Select
 End Sub
 
 Public Sub InitializeForChrome()
@@ -285,17 +302,10 @@ Public Sub InitializeForEdge()
     InitializeFor "msedge"
 End Sub
 
+Public Sub InitializeForFirefox()
+    InitializeFor "firefox"
+End Sub
+
 Public Sub RunInvisible()
     Me.AddArgument "--headless"
 End Sub
-
-Private Function GetAbsolutePath(ByVal strPath As String) As String
-    Dim fso As New FileSystemObject
-    saveppath = CurDir()
-    ChDrive ThisWorkbook.path
-    ChDir ThisWorkbook.path
-    GetAbsolutePath = fso.GetAbsolutePathName(strPath)
-    ChDrive saveppath
-    ChDir saveppath
-End Function
-

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -52,6 +52,8 @@ Attribute VB_Exposed = True
 ' SOFTWARE.
 ' ==========================================================================
 
+Option Explicit
+
 Private driver_ As WebDriver
 Private elementId_ As String
 
@@ -79,8 +81,8 @@ Public Function FindElements(by_ As by, ByVal Value As String) As WebElements
     Set FindElements = driver_.FindElements(by_, Value, Me)
 End Function
 
-Public Sub SetAttribute(ByVal name As String, ByVal Value As String)
-    driver_.SetAttribute Me, name, Value
+Public Sub SetAttribute(ByVal Name As String, ByVal Value As String)
+    driver_.SetAttribute Me, Name, Value
 End Sub
 
 Public Sub SendKeys(ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = True)
@@ -99,12 +101,12 @@ Public Function GetText() As String
     GetText = driver_.GetText(Me)
 End Function
 
-Public Function GetProperty(ByVal name As String) As String
-    GetProperty = driver_.GetProperty(name, Me)
+Public Function GetProperty(ByVal Name As String) As String
+    GetProperty = driver_.GetProperty(Name, Me)
 End Function
 
-Public Function HasProperty(ByVal name As String) As Boolean
-    HasProperty = driver_.HasProperty(name, Me)
+Public Function HasProperty(ByVal Name As String) As Boolean
+    HasProperty = driver_.HasProperty(Name, Me)
 End Function
 
 Public Function GetTagName() As String
@@ -115,16 +117,16 @@ Public Function GetRect() As Dictionary
     Set GetRect = driver_.GetRect(Me)
 End Function
 
-Public Function GetCSSProperty(ByVal name As String) As String
-    GetCSSProperty = driver_.GetCSSProperty(name, Me)
+Public Function GetCSSProperty(ByVal Name As String) As String
+    GetCSSProperty = driver_.GetCSSProperty(Name, Me)
 End Function
 
-Public Function HasAttribute(ByVal name As String) As Boolean
-    HasAttribute = driver_.HasAttribute(name, Me)
+Public Function HasAttribute(ByVal Name As String) As Boolean
+    HasAttribute = driver_.HasAttribute(Name, Me)
 End Function
 
-Public Function GetAttribute(ByVal name As String) As String
-    GetAttribute = driver_.GetAttribute(name, Me)
+Public Function GetAttribute(ByVal Name As String) As String
+    GetAttribute = driver_.GetAttribute(Name, Me)
 End Function
 
 Public Function GetAriaLabel() As String
@@ -227,7 +229,7 @@ Public Sub ScrollIntoView(Optional ByVal alignTop As Boolean = True)
     driver_.ScrollIntoView Me, alignTop
 End Sub
 
-Public Function GetShadowRoot() As ShadowRoot
+Public Function GetShadowRoot() As WebShadowRoot
     Set GetShadowRoot = driver_.GetShadowRoot(Me)
 End Function
 

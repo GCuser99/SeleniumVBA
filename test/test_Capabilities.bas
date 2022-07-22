@@ -2,9 +2,9 @@ Attribute VB_Name = "test_Capabilities"
 Sub test_headless()
     'see also test_FileUpDownload for another example using Capabilities
     Dim driver As New WebDriver
-    Dim caps As Capabilities
+    Dim caps As WebCapabilities
 
-    driver.StartEdge
+    driver.StartChrome
     
     'note that Capabilities object should be created after starting the driver (StartEdge or StartChrome methods)
     Set caps = driver.CreateCapabilities

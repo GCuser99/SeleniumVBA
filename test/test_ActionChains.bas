@@ -1,6 +1,6 @@
 Attribute VB_Name = "test_ActionChains"
 Sub test_action_chain()
-    Dim driver As New WebDriver, actions As ActionChain
+    Dim driver As New WebDriver, actions As WebActionChain
     Dim from1 As WebElement, to1 As WebElement
     Dim from2 As WebElement, to2 As WebElement
     Dim from3 As WebElement, to3 As WebElement
@@ -44,8 +44,8 @@ End Sub
 
 Sub test_action_chain_sendkeys()
     Dim driver As New WebDriver
-    Dim keys As New Keyboard
-    Dim actions As ActionChain
+    Dim keys As New WebKeyboard
+    Dim actions As WebActionChain
     Dim searchBox As WebElement
     
     driver.StartEdge
@@ -55,7 +55,7 @@ Sub test_action_chain_sendkeys()
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 500
     
-    Set searchBox = driver.FindElement(by.name, "q")
+    Set searchBox = driver.FindElement(by.Name, "q")
     
     Set actions = driver.ActionChain
     

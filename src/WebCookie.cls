@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "Cookie"
+Attribute VB_Name = "WebCookie"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -44,6 +44,8 @@ Attribute VB_Exposed = True
 'takes a while to load an alternative is to find a smaller page on the site (typically the 404 page is small
 'e.g. http://example.com/some404page)
 'see https://www.selenium.dev/documentation/webdriver/browser/cookies/
+
+Option Explicit
 
 Private mDomain As String
 Private mExpiry  As Long
@@ -95,10 +97,10 @@ Public Property Let HttpOnly(ByVal val As Boolean)
     mHttpOnly = val
 End Property
 
-Public Property Get name() As String
-    name = mName
+Public Property Get Name() As String
+    Name = mName
 End Property
-Public Property Let name(ByVal val As String)
+Public Property Let Name(ByVal val As String)
     mName = val
 End Property
 
@@ -120,10 +122,10 @@ Public Property Let Value(ByVal val As String)
 End Property
 
 'The virtual path to transmit with the cookie. The default is /, which is the server root.
-Public Property Get path() As String
-    path = mPath
+Public Property Get Path() As String
+    Path = mPath
 End Property
-Public Property Let path(ByVal val As String)
+Public Property Let Path(ByVal val As String)
     mPath = val
 End Property
 
@@ -142,7 +144,7 @@ End Function
 
 Private Sub Class_Initialize()
     'initialize defaults
-    Me.path = "/"
+    Me.Path = "/"
     Me.Secure = False
     Me.HttpOnly = False
     Me.SameSite = "Lax"

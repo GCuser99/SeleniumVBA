@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "ShadowRoot"
+Attribute VB_Name = "WebShadowRoot"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -40,6 +40,8 @@ Attribute VB_Exposed = True
 ' ==========================================================================
 
 'this class is written to support Shadow Roots
+
+Option Explicit
 
 Private driver_ As WebDriver
 Private shadowRootId_ As String

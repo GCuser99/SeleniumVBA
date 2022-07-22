@@ -1,7 +1,7 @@
 Attribute VB_Name = "test_Sendkeys"
 Sub test_sendkeys()
     Dim driver As New WebDriver
-    Dim keys As New Keyboard
+    Dim keys As New WebKeyboard
 
     driver.StartEdge
     
@@ -12,12 +12,11 @@ Sub test_sendkeys()
     
     keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver.FindElement(by.name, "q").SendKeys keySeq
+    driver.FindElement(by.Name, "q").SendKeys keySeq
 
     driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 

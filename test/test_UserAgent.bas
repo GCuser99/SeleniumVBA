@@ -3,7 +3,7 @@ Sub test_hide_headless()
     'some servers detect headless mode in the sent User Agent and then deny access, so
     'here we modify the user agent that gets sent to server
     Dim driver As New WebDriver
-    Dim caps As Capabilities
+    Dim caps As WebCapabilities
 
     driver.StartChrome
     driver.OpenBrowser , True  'a way of running headless mode without explicitly adding --headless arg to Capabilities
@@ -30,5 +30,4 @@ Sub test_hide_headless()
     
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub

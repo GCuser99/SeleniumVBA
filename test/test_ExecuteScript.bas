@@ -32,14 +32,13 @@ Sub test_executescript()
     
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
 
 Sub test_executescriptasync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
-    Dim driver As New WebDriver, webElem As WebElement, jc As New JSonConverter
+    Dim driver As New WebDriver, webElem As WebElement, jc As New WebJSonConverter
     
-    driver.CommandWindowStyle = vbNormalFocus
+    'driver.CommandWindowStyle = vbNormalFocus
     
     driver.StartEdge
     driver.OpenBrowser
@@ -64,6 +63,5 @@ Sub test_executescriptasync()
         
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub
 

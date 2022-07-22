@@ -8,7 +8,7 @@ Sub test_position_size()
     url = "https://www.google.com/"
 
     driver.NavigateTo url
-    Set webElem = driver.FindElement(by.name, "q")
+    Set webElem = driver.FindElement(by.Name, "q")
 
     driver.Wait 500
     

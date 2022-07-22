@@ -32,5 +32,4 @@ Sub test_select()
 
     driver.CloseBrowser
     driver.Shutdown
-
 End Sub

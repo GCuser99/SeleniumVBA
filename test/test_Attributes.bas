@@ -53,7 +53,6 @@ Sub test_element_attributes_and_properties()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 
 Sub test_css_property()
@@ -96,5 +95,4 @@ Sub test_element_aria()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub

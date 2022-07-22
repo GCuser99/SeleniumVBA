@@ -1,5 +1,5 @@
 Attribute VB_Name = "test_WebElements"
-Sub test_WebElementsObject()
+Sub test_WebElements()
     Dim driver As New WebDriver
     Dim mytable As WebElement
     Dim rowsTable As WebElements, columnsRow As WebElements
@@ -52,5 +52,4 @@ Sub test_WebElementsObject()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub

@@ -1,7 +1,7 @@
 Attribute VB_Name = "test_Shadowroots"
 Sub test_shadowroot()
     Dim driver As New WebDriver, shadowHost As WebElement
-    Dim shadowContent As WebElement, shadowRootelem As ShadowRoot
+    Dim shadowContent As WebElement, shadowRootelem As WebShadowRoot
     
     driver.StartEdge
     driver.OpenBrowser

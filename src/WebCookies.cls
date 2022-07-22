@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "Cookies"
+Attribute VB_Name = "WebCookies"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -43,10 +43,12 @@ Attribute VB_Exposed = True
 '
 ' ==========================================================================
 
+Option Explicit
+
 Private colCookie As Collection
 
-Public Function Add(cke As Cookie) As Cookie
-    colCookie.Add cke, cke.name
+Public Function Add(cke As WebCookie) As WebCookie
+    colCookie.Add cke, cke.Name
     Set Add = cke
 End Function
 
@@ -60,17 +62,17 @@ End Property
 
 Public Sub Remove(indexOrCookie As Variant)
     If TypeName(indexOrCookie) = "Cookie" Then
-        colCookie.Remove indexOrCookie.name
+        colCookie.Remove indexOrCookie.Name
     Else
         colCookie.Remove indexOrCookie
     End If
 End Sub
 
-Public Property Get Item(ByVal name As Variant) As Cookie
+Public Property Get Item(ByVal Name As Variant) As WebCookie
 Attribute Item.VB_UserMemId = 0
     'Attribute Dictionary.VB_UserMemId = 0
     'uncomment line above in text editor to make this the default property
-    Set Item = colCookie.Item(name)
+    Set Item = colCookie.Item(Name)
 End Property
 
 Friend Sub RemoveAll()
@@ -79,23 +81,23 @@ Friend Sub RemoveAll()
     Loop
 End Sub
 
-Public Function IsMember(ByVal cke As Cookie) As Boolean
+Public Function IsMember(ByVal cke As WebCookie) As Boolean
     Dim i As Long, ckeName As String
-    ckeName = cke.name
+    ckeName = cke.Name
     IsMember = False
     For i = 1 To Me.Count
-        If Me.Item(i).name = ckeName Then
+        If Me.Item(i).Name = ckeName Then
             IsMember = True
             Exit For
         End If
     Next i
 End Function
 
-Public Sub SaveToFile(Optional ByVal path As String = ".\cookies.txt")
+Public Sub SaveToFile(Optional ByVal Path As String = ".\cookies.txt")
     Dim fs As New FileSystemObject, ts As textstream, darray() As Dictionary, i
-    Dim jc As New JSonConverter
-    path = GetAbsolutePath(path)
-    Set ts = fs.CreateTextFile(path, True)
+    Dim jc As New WebJSonConverter
+    Path = GetAbsolutePath(Path)
+    Set ts = fs.CreateTextFile(Path, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
@@ -104,29 +106,30 @@ Public Sub SaveToFile(Optional ByVal path As String = ".\cookies.txt")
     ts.Close
 End Sub
 
-Public Function LoadFromFile(Optional ByVal path As String = ".\cookies.txt") As Cookies
-    Dim fs As New FileSystemObject, ts As textstream, str As String, v As Collection, ck As Cookie
-    Dim jc As New JSonConverter
+Public Function LoadFromFile(Optional ByVal Path As String = ".\cookies.txt") As WebCookies
+    Dim fs As New FileSystemObject, ts As textstream, str As String, v As Collection, ck As WebCookie
+    Dim jc As New WebJSonConverter
     
     Me.RemoveAll
     
-    path = GetAbsolutePath(path)
+    Path = GetAbsolutePath(Path)
     
-    Set ts = fs.OpenTextFile(path)
+    Set ts = fs.OpenTextFile(Path)
     str = ts.ReadAll
     ts.Close
     Set v = jc.ParseJSON(str)
     
+    Dim i As Long
     For i = 1 To v.Count
-        Set ck = New Cookie
-        ck.name = v(i)("name")
+        Set ck = New WebCookie
+        ck.Name = v(i)("name")
         ck.Domain = v(i)("domain")
         ck.ExpiryUnix = v(i)("expiry")
         ck.HttpOnly = v(i)("httpOnly")
         ck.SameSite = v(i)("sameSite")
         ck.Secure = v(i)("secure")
         ck.Value = v(i)("value")
-        ck.path = v(i)("path")
+        ck.Path = v(i)("path")
         Me.Add ck
     Next i
     Set LoadFromFile = Me
@@ -147,14 +150,3 @@ Private Sub Class_Terminate()
     RemoveAll
     Set colCookie = Nothing
 End Sub
-
-Private Function GetAbsolutePath(ByVal strPath As String) As String
-    Dim fso As New FileSystemObject
-    saveppath = CurDir()
-    ChDrive ThisWorkbook.path
-    ChDir ThisWorkbook.path
-    GetAbsolutePath = fso.GetAbsolutePathName(strPath)
-    ChDrive saveppath
-    ChDir saveppath
-End Function
-

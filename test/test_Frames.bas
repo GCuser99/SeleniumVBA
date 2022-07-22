@@ -93,7 +93,6 @@ Sub test_frames_with_embed_objects()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 
 Sub test_frames_with_iframes()
@@ -139,7 +138,6 @@ Sub test_frames_with_iframes()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 
 Sub test_frames_with_nested_iframes()
@@ -179,6 +177,5 @@ Sub test_frames_with_nested_iframes()
     
     driver.CloseBrowser
     driver.Shutdown
-    
 End Sub
 

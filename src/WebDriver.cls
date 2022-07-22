@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -57,6 +57,8 @@ Attribute VB_Exposed = True
 'Microsoft XML, v6.0
 'Microsoft Scripting Runtime
 
+Option Explicit
+
 'change to True if auto-check-and-update desired
 Private Const checkDriverBrowserVersionAlignment = False
 
@@ -72,6 +74,9 @@ Private sessionId_ As String
 Private driverUrl_ As String
 Private browserName_ As String
 Private appWinStyle As VbAppWinStyle
+
+Private driverFilename As String
+Private processID As String
 
 Private Const ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf"
 Private Const SHADOW_KEY = "shadow-6066-11e4-a52e-4f735466cecf"
@@ -156,8 +161,8 @@ Private CMD_GET_ELEMENT_ARIA_LABEL
 Public Enum by
     ID = 0
     tagName = 1
-    className = 2
-    name = 3
+    ClassName = 2
+    Name = 3
     cssSelector = 4
     XPath = 5
     linkText = 6
@@ -180,11 +185,11 @@ Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
 End Property
 
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge_verbose.log")
-    Dim fso As New Scripting.FileSystemObject
-    
+    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, port As String, pathName As String
+
     browserName_ = "msedge"
     driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\msedgedriver.exe"
-    
+
     If enableLogging Then
         logFilePath = GetAbsolutePath(logFilePath)
         serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
@@ -192,22 +197,37 @@ Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", O
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
-        mngr.SupressWarnings = True
-        mngr.AlignDriverAndBrowser browserName_, driverPath
+        mngr.AlignEdgeDriverWithBrowser driverPath
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
+        MsgBox "Could not find Edge WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
         End 'execution
     End If
     
-    Start driverPath, localHostPort, serviceArgs
+    driverFilename = fso.GetFileName(driverPath)
+    driverPath = Chr(34) & driverPath & Chr(34)
     
+    port = " --port=" & localHostPort
+    
+    'KillDriver browserName_, localHostPort
+    
+    pathName = driverPath & port & serviceArgs
+    
+    processID = Shell(pathName, appWinStyle)
+
+    If processID = 0 Then
+        MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
+        End
+    End If
+    
+    'Set WebDriver url
+    driverUrl_ = "http://localhost:" & localHostPort
 End Sub
 
 Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome_verbose.log")
-    Dim fso As New Scripting.FileSystemObject
-    
+    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, port As String, pathName As String
+
     browserName_ = "chrome"
     driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\chromedriver.exe"
     
@@ -218,52 +238,98 @@ Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe",
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
-        mngr.SupressWarnings = True
-        mngr.AlignDriverAndBrowser browserName_, driverPath
+        mngr.AlignChromeDriverWithBrowser driverPath
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
+        MsgBox "Could not find Chrome WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
         End 'execution
     End If
     
-    Start driverPath, localHostPort, serviceArgs
+    driverFilename = fso.GetFileName(driverPath)
+    driverPath = Chr(34) & driverPath & Chr(34)
+    
+    port = " --port=" & localHostPort
+    
+    'KillDriver browserName_, localHostPort
+    
+    pathName = driverPath & port & serviceArgs
+    
+    processID = Shell(pathName, appWinStyle)
+
+    If processID = 0 Then
+        MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
+        End
+    End If
+    
+    driverUrl_ = "http://localhost:" & localHostPort
 
 End Sub
 
-Private Sub Start(ByVal driverPath As String, ByVal localHostPort As Long, Optional ByVal serviceArgs As String = vbNullString)
-    Dim port As String
+Public Sub StartFirefox(Optional ByVal driverPath As String = ".\geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox_verbose.log")
+    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, port As String, pathName As String
     
-    'make sure driver path is "quoted" in case we have spaces in path
-    If Left(driverPath, 1) <> Chr(34) Then driverPath = Chr(34) & driverPath
-    If Right(driverPath, 1) <> Chr(34) Then driverPath = driverPath & Chr(34)
+    browserName_ = "firefox"
+    driverPath = GetAbsolutePath(driverPath)  'support for relative path such as driverPath=".\geckodriver.exe"
     
-    port = " --port=" & localHostPort
-
-    If serviceArgs <> "" Then
-        If Left(serviceArgs, 1) <> " " Then serviceArgs = " " & serviceArgs
+    If checkDriverBrowserVersionAlignment Then
+        Dim mngr As New WebDriverManager
+        mngr.AlignFirefoxDriverWithBrowser driverPath
     End If
     
-    ' Start WebDriver executable
-    If shell(driverPath & serviceArgs & port, appWinStyle) = 0 Then
+    If Not fso.FileExists(driverPath) Then
+        MsgBox "Could not find Firefox WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
+        End 'execution
+    End If
+    
+    driverFilename = fso.GetFileName(driverPath)
+    driverPath = Chr(34) & driverPath & Chr(34)
+    
+    port = " --port=" & localHostPort
+    
+    'for firefox, if previous session is still open on same port, then will get "Session is already started"
+    'on OpenBrowser so kill driver instances on this port
+    KillDriver browserName_, localHostPort
+    
+    If enableLogging Then
+        'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
+        'apparently firefox does not support command line argument for specifying log file path
+        'so using cmd.exe to redirect log from console window
+        logFilePath = GetAbsolutePath(logFilePath)
+        serviceArgs = " -vv"" > " & Replace(logFilePath, " ", "^ ") 'need to escape spaces in log path
+        pathName = Chr(34) & Environ("comspec") & Chr(34) & " /c " & """" & driverPath & port & serviceArgs
+    Else
+        pathName = driverPath & port
+    End If
+    
+    processID = Shell(pathName, appWinStyle)
+
+    If processID = 0 Then
         MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
         End
     End If
     
     'Set WebDriver url
     driverUrl_ = "http://localhost:" & localHostPort
-    
 End Sub
 
 Public Sub Shutdown()
     'this will shut down all WebDriver instances, not just the one it is being called from
     'which is can be a good thing if there are multiple "rogue" instances lurking
+    
+    'check to make sure user closed the browser
     If sessionId_ <> "" Then CloseBrowser
     
-    Execute CMD_SHUTDOWN
+    Select Case browserName_
+    Case "chrome", "msedge"
+        Execute CMD_SHUTDOWN
+    Case "firefox"
+        'firefox does not recognize shutdown command
+        TaskKillbyPid processID
+    End Select
 End Sub
 
-Public Sub OpenBrowser(Optional caps As Capabilities, Optional ByVal invisible As Boolean = False)
+Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisible As Boolean = False)
     Dim resp As Dictionary
     
     If sessionId_ <> "" Then
@@ -293,7 +359,7 @@ Public Sub OpenBrowser(Optional caps As Capabilities, Optional ByVal invisible A
     'userDataDir = resp("capabilities")("msedge")("userDataDir")
     'DebuggerAddress = resp("capabilities")("goog:chromeOptions")("debuggerAddress")
     'DebuggerAddress = resp("capabilities")("ms:edgeOptions")("debuggerAddress")
-    
+    'profileDir=resp("capabilities")("moz:profile")
 End Sub
 
 Public Sub CloseBrowser()
@@ -393,10 +459,10 @@ Private Function ToSelector(by_ As by, ByVal Value As String) As Dictionary
     Case by.tagName
         Data.Add "using", "css selector"
         Data.Add "value", Value
-    Case by.className
+    Case by.ClassName
         Data.Add "using", "css selector"
         Data.Add "value", "." + Value
-    Case by.name
+    Case by.Name
         Data.Add "using", "css selector"
         Data.Add "value", "[name=""" + Value + """]"
     Case by.cssSelector
@@ -428,7 +494,7 @@ Public Function FindElementByTagName(ByVal Value As String, Optional parentEleme
 End Function
 
 Public Function FindElementByClassName(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByClassName = FindElement(by.className, Value, parentElement)
+    Set FindElementByClassName = FindElement(by.ClassName, Value, parentElement)
 End Function
 
 Public Function FindElementByCssSelector(ByVal Value As String, Optional parentElement As WebElement) As WebElement
@@ -440,7 +506,7 @@ Public Function FindElementByLinkText(ByVal Value As String, Optional parentElem
 End Function
 
 Public Function FindElementByName(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByName = FindElement(by.name, Value, parentElement)
+    Set FindElementByName = FindElement(by.Name, Value, parentElement)
 End Function
 
 Public Function FindElementByPartialLinkText(ByVal Value As String, Optional parentElement As WebElement) As WebElement
@@ -464,7 +530,7 @@ Public Function FindElementsByTagName(ByVal Value As String, Optional parentElem
 End Function
 
 Public Function FindElementsByClassName(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByClassName = FindElements(by.className, Value, parentElement)
+    Set FindElementsByClassName = FindElements(by.ClassName, Value, parentElement)
 End Function
 
 Public Function FindElementsByCssSelector(ByVal Value As String, Optional parentElement As WebElement) As WebElements
@@ -476,7 +542,7 @@ Public Function FindElementsByLinkText(ByVal Value As String, Optional parentEle
 End Function
 
 Public Function FindElementsByName(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByName = FindElements(by.name, Value, parentElement)
+    Set FindElementsByName = FindElements(by.Name, Value, parentElement)
 End Function
 
 Public Function FindElementsByPartialLinkText(ByVal Value As String, Optional parentElement As WebElement) As WebElements
@@ -493,8 +559,10 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
     
     'split key sequence into chunks with special keys (pattern "\ue0*") by themselves
     ReDim chunk(0 To Len(keys) - 1)
+    Dim i As Long
     i = -1
     Do Until keys = ""
+        Dim ipos As String
         ipos = InStr(keys, "\ue0")
         If ipos > 0 Then
             If ipos > 1 Then 'text to left is chunk
@@ -525,6 +593,7 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
             chars(0) = chunk(i)
         Else
             ReDim chars(0 To Len(chunk(i)) - 1)
+            Dim j As Long
             For j = 0 To Len(chunk(i)) - 1
                 chars(j) = Mid(chunk(i), j + 1, 1)
             Next j
@@ -584,11 +653,11 @@ Public Function GetActiveElement() As WebElement
     Set GetActiveElement = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
 End Function
 
-Public Function GetProperty(ByVal name As String, element As WebElement) As String
+Public Function GetProperty(ByVal Name As String, element As WebElement) As String
     'This returns the current state of a DOM node object, such as the value of an input box.
     'If the property does not exist, then this returns vbNullString
     Dim Data As New Dictionary, resp As Dictionary
-    Data.Add "name", name
+    Data.Add "name", Name
     Data.Add "id", element.elementId
     
     Set resp = Execute(CMD_GET_ELEMENT_PROPERTY, Data)
@@ -600,22 +669,23 @@ Public Function GetProperty(ByVal name As String, element As WebElement) As Stri
     End If
 End Function
 
-Public Function HasProperty(ByVal name As String, element As WebElement) As Boolean
-    If GetProperty(name, element) = "" Then HasProperty = False Else HasProperty = True
+Public Function HasProperty(ByVal Name As String, element As WebElement) As Boolean
+    If GetProperty(Name, element) = "" Then HasProperty = False Else HasProperty = True
 End Function
 
-Public Function HasAttribute(ByVal name As String, element As WebElement) As Boolean
-    If GetAttribute(name, element) = "" Then HasAttribute = False Else HasAttribute = True
+Public Function HasAttribute(ByVal Name As String, element As WebElement) As Boolean
+    If GetAttribute(Name, element) = "" Then HasAttribute = False Else HasAttribute = True
 End Function
 
-Public Function GetAttribute(ByVal name As String, element As WebElement) As String
+Public Function GetAttribute(ByVal Name As String, element As WebElement) As String
     'This returns pre-defined HTML element attributes. Once the browser parses the html code,
     'then a DOM node object with properties is created.
     'To access the state of a DOM node property - such as an input box value, use GetProperty.
     'If the attribute does not exist, then this returns vbNullString
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    Data.Add "name", name
+    Data.Add "name", Name
+    Dim resp As Dictionary
     Set resp = Execute(CMD_GET_ELEMENT_ATTRIBUTE, Data)
     If IsNull(resp("value")) Then
         GetAttribute = ""
@@ -624,14 +694,20 @@ Public Function GetAttribute(ByVal name As String, element As WebElement) As Str
     End If
 End Function
 
-Public Sub SetAttribute(element As WebElement, ByVal name As String, ByVal Value As String)
+Public Sub SetAttribute(element As WebElement, ByVal Name As String, ByVal Value As String)
     'this sets the value of an html element attribute. Consider SendKeys or Action Chain for more control of user input elements.
     'If the attribute does not exist, then this does not throw an error.
-    ExecuteScript "arguments[0].setAttribute('" & name & "', arguments[1])", element, Value
+    ExecuteScript "arguments[0].setAttribute('" & Name & "', arguments[1])", element, Value
 End Sub
 
 Public Function GetAriaRole(element As WebElement) As String
     Dim Data As New Dictionary, resp As Dictionary
+    
+    If browserName_ = "firefox" Then
+        MsgBox "Aria methods not supported for Firefox WebDriver"
+        Exit Function
+    End If
+    
     Data.Add "id", element.elementId
     Set resp = Execute(CMD_GET_ELEMENT_ARIA_ROLE, Data)
     If IsNull(resp("value")) Then
@@ -643,6 +719,12 @@ End Function
 
 Public Function GetAriaLabel(element As WebElement) As String
     Dim Data As New Dictionary, resp As Dictionary
+    
+    If browserName_ = "firefox" Then
+        MsgBox "Aria methods not supported for Firefox WebDriver"
+        Exit Function
+    End If
+    
     Data.Add "id", element.elementId
     Set resp = Execute(CMD_GET_ELEMENT_ARIA_LABEL, Data)
     If IsNull(resp("value")) Then
@@ -800,6 +882,7 @@ Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs
     
     If UBound(scriptArgs) >= 0 Then
         ReDim args(0 To UBound(scriptArgs))
+        Dim i As Long
         For i = 0 To UBound(scriptArgs)
             If TypeName(scriptArgs(i)) = "WebElement" Then
                 'Convert WebElement to Dictionary that can be handled by WebDriver
@@ -819,6 +902,7 @@ Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs
     Case "Collection"
         Dim arry()
         arry = ScriptCollectionToConvertedArray(resp("value"))
+        Dim allWebElements As Boolean
         allWebElements = True
         For i = LBound(arry) To UBound(arry)
             If TypeName(arry(i)) <> "WebElement" Then
@@ -856,6 +940,7 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
     
     If UBound(scriptArgs) >= 0 Then
         ReDim args(0 To UBound(scriptArgs))
+        Dim i As Long
         For i = 0 To UBound(scriptArgs)
             If TypeName(scriptArgs(i)) = "WebElement" Then
                 'Convert WebElement to Dictionary that can be handled by WebDriver
@@ -876,12 +961,13 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
         Dim arry()
         arry = ScriptCollectionToConvertedArray(resp("value"))
         If (Not arry) = -1 Then
-            'Dim jc As New JSonConverter
+            'Dim jc As New WebJSonConverter
             'Debug.Print jc.ConvertToJson(resp, 4)
             'is it ok to assume that this empty collection is of type WebElements?
             Set ExecuteScript = New WebElements
             Exit Function
         End If
+        Dim allWebElements As Boolean
         allWebElements = True
         For i = LBound(arry) To UBound(arry)
             If TypeName(arry(i)) <> "WebElement" Then
@@ -971,7 +1057,7 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
     SaveByteArrayToFile DecodeBase64(pngstr), filePath
 End Sub
 
-Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As PrintSettings)
+Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As WebPrintSettings)
     Dim Data As New Dictionary, pdfstr As String
     
     filePath = GetAbsolutePath(filePath)
@@ -1022,6 +1108,7 @@ End Function
 Public Function SwitchToNewWindow(Optional ByVal windowType As svbaWindowType = svbaTab) As String
     Dim Data As New Dictionary, hndl As String
     
+    Dim wtype As String
     If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
     
     Data.Add "type", wtype 'tab or window
@@ -1264,17 +1351,17 @@ Public Function GetTitle() As String
     GetTitle = Execute(CMD_GET_TITLE, Data)("value")
 End Function
 
-Public Function GetShadowRoot(element As WebElement) As ShadowRoot
+Public Function GetShadowRoot(element As WebElement) As WebShadowRoot
     Dim Data As New Dictionary, resp As Dictionary
     Data.Add "id", element.elementId
     Set resp = Execute(CMD_GET_ELEMENT_SHADOW_ROOT, Data)
     Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOW_KEY))
 End Function
 
-Public Function GetCSSProperty(ByVal name As String, element As WebElement) As String
+Public Function GetCSSProperty(ByVal Name As String, element As WebElement) As String
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    Data.Add "name", name
+    Data.Add "name", Name
     GetCSSProperty = Execute(CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, Data)("value")
 End Function
 
@@ -1301,8 +1388,8 @@ Public Function GetOuterHTML(Optional element As WebElement) As String
 End Function
 
 ' Get default capabilities for current browser
-Public Function CreateCapabilities() As Capabilities
-    Dim Capabilities As New Capabilities
+Public Function CreateCapabilities() As WebCapabilities
+    Dim Capabilities As New WebCapabilities
     
     'insure that this function is being called in the correct order
     If browserName_ = "" Or sessionId_ <> "" Then
@@ -1368,38 +1455,39 @@ Public Function GetScrollHeight() As Integer
     GetScrollHeight = ExecuteScript(script)
 End Function
 
-Public Function GetAllCookies() As Cookies
-    Dim Data As New Dictionary, resp As Collection, ck As Cookie, cks As New Cookies
+Public Function GetAllCookies() As WebCookies
+    Dim Data As New Dictionary, resp As Collection, ck As WebCookie, cks As New WebCookies
     Set resp = Execute(CMD_GET_ALL_COOKIES, Data)("value")
-    'Dim jc As New JSonConverter
+    'Dim jc As New WebJSonConverter
     'Debug.Print jc.ConvertToJson(resp, 4)
+    Dim i As Long
     For i = 1 To resp.Count
-        Set ck = New Cookie
-        If resp(i).Exists("name") Then ck.name = resp(i)("name")
+        Set ck = New WebCookie
+        If resp(i).Exists("name") Then ck.Name = resp(i)("name")
         If resp(i).Exists("domain") Then ck.Domain = resp(i)("domain")
         If resp(i).Exists("expiry") Then ck.ExpiryUnix = resp(i)("expiry")
         If resp(i).Exists("httpOnly") Then ck.HttpOnly = resp(i)("httpOnly")
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
 End Function
 
-Public Function GetCookie(ByVal cookieName) As Cookie
-    Dim Data As New Dictionary, resp As Dictionary, ck As New Cookie
+Public Function GetCookie(ByVal cookieName) As WebCookie
+    Dim Data As New Dictionary, resp As Dictionary, ck As New WebCookie
     Data.Add "name", cookieName
     Set resp = Execute(CMD_GET_COOKIE, Data)("value")
-    If resp.Exists("name") Then ck.name = resp("name")
+    If resp.Exists("name") Then ck.Name = resp("name")
     If resp.Exists("domain") Then ck.Domain = resp("domain")
     If resp.Exists("expiry") Then ck.ExpiryUnix = resp("expiry")
     If resp.Exists("httpOnly") Then ck.HttpOnly = resp("httpOnly")
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.path = resp("path")
+    If resp.Exists("path") Then ck.Path = resp("path")
     Set GetCookie = ck
 End Function
 
@@ -1409,18 +1497,19 @@ Public Sub DeleteCookie(ByVal cookieName As String)
     Execute CMD_DELETE_COOKIE, Data
 End Sub
 
-Public Sub SetCookie(ck As Cookie)
+Public Sub SetCookie(ck As WebCookie)
     Dim Data As New Dictionary
     'value can take a number string greater than 15 digits
     'need to set the following in JSonConverter else  will get an error on execute (see sendRequest):
     'jc.OptionsUseDoubleForLargeNumbers = True
-    If ck.name <> "" And ck.Value <> "" Then
+    If ck.Name <> "" And ck.Value <> "" Then
         Data.Add "cookie", ck.ToDictionary
         Execute CMD_ADD_COOKIE, Data
     End If
 End Sub
 
-Public Sub SetCookies(cks As Cookies)
+Public Sub SetCookies(cks As WebCookies)
+    Dim i As Long
     For i = 1 To cks.Count
         SetCookie cks.Item(i)
     Next i
@@ -1439,13 +1528,17 @@ Public Function IsPageFound(ByVal url As String) As Boolean
     End If
 End Function
 
-Public Function GetSessionsInfo() As Collection 'add optional sessionID to get a particular one
-    'change to dictionary
+Public Function GetSessionsInfo() As Collection
+    'change to dictionary output?
+    If browserName_ = "firefox" Then
+        MsgBox "GetSessionsInfo not supported for Firefox WebDriver"
+        Exit Function
+    End If
     Set GetSessionsInfo = Execute(CMD_GET_ALL_SESSIONS)("value")
 End Function
 
 Public Function GetDriverStatus() As Dictionary
-    'Dim jc As New JSonConverter
+    'Dim jc As New WebJSonConverter
     Set GetDriverStatus = Execute(CMD_STATUS)("value")
     'DriverVersion = resp("build")("version")
     'DriverVersion = Trim(Left(DriverVersion, InStr(DriverVersion, "(") - 1))
@@ -1456,22 +1549,22 @@ Public Function GetDriverStatus() As Dictionary
     'resp("ready")'true or false
 End Function
 
-Public Function ActionChain() As ActionChain
+Public Function ActionChain() As WebActionChain
     Dim data_ As New Dictionary
-    Set ActionChain = New ActionChain
+    Set ActionChain = New WebActionChain
     'pass a reference of the driver to each link
     Set ActionChain.WebDriver = Me
     Set ActionChain.Data = data_
 End Function
 
-Public Function FindElementFromShadowRoot(by_ As by, ByVal Value As String, sRoot As ShadowRoot) As WebElement
+Public Function FindElementFromShadowRoot(by_ As by, ByVal Value As String, sRoot As WebShadowRoot) As WebElement
     Dim Data As Dictionary
     Set Data = ToSelector(by_, Value)
     Data.Add "sid", sRoot.shadowRootId
     Set FindElementFromShadowRoot = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
 End Function
 
-Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRoot As ShadowRoot) As WebElements
+Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRoot As WebShadowRoot) As WebElements
     Dim Data As Dictionary
     Dim elements As Collection
     Dim elems As WebElements
@@ -1503,6 +1596,7 @@ Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTime
     'waits until element is interactable, returns the input element for further action
     'such as "Click" on same line
     'see https://www.w3.org/TR/webdriver/#element-displayedness
+    Dim startTime As Single, nowTime As Single, endTime As Single
     startTime = VBA.Timer
     nowTime = startTime
     endTime = startTime + maxWaitTimeMS / 1000#
@@ -1510,6 +1604,7 @@ Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTime
     Do While nowTime < endTime
         If element.IsDisplayed Then Exit Do
         nowTime = VBA.Timer()
+        Dim elapsedTime As Single
         If nowTime < startTime Then 'oops - someone is burning the midnight oil!
             endTime = endTime - elapsedTime
             startTime = 0
@@ -1529,13 +1624,47 @@ Public Function GetUserAgent() As String
     End If
 End Function
 
+Public Sub DeleteFiles(ParamArray filelist() As Variant)
+    Dim fso As New FileSystemObject
+    Dim i, k, j, strlist() As String
+    For i = 0 To UBound(filelist)
+        If IsArray(filelist(i)) Then
+            For j = LBound(filelist(i)) To UBound(filelist(i))
+                strlist = Split(filelist(i)(j), ",")
+                For k = 0 To UBound(strlist)
+                    On Error Resume Next 'file might not exists
+                    fso.DeleteFile GetAbsolutePath(strlist(k)), True
+                    On Error GoTo 0
+                Next k
+            Next j
+        Else
+            strlist = Split(filelist(i), ",")
+            For k = 0 To UBound(strlist)
+                On Error Resume Next 'file might not exists 'file might not exists
+                fso.DeleteFile GetAbsolutePath(strlist(k)), True
+                On Error GoTo 0
+            Next k
+        End If
+    Next i
+End Sub
+
+Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As String = ".\snippet.html")
+    'this is used to save test html snippets to file for subsequent browser navigation
+    Dim fs As New FileSystemObject, ts As textstream
+    filePath = GetAbsolutePath(filePath)
+    Set ts = fs.CreateTextFile(filePath, True)
+    ts.Write snippet
+    ts.Close
+End Sub
+
+
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim method As String, path As String
+    Dim Method As String, Path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
-    method = driverCommand(0)
-    path = driverCommand(1)
+    Method = driverCommand(0)
+    Path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1547,8 +1676,8 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
-            path = Replace(path, "$" & parmKey, parameters(parmKey))
+        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
+            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -1558,7 +1687,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(method, driverUrl_ & path, cmdArgs)
+    Set response = SendRequest(Method, driverUrl_ & Path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -1578,15 +1707,15 @@ Private Function ToWebElement(ByVal elementId As String) As WebElement
     Set ToWebElement = element
 End Function
 
-Private Function ToShadowRoot(ByVal shadowRootId As String) As ShadowRoot
-    Dim sr As New ShadowRoot
+Private Function ToShadowRoot(ByVal shadowRootId As String) As WebShadowRoot
+    Dim sr As New WebShadowRoot
     Set sr.driver = Me
     sr.shadowRootId = shadowRootId
     Set ToShadowRoot = sr
 End Function
 
 Private Function GetResponseErrorMessage(resp As Dictionary) As String
-    Dim jc As New JSonConverter
+    Dim jc As New WebJSonConverter
     GetResponseErrorMessage = ""
     If TypeName(resp("value")) = "Dictionary" Then
         If resp("value").Exists("error") Then
@@ -1604,16 +1733,16 @@ Private Function IsResponseError(resp As Dictionary) As Boolean
     End If
 End Function
 
-Private Function SendRequest(ByVal method As String, ByVal url As String, Optional Data As Dictionary = Nothing) As Dictionary
-    Dim client As MSXML2.ServerXMLHTTP60, jc As New JSonConverter
+Private Function SendRequest(ByVal Method As String, ByVal url As String, Optional Data As Dictionary = Nothing) As Dictionary
+    Dim client As MSXML2.ServerXMLHTTP60, jc As New WebJSonConverter
     Set client = New MSXML2.ServerXMLHTTP60
 
-    client.Open method, url
+    client.Open Method, url
     
     'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
     client.setTimeouts 0, 60000, 30000, 0
     
-    If method = "POST" Or method = "PUT" Then
+    If Method = "POST" Or Method = "PUT" Then
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
         client.send jc.ConvertToJson(Data)  '
@@ -1629,24 +1758,6 @@ Private Function SendRequest(ByVal method As String, ByVal url As String, Option
 
 End Function
 
-Private Function IsProcessRunning(ByVal process As String)
-    Dim objServices As WbemScripting.SWbemServices
-    Dim objProcessList As WbemScripting.SWbemObjectSet
-    
-    Set objServices = GetObject("winmgmts:")
-    Set objProcessList = objServices.ExecQuery("select * from win32_process where name='" & process & "'")
-    
-    If objProcessList.Count > 0 Then
-        IsProcessRunning = True
-    Else
-        IsProcessRunning = False
-    End If
-End Function
-
-Private Function TaskKill(ByVal taskName As String)
-    Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
-    TaskKill = wsh.Run("taskkill /f /im " & taskName, 0, True)
-End Function
 Private Function params(ParamArray keysAndValues()) As Dictionary
     Dim dict As New Dictionary
     Dim i As Integer
@@ -1740,15 +1851,6 @@ Private Sub Class_Initialize()
     CommandWindowStyle = vbHide 'hides the command window
 End Sub
 
-Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As String = ".\snippet.html")
-    'this is used to save test html snippets to file for subsequent browser navigation
-    Dim fs As New FileSystemObject, ts As textstream
-    filePath = GetAbsolutePath(filePath)
-    Set ts = fs.CreateTextFile(filePath, True)
-    ts.Write snippet
-    ts.Close
-End Sub
-
 Private Sub TimerWait(ByVal durationMS As Long)
     'pause in milliseconds
     Dim startTime As Single, endTime As Single, nowTime As Single, elapsedTime As Single
@@ -1785,12 +1887,51 @@ Private Sub SaveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
     Close fp
 End Sub
 
-Private Function GetAbsolutePath(ByVal strPath As String) As String
-    Dim fso As New FileSystemObject
-    saveppath = CurDir()
-    ChDrive ThisWorkbook.path
-    ChDir ThisWorkbook.path
-    GetAbsolutePath = fso.GetAbsolutePathName(strPath)
-    ChDrive saveppath
-    ChDir saveppath
-End Function
+Private Sub KillDriver(ByVal browserName As String, Optional ByVal port As Integer = 0)
+    'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
+    Dim objService As WbemScripting.SWbemServices
+    Dim objDriverList As WbemScripting.SWbemObjectSet
+    Dim objParentList As WbemScripting.SWbemObjectSet
+    Dim objDriver As WbemScripting.SWbemObject
+    Dim objParent As WbemScripting.SWbemObject
+    Dim wsh As New IWshRuntimeLibrary.wshShell
+    Dim sImageName As String, ret As Variant, pid As String
+    
+    Select Case browserName
+    Case "chrome"
+        sImageName = "chromedriver%"
+    Case "msedge"
+        sImageName = "msedgedriver%"
+    Case "firefox"
+        sImageName = "geckodriver%"
+    End Select
+    
+    Set objService = GetObject("winmgmts:\\.\root\CIMV2")
+    
+    Set objDriverList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE Name like '" & sImageName & "'")
+    
+    For Each objDriver In objDriverList
+        If port > 0 Then
+            If InStr(objDriver.CommandLine, CStr(port)) = 0 Then
+                GoTo 10
+            End If
+        End If
+        Set objParentList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE ProcessID = '" & objDriver.ParentProcessId & "'")
+        If objParentList.Count > 0 Then
+            Set objParent = objParentList.ItemIndex(0)
+            Select Case LCase(objParent.Name)
+            Case "cmd.exe"
+                'driver was called using cmd.exe so we kill the parent process and all subprocesses (/t parameter)
+                pid = objParent.processID
+            Case Else '"excel.exe"
+                'driver was called directly using shell and so will kill it and all subprocesses (/t parameter)
+                pid = objDriver.processID
+            End Select
+        Else 'its a stranded process (parent may have already been quit)
+            pid = objDriver.processID
+        End If
+        ret = TaskKillbyPid(pid)
+10:
+    Next objDriver
+
+End Sub

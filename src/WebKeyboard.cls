@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "Keyboard"
+Attribute VB_Name = "WebKeyboard"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.4
+' SeleniumVBA v1.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -40,8 +40,9 @@ Attribute VB_Exposed = True
 ' ==========================================================================
 '
 'This class was written to handle special keys for SendKeys and Action Chains
-'
-'
+
+Option Explicit
+
 Private mNullKey As String
 Private mCancelKey As String
 Private mHelpKey As String

@@ -1,7 +1,7 @@
 Attribute VB_Name = "test_Print"
 Sub test_print()
     Dim driver As New WebDriver
-    Dim settings As New PrintSettings
+    Dim settings As New WebPrintSettings
 
     driver.StartChrome
     'must open browser in headless (invisible) mode for PrintToPDF to work
@@ -10,7 +10,7 @@ Sub test_print()
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 1000
     
-    driver.FindElement(by.name, "q").SendKeys "This is COOL!" & vbCrLf
+    driver.FindElement(by.Name, "q").SendKeys "This is COOL!" & vbCrLf
     
     driver.Wait 1000
     
@@ -33,8 +33,8 @@ End Sub
 
 Sub test_screenshot()
     Dim driver As New WebDriver
-    Dim keys As New Keyboard
-    Dim caps As Capabilities
+    Dim keys As New WebKeyboard
+    Dim caps As WebCapabilities
     Dim params As New Dictionary
     
     driver.StartChrome
@@ -53,8 +53,8 @@ End Sub
 
 Sub test_element_screenshot()
     Dim driver As New WebDriver
-    Dim keys As New Keyboard
-    Dim caps As Capabilities
+    Dim keys As New WebKeyboard
+    Dim caps As WebCapabilities
     Dim params As New Dictionary
     
     driver.StartEdge
@@ -63,9 +63,9 @@ Sub test_element_screenshot()
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 1000
     
-    driver.FindElement(by.name, "q").SendKeys "This is COOL!" & vbCrLf
+    driver.FindElement(by.Name, "q").SendKeys "This is COOL!" & vbCrLf
     driver.Wait 1000
-    driver.FindElement(by.name, "q").SaveScreenshot
+    driver.FindElement(by.Name, "q").SaveScreenshot
 
     driver.Wait 1000
     
