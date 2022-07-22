@@ -1,18 +1,17 @@
-## SeleniumVBA v1.4
+## SeleniumVBA v1.5
 
-A comprehensive Selenium wrapper for automating Edge and Chrome written in Windows Excel VBA.
+A comprehensive Selenium wrapper for automating Edge, Chrome, and Firefox written in Windows Excel VBA.
 
 Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
 ## Features
 
-- Edge and Chrome browser support
+- Edge, Chrome, and Firefox browser support
 - Wrappers for most of Selenium's JSon Wire Protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment via WebDriverManager class (see [test_UpdateDriver.bas](https://github.com/GCuser99/SeleniumVBA/tree/main/test))
 - Open spec: This wrapper is an HTTP client of the Selenium WebDriver server, conforming to [W3C standards](https://www.w3.org/TR/webdriver/).
-- Limited support for Firefox browser and Edge IE Mode (download [seleniumvba_v1.4.1-dev.zip](https://github.com/GCuser99/SeleniumVBA/blob/main/dist/seleniumvba_v1.4.1-dev.zip))
-
+- Limited support for Edge IE Mode (download [seleniumvba_v1.5-dev.zip](https://github.com/GCuser99/SeleniumVBA/blob/main/dist/))
 
 ## Setup
 
@@ -32,10 +31,10 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 
 ## SendKeys Example
 
-```vb
+```vba
 Sub doSendKeys()
     Dim driver As New WebDriver
-    Dim keys As New Keyboard
+    Dim keys As New WebKeyboard
     
     driver.StartChrome
     driver.OpenBrowser
@@ -55,29 +54,24 @@ End Sub
 
 ## WebDriver/Browser Version Alignment
 
-```vb
-Sub updateEdgeDriver()
-    'this checks for installed driver compatibility and then if not, installs updated driver
+```vba
+Sub updateDrivers()
+    'this checks if driver is installed, or if installed driver is compatibility
+    'and then if needed, installs an updated driver
     Dim mngr As New WebDriverManager
-    
-    browserName = "msedge" 'or "chrome"
-    driverPath = ".\msedgedriver.exe" 'or ".\chromedriver.exe"
-    
-    mngr.AlignDriverAndBrowser browserName, driverPath
-    
-    browserVer = mngr.GetInstalledBrowserVersion(browserName)
-    driverVer = mngr.GetInstalledDriverVersion(browserName, driverPath)
-    
-    MsgBox "Edge " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & browserVer & vbCrLf & "Driver version:    " & driverVer, , "SeleniumVBA"
+  
+    Debug.Print mngr.AlignEdgeDriverWithBrowser(".\msedgedriver.exe")
+    Debug.Print mngr.AlignChromeDriverWithBrowser(".\chromedriver.exe")
+    Debug.Print mngr.AlignFirefoxDriverWithBrowser(".\geckoriver.exe")
 End Sub
 ```
 
 ## Action Chain Example
-```vb
+```vba
 Sub doActionChain()
     Dim driver As New WebDriver
-    Dim keys As New Keyboard
-    Dim actions As ActionChain
+    Dim keys As New WebKeyboard
+    Dim actions As WebActionChain
     Dim elemSearch As WebElement
     
     driver.StartChrome
