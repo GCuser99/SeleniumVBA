@@ -62,7 +62,7 @@ Sub updateDrivers()
   
     Debug.Print mngr.AlignEdgeDriverWithBrowser(".\msedgedriver.exe")
     Debug.Print mngr.AlignChromeDriverWithBrowser(".\chromedriver.exe")
-    Debug.Print mngr.AlignFirefoxDriverWithBrowser(".\geckoriver.exe")
+    Debug.Print mngr.AlignFirefoxDriverWithBrowser(".\geckodriver.exe")
 End Sub
 ```
 
