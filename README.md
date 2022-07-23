@@ -55,8 +55,8 @@ End Sub
 
 ```vba
 Sub updateDrivers()
-    'this checks if driver is installed, or if installed driver is compatibility
-    'and then if needed, installs an updated driver
+    'this checks if driver is installed, or if installed driver is compatibile
+    'with installed browser, and then if needed, installs an updated driver
     Dim mngr As New WebDriverManager
     
     'update the drivers and print the informative status messages
