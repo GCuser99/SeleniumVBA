@@ -59,10 +59,10 @@ Sub updateDrivers()
     'with installed browser, and then if needed, installs an updated driver
     Dim mngr As New WebDriverManager
     
-    'update the drivers and print the informative status messages
-    Debug.Print mngr.AlignEdgeDriverWithBrowser(".\msedgedriver.exe")
-    Debug.Print mngr.AlignChromeDriverWithBrowser(".\chromedriver.exe")
-    Debug.Print mngr.AlignFirefoxDriverWithBrowser(".\geckodriver.exe")
+    'update the drivers and report the informative status messages
+    MsgBox mngr.AlignEdgeDriverWithBrowser(".\msedgedriver.exe")
+    MsgBox mngr.AlignChromeDriverWithBrowser(".\chromedriver.exe")
+    MsgBox mngr.AlignFirefoxDriverWithBrowser(".\geckodriver.exe")
 End Sub
 ```
 
