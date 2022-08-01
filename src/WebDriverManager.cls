@@ -145,7 +145,7 @@ Private Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal driv
     
     dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
     
-    If Not IsInstalledDriverCompatible(browser, driverPath) Then
+    If Not IsInstalledDriverCompatible(browser, driverPath, bverInstalled, dverCompat) Then
         DownloadAndInstallDriver browser, dverCompat, driverPath
         respStr = "The latest " & BrowserNameStr(browser) & " Webdriver was installed."
     Else
@@ -169,9 +169,10 @@ Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As Strin
     AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath)
 End Function
 
-Public Function IsInstalledDriverCompatible(ByVal browser As svbaBrowser, Optional ByVal driverPath) As Boolean
+Public Function IsInstalledDriverCompatible(ByVal browser As svbaBrowser, Optional ByVal driverPath, _
+                                                        Optional bverInstalled, Optional dverCompat) As Boolean
     Dim fso As New IWshRuntimeLibrary.FileSystemObject, clevel As svbaCompatibility
-    Dim bverInstalled As String, dverinstalled As String, dverCompat As String
+    Dim dverinstalled As String
     
     If IsMissing(driverPath) Then
         Select Case browser
@@ -191,14 +192,14 @@ Public Function IsInstalledDriverCompatible(ByVal browser As svbaBrowser, Option
         Exit Function
     End If
     
-    bverInstalled = Me.GetInstalledBrowserVersion(browser)
+    If IsMissing(bverInstalled) Then bverInstalled = Me.GetInstalledBrowserVersion(browser)
     If bverInstalled = "browser not installed" Then
         IsInstalledDriverCompatible = False
         Exit Function
     End If
     
     dverinstalled = Me.GetInstalledDriverVersion(browser, driverPath)
-    dverCompat = Me.GetCompatibleDriverVersion(browser, bverInstalled)
+    If IsMissing(dverCompat) Then dverCompat = Me.GetCompatibleDriverVersion(browser, bverInstalled)
     clevel = Me.CheckCompatibilityLevel(dverinstalled, dverCompat)
     
     If clevel >= mMinCompatibilityLevel Then
