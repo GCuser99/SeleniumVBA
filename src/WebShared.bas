@@ -1,15 +1,15 @@
 Attribute VB_Name = "WebShared"
 Option Explicit
 
-Public Function GetAbsolutePath(ByVal strPath As String, Optional ByVal refPath As String = "") As String
-    Dim fso As New IWshRuntimeLibrary.FileSystemObject, savepath As String
-    savepath = CurDir()
-    If refPath = "" Then refPath = ThisWorkbook_PathOnDisk
-    ChDrive refPath
-    ChDir refPath
+Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
+
+Public Function GetAbsolutePath(ByVal strPath As String) As String
+    Dim fso As New Scripting.FileSystemObject, SavePath As String, Path As String
+    SavePath = CurDir()
+    Path = ThisWorkbook_PathOnDisk
+    SetCurrentDirectory Path
     GetAbsolutePath = fso.GetAbsolutePathName(VBA.Trim(strPath))
-    ChDrive savepath
-    ChDir savepath
+    SetCurrentDirectory SavePath 'VBA ChDrive/ChDir don't work with UNC paths, see https://stackoverflow.com/questions/57475738/
 End Function
 
 Public Function ThisWorkbook_PathOnDisk() As String
