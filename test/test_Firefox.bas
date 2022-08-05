@@ -22,7 +22,6 @@ Attribute VB_Name = "test_Firefox"
 '
 'Any suggested ideas, comments, fixes, and use cases are welcome!
 
-
 Sub test_logging()
     Dim driver As New WebDriver, fruits As WebElement
     

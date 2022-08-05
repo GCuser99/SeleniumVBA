@@ -211,7 +211,14 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
-        mngr.AlignFirefoxDriverWithBrowser driverPath
+        Select Case browserName_
+        Case "msedge"
+            mngr.AlignEdgeDriverWithBrowser driverPath
+        Case "chrome"
+            mngr.AlignChromeDriverWithBrowser driverPath
+        Case "firefox"
+            mngr.AlignFirefoxDriverWithBrowser driverPath
+        End Select
     End If
     
     If Not fso.FileExists(driverPath) Then
