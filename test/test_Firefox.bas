@@ -63,19 +63,19 @@ Sub test_logging()
 End Sub
 
 Sub test_file_download2()
-    Dim driver As New WebDriver, caps As WebCapabilities
+    Dim driver As New WebDriver, options As WebOptions
     
     driver.StartFirefox
     
     driver.DeleteFiles ".\BrowserStack - List of devices to test*"
     
-    Set caps = driver.CreateCapabilities
+    Set options = driver.CreateOptions
     
-    caps.SetDownloadPrefs
+    options.SetDownloadPrefs
     
-    Debug.Print caps.ToJson
+    Debug.Print options.ToJson
 
-    driver.OpenBrowser caps
+    driver.OpenBrowser options
     
     driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
     driver.Wait 500

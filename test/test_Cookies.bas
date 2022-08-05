@@ -17,7 +17,7 @@ Sub test_cookies()
     driver.Wait 500
     
     'get all cookies for this domain and then save to file
-    driver.GetAllCookies().SaveToFile ".\cookies.txt"
+    driver.GetAllCookies().SaveToFile "cookies.txt"
     
     driver.DeleteAllCookies
     
@@ -25,7 +25,7 @@ Sub test_cookies()
     driver.Wait 1000
     
     'load and set saved cookies from file
-    driver.SetCookies cks.LoadFromFile(".\cookies.txt")
+    driver.SetCookies cks.LoadFromFile("cookies.txt")
     
     driver.Wait 1000
     

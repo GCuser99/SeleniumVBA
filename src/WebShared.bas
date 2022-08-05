@@ -1,18 +1,18 @@
 Attribute VB_Name = "WebShared"
 Option Explicit
 
-Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
+Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
 
 Public Function GetAbsolutePath(ByVal strPath As String) As String
-    Dim fso As New Scripting.FileSystemObject, SavePath As String, Path As String
-    SavePath = CurDir()
-    Path = ThisWorkbook_PathOnDisk
-    SetCurrentDirectory Path
+    Dim fso As New Scripting.FileSystemObject, savePath As String, path As String
+    savePath = CurDir()
+    path = ThisWorkbook_PathOnDisk
+    SetCurrentDirectory path 'VBA ChDrive/ChDir don't work with UNC paths, see https://stackoverflow.com/questions/57475738/
     GetAbsolutePath = fso.GetAbsolutePathName(VBA.Trim(strPath))
-    SetCurrentDirectory SavePath 'VBA ChDrive/ChDir don't work with UNC paths, see https://stackoverflow.com/questions/57475738/
+    SetCurrentDirectory savePath
 End Function
 
-Public Function ThisWorkbook_PathOnDisk() As String
+Private Function ThisWorkbook_PathOnDisk() As String
     ' The reason for this function is that when the workbook is opened on a disk synched with OneDrive or SharePoint,
     '  (ThisWorkbook.FullName and) ThisWorkbook.Path returns the correspondent cloud URLs instead than the original path on disk. For example:
     ' "https://d.docs.live.net/e06a[etc...]/MyDocumentFolder/MyFolder"
@@ -23,7 +23,7 @@ Public Function ThisWorkbook_PathOnDisk() As String
     ' "C:\Users\myUserName\OneDrive\Documenti\MyFolder"
 
     Dim strPath As String
-    strPath = ThisWorkbook.Path
+    strPath = ThisWorkbook.path
 
     If VBA.Left$(strPath, 8) = "https://" Then
         'Original script taken from https://stackoverflow.com/a/72736800/11738627  (credits to GWD and his sources)
@@ -45,34 +45,31 @@ Public Function ThisWorkbook_PathOnDisk() As String
         objReg.EnumKey HKEY_CURRENT_USER, regPath, subKeys
     
         For Each subKey In subKeys
-            objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, _
-                                "UrlNamespace", strValue
+            objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
             If InStr(strPath, strValue) > 0 Then
-                objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, _
-                                    "MountPoint", strMountpoint
+                objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
                 strSecPart = Replace(Mid(strPath, Len(strValue)), "/", pathSep)
                 ThisWorkbook_PathOnDisk = strMountpoint & strSecPart
     
-                Do Until Dir(ThisWorkbook_PathOnDisk, vbDirectory) <> "" Or _
-                         InStr(2, strSecPart, pathSep) = 0
+                Do Until Dir(ThisWorkbook_PathOnDisk, vbDirectory) <> "" Or InStr(2, strSecPart, pathSep) = 0
                     strSecPart = Mid(strSecPart, InStr(2, strSecPart, pathSep))
                     ThisWorkbook_PathOnDisk = strMountpoint & strSecPart
                 Loop
                 Exit Function
             End If
-        Next
-        ThisWorkbook_PathOnDisk = strPath
-    Else
-        ThisWorkbook_PathOnDisk = strPath
+        Next subKey
     End If
+        
+    ThisWorkbook_PathOnDisk = strPath
+    
 End Function
 
-Public Function TaskKillbyImage(ByVal taskName As String)
+Public Function TaskKillByImage(ByVal taskName As String)
     Dim wsh As New IWshRuntimeLibrary.wshShell
-    TaskKillbyImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
+    TaskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
 End Function
 
-Public Function TaskKillbyPid(ByVal pid As String)
+Public Function TaskKillByPid(ByVal pid As String)
     Dim wsh As New IWshRuntimeLibrary.wshShell
-   TaskKillbyPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
+   TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function

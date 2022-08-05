@@ -36,24 +36,17 @@ Attribute VB_Name = "test_UpdateDriver"
 '
 '---------------------------------------------------------------------------------------------------------------
 
-Sub test_UpdateDriversForSeleniumVBA()
-    'this checks for installed driver compatibility and then if not, installs updated driver
+Sub test_updateDrivers()
+    'this checks if driver is installed, or if installed driver is compatibile
+    'with installed browser, and then if needed, installs an updated driver
     Dim mngr As New WebDriverManager
     
-    driverPath = ".\msedgedriver.exe"
-    
-    MsgBox mngr.AlignEdgeDriverWithBrowser(driverPath), , "SeleniumVBA"
-    
-    driverPath = ".\chromedriver.exe"
-    
-    MsgBox mngr.AlignChromeDriverWithBrowser(driverPath), , "SeleniumVBA"
-    
-    driverPath = ".\geckodriver.exe"
-    
-    MsgBox mngr.AlignFirefoxDriverWithBrowser(driverPath), , "SeleniumVBA"
+    MsgBox mngr.AlignEdgeDriverWithBrowser(".\msedgedriver.exe"), , "SeleniumVBA"
+    MsgBox mngr.AlignChromeDriverWithBrowser(".\chromedriver.exe"), , "SeleniumVBA"
+    MsgBox mngr.AlignFirefoxDriverWithBrowser(".\geckodriver.exe"), , "SeleniumVBA"
 End Sub
 
-Sub test_UpdateDriversForSeleniumBasic()
+Sub test_updateDriversForSeleniumBasic()
     'this is for Florent Breheret's SeleniumBasic users who need a way to update the WebDriver in C:\Users\username\AppData\Local\SeleniumBasic
     'there may be a permission issue for writing to this directory so you may have to run as administrator
     Dim mngr As New WebDriverManager

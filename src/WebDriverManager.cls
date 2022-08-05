@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.5
+' SeleniumVBA v1.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -545,7 +545,7 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
 
     'check if driver exists and if it does, make sure it isn't in use before overwrite
     If fso.FileExists(driverPath) Then
-        If IsProcessRunning(driverFilename) Then TaskKillbyImage (driverFilename)
+        If IsProcessRunning(driverFilename) Then TaskKillByImage (driverFilename)
     End If
 
     fso.CopyFile tmpInstallDriverpath, driverPath, True

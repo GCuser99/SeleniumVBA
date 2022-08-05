@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.5
+' SeleniumVBA v1.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -138,16 +138,16 @@ Private CMD_CLICK
 Private CMD_SET_WINDOW_RECT
 Private CMD_GET_WINDOW_RECT
 Private CMD_MAXIMIZE_WINDOW
-Private CMD_GET_LOCATION                             'not wrapped yet
-Private CMD_SET_LOCATION                             'not wrapped yet
-Private CMD_GET_APP_CACHE_STATUS                     'not wrapped yet
-Private CMD_GET_NETWORK_CONNECTION                   'not wrapped yet
-Private CMD_SET_NETWORK_CONNECTION                   'not wrapped yet
+'Private CMD_GET_LOCATION                             'not wrapped yet
+'Private CMD_SET_LOCATION                             'not wrapped yet
+'Private CMD_GET_APP_CACHE_STATUS                     'not wrapped yet
+'Private CMD_GET_NETWORK_CONNECTION                   'not wrapped yet
+'Private CMD_SET_NETWORK_CONNECTION                   'not wrapped yet
 'Private CMD_GET_LOG                                  'see logging option in StartEdge and StartChrome methods
 'Private CMD_GET_AVAILABLE_LOG_TYPES                  'see logging option in StartEdge and StartChrome methods
-Private CMD_CURRENT_CONTEXT_HANDLE                   'not wrapped yet
-Private CMD_CONTEXT_HANDLES                          'not wrapped yet
-Private CMD_SWITCH_TO_CONTEXT                        'not wrapped yet
+'Private CMD_CURRENT_CONTEXT_HANDLE                   'not wrapped yet
+'Private CMD_CONTEXT_HANDLES                          'not wrapped yet
+'Private CMD_SWITCH_TO_CONTEXT                        'not wrapped yet
 Private CMD_FULLSCREEN_WINDOW
 Private CMD_MINIMIZE_WINDOW
 Private CMD_SHUTDOWN
@@ -185,92 +185,29 @@ Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
 End Property
 
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge_verbose.log")
-    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, port As String, pathName As String
-
-    browserName_ = "msedge"
-    driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\msedgedriver.exe"
-
-    If enableLogging Then
-        logFilePath = GetAbsolutePath(logFilePath)
-        serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
-    End If
-    
-    If checkDriverBrowserVersionAlignment Then
-        Dim mngr As New WebDriverManager
-        mngr.AlignEdgeDriverWithBrowser driverPath
-    End If
-    
-    If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find Edge WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
-        End 'execution
-    End If
-    
-    driverFilename = fso.GetFileName(driverPath)
-    driverPath = Chr(34) & driverPath & Chr(34)
-    
-    port = " --port=" & localHostPort
-    
-    'KillDriver browserName_, localHostPort
-    
-    pathName = driverPath & port & serviceArgs
-    
-    processID = Shell(pathName, appWinStyle)
-
-    If processID = 0 Then
-        MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
-        End
-    End If
-    
-    'Set WebDriver url
-    driverUrl_ = "http://localhost:" & localHostPort
+    Start "msedge", driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome_verbose.log")
-    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, port As String, pathName As String
-
-    browserName_ = "chrome"
-    driverPath = GetAbsolutePath(driverPath) 'support for relative path such as driverPath=".\chromedriver.exe"
-    
-    If enableLogging Then
-        logFilePath = GetAbsolutePath(logFilePath)
-        serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
-    End If
-    
-    If checkDriverBrowserVersionAlignment Then
-        Dim mngr As New WebDriverManager
-        mngr.AlignChromeDriverWithBrowser driverPath
-    End If
-    
-    If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find Chrome WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
-        End 'execution
-    End If
-    
-    driverFilename = fso.GetFileName(driverPath)
-    driverPath = Chr(34) & driverPath & Chr(34)
-    
-    port = " --port=" & localHostPort
-    
-    'KillDriver browserName_, localHostPort
-    
-    pathName = driverPath & port & serviceArgs
-    
-    processID = Shell(pathName, appWinStyle)
-
-    If processID = 0 Then
-        MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
-        End
-    End If
-    
-    driverUrl_ = "http://localhost:" & localHostPort
-
+    Start "chrome", driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-Public Sub StartFirefox(Optional ByVal driverPath As String = ".\geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox_verbose.log")
-    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, port As String, pathName As String
+Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox_verbose.log")
+    Start "firefox", driverPath, localHostPort, enableLogging, logFilePath
+End Sub
+
+Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
+    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, commandStr As String
     
-    browserName_ = "firefox"
-    driverPath = GetAbsolutePath(driverPath)  'support for relative path such as driverPath=".\geckodriver.exe"
+    browserName_ = browserName
+    
+    If browserName_ = "firefox" Then
+        'for firefox, if previous session is still open on same port, then will get "Session is already started"
+        'on OpenBrowser so kill driver instances on this port
+        KillDriver browserName_, localHostPort
+    End If
+    
+    driverPath = GetAbsolutePath(driverPath)
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
@@ -278,39 +215,38 @@ Public Sub StartFirefox(Optional ByVal driverPath As String = ".\geckodriver.exe
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find Firefox WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
+        MsgBox "Could not find Selenium WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
         End 'execution
     End If
     
-    driverFilename = fso.GetFileName(driverPath)
-    driverPath = Chr(34) & driverPath & Chr(34)
-    
-    port = " --port=" & localHostPort
-    
-    'for firefox, if previous session is still open on same port, then will get "Session is already started"
-    'on OpenBrowser so kill driver instances on this port
-    KillDriver browserName_, localHostPort
-    
+    commandStr = "": serviceArgs = ""
+
     If enableLogging Then
-        'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
-        'apparently firefox does not support command line argument for specifying log file path
-        'so using cmd.exe to redirect log from console window
         logFilePath = GetAbsolutePath(logFilePath)
-        serviceArgs = " -vv"" > " & Replace(logFilePath, " ", "^ ") 'need to escape spaces in log path
-        pathName = Chr(34) & Environ("comspec") & Chr(34) & " /c " & """" & driverPath & port & serviceArgs
-    Else
-        pathName = driverPath & port
+        
+        Select Case browserName_
+        Case "msedge", "chrome"
+            serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
+        Case "firefox"
+            'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
+            'apparently firefox does not support command line argument for specifying log file path
+            'so using cmd.exe to redirect log from console window
+            serviceArgs = " -vv"" > " & Replace(logFilePath, " ", "^ ") 'need to escape spaces in log path
+            commandStr = Chr(34) & Environ("comspec") & Chr(34) & " /c " & """"
+        End Select
     End If
     
-    processID = Shell(pathName, appWinStyle)
+    commandStr = commandStr & Chr(34) & driverPath & Chr(34) & " --port=" & localHostPort & serviceArgs
+    
+    processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        MsgBox "Failed in starting WebDriver." & vbCrLf & "WebDriverPath : " & driverPath & port, vbCritical + vbOKOnly
-        End
+        MsgBox "Failed in starting Selenium WebDriver." & vbCrLf & "WebDriver path : " & commandStr, vbCritical + vbOKOnly
+        End 'execution
     End If
     
-    'Set WebDriver url
     driverUrl_ = "http://localhost:" & localHostPort
+    driverFilename = fso.GetFileName(driverPath)
 End Sub
 
 Public Sub Shutdown()
@@ -325,11 +261,11 @@ Public Sub Shutdown()
         Execute CMD_SHUTDOWN
     Case "firefox"
         'firefox does not recognize shutdown command
-        TaskKillbyPid processID
+        TaskKillByPid processID
     End Select
 End Sub
 
-Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisible As Boolean = False)
+Public Sub OpenBrowser(Optional options As WebOptions, Optional ByVal invisible As Boolean = False)
     Dim resp As Dictionary
     
     If sessionId_ <> "" Then
@@ -337,16 +273,16 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
         End 'execution
     End If
     
-    If caps Is Nothing Then
-        Set caps = CreateCapabilities
+    If options Is Nothing Then
+        Set options = CreateOptions
     End If
         
     If invisible Then
         'user may have already added headless, but selenium doesn't seem to care about multiple arg entries
-        caps.AddArgument "--headless"
+        options.AddArgument "--headless"
     End If
     
-    Set resp = Execute(CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
+    Set resp = Execute(CMD_NEW_SESSION, params("capabilities", options.Dictionary))("value")
     
     sessionId_ = resp("sessionId")
     
@@ -1388,20 +1324,20 @@ Public Function GetOuterHTML(Optional element As WebElement) As String
 End Function
 
 ' Get default capabilities for current browser
-Public Function CreateCapabilities() As WebCapabilities
-    Dim Capabilities As New WebCapabilities
+Public Function CreateOptions() As WebOptions
+    Dim options As New WebOptions
     
     'insure that this function is being called in the correct order
     If browserName_ = "" Or sessionId_ <> "" Then
-        MsgBox "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        MsgBox "The ""CreateOptions"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
         End 'execution
     End If
     
-    'now initialize Capabilities
+    'now initialize Options
 
-    Capabilities.InitializeFor browserName_
+    options.InitializeFor browserName_
 
-    Set CreateCapabilities = Capabilities
+    Set CreateOptions = options
 End Function
 
 Public Sub SetFocus(element As WebElement)
@@ -1470,7 +1406,7 @@ Public Function GetAllCookies() As WebCookies
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
@@ -1487,7 +1423,7 @@ Public Function GetCookie(ByVal cookieName) As WebCookie
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.Path = resp("path")
+    If resp.Exists("path") Then ck.path = resp("path")
     Set GetCookie = ck
 End Function
 
@@ -1626,7 +1562,8 @@ End Function
 
 Public Sub DeleteFiles(ParamArray filelist() As Variant)
     Dim fso As New FileSystemObject
-    Dim i, k, j, strlist() As String
+    Dim i As Integer, k As Integer, j As Integer
+    Dim strlist() As String
     For i = 0 To UBound(filelist)
         If IsArray(filelist(i)) Then
             For j = LBound(filelist(i)) To UBound(filelist(i))
@@ -1659,12 +1596,12 @@ End Sub
 
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim Method As String, Path As String
+    Dim Method As String, path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
     Method = driverCommand(0)
-    Path = driverCommand(1)
+    path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1676,8 +1613,8 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
-            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
+        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
+            path = Replace(path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -1687,7 +1624,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(Method, driverUrl_ & Path, cmdArgs)
+    Set response = SendRequest(Method, driverUrl_ & path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -1825,16 +1762,16 @@ Private Sub InitCommands()
     CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
     CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
     CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-    CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-    CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
-    CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
-    CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
-    CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
+    'CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
+    'CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+    'CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
+    'CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
+    'CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
     'CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
     'CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
-    CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
-    CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
-    CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
+    'CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
+    'CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
+    'CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
     CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
     CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
     CMD_SHUTDOWN = Array("GET", "/shutdown")
@@ -1894,7 +1831,6 @@ Private Sub KillDriver(ByVal browserName As String, Optional ByVal port As Integ
     Dim objParentList As WbemScripting.SWbemObjectSet
     Dim objDriver As WbemScripting.SWbemObject
     Dim objParent As WbemScripting.SWbemObject
-    Dim wsh As New IWshRuntimeLibrary.wshShell
     Dim sImageName As String, ret As Variant, pid As String
     
     Select Case browserName
@@ -1912,7 +1848,7 @@ Private Sub KillDriver(ByVal browserName As String, Optional ByVal port As Integ
     
     For Each objDriver In objDriverList
         If port > 0 Then
-            If InStr(objDriver.CommandLine, CStr(port)) = 0 Then
+            If InStr(objDriver.commandLine, CStr(port)) = 0 Then
                 GoTo 10
             End If
         End If
@@ -1930,7 +1866,7 @@ Private Sub KillDriver(ByVal browserName As String, Optional ByVal port As Integ
         Else 'its a stranded process (parent may have already been quit)
             pid = objDriver.processID
         End If
-        ret = TaskKillbyPid(pid)
+        ret = TaskKillByPid(pid)
 10:
     Next objDriver
 

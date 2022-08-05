@@ -34,7 +34,7 @@ End Sub
 Sub test_screenshot()
     Dim driver As New WebDriver
     Dim keys As New WebKeyboard
-    Dim caps As WebCapabilities
+    Dim options As WebOptions
     Dim params As New Dictionary
     
     driver.StartChrome
@@ -54,7 +54,7 @@ End Sub
 Sub test_element_screenshot()
     Dim driver As New WebDriver
     Dim keys As New WebKeyboard
-    Dim caps As WebCapabilities
+    Dim options As WebOptions
     Dim params As New Dictionary
     
     driver.StartEdge

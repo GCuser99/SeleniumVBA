@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.5
+' SeleniumVBA v1.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -93,11 +93,11 @@ Public Function IsMember(ByVal cke As WebCookie) As Boolean
     Next i
 End Function
 
-Public Sub SaveToFile(Optional ByVal Path As String = ".\cookies.txt")
+Public Sub SaveToFile(Optional ByVal path As String = ".\cookies.txt")
     Dim fs As New FileSystemObject, ts As textstream, darray() As Dictionary, i
     Dim jc As New WebJSonConverter
-    Path = GetAbsolutePath(Path)
-    Set ts = fs.CreateTextFile(Path, True)
+    path = GetAbsolutePath(path)
+    Set ts = fs.CreateTextFile(path, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
@@ -106,15 +106,15 @@ Public Sub SaveToFile(Optional ByVal Path As String = ".\cookies.txt")
     ts.Close
 End Sub
 
-Public Function LoadFromFile(Optional ByVal Path As String = ".\cookies.txt") As WebCookies
+Public Function LoadFromFile(Optional ByVal path As String = ".\cookies.txt") As WebCookies
     Dim fs As New FileSystemObject, ts As textstream, str As String, v As Collection, ck As WebCookie
     Dim jc As New WebJSonConverter
     
     Me.RemoveAll
     
-    Path = GetAbsolutePath(Path)
+    path = GetAbsolutePath(path)
     
-    Set ts = fs.OpenTextFile(Path)
+    Set ts = fs.OpenTextFile(path)
     str = ts.ReadAll
     ts.Close
     Set v = jc.ParseJSON(str)
@@ -129,7 +129,7 @@ Public Function LoadFromFile(Optional ByVal Path As String = ".\cookies.txt") As
         ck.SameSite = v(i)("sameSite")
         ck.Secure = v(i)("secure")
         ck.Value = v(i)("value")
-        ck.Path = v(i)("path")
+        ck.path = v(i)("path")
         Me.Add ck
     Next i
     Set LoadFromFile = Me

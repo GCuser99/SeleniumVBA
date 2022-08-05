@@ -2,13 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "WebCapabilities"
+Attribute VB_Name = "WebOptions"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.5
+' SeleniumVBA v1.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -225,7 +225,7 @@ End Sub
 Public Function Dictionary() As Dictionary
 Attribute Dictionary.VB_UserMemId = 0
     'edit class in text editor and uncomment line below to make Dictionary the default method for the class
-    'this would then allow this syntax: cap() -> cap.Dictionary
+    'this would then allow this syntax: options() -> options.Dictionary
     'Attribute Dictionary.VB_UserMemId = 0
     Set Dictionary = data_
 End Function
