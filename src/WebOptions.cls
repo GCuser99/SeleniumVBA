@@ -62,12 +62,12 @@ Private data_ As New Dictionary
 Private browserOptionKey As String
 Private browserName_ As String
 
-Public Property Let args(Value() As String)
+Public Property Let Args(Value() As String)
     SetOption "args", Value
 End Property
 
-Public Property Get args() As String()
-    args = GetOption("args")
+Public Property Get Args() As String()
+    Args = GetOption("args")
 End Property
 
 Public Property Let Binary(ByVal Value As String)
@@ -158,7 +158,7 @@ Public Property Get WindowTypes() As String
     WindowTypes = GetOption("windowTypes")
 End Property
 
-Public Sub Add(ByVal key As String, Value As Variant)
+Public Sub AddCapability(ByVal key As String, Value As Variant)
     If IsObject(Value) Then
         Set data_("alwaysMatch")(key) = Value
     Else
@@ -187,17 +187,17 @@ Public Sub AddArgument(ByVal argument As String)
     Dim idx As Integer: idx = -1
 
     On Error Resume Next
-    idx = UBound(args)
+    idx = UBound(Args)
     On Error GoTo 0
     
     If idx >= 0 Then
-        arguments = args
+        arguments = Args
     End If
         
     ReDim Preserve arguments(idx + 1)
     arguments(UBound(arguments)) = argument
     
-    args = arguments
+    Args = arguments
 End Sub
 
 Public Sub SetArguments(ByVal val As String, Optional ByVal delimiter As String = " ")
@@ -237,7 +237,6 @@ Public Function ToJson() As String
 End Function
 
 Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey As String)
-    
     Set data_ = New Dictionary
     data_.Add "browserName", browserName
     data_.Add "alwaysMatch", New Dictionary
