@@ -63,13 +63,3 @@ Private Function ThisWorkbook_PathOnDisk() As String
     ThisWorkbook_PathOnDisk = strPath
     
 End Function
-
-Public Function TaskKillByImage(ByVal taskName As String)
-    Dim wsh As New IWshRuntimeLibrary.wshShell
-    TaskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
-End Function
-
-Public Function TaskKillByPid(ByVal pid As String)
-    Dim wsh As New IWshRuntimeLibrary.wshShell
-   TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
-End Function

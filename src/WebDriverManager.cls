@@ -624,4 +624,7 @@ Private Sub Class_Initialize()
     mMinCompatibilityLevel = svbaMajor
 End Sub
 
-
+Private Function TaskKillByImage(ByVal taskName As String)
+    Dim wsh As New IWshRuntimeLibrary.wshShell
+    TaskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
+End Function

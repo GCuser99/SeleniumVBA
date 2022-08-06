@@ -61,12 +61,12 @@ Friend Property Set driver(objWebDriver As WebDriver)
     Set driver_ = objWebDriver
 End Property
 
-Public Property Let elementId(ByVal val)
+Friend Property Let ElementId(ByVal val As String)
     elementId_ = val
 End Property
 
-Public Property Get elementId()
-    elementId = elementId_
+Friend Property Get ElementId() As String
+    ElementId = elementId_
 End Property
 
 Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png")

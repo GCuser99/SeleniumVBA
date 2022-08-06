@@ -48,7 +48,7 @@ Option Explicit
 Private colWebElement As Collection
 
 Public Function Add(element As WebElement) As WebElement
-    colWebElement.Add element, element.elementId
+    colWebElement.Add element, element.ElementId
     Set Add = element
 End Function
 
@@ -62,7 +62,9 @@ End Property
 
 Public Sub Remove(indexOrWebElement As Variant)
     If TypeName(indexOrWebElement) = "WebElement" Then
-        colWebElement.Remove indexOrWebElement.elementId
+        Dim welem As WebElement
+        Set welem = indexOrWebElement
+        colWebElement.Remove welem.ElementId
     Else
         colWebElement.Remove indexOrWebElement
     End If
@@ -83,10 +85,10 @@ End Sub
 
 Public Function IsMember(element As WebElement) As Boolean
     Dim i As Long, elemId As String
-    elemId = element.elementId
+    elemId = element.ElementId
     IsMember = False
     For i = 1 To Me.Count
-        If Me.Item(i).elementId = elemId Then
+        If Me.Item(i).ElementId = elemId Then
             IsMember = True
             Exit For
         End If

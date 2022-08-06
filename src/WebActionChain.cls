@@ -127,13 +127,13 @@ Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolea
     
     If SetFocus Then 'add click after move
         ReDim actions(0 To 3)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPointerUp
         Set actions(3) = ActionPause
     Else
         ReDim actions(0 To 0)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         'ActionPointerMove already has pause built in
     End If
     
@@ -172,7 +172,7 @@ Public Function Click(Optional element As WebElement) As WebActionChain
         Set actions(3) = ActionPause
     Else
         ReDim actions(0 To 4)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPointerUp
         Set actions(3) = ActionPause
@@ -212,7 +212,7 @@ Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
         Set actions(1) = ActionPause
     Else
         ReDim actions(0 To 2)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPause
     End If
@@ -252,7 +252,7 @@ Public Function ClickContext(Optional element As WebElement) As WebActionChain
         Set actions(3) = ActionPause
     Else
         ReDim actions(0 To 4)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         Set actions(1) = ActionPointerDown(rightButton)
         Set actions(2) = ActionPointerUp(rightButton)
         Set actions(3) = ActionPause
@@ -296,7 +296,7 @@ Public Function DoubleClick(Optional element As WebElement) As WebActionChain
         Set actions(5) = ActionPause
     Else
         ReDim actions(0 To 6)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         Set actions(1) = ActionPointerDown
         Set actions(2) = ActionPointerUp
         Set actions(3) = ActionPointerDown
@@ -338,7 +338,7 @@ Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
         Set actions(1) = ActionPause
     Else
         ReDim actions(0 To 2)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
         Set actions(1) = ActionPointerUp
         Set actions(2) = ActionPause
     End If
@@ -371,9 +371,9 @@ Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebEle
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionPointerMove(, , , , , sourceElement.elementId)
+    Set actions(0) = ActionPointerMove(, , , , , sourceElement.ElementId)
     Set actions(1) = ActionPointerDown
-    Set actions(2) = ActionPointerMove(, , , , , targetElement.elementId)
+    Set actions(2) = ActionPointerMove(, , , , , targetElement.ElementId)
     Set actions(3) = ActionPointerUp
     Set actions(4) = ActionPause
     
@@ -405,7 +405,7 @@ Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+    Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
     Set actions(1) = ActionPointerDown
     Set actions(2) = ActionPointerMove(xOffset, yOffset, , , "pointer")
     Set actions(3) = ActionPointerUp
@@ -439,7 +439,7 @@ Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, By
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+    Set actions(0) = ActionPointerMove(, , , , , element.ElementId)
     Set actions(1) = ActionPointerDown
     Set actions(2) = ActionPointerMove(x, y, , , "viewport")
     Set actions(3) = ActionPointerUp
@@ -764,7 +764,7 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     End If
     
     ReDim actions(0 To 0)
-    Set actions(0) = ActionScroll(, , xOffset, yOffset, , element.elementId)
+    Set actions(0) = ActionScroll(, , xOffset, yOffset, , element.ElementId)
     
     inputChan.Add "type", "wheel"
     inputChan.Add "id", "wheelDevice"
@@ -1037,17 +1037,17 @@ Private Function ActionPointerCancel()
     Set ActionPointerCancel = action
 End Function
 
-Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin = "viewport", Optional elementId As String) As Dictionary
+Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin = "viewport", Optional ElementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "pointerMove"
     action.Add "button", button
     
-    If elementId = "" Then
+    If ElementId = "" Then
         action.Add "origin", origin  'x,y are relative to. Can be 'viewport', 'pointer' or {"element-6066-11e4-a52e-4f735466cecf": element.id}
     Else
         Dim elem As New Dictionary
-        elem.Add "element-6066-11e4-a52e-4f735466cecf", elementId
+        elem.Add "element-6066-11e4-a52e-4f735466cecf", ElementId
         action.Add "origin", elem
     End If
     'action.Add "origin", elem
@@ -1071,16 +1071,16 @@ Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal 
     
 End Function
 
-Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional elementId As String) As Dictionary
+Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ElementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "scroll"
     
-    If elementId = "" Then
+    If ElementId = "" Then
         action.Add "origin", "viewport"
     Else
         Dim elem As New Dictionary
-        elem.Add "element-6066-11e4-a52e-4f735466cecf", elementId
+        elem.Add "element-6066-11e4-a52e-4f735466cecf", ElementId
         action.Add "origin", elem
     End If
     

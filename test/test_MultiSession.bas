@@ -11,7 +11,7 @@ Attribute VB_Name = "test_MultiSession"
 'separately.
 '
 'Some features may not work as expected in multi-session mode on same port, such as logging,
-'which generates a single log file.
+'which generates a single log file per port.
 '
 'The surest way to get multi-session working for Edge and Chrome without any interference is to start
 'the drivers on different ports.
