@@ -42,7 +42,7 @@ Sub test_file_download()
     
     driver.DeleteFiles ".\BrowserStack - List of devices to test on*.csv"
     
-    Set caps = driver.CreateOptions
+    Set caps = driver.CreateCapabilities
 
     caps.AddPref "download.default_directory", dirPath
     caps.AddPref "download.prompt_for_download", False

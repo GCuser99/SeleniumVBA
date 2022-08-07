@@ -283,7 +283,7 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     End If
     
     If caps Is Nothing Then
-        Set caps = CreateOptions
+        Set caps = CreateCapabilities
     End If
         
     If invisible Then
@@ -1332,20 +1332,20 @@ Public Function GetOuterHTML(Optional element As WebElement) As String
 End Function
 
 ' Get default capabilities for current browser
-Public Function CreateOptions() As WebCapabilities
+Public Function CreateCapabilities() As WebCapabilities
     Dim caps As New WebCapabilities
     
     'insure that this function is being called in the correct order
     If browserName_ = "" Or sessionId_ <> "" Then
-        MsgBox "The ""CreateOptions"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        MsgBox "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
         End 'execution
     End If
     
-    'now initialize Options
+    'now initialize Capabilities
 
     caps.InitializeFor browserName_
 
-    Set CreateOptions = caps
+    Set CreateCapabilities = caps
 End Function
 
 Public Sub SetFocus(element As WebElement)

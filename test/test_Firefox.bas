@@ -68,7 +68,7 @@ Sub test_file_download2()
     
     driver.DeleteFiles ".\BrowserStack - List of devices to test*"
     
-    Set caps = driver.CreateOptions
+    Set caps = driver.CreateCapabilities
     
     caps.SetDownloadPrefs
     

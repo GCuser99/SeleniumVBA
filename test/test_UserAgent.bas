@@ -6,7 +6,7 @@ Sub test_hide_headless()
     Dim caps As WebCapabilities
 
     driver.StartChrome
-    driver.OpenBrowser , True  'a way of running headless mode without explicitly adding --headless arg to Options
+    driver.OpenBrowser , True  'a way of running headless mode without explicitly adding --headless arg to Capabilities
     
     'get the user agent for this browser setup
     userAgent = driver.GetUserAgent
@@ -15,7 +15,7 @@ Sub test_hide_headless()
     
     driver.CloseBrowser
     
-    Set caps = driver.CreateOptions
+    Set caps = driver.CreateCapabilities
     
     'now we modify the user agent string by tossing the "Headless" keyword and then
     'update WebCapabilities UserArgent argument
