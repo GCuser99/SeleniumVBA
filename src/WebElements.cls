@@ -63,7 +63,7 @@ End Property
 Public Sub Remove(indexOrWebElement As Variant)
     If TypeName(indexOrWebElement) = "WebElement" Then
         Dim welem As WebElement
-        Set welem = indexOrWebElement
+        Set welem = indexOrWebElement 'Friend property ElementID can not be invoked with late binding
         colWebElement.Remove welem.ElementId
     Else
         colWebElement.Remove indexOrWebElement

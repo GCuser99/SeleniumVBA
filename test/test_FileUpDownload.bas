@@ -34,7 +34,7 @@ End Sub
 
 Sub test_file_download()
     'see https://www.browserstack.com/guide/download-file-using-selenium-python
-    Dim driver As New WebDriver, options As WebOptions
+    Dim driver As New WebDriver, caps As WebCapabilities
     
     dirPath = ".\" 'download to same directory as this excel file
 
@@ -42,15 +42,15 @@ Sub test_file_download()
     
     driver.DeleteFiles ".\BrowserStack - List of devices to test on*.csv"
     
-    Set options = driver.CreateOptions
+    Set caps = driver.CreateOptions
 
-    options.AddPref "download.default_directory", dirPath
-    options.AddPref "download.prompt_for_download", False
-    'options.AddPref "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
+    caps.AddPref "download.default_directory", dirPath
+    caps.AddPref "download.prompt_for_download", False
+    'caps.AddPref "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
     
-    'options.SetDownloadPrefs filepath 'this does the above in one line
+    'caps.SetDownloadPrefs filepath 'this does the above in one line
 
-    driver.OpenBrowser options
+    driver.OpenBrowser caps
     
     driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
     driver.Wait 500

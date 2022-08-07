@@ -2,16 +2,16 @@ Attribute VB_Name = "test_Options"
 Sub test_headless()
     'see also test_FileUpDownload for another example using Options
     Dim driver As New WebDriver
-    Dim options As WebOptions
+    Dim caps As WebCapabilities
 
     driver.StartChrome
     
-    'note that WebOptions object should be created after starting the driver (StartEdge, StartChrome, of StartFirefox methods)
-    Set options = driver.CreateOptions
+    'note that WebCapabilities object should be created after starting the driver (StartEdge, StartChrome, of StartFirefox methods)
+    Set caps = driver.CreateOptions
     
-    options.AddArgument "--headless" 'makes browser run in invisible mode
+    caps.AddArgument "--headless" 'makes browser run in invisible mode
     
-    driver.OpenBrowser options 'here is where options is passed to driver
+    driver.OpenBrowser caps 'here is where caps is passed to driver
     
     driver.NavigateTo "https://www.google.com/"
     

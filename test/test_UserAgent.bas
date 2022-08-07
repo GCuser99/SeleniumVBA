@@ -3,7 +3,7 @@ Sub test_hide_headless()
     'some servers detect headless mode in the sent User Agent and then deny access, so
     'here we modify the user agent that gets sent to server
     Dim driver As New WebDriver
-    Dim options As WebOptions
+    Dim caps As WebCapabilities
 
     driver.StartChrome
     driver.OpenBrowser , True  'a way of running headless mode without explicitly adding --headless arg to Options
@@ -15,13 +15,13 @@ Sub test_hide_headless()
     
     driver.CloseBrowser
     
-    Set options = driver.CreateOptions
+    Set caps = driver.CreateOptions
     
     'now we modify the user agent string by tossing the "Headless" keyword and then
-    'update WebOptions UserArgent argument
-    options.SetUserAgent = Replace(userAgent, "HeadlessChrome", "Chrome")
+    'update WebCapabilities UserArgent argument
+    caps.SetUserAgent = Replace(userAgent, "HeadlessChrome", "Chrome")
     
-    driver.OpenBrowser options, True
+    driver.OpenBrowser caps, True
     
     'to see a full list of headers navigate to https://www.httpbin.org/headers
     driver.NavigateTo "https://www.whatismybrowser.com/detect/what-is-my-user-agent/"

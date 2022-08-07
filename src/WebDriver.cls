@@ -274,7 +274,7 @@ Public Sub Shutdown()
     End Select
 End Sub
 
-Public Sub OpenBrowser(Optional options As WebOptions, Optional ByVal invisible As Boolean = False)
+Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisible As Boolean = False)
     Dim resp As Dictionary
     
     If sessionId_ <> "" Then
@@ -282,16 +282,16 @@ Public Sub OpenBrowser(Optional options As WebOptions, Optional ByVal invisible 
         End 'execution
     End If
     
-    If options Is Nothing Then
-        Set options = CreateOptions
+    If caps Is Nothing Then
+        Set caps = CreateOptions
     End If
         
     If invisible Then
         'user may have already added headless, but selenium doesn't seem to care about multiple arg entries
-        options.AddArgument "--headless"
+        caps.AddArgument "--headless"
     End If
     
-    Set resp = Execute(CMD_NEW_SESSION, params("capabilities", options.Dictionary))("value")
+    Set resp = Execute(CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
     
     sessionId_ = resp("sessionId")
     
@@ -1332,8 +1332,8 @@ Public Function GetOuterHTML(Optional element As WebElement) As String
 End Function
 
 ' Get default capabilities for current browser
-Public Function CreateOptions() As WebOptions
-    Dim options As New WebOptions
+Public Function CreateOptions() As WebCapabilities
+    Dim caps As New WebCapabilities
     
     'insure that this function is being called in the correct order
     If browserName_ = "" Or sessionId_ <> "" Then
@@ -1343,9 +1343,9 @@ Public Function CreateOptions() As WebOptions
     
     'now initialize Options
 
-    options.InitializeFor browserName_
+    caps.InitializeFor browserName_
 
-    Set CreateOptions = options
+    Set CreateOptions = caps
 End Function
 
 Public Sub SetFocus(element As WebElement)
