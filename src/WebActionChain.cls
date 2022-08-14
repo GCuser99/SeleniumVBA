@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.6
+' SeleniumVBA v1.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -195,7 +195,6 @@ Public Function Click(Optional element As WebElement) As WebActionChain
     Set Click = New WebActionChain
     Set Click.WebDriver = driver_
     Set Click.Data = data_
-    
 End Function
 
 Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
@@ -233,7 +232,6 @@ Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
     Set ClickAndHold = New WebActionChain
     Set ClickAndHold.WebDriver = driver_
     Set ClickAndHold.Data = data_
-    
 End Function
 
 Public Function ClickContext(Optional element As WebElement) As WebActionChain
@@ -275,7 +273,6 @@ Public Function ClickContext(Optional element As WebElement) As WebActionChain
     Set ClickContext = New WebActionChain
     Set ClickContext.WebDriver = driver_
     Set ClickContext.Data = data_
-    
 End Function
 
 Public Function DoubleClick(Optional element As WebElement) As WebActionChain
@@ -321,7 +318,6 @@ Public Function DoubleClick(Optional element As WebElement) As WebActionChain
     Set DoubleClick = New WebActionChain
     Set DoubleClick.WebDriver = driver_
     Set DoubleClick.Data = data_
-    
 End Function
 
 Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
@@ -359,7 +355,6 @@ Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
     Set ReleaseButton = New WebActionChain
     Set ReleaseButton.WebDriver = driver_
     Set ReleaseButton.Data = data_
-    
 End Function
 
 Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebElement) As WebActionChain
@@ -393,7 +388,6 @@ Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebEle
     Set DragAndDrop = New WebActionChain
     Set DragAndDrop.WebDriver = driver_
     Set DragAndDrop.Data = data_
-    
 End Function
 
 Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long, ByVal yOffset As Long) As WebActionChain
@@ -427,7 +421,6 @@ Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long
     Set DragAndDropByOffset = New WebActionChain
     Set DragAndDropByOffset.WebDriver = driver_
     Set DragAndDropByOffset.Data = data_
-    
 End Function
 
 Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, ByVal y As Long) As WebActionChain
@@ -461,7 +454,6 @@ Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, By
     Set DragAndDropToPosition = New WebActionChain
     Set DragAndDropToPosition.WebDriver = driver_
     Set DragAndDropToPosition.Data = data_
-    
 End Function
 
 Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
@@ -492,7 +484,6 @@ Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElem
     Set KeyDown = New WebActionChain
     Set KeyDown.WebDriver = driver_
     Set KeyDown.Data = data_
-    
 End Function
 
 Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
@@ -523,7 +514,6 @@ Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElemen
     Set KeyUp = New WebActionChain
     Set KeyUp.WebDriver = driver_
     Set KeyUp.Data = data_
-    
 End Function
 
 Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION) As WebActionChain
@@ -553,7 +543,6 @@ Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION)
     Set Wait = New WebActionChain
     Set Wait.WebDriver = driver_
     Set Wait.Data = data_
-    
 End Function
 
 Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optional element As WebElement) As WebActionChain
@@ -595,7 +584,6 @@ Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optio
     Set MoveByOffset = New WebActionChain
     Set MoveByOffset.WebDriver = driver_
     Set MoveByOffset.Data = data_
-
 End Function
 
 Public Function SendKeys(ByVal keys As String, Optional element As WebElement) As WebActionChain
@@ -647,7 +635,6 @@ Public Function SendKeys(ByVal keys As String, Optional element As WebElement) A
     Set SendKeys = New WebActionChain
     Set SendKeys.WebDriver = driver_
     Set SendKeys.Data = data_
-    
 End Function
 
 Public Function Clear(Optional element As WebElement) As WebActionChain
@@ -683,7 +670,6 @@ Public Function Clear(Optional element As WebElement) As WebActionChain
     Set Clear = New WebActionChain
     Set Clear.WebDriver = driver_
     Set Clear.Data = data_
-
 End Function
 
 Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As WebActionChain
@@ -717,7 +703,6 @@ Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As 
     Set CtrlKey = New WebActionChain
     Set CtrlKey.WebDriver = driver_
     Set CtrlKey.Data = data_
-
 End Function
 
 Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As WebActionChain
@@ -751,7 +736,6 @@ Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As
     Set ShiftKey = New WebActionChain
     Set ShiftKey.WebDriver = driver_
     Set ShiftKey.Data = data_
-    
 End Function
 
 Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
@@ -781,7 +765,6 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     Set ScrollToElement = New WebActionChain
     Set ScrollToElement.WebDriver = driver_
     Set ScrollToElement.Data = data_
-
 End Function
 
 Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
@@ -811,7 +794,6 @@ Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOff
     Set ScrollBy = New WebActionChain
     Set ScrollBy.WebDriver = driver_
     Set ScrollBy.Data = data_
-
 End Function
 
 Public Sub Perform()
@@ -828,7 +810,6 @@ Public Sub Perform()
     'Note for future: Firefox and IEdriverServer doe not support wheel actions
     
     If data_.Exists("actions") Then
-        
         'multi-call method:
         'inputChans = data_("actions")
         'For i = 0 To UBound(inputChans)
@@ -843,7 +824,6 @@ Public Sub Perform()
         'it seems that reset actions should always been done on Perform, but Selenium Python doesn't(?)
         
         ResetActions
-        
     End If
 End Sub
 
@@ -972,7 +952,6 @@ Private Function SyncChannels(Data As Dictionary) As Dictionary
     Data("actions") = syncdInputChans
     
     Set SyncChannels = Data
-
 End Function
 
 'make this public for compatibility with Selenium Python? (see Perform method)
@@ -1068,7 +1047,6 @@ Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal 
     'action.Add "twist", 0
     
     Set ActionPointerMove = action
-    
 End Function
 
 Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ElementId As String) As Dictionary
@@ -1091,7 +1069,6 @@ Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As 
     action.Add "deltaY", deltaY
     
     Set ActionScroll = action
-
 End Function
 
 'this is a utility function to append an input channel to the input channel array

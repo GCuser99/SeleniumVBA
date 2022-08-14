@@ -3,7 +3,7 @@ Sub test_headless()
     'see also test_FileUpDownload for another example using Capabilities
     Dim driver As New WebDriver
     Dim caps As WebCapabilities
-
+    
     driver.StartChrome
     
     'note that WebCapabilities object should be created after starting the driver (StartEdge, StartChrome, of StartFirefox methods)

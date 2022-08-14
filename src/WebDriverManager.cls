@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.6
+' SeleniumVBA v1.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -67,10 +67,10 @@ Attribute VB_Exposed = True
 '            bverInstalled = mngr.GetInstalledBrowserVersion(svbaBrowser.Chrome)
 '            dverCompat = mngr.GetCompatibleDriverVersion(svbaBrowser.Chrome, bverInstalled)
 '            mngr.DownloadAndInstallDriver svbaBrowser.Chrome, dverCompat, driverPath
-'            MsgBox "Chrome" & " " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & bverInstalled & vbCrLf & "Driver version:    " & dverCompat, , "SeleniumVBA"
+'            MsgBox "Chrome" & " " & "Webdriver and Browser are compatible!" & vbNewLine & vbNewLine & "Browser version: " & bverInstalled & vbNewLine & "Driver version:    " & dverCompat, , "SeleniumVBA"
 '        End If
 '    Else
-'        MsgBox "Chrome " & "Webdriver and Browser are compatible!" & vbCrLf & vbCrLf & "Browser version: " & mngr.GetInstalledBrowserVersion(svbaBrowser.Chrome) & vbCrLf & "Driver version:    " & mngr.GetInstalledDriverVersion(svbaBrowser.Chrome, driverPath), , "SeleniumVBA"
+'        MsgBox "Chrome " & "Webdriver and Browser are compatible!" & vbNewLine & vbNewLine & "Browser version: " & mngr.GetInstalledBrowserVersion(svbaBrowser.Chrome) & vbNewLine & "Driver version:    " & mngr.GetInstalledDriverVersion(svbaBrowser.Chrome, driverPath), , "SeleniumVBA"
 '    End If
 '
 ' NOTES:
@@ -95,6 +95,7 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private mMinCompatibilityLevel As svbaCompatibility
+Private mDefaultBinaryFolder As String
 
 Public Enum svbaCompatibility
     svbaNotCompatible = 0
@@ -123,6 +124,14 @@ Private Function GetBrowserName(ByVal browser As svbaBrowser) As String
     GetBrowserName = browserName
 End Function
 
+Public Property Let DefaultBinaryFolder(ByVal folderPath As String)
+    mDefaultBinaryFolder = WebShared.GetFullLocalPath(folderPath)
+End Property
+
+Public Property Get DefaultBinaryFolder() As String
+    DefaultBinaryFolder = mDefaultBinaryFolder
+End Property
+
 Property Let MinCompatibilityLevel(ByVal val As svbaCompatibility)
     mMinCompatibilityLevel = val
 End Property
@@ -131,7 +140,6 @@ Property Get MinCompatibilityLevel() As svbaCompatibility
     MinCompatibilityLevel = mMinCompatibilityLevel
 End Property
 
-'this one does it all
 Private Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal driverPath As String) As String
     Dim bverInstalled As String, dverCompat As String, respStr As String
     
@@ -152,20 +160,20 @@ Private Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal driv
         respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
     End If
     
-    respStr = respStr & vbCrLf & vbCrLf & "Browser version: " & bverInstalled & vbCrLf & "Driver version:    " & dverCompat
+    respStr = respStr & vbNewLine & vbNewLine & "Browser version: " & bverInstalled & vbNewLine & "Driver version:    " & dverCompat
     
     AlignDriverWithBrowser = respStr
 End Function
 
-Public Function AlignEdgeDriverWithBrowser(Optional ByVal driverPath As String = ".\msedgedriver.exe") As String
+Public Function AlignEdgeDriverWithBrowser(Optional ByVal driverPath As String = "msedgedriver.exe") As String
     AlignEdgeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Edge, driverPath)
 End Function
 
-Public Function AlignChromeDriverWithBrowser(Optional ByVal driverPath As String = ".\chromedriver.exe") As String
+Public Function AlignChromeDriverWithBrowser(Optional ByVal driverPath As String = "chromedriver.exe") As String
     AlignChromeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Chrome, driverPath)
 End Function
 
-Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As String = ".\geckodriver.exe") As String
+Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As String = "geckodriver.exe") As String
     AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath)
 End Function
 
@@ -185,7 +193,7 @@ Public Function IsInstalledDriverCompatible(ByVal browser As svbaBrowser, Option
         End Select
     End If
     
-    driverPath = GetAbsolutePath(driverPath)
+    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultBinaryFolder)
     
     If Not fso.FileExists(driverPath) Then
         IsInstalledDriverCompatible = False
@@ -225,7 +233,7 @@ Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional
         End Select
     End If
     
-    driverPath = GetAbsolutePath(driverPath)
+    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultBinaryFolder)
     
     If Not fso.FileExists(driverPath) Then
         GetInstalledDriverVersion = "driver not found"
@@ -266,10 +274,6 @@ Public Function CheckCompatibilityLevel(ByVal installedVersion As String, ByVal 
     verminor2 = Split(compatibleVersion, ".")(1)
     verbuildmajor2 = Split(compatibleVersion, ".")(2)
     If UBound(Split(compatibleVersion, ".")) > 2 Then verbuildminor2 = Split(compatibleVersion, ".")(3) Else verbuildminor2 = ""
-    
-    If val(Replace(installedVersion, ".", "")) > val(Replace(compatibleVersion, ".", "")) Then
-        Stop 'installed is greater than compatible
-    End If
     
     If vermajor1 <> vermajor2 Then
         CheckCompatibilityLevel = svbaNotCompatible
@@ -315,7 +319,7 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
                 Exit Function
             End If
         Loop Until responseText <> False
-        GetLatestDriverVersion = Replace(responseText, vbCrLf, "")
+        GetLatestDriverVersion = Replace(responseText, vbNewLine, "")
     Case svbaBrowser.Chrome
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
         responseText = RequestData(url)
@@ -377,7 +381,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
                 End If
             Loop Until responseText <> False
             
-            GetCompatibleDriverVersion = Replace(responseText, vbCrLf, "")
+            GetCompatibleDriverVersion = Replace(responseText, vbNewLine, "")
             
             If InStr(GetCompatibleDriverVersion, "Error") = 0 Then Exit Do
             vermajorsearch = vermajorsearch - 1
@@ -485,7 +489,7 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
         End Select
     End If
     
-    driverPath = GetAbsolutePath(driverPath)
+    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultBinaryFolder)
     
     driverFolder = fso.GetParentFolderName(driverPath)
     driverFilename = fso.GetFileName(driverPath)
@@ -622,6 +626,7 @@ End Function
 
 Private Sub Class_Initialize()
     mMinCompatibilityLevel = svbaMajor
+    DefaultBinaryFolder = ThisWorkbook.Path
 End Sub
 
 Private Function TaskKillByImage(ByVal taskName As String)

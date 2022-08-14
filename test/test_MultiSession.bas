@@ -22,9 +22,10 @@ Sub test_MultiSession_Edge()
     Dim driver1 As New WebDriver
     Dim driver2 As New WebDriver
     Dim keys As New WebKeyboard
+    
 
-    driver1.CommandWindowStyle = vbNormalFocus
-    driver2.CommandWindowStyle = vbNormalFocus
+    'driver1.CommandWindowStyle = vbNormalFocus
+    'driver2.CommandWindowStyle = vbNormalFocus
     
     'this should work  with only limited interference
     'however, for logging we only get one log (the first one)
@@ -80,8 +81,8 @@ Sub test_MultiSession_mix_Edge_Chrome()
     Dim driver2 As New WebDriver
     Dim keys As New WebKeyboard
 
-    driver1.CommandWindowStyle = vbNormalFocus
-    driver2.CommandWindowStyle = vbNormalFocus
+    'driver1.CommandWindowStyle = vbNormalFocus
+    'driver2.CommandWindowStyle = vbNormalFocus
     
     'this should work with only limited interference
     'however, for logging we only get one log (the first one)
@@ -137,8 +138,8 @@ Sub test_MultiSession_Firefox()
     Dim driver2 As New WebDriver
     Dim keys As New WebKeyboard
 
-    driver1.CommandWindowStyle = vbNormalFocus
-    driver2.CommandWindowStyle = vbNormalFocus
+    'driver1.CommandWindowStyle = vbNormalFocus
+    'driver2.CommandWindowStyle = vbNormalFocus
 
     'this fails as driver2 kills driver1 if running on same port
     'driver1.StartFirefox

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.6
+' SeleniumVBA v1.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -74,6 +74,8 @@ Private sessionId_ As String
 Private driverUrl_ As String
 Private browserName_ As String
 Private appWinStyle As VbAppWinStyle
+Private defaultIOFolder_ As String
+Private defaultBinaryFolder_  As String
 
 Private driverFilename As String
 Private processID As String
@@ -107,7 +109,7 @@ Private CMD_CLICK_ELEMENT
 Private CMD_CLEAR_ELEMENT
 Private CMD_GET_ELEMENT_TEXT
 Private CMD_SEND_KEYS_TO_ELEMENT
-Private CMD_UPLOAD_FILE                              'not wrapped yet
+'Private CMD_UPLOAD_FILE                              'not wrapped yet
 Private CMD_GET_ELEMENT_TAG_NAME
 Private CMD_IS_ELEMENT_SELECTED
 Private CMD_IS_ELEMENT_ENABLED
@@ -184,15 +186,15 @@ Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
     appWinStyle = style
 End Property
 
-Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge_verbose.log")
+Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
     Start "msedge", driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome_verbose.log")
+Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome.log")
     Start "chrome", driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox_verbose.log")
+Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox.log")
     Start "firefox", driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
@@ -209,7 +211,7 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
         KillDriver browserName_, localHostPort
     End If
     
-    driverPath = GetAbsolutePath(driverPath)
+    driverPath = WebShared.GetFullLocalPath(driverPath, defaultBinaryFolder_)
     
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
@@ -224,14 +226,14 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find Selenium WebDriver at :" & vbCrLf & vbCrLf & driverPath & vbCrLf & vbCrLf & "Either manually install the driver or let WebDriverManager class install" & vbCrLf & "for you. To automatically install change: " & vbCrLf & vbCrLf & "CheckDriverBrowserVersionAlignment=True" & vbCrLf & vbCrLf & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
+        MsgBox "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install" & vbNewLine & "for you. To automatically install change: " & vbNewLine & vbNewLine & "CheckDriverBrowserVersionAlignment=True" & vbNewLine & vbNewLine & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
         End 'execution
     End If
     
     commandStr = "": serviceArgs = ""
 
     If enableLogging Then
-        logFilePath = GetAbsolutePath(logFilePath)
+        logFilePath = WebShared.GetFullLocalPath(logFilePath, defaultIOFolder_)
         Select Case browserName_
         Case "msedge", "chrome"
             serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
@@ -249,7 +251,7 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        MsgBox "Failed in starting Selenium WebDriver." & vbCrLf & "WebDriver path : " & commandStr, vbCritical + vbOKOnly
+        MsgBox "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path : " & commandStr, vbCritical + vbOKOnly
         End 'execution
     End If
     
@@ -317,7 +319,7 @@ Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Option
     Dim Data As New Dictionary, resp As Dictionary, savTimeOutms As Long
     
     If Left(url, 8) = "file:///" Then
-        url = "file:///" & GetAbsolutePath(Mid(url, 9, 99999))
+        url = "file:///" & WebShared.GetFullLocalPath(Mid(url, 9, 99999), defaultIOFolder_)
     End If
     
     Data.Add "url", url
@@ -991,7 +993,7 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
     Dim Data As New Dictionary
     Dim pngstr As String
         
-    filePath = GetAbsolutePath(filePath)
+    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
     
     If element Is Nothing Then
         pngstr = Execute(CMD_SCREENSHOT, Data)("value")
@@ -1006,7 +1008,7 @@ End Sub
 Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As WebPrintSettings)
     Dim Data As New Dictionary, pdfstr As String
     
-    filePath = GetAbsolutePath(filePath)
+    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
     
     If Not settings Is Nothing Then
         Set Data = settings.ToDictionary
@@ -1342,10 +1344,17 @@ Public Function CreateCapabilities() As WebCapabilities
     End If
     
     'now initialize Capabilities
-
     caps.InitializeFor browserName_
+    
+    Set caps.WebDriver = Me
 
     Set CreateCapabilities = caps
+End Function
+
+Public Function CreateCookies() As WebCookies
+    Dim cks As New WebCookies
+    Set cks.WebDriver = Me
+    Set CreateCookies = cks
 End Function
 
 Public Sub SetFocus(element As WebElement)
@@ -1400,10 +1409,11 @@ Public Function GetScrollHeight() As Integer
 End Function
 
 Public Function GetAllCookies() As WebCookies
-    Dim Data As New Dictionary, resp As Collection, ck As WebCookie, cks As New WebCookies
+    Dim Data As New Dictionary, resp As Collection, ck As WebCookie, cks As WebCookies
     Set resp = Execute(CMD_GET_ALL_COOKIES, Data)("value")
     'Dim jc As New WebJSonConverter
     'Debug.Print jc.ConvertToJson(resp, 4)
+    Set cks = Me.CreateCookies
     Dim i As Long
     For i = 1 To resp.Count
         Set ck = New WebCookie
@@ -1414,7 +1424,7 @@ Public Function GetAllCookies() As WebCookies
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
@@ -1431,7 +1441,7 @@ Public Function GetCookie(ByVal cookieName) As WebCookie
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.path = resp("path")
+    If resp.Exists("path") Then ck.Path = resp("path")
     Set GetCookie = ck
 End Function
 
@@ -1528,7 +1538,7 @@ End Function
 
 Public Sub UploadFile(element As WebElement, ByVal filePath As String)
     'this is just a special wrapper for sendkeys (upload file mode)
-    filePath = GetAbsolutePath(filePath)
+    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
     SendKeys element, filePath
 End Sub
 
@@ -1568,6 +1578,22 @@ Public Function GetUserAgent() As String
     End If
 End Function
 
+Public Property Let DefaultIOFolder(ByVal folderPath As String)
+    defaultIOFolder_ = WebShared.GetFullLocalPath(folderPath)
+End Property
+
+Public Property Get DefaultIOFolder() As String
+    DefaultIOFolder = defaultIOFolder_
+End Property
+
+Public Property Let DefaultBinaryFolder(ByVal folderPath As String)
+    defaultBinaryFolder_ = WebShared.GetFullLocalPath(folderPath)
+End Property
+
+Public Property Get DefaultBinaryFolder() As String
+    DefaultBinaryFolder = defaultBinaryFolder_
+End Property
+
 Public Sub DeleteFiles(ParamArray filelist() As Variant)
     Dim fso As New FileSystemObject
     Dim i As Integer, k As Integer, j As Integer
@@ -1578,7 +1604,7 @@ Public Sub DeleteFiles(ParamArray filelist() As Variant)
                 strlist = Split(filelist(i)(j), ",")
                 For k = 0 To UBound(strlist)
                     On Error Resume Next 'file might not exists
-                    fso.DeleteFile GetAbsolutePath(strlist(k)), True
+                    fso.DeleteFile WebShared.GetFullLocalPath(strlist(k), defaultIOFolder_), True
                     On Error GoTo 0
                 Next k
             Next j
@@ -1586,7 +1612,7 @@ Public Sub DeleteFiles(ParamArray filelist() As Variant)
             strlist = Split(filelist(i), ",")
             For k = 0 To UBound(strlist)
                 On Error Resume Next 'file might not exists 'file might not exists
-                fso.DeleteFile GetAbsolutePath(strlist(k)), True
+                fso.DeleteFile WebShared.GetFullLocalPath(strlist(k), defaultIOFolder_), True
                 On Error GoTo 0
             Next k
         End If
@@ -1596,19 +1622,19 @@ End Sub
 Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As String = ".\snippet.html")
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject, ts As textstream
-    filePath = GetAbsolutePath(filePath)
+    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
     Set ts = fs.CreateTextFile(filePath, True)
     ts.Write snippet
     ts.Close
 End Sub
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim Method As String, path As String
+    Dim Method As String, Path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
     Method = driverCommand(0)
-    path = driverCommand(1)
+    Path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1620,8 +1646,8 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
-            path = Replace(path, "$" & parmKey, parameters(parmKey))
+        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
+            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -1631,7 +1657,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(Method, driverUrl_ & path, cmdArgs)
+    Set response = SendRequest(Method, driverUrl_ & Path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -1736,7 +1762,7 @@ Private Sub InitCommands()
     CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
     CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
     CMD_SEND_KEYS_TO_ELEMENT = Array("POST", "/session/$sessionId/element/$id/value")
-    CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
+    'CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
     CMD_GET_ELEMENT_TAG_NAME = Array("GET", "/session/$sessionId/element/$id/name")
     CMD_IS_ELEMENT_SELECTED = Array("GET", "/session/$sessionId/element/$id/selected")
     CMD_IS_ELEMENT_ENABLED = Array("GET", "/session/$sessionId/element/$id/enabled")
@@ -1790,7 +1816,13 @@ End Sub
 
 Private Sub Class_Initialize()
     InitCommands
-    CommandWindowStyle = vbHide 'hides the command window
+    CommandWindowStyle = vbHide
+    'note that user has control through the DefaultIOFolder and DefaultBinaryFolder
+    'properties so these below are just reasonable starting points...
+    'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
+    'referencing the SeleniumVBA Add-in, but same otherwise
+    DefaultBinaryFolder = ThisWorkbook.Path
+    DefaultIOFolder = ActiveVBAProjectFolderPath
 End Sub
 
 Private Sub TimerWait(ByVal durationMS As Long)
@@ -1801,7 +1833,7 @@ Private Sub TimerWait(ByVal durationMS As Long)
     endTime = startTime + durationMS / 1000#
     Do While nowTime < endTime
         nowTime = VBA.Timer()
-        If nowTime < startTime Then 'oops - someone is burning the midnight oil!
+        If nowTime < startTime Then
             endTime = endTime - elapsedTime
             startTime = 0
         End If
@@ -1878,5 +1910,17 @@ End Sub
 
 Private Function TaskKillByPid(ByVal pid As String)
     Dim wsh As New IWshRuntimeLibrary.wshShell
-   TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
+    TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
+End Function
+
+Public Function ActiveVBAProjectFolderPath() As String
+    Dim fso As New FileSystemObject, strPath As String
+    strPath = ""
+    'if the Excel file holding the active vba project has not yet been saved, then this will throw an error
+    '...so return vbNullString in that case
+    On Error Resume Next
+    strPath = Application.VBE.ActiveVBProject.Filename
+    On Error GoTo 0
+    If strPath <> "" Then strPath = fso.GetParentFolderName(strPath)
+    ActiveVBAProjectFolderPath = strPath
 End Function

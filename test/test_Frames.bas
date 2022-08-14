@@ -2,6 +2,8 @@ Attribute VB_Name = "test_Frames"
 Sub test_frames_with_frameset()
     Dim driver As New WebDriver
     Dim elem As WebElement
+    
+    driver.DefaultIOFolder = ThisWorkbook.Path
 
     driver.StartChrome
     driver.OpenBrowser
@@ -47,7 +49,9 @@ End Sub
 Sub test_frames_with_embed_objects()
     Dim driver As New WebDriver
     Dim elemObject As WebElement, elemEmbed As WebElement
-
+    
+    driver.DefaultIOFolder = ThisWorkbook.Path
+    
     driver.StartEdge
     driver.OpenBrowser
     
@@ -98,6 +102,8 @@ End Sub
 Sub test_frames_with_iframes()
     Dim driver As New WebDriver
     Dim elem As WebElement
+    
+    driver.DefaultIOFolder = ThisWorkbook.Path
 
     driver.StartChrome
     driver.OpenBrowser
@@ -143,7 +149,7 @@ End Sub
 Sub test_frames_with_nested_iframes()
     Dim driver As New WebDriver
     Dim elems As WebElements, elem As WebElement
-
+    
     driver.StartEdge
     driver.OpenBrowser
     

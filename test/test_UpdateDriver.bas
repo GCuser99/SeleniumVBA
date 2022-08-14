@@ -41,9 +41,9 @@ Sub test_updateDrivers()
     'with installed browser, and then if needed, installs an updated driver
     Dim mngr As New WebDriverManager
     
-    MsgBox mngr.AlignEdgeDriverWithBrowser(".\msedgedriver.exe"), , "SeleniumVBA"
-    MsgBox mngr.AlignChromeDriverWithBrowser(".\chromedriver.exe"), , "SeleniumVBA"
-    MsgBox mngr.AlignFirefoxDriverWithBrowser(".\geckodriver.exe"), , "SeleniumVBA"
+    MsgBox mngr.AlignEdgeDriverWithBrowser(), , "SeleniumVBA"
+    MsgBox mngr.AlignChromeDriverWithBrowser(), , "SeleniumVBA"
+    MsgBox mngr.AlignFirefoxDriverWithBrowser(), , "SeleniumVBA"
 End Sub
 
 Sub test_updateDriversForSeleniumBasic()
@@ -51,16 +51,9 @@ Sub test_updateDriversForSeleniumBasic()
     'there may be a permission issue for writing to this directory so you may have to run as administrator
     Dim mngr As New WebDriverManager
     
-    driverPath = mngr.GetSeleniumBasicFolder & "edgedriver.exe"
+    mngr.DefaultBinaryFolder = mngr.GetSeleniumBasicFolder
     
-    MsgBox mngr.AlignEdgeDriverWithBrowser(driverPath), , "SeleniumVBA"
-    
-    driverPath = mngr.GetSeleniumBasicFolder & "chromedriver.exe"
-    
-    MsgBox mngr.AlignChromeDriverWithBrowser(driverPath), , "SeleniumVBA"
-    
-    driverPath = mngr.GetSeleniumBasicFolder & "geckodriver.exe"
-    
-    MsgBox mngr.AlignFirefoxDriverWithBrowser(driverPath), , "SeleniumVBA"
+    MsgBox mngr.AlignEdgeDriverWithBrowser("edgedriver.exe"), , "SeleniumVBA"
+    MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe"), , "SeleniumVBA"
+    MsgBox mngr.AlignFirefoxDriverWithBrowser("geckodriver.exe"), , "SeleniumVBA"
 End Sub
-

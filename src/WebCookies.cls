@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.6
+' SeleniumVBA v1.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -42,10 +42,19 @@ Attribute VB_Exposed = True
 ' This class was written to support collection of Cookie objects
 '
 ' ==========================================================================
-
+' Notes:
+'
+' - WebCookies object should be instantiated using WebDriver.MakeCookies, as in following example
+'
+'   Dim cks as WebCookies, driver as new WebDriver
+'
+'   Set cks = driver.CreateCookies
+'
+'
 Option Explicit
 
 Private colCookie As Collection
+Private driver_ As WebDriver
 
 Public Function Add(cke As WebCookie) As WebCookie
     colCookie.Add cke, cke.Name
@@ -93,11 +102,11 @@ Public Function IsMember(ByVal cke As WebCookie) As Boolean
     Next i
 End Function
 
-Public Sub SaveToFile(Optional ByVal path As String = ".\cookies.txt")
+Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
     Dim fs As New FileSystemObject, ts As textstream, darray() As Dictionary, i
     Dim jc As New WebJSonConverter
-    path = GetAbsolutePath(path)
-    Set ts = fs.CreateTextFile(path, True)
+    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    Set ts = fs.CreateTextFile(filePath, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
@@ -106,15 +115,15 @@ Public Sub SaveToFile(Optional ByVal path As String = ".\cookies.txt")
     ts.Close
 End Sub
 
-Public Function LoadFromFile(Optional ByVal path As String = ".\cookies.txt") As WebCookies
+Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt") As WebCookies
     Dim fs As New FileSystemObject, ts As textstream, str As String, v As Collection, ck As WebCookie
     Dim jc As New WebJSonConverter
     
     Me.RemoveAll
     
-    path = GetAbsolutePath(path)
+    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    Set ts = fs.OpenTextFile(path)
+    Set ts = fs.OpenTextFile(filePath)
     str = ts.ReadAll
     ts.Close
     Set v = jc.ParseJSON(str)
@@ -129,7 +138,7 @@ Public Function LoadFromFile(Optional ByVal path As String = ".\cookies.txt") As
         ck.SameSite = v(i)("sameSite")
         ck.Secure = v(i)("secure")
         ck.Value = v(i)("value")
-        ck.path = v(i)("path")
+        ck.Path = v(i)("path")
         Me.Add ck
     Next i
     Set LoadFromFile = Me
@@ -141,6 +150,10 @@ Attribute NewEnum.VB_UserMemId = -4
     'uncomment line above in text editor to enable For Each iteration in for loop
     Set NewEnum = colCookie.[_NewEnum]
 End Function
+
+Friend Property Set WebDriver(ByRef obj As WebDriver)
+    Set driver_ = obj
+End Property
 
 Private Sub Class_Initialize()
     Set colCookie = New Collection

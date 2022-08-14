@@ -64,6 +64,8 @@ End Sub
 Sub test_file_download2()
     Dim driver As New WebDriver, caps As WebCapabilities
     
+    driver.DefaultIOFolder = ThisWorkbook.Path
+    
     driver.StartFirefox
     
     driver.DeleteFiles ".\BrowserStack - List of devices to test*"
@@ -195,7 +197,7 @@ End Sub
 Sub test_Alerts()
     'see https://www.guru99.com/alert-popup-handling-selenium.html
     Dim driver As New WebDriver
-
+    
     driver.StartFirefox
     driver.OpenBrowser
 
@@ -228,7 +230,6 @@ Sub test_Alerts()
 End Sub
 
 Sub test_GetSessionInfo()
-
     Dim driver As New WebDriver
     Dim col As Collection
     

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.6
+' SeleniumVBA v1.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -52,15 +52,32 @@ Attribute VB_Exposed = True
 ' SOFTWARE.
 ' ==========================================================================
 
-' Spec for capabilities:
+' Specs for Capabilities:
+'
 ' - Chrome: https://chromedriver.chromium.org/capabilities
 ' - Edge: https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options
+'
+' Notes:
+'
+' - WebCapabilities object should be instantiated using WebDriver.MakeCapabilities, as in following example
+' - It should be instantiated after the StartEdge, StartChrome, or StartFirefox methods, and passed to OpenBrowser method
+'
+' Example:
+'
+'   Dim caps as WebCapabilities, driver as new WebDriver
+'
+'   driver.StartEdge
+'   Set caps = driver.MakeCapabilities
+'   caps.RunInvisble
+'   driver.OpenBrowser caps
+'
 
 Option Explicit
 
 Private data_ As New Dictionary
 Private browserOptionKey As String
 Private browserName_ As String
+Private driver_ As WebDriver
 
 Public Property Let Args(Value() As String)
     SetOption "args", Value
@@ -215,13 +232,13 @@ Public Sub AddPref(ByVal key As String, ByVal Value As Variant)
         SetOption "prefs", New Dictionary
     End If
     
-    If key = "download.default_directory" Then Value = GetAbsolutePath(Value)
-    If key = "browser.download.dir" Then Value = GetAbsolutePath(Value)
+    If key = "download.default_directory" Then Value = WebShared.GetFullLocalPath(Value, driver_.DefaultIOFolder)
+    If key = "browser.download.dir" Then Value = WebShared.GetFullLocalPath(Value, driver_.DefaultIOFolder)
 
     Prefs(key) = Value
 End Sub
 
-' Convert to Dictionary (WebDriver takes Dictionary)
+'convert to Dictionary (WebDriver takes Dictionary)
 Public Function Dictionary() As Dictionary
 Attribute Dictionary.VB_UserMemId = 0
     'edit class in text editor and uncomment line below to make Dictionary the default method for the class
@@ -230,7 +247,7 @@ Attribute Dictionary.VB_UserMemId = 0
     Set Dictionary = data_
 End Function
 
-' Convert to JSON string for debugging
+'convert to JSON string for debugging
 Public Function ToJson() As String
     Dim jc As New WebJSonConverter
     ToJson = jc.ConvertToJson(data_, 4)
@@ -271,7 +288,7 @@ Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey A
 End Sub
 
 Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
-    downloadDirectoryPath = GetAbsolutePath(downloadDirectoryPath)
+    downloadDirectoryPath = WebShared.GetFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
 
     Select Case browserName_
     Case "chrome", "msedge"
@@ -308,3 +325,7 @@ End Sub
 Public Sub RunInvisible()
     Me.AddArgument "--headless"
 End Sub
+
+Friend Property Set WebDriver(ByRef obj As WebDriver)
+    Set driver_ = obj
+End Property

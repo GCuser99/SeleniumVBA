@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.6
+' SeleniumVBA v1.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -580,7 +580,7 @@ Private Function json_ParseString(json_String As String, ByRef json_Index As Lon
                 json_BufferAppend json_Buffer, vbFormFeed, json_BufferPosition, json_BufferLength
                 json_Index = json_Index + 1
             Case "n"
-                json_BufferAppend json_Buffer, vbCrLf, json_BufferPosition, json_BufferLength
+                json_BufferAppend json_Buffer, vbNewLine, json_BufferPosition, json_BufferLength
                 json_Index = json_Index + 1
             Case "r"
                 json_BufferAppend json_Buffer, vbCr, json_BufferPosition, json_BufferLength

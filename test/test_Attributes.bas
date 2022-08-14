@@ -4,6 +4,8 @@ Attribute VB_Name = "test_Attributes"
 Sub test_element_attributes_and_properties()
     Dim driver As New WebDriver, str As String
     
+    driver.DefaultIOFolder = ThisWorkbook.Path
+    
     str = "<!DOCTYPE html><html><body><input id=""the-input"" type=""text"" value=""Sally""></body></html>"
     filePath = ".\snippet.html"
     
@@ -50,7 +52,7 @@ Sub test_element_attributes_and_properties()
     Debug.Print "checked attribute for vehicle3:", driver.FindElementByID("vehicle3").GetAttribute("checked")
     
     driver.Wait 1000
-    
+
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -76,7 +78,9 @@ End Sub
 
 Sub test_element_aria()
     Dim driver As New WebDriver, str As String
-
+    
+    driver.DefaultIOFolder = ThisWorkbook.Path
+    
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
     filePath = ".\snippet.html"
