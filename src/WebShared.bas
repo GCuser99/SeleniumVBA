@@ -44,8 +44,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         
         'check that reference path exists and notify user if not
         If Not fso.FolderExists(basePath) Then
-            MsgBox "Reference folder path does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path.", , "SeleniumVBA"
-            End 'execution
+            Err.raise 1, , "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
         End If
         
         'employ fso to make the conversion of relative path to absolute
@@ -57,7 +56,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
 End Function
 
 Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
-    ' thanks to 6DiegoDiego9 for doing research on this (see https://stackoverflow.com/a/72736800/11738627)
+    ' thanks to @6DiegoDiego9 for doing research on this (see https://stackoverflow.com/a/72736800/11738627)
     ' this function returns the original/local disk path associated with a synched OneDrive or SharePoint cloud url
     
     If IsPathHTTPS(strPath) Then
@@ -100,7 +99,7 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
 End Function
 
 Private Function IsPathRelative(ByVal sPath As String) As Boolean
-    'PathIsRelative interprets a properly formed url as relative, so ass a check for url too
+    'PathIsRelative interprets a properly formed url as relative, so add a check for url too
     If PathIsRelative(sPath) = 1 And PathIsURL(sPath) = 0 Then IsPathRelative = True Else IsPathRelative = False
 End Function
 

@@ -175,13 +175,21 @@ Public Property Get WindowTypes() As String
     WindowTypes = GetOption("windowTypes")
 End Property
 
-Public Sub AddCapability(ByVal key As String, Value As Variant)
+Public Sub SetCapability(ByVal key As String, Value As Variant)
     If IsObject(Value) Then
         Set data_("alwaysMatch")(key) = Value
     Else
         data_("alwaysMatch")(key) = Value
     End If
 End Sub
+
+Public Function GetCapability(ByVal key As String)
+    If IsObject(data_("alwaysMatch")(key)) Then
+        Set GetCapability = data_("alwaysMatch")(key)
+    Else
+        GetCapability = data_("alwaysMatch")(key)
+    End If
+End Function
 
 Public Sub SetOption(ByVal key As String, Value As Variant)
     If IsObject(Value) Then
@@ -226,7 +234,7 @@ Public Property Let SetUserAgent(ByVal val As String)
     AddArgument val
 End Property
 
-' Helper method to add prefs
+'helper method to add prefs
 Public Sub AddPref(ByVal key As String, ByVal Value As Variant)
     If Prefs Is Nothing Then
         SetOption "prefs", New Dictionary

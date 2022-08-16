@@ -3,7 +3,7 @@ Sub test_print()
     Dim driver As New WebDriver
     Dim settings As New WebPrintSettings
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
 
     driver.StartChrome
     'must open browser in headless (invisible) mode for PrintToPDF to work
@@ -39,7 +39,7 @@ Sub test_screenshot()
     Dim caps As WebCapabilities
     Dim params As New Dictionary
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     driver.StartChrome
     driver.OpenBrowser
@@ -61,7 +61,7 @@ Sub test_element_screenshot()
     Dim caps As WebCapabilities
     Dim params As New Dictionary
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     driver.StartEdge
     driver.OpenBrowser

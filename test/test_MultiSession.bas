@@ -23,6 +23,8 @@ Sub test_MultiSession_Edge()
     Dim driver2 As New WebDriver
     Dim keys As New WebKeyboard
     
+    driver1.DefaultIOFolder = ThisWorkbook.Path
+    driver2.DefaultIOFolder = ThisWorkbook.Path
 
     'driver1.CommandWindowStyle = vbNormalFocus
     'driver2.CommandWindowStyle = vbNormalFocus
@@ -80,6 +82,9 @@ Sub test_MultiSession_mix_Edge_Chrome()
     Dim driver1 As New WebDriver
     Dim driver2 As New WebDriver
     Dim keys As New WebKeyboard
+    
+    driver1.DefaultIOFolder = ThisWorkbook.Path
+    driver2.DefaultIOFolder = ThisWorkbook.Path
 
     'driver1.CommandWindowStyle = vbNormalFocus
     'driver2.CommandWindowStyle = vbNormalFocus
@@ -137,6 +142,9 @@ Sub test_MultiSession_Firefox()
     Dim driver1 As New WebDriver
     Dim driver2 As New WebDriver
     Dim keys As New WebKeyboard
+    
+    driver1.DefaultIOFolder = ThisWorkbook.Path
+    driver2.DefaultIOFolder = ThisWorkbook.Path
 
     'driver1.CommandWindowStyle = vbNormalFocus
     'driver2.CommandWindowStyle = vbNormalFocus

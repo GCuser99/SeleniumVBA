@@ -3,7 +3,7 @@ Sub test_frames_with_frameset()
     Dim driver As New WebDriver
     Dim elem As WebElement
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
 
     driver.StartChrome
     driver.OpenBrowser
@@ -50,7 +50,7 @@ Sub test_frames_with_embed_objects()
     Dim driver As New WebDriver
     Dim elemObject As WebElement, elemEmbed As WebElement
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     driver.StartEdge
     driver.OpenBrowser
@@ -103,7 +103,7 @@ Sub test_frames_with_iframes()
     Dim driver As New WebDriver
     Dim elem As WebElement
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
 
     driver.StartChrome
     driver.OpenBrowser

@@ -153,7 +153,6 @@ Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolea
     Set MoveToElement = New WebActionChain
     Set MoveToElement.WebDriver = driver_
     Set MoveToElement.Data = data_
-    
 End Function
 
 Public Function Click(Optional element As WebElement) As WebActionChain
@@ -743,8 +742,7 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     Dim actions() As Dictionary
     
     If driver_.GetBrowserName = "firefox" Then
-        MsgBox "Scroll actions not supported for Firefox WebDriver"
-        Exit Function
+        Err.raise 1, , "Scroll actions not supported for Firefox WebDriver"
     End If
     
     ReDim actions(0 To 0)
@@ -772,8 +770,7 @@ Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOff
     Dim actions() As Dictionary
     
     If driver_.GetBrowserName = "firefox" Then
-        MsgBox "Scroll actions not supported for Firefox WebDriver"
-        Exit Function
+        Err.raise 1, , "Scroll actions not supported for Firefox WebDriver"
     End If
     
     ReDim actions(0 To 0)

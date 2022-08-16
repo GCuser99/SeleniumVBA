@@ -49,9 +49,9 @@ Attribute VB_Exposed = True
 '
 '    Dim mngr As New WebDriverManager
 '
-'    mngr.AlignEdgeDriverWithBrowser ".\msedgedriver.exe"
-'    mngr.AlignChromeDriverWithBrowser ".\chromedriver.exe"
-'    mngr.AlignFirefoxDriverWithBrowser ".\geckodriver.exe"
+'    mngr.AlignEdgeDriverWithBrowser
+'    mngr.AlignChromeDriverWithBrowser
+'    mngr.AlignFirefoxDriverWithBrowser
 '
 '    The Methods above will also return an informative status string, as in:
 '
@@ -314,9 +314,7 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
             'Debug.Print "try: " & try
             DoEvents
             If try > 10 Then
-                MsgBox "could not connect to msedgedriver server"
-                GetLatestDriverVersion = False
-                Exit Function
+                Err.raise 1, , "could not connect to msedgedriver server"
             End If
         Loop Until responseText <> False
         GetLatestDriverVersion = Replace(responseText, vbNewLine, "")
@@ -375,9 +373,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
                 'Debug.Print "try: " & try
                 DoEvents
                 If try > 10 Then
-                    MsgBox "could not connect to msedgedriver server"
-                    GetCompatibleDriverVersion = False
-                    Exit Function
+                    Err.raise 1, , "could not connect to msedgedriver server"
                 End If
             Loop Until responseText <> False
             
@@ -427,8 +423,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
         url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
         responseText = RequestData(url)
         If responseText = False Then
-            MsgBox "Could not access Firefox compatibility table from Mozilla", , "SeleniumVBA"
-            Exit Function
+            Err.raise 1, , "Could not access Firefox compatibility table from Mozilla"
         End If
         
         'search the table for the first driver version entry (most recent) for a given browser version

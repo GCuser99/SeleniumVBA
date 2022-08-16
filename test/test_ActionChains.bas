@@ -98,7 +98,7 @@ Sub test_drag_and_drop()
     
     driver.ScrollTo , 500
     
-    'WebDriver and WebElement DragAndDrop method made from action chains
+    'WebDriver and WebElement DragAndDrop's method made from action chains
     from1.DragAndDrop to1
     from2.DragAndDrop to2
     from3.DragAndDrop to3

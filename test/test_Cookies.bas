@@ -2,6 +2,7 @@ Attribute VB_Name = "test_Cookies"
 Sub test_cookies()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
     Dim driver As New WebDriver, cks As WebCookies
+    
     Set cks = driver.CreateCookies
     
     'driver.DefaultIOFolder = ThisWorkbook.Path
@@ -85,9 +86,10 @@ End Sub
 Sub test_cookies3()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html
     Dim driver As New WebDriver, cks As WebCookies, ck As WebCookie
+    
     Set cks = driver.CreateCookies
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     driver.StartChrome
     driver.OpenBrowser

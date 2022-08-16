@@ -19,15 +19,13 @@ Attribute VB_Name = "test_Firefox"
 '  Apparently this support may be coming: see https://github.com/mozilla/geckodriver/issues/2005
 '- PrintScale method of PrintSettings class does not seem to have effect
 '
-'
-'Any suggested ideas, comments, fixes, and use cases are welcome!
 
 Sub test_logging()
     Dim driver As New WebDriver, fruits As WebElement
     
     'driver.CommandWindowStyle = vbNormalFocus
     
-    'True enables verbose logging - default log file found in same directory as WebDriver executable
+    'True enables verbose logging
     driver.StartFirefox , , True
     
     driver.OpenBrowser
@@ -64,7 +62,7 @@ End Sub
 Sub test_file_download2()
     Dim driver As New WebDriver, caps As WebCapabilities
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     driver.StartFirefox
     
@@ -146,6 +144,8 @@ End Sub
 Sub test_element_aria()
     'Firefox does not support Aria attributes
     Dim driver As New WebDriver, str As String
+    
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     

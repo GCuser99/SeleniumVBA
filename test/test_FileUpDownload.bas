@@ -3,7 +3,7 @@ Sub test_file_upload()
     'see https://www.guru99.com/upload-download-file-selenium-webdriver.html
     Dim driver As New WebDriver, str
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
 
     driver.StartEdge
     driver.OpenBrowser
@@ -38,7 +38,7 @@ Sub test_file_download()
     'see https://www.browserstack.com/guide/download-file-using-selenium-python
     Dim driver As New WebDriver, caps As WebCapabilities
     
-    driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.Path
     
     dirPath = ".\" 'download to same directory as this excel file
 

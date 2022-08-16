@@ -135,8 +135,8 @@ Private CMD_ACCEPT_ALERT
 Private CMD_SET_ALERT_VALUE
 Private CMD_GET_ALERT_TEXT
 Private CMD_CLICK
-'Private CMD_ACTIONS                              'used in ActionChain.cls
-'Private CMD_CLEAR_ACTIONS                        'used in ActionChain.cls
+'Private CMD_ACTIONS                                  'used in ActionChain.cls
+'Private CMD_CLEAR_ACTIONS                            'used in ActionChain.cls
 Private CMD_SET_WINDOW_RECT
 Private CMD_GET_WINDOW_RECT
 Private CMD_MAXIMIZE_WINDOW
@@ -176,11 +176,7 @@ Public Enum svbaWindowType
     svbaTab = 1
 End Enum
 
-'#If VBA7 And Win64 Then
 'Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-'#Else
-'Private Declare Sub Sleep Lib "kernel32" (ByVal millisecond As Long)
-'#End If
 
 Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
     appWinStyle = style
@@ -226,8 +222,7 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
     End If
     
     If Not fso.FileExists(driverPath) Then
-        MsgBox "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install" & vbNewLine & "for you. To automatically install change: " & vbNewLine & vbNewLine & "CheckDriverBrowserVersionAlignment=True" & vbNewLine & vbNewLine & "in WebDriver class and then save Excel file.", , "SeleniumVBA"
-        End 'execution
+        Err.raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
     End If
     
     commandStr = "": serviceArgs = ""
@@ -251,8 +246,7 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        MsgBox "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path : " & commandStr, vbCritical + vbOKOnly
-        End 'execution
+        Err.raise 1, , "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     End If
     
     'if we've got this far, then store some global variable values for later use
@@ -261,8 +255,8 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
 End Sub
 
 Public Sub Shutdown()
-    'this will shut down all WebDriver instances, not just the one it is being called from
-    'which is can be a good thing if there are multiple "rogue" instances lurking
+    'this will shut down all WebDriver instances using this driver's assigned port
+    'which can be a good thing if there are multiple "rogue" instances lurking
     
     'check to make sure user closed the browser
     If sessionId_ <> "" Then CloseBrowser
@@ -280,8 +274,7 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     Dim resp As Dictionary
     
     If sessionId_ <> "" Then
-        MsgBox "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this.", , "SeleniumVBA"
-        End 'execution
+        Err.raise 1, , "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
     End If
     
     If caps Is Nothing Then
@@ -386,18 +379,23 @@ Public Function FindChildElements(element As WebElement) As WebElements
     Dim Data As New Dictionary, elements As Collection
     Dim elems As New WebElements
     Dim i As Integer
+    
     Data.Add "using", "css selector"
     Data.Add "value", "option"
     Data.Add "id", element.ElementId
+    
     Set elements = Execute(CMD_FIND_CHILD_ELEMENTS, Data)("value") 'returns 1-based Collection
+    
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
     Next
+    
     Set FindChildElements = elems
 End Function
 
 Private Function ToSelector(by_ As by, ByVal Value As String) As Dictionary
     Dim Data As New Dictionary
+    
     Select Case by_
     Case by.ID
         Data.Add "using", "css selector"
@@ -548,7 +546,6 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
         Data("value") = chars
         Execute CMD_SEND_KEYS_TO_ELEMENT, Data
     Next i
-    
 End Sub
 
 Public Sub Click(Optional element As WebElement)
@@ -650,8 +647,7 @@ Public Function GetAriaRole(element As WebElement) As String
     Dim Data As New Dictionary, resp As Dictionary
     
     If browserName_ = "firefox" Then
-        MsgBox "Aria methods not supported for Firefox WebDriver"
-        Exit Function
+        Err.raise 1, , "Aria methods not supported for Firefox WebDriver"
     End If
     
     Data.Add "id", element.ElementId
@@ -667,8 +663,7 @@ Public Function GetAriaLabel(element As WebElement) As String
     Dim Data As New Dictionary, resp As Dictionary
     
     If browserName_ = "firefox" Then
-        MsgBox "Aria methods not supported for Firefox WebDriver"
-        Exit Function
+        Err.raise 1, , "Aria methods not supported for Firefox WebDriver"
     End If
     
     Data.Add "id", element.ElementId
@@ -1339,8 +1334,7 @@ Public Function CreateCapabilities() As WebCapabilities
     
     'insure that this function is being called in the correct order
     If browserName_ = "" Or sessionId_ <> "" Then
-        MsgBox "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
-        End 'execution
+        Err.raise 1, , "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
     End If
     
     'now initialize Capabilities
@@ -1485,8 +1479,7 @@ End Function
 Public Function GetSessionsInfo() As Collection
     'change to dictionary output?
     If browserName_ = "firefox" Then
-        MsgBox "GetSessionsInfo not supported for Firefox WebDriver"
-        Exit Function
+        Err.raise 1, , "GetSessionsInfo not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = Execute(CMD_GET_ALL_SESSIONS)("value")
 End Function
@@ -1661,9 +1654,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
-        MsgBox GetResponseErrorMessage(response), , "SeleniumVBA"
-        End 'execution
-        'Err.raise 513, "WebDriver.Execute", GetResponseErrorMessage(response)
+        Err.raise 1, , GetResponseErrorMessage(response)
     End If
 
     Set Execute = response 'always pass a dictionary object - let caller parse info based on context, including error
@@ -1821,8 +1812,8 @@ Private Sub Class_Initialize()
     'properties so these below are just reasonable starting points...
     'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
     'referencing the SeleniumVBA Add-in, but same otherwise
-    DefaultBinaryFolder = ThisWorkbook.Path
-    DefaultIOFolder = ActiveVBAProjectFolderPath
+    Me.DefaultBinaryFolder = ThisWorkbook.Path
+    Me.DefaultIOFolder = ActiveVBAProjectFolderPath
 End Sub
 
 Private Sub TimerWait(ByVal durationMS As Long)
@@ -1913,7 +1904,7 @@ Private Function TaskKillByPid(ByVal pid As String)
     TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function
 
-Public Function ActiveVBAProjectFolderPath() As String
+Private Function ActiveVBAProjectFolderPath() As String
     Dim fso As New FileSystemObject, strPath As String
     strPath = ""
     'if the Excel file holding the active vba project has not yet been saved, then this will throw an error
