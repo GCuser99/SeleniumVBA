@@ -1,9 +1,12 @@
 Attribute VB_Name = "test_UpdateDriver"
+Option Explicit
+Option Private Module
+
 'IMPORTANT!!!!
 '---------------------------------------------------------------------------------------------------------------
 '
 'To immediately check on the version alignment between installed Selenium WebDrivers and Browsers, and to then
-'install compatible drivers if not compatible, run the "test_UpdateDriversForSeleniumVBA" subroutine below. This will install the
+'install compatible drivers if not compatible, run the "test_UpdateDrivers" subroutine below. This will install the
 'compatible versions of WebDriver for both Chrome and Edge, even if you have not yet installed them. Note that
 'the default folder for installation is the same folder that this Excel file resides.
 '
@@ -39,21 +42,27 @@ Attribute VB_Name = "test_UpdateDriver"
 Sub test_updateDrivers()
     'this checks if driver is installed, or if installed driver is compatibile
     'with installed browser, and then if needed, installs an updated driver
-    Dim mngr As New WebDriverManager
+    Dim mngr As SeleniumVBA.WebDriverManager
     
-    MsgBox mngr.AlignEdgeDriverWithBrowser(), , "SeleniumVBA"
-    MsgBox mngr.AlignChromeDriverWithBrowser(), , "SeleniumVBA"
-    MsgBox mngr.AlignFirefoxDriverWithBrowser(), , "SeleniumVBA"
+    Set mngr = SeleniumVBA.New_WebDriverManager
+    
+    'mngr.DefaultBinaryFolder = [your binary folder path here] 'defaults to ".\"
+    
+    MsgBox mngr.AlignEdgeDriverWithBrowser()
+    MsgBox mngr.AlignChromeDriverWithBrowser()
+    MsgBox mngr.AlignFirefoxDriverWithBrowser()
 End Sub
 
 Sub test_updateDriversForSeleniumBasic()
     'this is for Florent Breheret's SeleniumBasic users who need a way to update the WebDriver in C:\Users\username\AppData\Local\SeleniumBasic
     'there may be a permission issue for writing to this directory so you may have to run as administrator
-    Dim mngr As New WebDriverManager
+    Dim mngr As SeleniumVBA.WebDriverManager
+    
+    Set mngr = SeleniumVBA.New_WebDriverManager
     
     mngr.DefaultBinaryFolder = mngr.GetSeleniumBasicFolder
     
-    MsgBox mngr.AlignEdgeDriverWithBrowser("edgedriver.exe"), , "SeleniumVBA"
-    MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe"), , "SeleniumVBA"
-    MsgBox mngr.AlignFirefoxDriverWithBrowser("geckodriver.exe"), , "SeleniumVBA"
+    MsgBox mngr.AlignEdgeDriverWithBrowser("edgedriver.exe")
+    MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe")
+    MsgBox mngr.AlignFirefoxDriverWithBrowser("geckodriver.exe")
 End Sub

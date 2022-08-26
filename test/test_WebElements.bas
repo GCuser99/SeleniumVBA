@@ -1,11 +1,18 @@
 Attribute VB_Name = "test_WebElements"
+Option Explicit
+Option Private Module
+
 Sub test_WebElements()
-    Dim driver As New WebDriver
-    Dim mytable As WebElement
-    Dim rowsTable As WebElements, columnsRow As WebElements
+    Dim driver As SeleniumVBA.WebDriver
+    Dim mytable As SeleniumVBA.WebElement
+    Dim rowsTable As SeleniumVBA.WebElements
+    Dim columnsRow As SeleniumVBA.WebElements
+    Dim rowElem As SeleniumVBA.WebElement
+    Dim colElem As SeleniumVBA.WebElement
+    Dim tableCells As SeleniumVBA.WebElements
     Dim row As Integer, col As Integer
-    Dim rowElem As WebElement, colElem As WebElement
-    Dim tableCells As WebElements
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
     driver.OpenBrowser

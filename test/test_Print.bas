@@ -1,9 +1,15 @@
 Attribute VB_Name = "test_Print"
+Option Explicit
+Option Private Module
+
 Sub test_print()
-    Dim driver As New WebDriver
-    Dim settings As New WebPrintSettings
+    Dim driver As SeleniumVBA.WebDriver
+    Dim settings As SeleniumVBA.WebPrintSettings
+
+    Set driver = SeleniumVBA.New_WebDriver
+    Set settings = SeleniumVBA.New_WebPrintSettings
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartChrome
     'must open browser in headless (invisible) mode for PrintToPDF to work
@@ -34,12 +40,15 @@ Sub test_print()
 End Sub
 
 Sub test_screenshot()
-    Dim driver As New WebDriver
-    Dim keys As New WebKeyboard
-    Dim caps As WebCapabilities
+    Dim driver As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim caps As SeleniumVBA.WebCapabilities
     Dim params As New Dictionary
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     driver.StartChrome
     driver.OpenBrowser
@@ -56,12 +65,15 @@ Sub test_screenshot()
 End Sub
 
 Sub test_element_screenshot()
-    Dim driver As New WebDriver
-    Dim keys As New WebKeyboard
-    Dim caps As WebCapabilities
+    Dim driver As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim caps As SeleniumVBA.WebCapabilities
     Dim params As New Dictionary
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     driver.StartEdge
     driver.OpenBrowser

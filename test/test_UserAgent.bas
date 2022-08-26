@@ -1,17 +1,23 @@
 Attribute VB_Name = "test_UserAgent"
+Option Explicit
+Option Private Module
+
 Sub test_hide_headless()
     'some servers detect headless mode in the sent User Agent and then deny access, so
     'here we modify the user agent that gets sent to server
-    Dim driver As New WebDriver
-    Dim caps As WebCapabilities
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    Dim ua As String
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
     driver.OpenBrowser , True  'a way of running headless mode without explicitly adding --headless arg to Capabilities
     
     'get the user agent for this browser setup
-    userAgent = driver.GetUserAgent
+    ua = driver.GetUserAgent
     
-    Debug.Print "Original User Agent:  " & userAgent
+    Debug.Print "Original User Agent:  " & ua
     
     driver.CloseBrowser
     
@@ -19,7 +25,7 @@ Sub test_hide_headless()
     
     'now we modify the user agent string by tossing the "Headless" keyword and then
     'update WebCapabilities UserArgent argument
-    caps.SetUserAgent = Replace(userAgent, "HeadlessChrome", "Chrome")
+    caps.SetUserAgent Replace(ua, "HeadlessChrome", "Chrome")
     
     driver.OpenBrowser caps, True
     

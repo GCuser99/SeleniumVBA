@@ -1,7 +1,12 @@
 Attribute VB_Name = "test_Shadowroots"
+Option Explicit
+Option Private Module
+
 Sub test_shadowroot()
-    Dim driver As New WebDriver, shadowHost As WebElement
-    Dim shadowContent As WebElement, shadowRootelem As WebShadowRoot
+    Dim driver As SeleniumVBA.WebDriver, shadowHost As SeleniumVBA.WebElement
+    Dim shadowContent As SeleniumVBA.WebElement, shadowRootelem As SeleniumVBA.WebShadowRoot
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
     driver.OpenBrowser
@@ -21,10 +26,12 @@ Sub test_shadowroot()
 End Sub
 
 Sub test_shadowroots_clear_browser_history()
-    Dim driver As New WebDriver
-    Dim webelem1 As WebElement, webelem2 As WebElement, webelem3 As WebElement
-    Dim webelem4 As WebElement, webelem5 As WebElement, webelem6 As WebElement
-    Dim clearData As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim webelem1 As SeleniumVBA.WebElement, webelem2 As SeleniumVBA.WebElement, webelem3 As SeleniumVBA.WebElement
+    Dim webelem4 As SeleniumVBA.WebElement, webelem5 As SeleniumVBA.WebElement, webelem6 As SeleniumVBA.WebElement
+    Dim clearData As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome 'this is a chome-only demo
     driver.OpenBrowser

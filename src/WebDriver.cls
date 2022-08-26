@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.7
+' SeleniumVBA v1.8
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -270,7 +270,7 @@ Public Sub Shutdown()
     End Select
 End Sub
 
-Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisible As Boolean = False)
+Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisible As Boolean = False, Optional ByVal incognito As Boolean = False, Optional capabilitiesFilePath As String = "")
     Dim resp As Dictionary
     
     If sessionId_ <> "" Then
@@ -279,11 +279,15 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     
     If caps Is Nothing Then
         Set caps = CreateCapabilities
+        If capabilitiesFilePath <> "" Then caps.LoadFromFile capabilitiesFilePath
     End If
-        
+    
     If invisible Then
-        'user may have already added headless, but selenium doesn't seem to care about multiple arg entries
-        caps.AddArgument "--headless"
+        caps.RunInvisible
+    End If
+    
+    If incognito Then
+        caps.RunIncognito
     End If
     
     Set resp = Execute(CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
@@ -295,11 +299,11 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     'browserVersion = resp("capabilities")("browserVersion")
     'driverVersion = resp("capabilities")("chrome")("chromedriverVersion")
     'driverVersion = resp("capabilities")("msedge")("msedgedriverVersion")
-    'userDataDir = resp("capabilities")("chrome")("userDataDir")
-    'userDataDir = resp("capabilities")("msedge")("userDataDir")
-    'DebuggerAddress = resp("capabilities")("goog:chromeOptions")("debuggerAddress")
+    'Debug.Print resp("capabilities")("chrome")("userDataDir")
+    'Debug.Print resp("capabilities")("msedge")("userDataDir")
+    'Debug.Print resp("capabilities")("goog:chromeOptions")("debuggerAddress")
     'DebuggerAddress = resp("capabilities")("ms:edgeOptions")("debuggerAddress")
-    'profileDir=resp("capabilities")("moz:profile")
+    'Debug.Print resp("capabilities")(browserName_)("userDataDir")
 End Sub
 
 Public Sub CloseBrowser()
@@ -1418,7 +1422,7 @@ Public Function GetAllCookies() As WebCookies
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
@@ -1435,7 +1439,7 @@ Public Function GetCookie(ByVal cookieName) As WebCookie
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.Path = resp("path")
+    If resp.Exists("path") Then ck.path = resp("path")
     Set GetCookie = ck
 End Function
 
@@ -1564,10 +1568,11 @@ Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTime
 End Function
 
 Public Function GetUserAgent() As String
+    'this needs to be called after OpenBrowser method called
     If sessionId_ <> "" Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        Debug.Print "GetUserAgent must be executed after OpenBrowser!"
+        Err.raise 1, , "GetUserAgent must be executed after OpenBrowser!"
     End If
 End Function
 
@@ -1622,12 +1627,12 @@ Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As St
 End Sub
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim Method As String, Path As String
+    Dim Method As String, path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
     Method = driverCommand(0)
-    Path = driverCommand(1)
+    path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1639,8 +1644,8 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
-            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
+        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
+            path = Replace(path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -1650,7 +1655,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(Method, driverUrl_ & Path, cmdArgs)
+    Set response = SendRequest(Method, driverUrl_ & path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -1812,7 +1817,7 @@ Private Sub Class_Initialize()
     'properties so these below are just reasonable starting points...
     'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
     'referencing the SeleniumVBA Add-in, but same otherwise
-    Me.DefaultBinaryFolder = ThisWorkbook.Path
+    Me.DefaultBinaryFolder = ThisWorkbook.path
     Me.DefaultIOFolder = ActiveVBAProjectFolderPath
 End Sub
 

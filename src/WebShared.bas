@@ -6,6 +6,7 @@ Attribute VB_Name = "WebShared"
 ' https://stackoverflow.com/a/72736800/11738627 (handling of OneDrive/SharePoint cloud urls)
 
 Option Explicit
+Option Private Module
 
 Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
 Private Declare PtrSafe Function PathIsRelative Lib "shlwapi" Alias "PathIsRelativeA" (ByVal pszPath As String) As Long
@@ -34,10 +35,10 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         'make sure no unintended beginning or ending spaces
         basePath = VBA.Trim(basePath)
         
-        If basePath = "" Then basePath = ThisWorkbook.Path
+        If basePath = "" Then basePath = ThisWorkbook.path
         
         'its possible that user specified a relative reference folder path - convert it to absolute relative to ThisWorkbook.Path
-        If IsPathRelative(basePath) Then basePath = GetFullLocalPath(basePath, ThisWorkbook.Path)
+        If IsPathRelative(basePath) Then basePath = GetFullLocalPath(basePath, ThisWorkbook.path)
 
         'convert OneDrive path if needed
         If IsPathHTTPS(basePath) Then basePath = GetLocalOneDrivePath(basePath)
@@ -114,3 +115,4 @@ End Function
 Private Function IsArrayInitialized(ByRef arry() As Variant) As Boolean
     If (Not arry) = -1 Then IsArrayInitialized = False Else IsArrayInitialized = True
 End Function
+

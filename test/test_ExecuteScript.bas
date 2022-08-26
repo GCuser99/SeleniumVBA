@@ -1,6 +1,13 @@
 Attribute VB_Name = "test_ExecuteScript"
-Sub test_executescript()
-    Dim driver As New WebDriver, webElem As WebElement
+Option Explicit
+Option Private Module
+
+Sub test_executeScript()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim webElem As SeleniumVBA.WebElement
+    Dim url As String
+
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
     driver.OpenBrowser
@@ -26,7 +33,7 @@ Sub test_executescript()
     driver.Wait 1000
     
     'ExecuteScript returns a single WebElements object if script results in a collection of WebElement objects
-    Dim divElems As WebElements
+    Dim divElems As SeleniumVBA.WebElements
     Set divElems = driver.ExecuteScript("return document.getElementsByTagName(arguments[0])", "div")
     Debug.Print "Number of div elements: " & divElems.Count
     
@@ -34,9 +41,15 @@ Sub test_executescript()
     driver.Shutdown
 End Sub
 
-Sub test_executescriptasync()
+Sub test_executeScriptAsync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
-    Dim driver As New WebDriver, webElem As WebElement, jc As New WebJSonConverter
+    Dim driver As SeleniumVBA.WebDriver
+    Dim webElem As SeleniumVBA.WebElement
+    Dim jc As SeleniumVBA.WebJSonConverter
+    Dim url As String, waitTime As Integer
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    Set jc = SeleniumVBA.New_WebJSonConverter
     
     'driver.CommandWindowStyle = vbNormalFocus
     

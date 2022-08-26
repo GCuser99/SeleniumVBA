@@ -1,8 +1,13 @@
 Attribute VB_Name = "test_Logging"
+Option Explicit
+Option Private Module
+
 Sub test_logging()
-    Dim driver As New WebDriver, fruits As WebElement
+    Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     'The least troublesome way to get a combined driver and browser log is to enable logging at the driver command line.
     '(see https://chromedriver.chromium.org/logging). This method creates a readable log file to user's path of choice...

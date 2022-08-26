@@ -1,7 +1,12 @@
 Attribute VB_Name = "test_WaitUntilReady"
+Option Explicit
+Option Private Module
+
 Sub test_WaitUntilReady()
-    Dim driver As New WebDriver
-    Dim searchButton As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim searchButton As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
     driver.OpenBrowser

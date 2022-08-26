@@ -1,6 +1,12 @@
 Attribute VB_Name = "test_Windows"
+Option Explicit
+Option Private Module
+
 Sub test_windows1()
-    Dim driver As New WebDriver
+    Dim driver As SeleniumVBA.WebDriver
+    Dim hnd1 As String, hnd2 As String, i As Integer
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
     driver.OpenBrowser
@@ -41,7 +47,11 @@ Sub test_windows1()
 End Sub
 
 Sub test_windows2()
-    Dim driver As New WebDriver
+    Dim driver As SeleniumVBA.WebDriver
+    Dim mainWindow As String, whdls() As String
+    Dim i As Integer
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
     driver.OpenBrowser

@@ -1,10 +1,15 @@
 Attribute VB_Name = "test_Attributes"
+Option Explicit
+Option Private Module
+
 'https://stackoverflow.com/questions/6003819/what-is-the-difference-between-properties-and-attributes-in-html
 
 Sub test_element_attributes_and_properties()
-    Dim driver As New WebDriver, str As String
+    Dim driver As SeleniumVBA.WebDriver, str As String, filePath As String
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     str = "<!DOCTYPE html><html><body><input id=""the-input"" type=""text"" value=""Sally""></body></html>"
     filePath = ".\snippet.html"
@@ -58,7 +63,9 @@ Sub test_element_attributes_and_properties()
 End Sub
 
 Sub test_css_property()
-    Dim driver As New WebDriver, str As String, color As String
+    Dim driver As SeleniumVBA.WebDriver, str As String, color As String
+
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
@@ -77,9 +84,11 @@ Sub test_css_property()
 End Sub
 
 Sub test_element_aria()
-    Dim driver As New WebDriver, str As String
+    Dim driver As SeleniumVBA.WebDriver, str As String, filePath As String
+
+    Set driver = SeleniumVBA.New_WebDriver
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     

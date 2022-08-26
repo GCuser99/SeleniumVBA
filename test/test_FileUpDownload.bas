@@ -1,9 +1,14 @@
 Attribute VB_Name = "test_FileUpDownload"
+Option Explicit
+Option Private Module
+
 Sub test_file_upload()
     'see https://www.guru99.com/upload-download-file-selenium-webdriver.html
-    Dim driver As New WebDriver, str
+    Dim driver As SeleniumVBA.WebDriver, str As String, filePath As String
+
+    Set driver = SeleniumVBA.New_WebDriver
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartEdge
     driver.OpenBrowser
@@ -36,9 +41,12 @@ End Sub
 
 Sub test_file_download()
     'see https://www.browserstack.com/guide/download-file-using-selenium-python
-    Dim driver As New WebDriver, caps As WebCapabilities
+    Dim driver As SeleniumVBA.WebDriver, caps As SeleniumVBA.WebCapabilities
+    Dim dirPath As String
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     dirPath = ".\" 'download to same directory as this excel file
 
@@ -48,11 +56,11 @@ Sub test_file_download()
     
     Set caps = driver.CreateCapabilities
 
-    caps.AddPref "download.default_directory", dirPath
-    caps.AddPref "download.prompt_for_download", False
-    'caps.AddPref "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
+    caps.SetPreference "download.default_directory", dirPath
+    caps.SetPreference "download.prompt_for_download", False
+    caps.SetPreference "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
     
-    'caps.SetDownloadPrefs filepath 'this does the above in one line
+    'caps.SetDownloadPrefs dirPath  'this does the above in one line
 
     driver.OpenBrowser caps
     

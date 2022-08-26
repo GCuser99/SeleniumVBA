@@ -1,7 +1,12 @@
 Attribute VB_Name = "test_Tables"
+Option Explicit
+Option Private Module
+
 Sub test_table()
     'see https://www.guru99.com/selenium-webtable.html
-    Dim driver As New WebDriver
+    Dim driver As SeleniumVBA.WebDriver
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
@@ -32,9 +37,9 @@ Sub test_table()
        
     'now see https://www.guru99.com/handling-dynamic-selenium-webdriver.html
     
-    Dim webCols As WebElements, webRows As WebElements
-    Dim baseTable As WebElement
-    Dim tableRow As WebElement, cellIneed As WebElement
+    Dim webCols As SeleniumVBA.WebElements, webRows As SeleniumVBA.WebElements
+    Dim baseTable As SeleniumVBA.WebElement
+    Dim tableRow As SeleniumVBA.WebElement, cellIneed As SeleniumVBA.WebElement
     
     'example: fetch number of rows and columns from Dynamic WebTable
     driver.NavigateTo "https://demo.guru99.com/test/web-table-element.php"
@@ -60,10 +65,10 @@ Sub test_table()
     driver.NavigateTo "https://demo.guru99.com/test/table.html"
     driver.Wait 1000
     
-    Dim mytable As WebElement
-    Dim rowsTable As WebElements, columnsRow As WebElements
+    Dim mytable As SeleniumVBA.WebElement
+    Dim rowsTable As SeleniumVBA.WebElements, columnsRow As SeleniumVBA.WebElements
     Dim row As Integer, col As Integer
-    Dim rowElem As WebElement, colElem As WebElement
+    Dim rowElem As SeleniumVBA.WebElement, colElem As SeleniumVBA.WebElement
     
     Set mytable = driver.FindElement(by.XPath, "/html/body/table/tbody")
     Set rowsTable = mytable.FindElements(by.tagName, "tr")

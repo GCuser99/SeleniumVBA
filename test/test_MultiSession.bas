@@ -1,4 +1,7 @@
 Attribute VB_Name = "test_MultiSession"
+Option Explicit
+Option Private Module
+
 'Chrome and Edge have multi-session support. Firefox does not.
 '
 'For Edge/Chrome, user must create multiple driver instances, as the WebDriver
@@ -19,12 +22,17 @@ Attribute VB_Name = "test_MultiSession"
 'Firefox multi-session will not function unless drivers are assigned to different ports.
 '
 Sub test_MultiSession_Edge()
-    Dim driver1 As New WebDriver
-    Dim driver2 As New WebDriver
-    Dim keys As New WebKeyboard
+    Dim driver1 As SeleniumVBA.WebDriver
+    Dim driver2 As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim keySeq As String
     
-    driver1.DefaultIOFolder = ThisWorkbook.Path
-    driver2.DefaultIOFolder = ThisWorkbook.Path
+    Set driver1 = SeleniumVBA.New_WebDriver
+    Set driver2 = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
+    
+    'driver1.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    'driver2.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     'driver1.CommandWindowStyle = vbNormalFocus
     'driver2.CommandWindowStyle = vbNormalFocus
@@ -79,12 +87,17 @@ End Sub
 
 Sub test_MultiSession_mix_Edge_Chrome()
     'mixing driver Edge and Chrome works similar to running two of same
-    Dim driver1 As New WebDriver
-    Dim driver2 As New WebDriver
-    Dim keys As New WebKeyboard
+    Dim driver1 As SeleniumVBA.WebDriver
+    Dim driver2 As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim keySeq As String
     
-    driver1.DefaultIOFolder = ThisWorkbook.Path
-    driver2.DefaultIOFolder = ThisWorkbook.Path
+    Set driver1 = SeleniumVBA.New_WebDriver
+    Set driver2 = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
+    
+    'driver1.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    'driver2.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     'driver1.CommandWindowStyle = vbNormalFocus
     'driver2.CommandWindowStyle = vbNormalFocus
@@ -139,12 +152,17 @@ End Sub
 
 Sub test_MultiSession_Firefox()
     'Firefox does not support multi-session on same port, so must run on different ports
-    Dim driver1 As New WebDriver
-    Dim driver2 As New WebDriver
-    Dim keys As New WebKeyboard
+    Dim driver1 As SeleniumVBA.WebDriver
+    Dim driver2 As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim keySeq As String
     
-    driver1.DefaultIOFolder = ThisWorkbook.Path
-    driver2.DefaultIOFolder = ThisWorkbook.Path
+    Set driver1 = SeleniumVBA.New_WebDriver
+    Set driver2 = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
+    
+    'driver1.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    'driver2.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     'driver1.CommandWindowStyle = vbNormalFocus
     'driver2.CommandWindowStyle = vbNormalFocus

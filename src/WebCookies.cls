@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.7
+' SeleniumVBA v1.8
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -138,7 +138,7 @@ Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt"
         ck.SameSite = v(i)("sameSite")
         ck.Secure = v(i)("secure")
         ck.Value = v(i)("value")
-        ck.Path = v(i)("path")
+        ck.path = v(i)("path")
         Me.Add ck
     Next i
     Set LoadFromFile = Me

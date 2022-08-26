@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.7
+' SeleniumVBA v1.8
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -621,7 +621,7 @@ End Function
 
 Private Sub Class_Initialize()
     mMinCompatibilityLevel = svbaMajor
-    DefaultBinaryFolder = ThisWorkbook.Path
+    DefaultBinaryFolder = ThisWorkbook.path
 End Sub
 
 Private Function TaskKillByImage(ByVal taskName As String)

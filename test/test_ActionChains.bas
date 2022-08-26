@@ -1,13 +1,18 @@
 Attribute VB_Name = "test_ActionChains"
+Option Explicit
+Option Private Module
+
 Sub test_action_chain()
-    Dim driver As New WebDriver, actions As WebActionChain
-    Dim from1 As WebElement, to1 As WebElement
-    Dim from2 As WebElement, to2 As WebElement
-    Dim from3 As WebElement, to3 As WebElement
-    Dim from4 As WebElement, to4 As WebElement
-    Dim elem As WebElement
+    Dim driver As SeleniumVBA.WebDriver, actions As SeleniumVBA.WebActionChain
+    Dim from1 As SeleniumVBA.WebElement, to1 As SeleniumVBA.WebElement
+    Dim from2 As SeleniumVBA.WebElement, to2 As SeleniumVBA.WebElement
+    Dim from3 As SeleniumVBA.WebElement, to3 As SeleniumVBA.WebElement
+    Dim from4 As SeleniumVBA.WebElement, to4 As SeleniumVBA.WebElement
+    Dim elem As SeleniumVBA.WebElement
     
-    driver.StartChrome
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartEdge
     driver.OpenBrowser
     
     driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
@@ -43,10 +48,13 @@ Sub test_action_chain()
 End Sub
 
 Sub test_action_chain_sendkeys()
-    Dim driver As New WebDriver
-    Dim keys As New WebKeyboard
-    Dim actions As WebActionChain
-    Dim searchBox As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim actions As SeleniumVBA.WebActionChain
+    Dim searchBox As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
     
     driver.StartEdge
     
@@ -71,11 +79,13 @@ Sub test_action_chain_sendkeys()
 End Sub
 
 Sub test_drag_and_drop()
-    Dim driver As New WebDriver
-    Dim from1 As WebElement, to1 As WebElement
-    Dim from2 As WebElement, to2 As WebElement
-    Dim from3 As WebElement, to3 As WebElement
-    Dim from4 As WebElement, to4 As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim from1 As SeleniumVBA.WebElement, to1 As SeleniumVBA.WebElement
+    Dim from2 As SeleniumVBA.WebElement, to2 As SeleniumVBA.WebElement
+    Dim from3 As SeleniumVBA.WebElement, to3 As SeleniumVBA.WebElement
+    Dim from4 As SeleniumVBA.WebElement, to4 As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
     driver.OpenBrowser

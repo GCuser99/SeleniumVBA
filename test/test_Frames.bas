@@ -1,27 +1,34 @@
 Attribute VB_Name = "test_Frames"
+Option Explicit
+Option Private Module
+
 Sub test_frames_with_frameset()
-    Dim driver As New WebDriver
-    Dim elem As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim elem As SeleniumVBA.WebElement
+    Dim filePath As String, htmlStr As String
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartChrome
     driver.OpenBrowser
     
     'save content for top frame
-    htmlstr = "<html><body><div class='myDiv'><h2>This is the top frame source</h2></div></body></html>"
+    htmlStr = "<html><body><div class='myDiv'><h2>This is the top frame source</h2></div></body></html>"
     filePath = ".\snippettop.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     'save content for bottom frame
-    htmlstr = "<html><body><div class='myDiv'><h2>This is the bottom frame source</h2></div></body></html>"
+    htmlStr = "<html><body><div class='myDiv'><h2>This is the bottom frame source</h2></div></body></html>"
     filePath = ".\snippetbottom.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     'save the main snippet
-    htmlstr = "<html><div><frameset rows='50%,50%'><frame name='top' id='topid' src='./snippettop.html'/><frame name='bottom' id='bottomid' src='./snippetbottom.html'/><noframes><body>Your browser does not support frames.</body></noframes></frameset></div></html>"
+    htmlStr = "<html><div><frameset rows='50%,50%'><frame name='top' id='topid' src='./snippettop.html'/><frame name='bottom' id='bottomid' src='./snippetbottom.html'/><noframes><body>Your browser does not support frames.</body></noframes></frameset></div></html>"
     filePath = ".\snippet.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     driver.NavigateTo "file:///" & filePath
     driver.Wait
@@ -47,28 +54,31 @@ Sub test_frames_with_frameset()
 End Sub
 
 Sub test_frames_with_embed_objects()
-    Dim driver As New WebDriver
-    Dim elemObject As WebElement, elemEmbed As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim elemObject As SeleniumVBA.WebElement, elemEmbed As SeleniumVBA.WebElement
+    Dim filePath As String, htmlStr As String
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     driver.StartEdge
     driver.OpenBrowser
     
     'save content for top frame
-    htmlstr = "<html><body><div class='myDiv'><h2>This is the top frame source</h2></div></body></html>"
+    htmlStr = "<html><body><div class='myDiv'><h2>This is the top frame source</h2></div></body></html>"
     filePath = ".\snippettop.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     'save content for bottom frame
-    htmlstr = "<html><body><div class='myDiv'><h2>This is the bottom frame source</h2></div></body></html>"
+    htmlStr = "<html><body><div class='myDiv'><h2>This is the bottom frame source</h2></div></body></html>"
     filePath = ".\snippetbottom.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     'save the main snippet
-    htmlstr = "<html><body><div><embed name='embed frame' type='text/html' src='./snippettop.html' width='500' height='200'></div><div><object name='object frame' data='./snippetbottom.html' width='500' height='200'></object></div></body></html>"
+    htmlStr = "<html><body><div><embed name='embed frame' type='text/html' src='./snippettop.html' width='500' height='200'></div><div><object name='object frame' data='./snippetbottom.html' width='500' height='200'></object></div></body></html>"
     filePath = ".\snippet.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     driver.NavigateTo "file:///" & filePath
     driver.Wait 1000
@@ -100,28 +110,31 @@ Sub test_frames_with_embed_objects()
 End Sub
 
 Sub test_frames_with_iframes()
-    Dim driver As New WebDriver
-    Dim elem As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim elem As SeleniumVBA.WebElement
+    Dim filePath As String, htmlStr As String
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartChrome
     driver.OpenBrowser
     
     'save content for top frame
-    htmlstr = "<html><body><div class='myDiv'><h2>This is the top frame source</h2></div></body></html>"
+    htmlStr = "<html><body><div class='myDiv'><h2>This is the top frame source</h2></div></body></html>"
     filePath = ".\snippettop.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     'save content for bottom frame
-    htmlstr = "<html><body><div class='myDiv'><h2>This is the bottom frame source</h2></div></body></html>"
+    htmlStr = "<html><body><div class='myDiv'><h2>This is the bottom frame source</h2></div></body></html>"
     filePath = ".\snippetbottom.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     'save the main snippet
-    htmlstr = "<html><body><div class='box'><iframe name='iframe1' id='IF1' height='50%' width='50%' src='./snippettop.html'></div></iframe>  <div class='box'><iframe name='iframe2' id='IF2' height='50%' width='50%'  align='left' src='.\snippetbottom.html'></iframe></div></body></html>"
+    htmlStr = "<html><body><div class='box'><iframe name='iframe1' id='IF1' height='50%' width='50%' src='./snippettop.html'></div></iframe>  <div class='box'><iframe name='iframe2' id='IF2' height='50%' width='50%'  align='left' src='.\snippetbottom.html'></iframe></div></body></html>"
     filePath = ".\snippet.html"
-    driver.SaveHTMLToFile htmlstr, filePath
+    driver.SaveHTMLToFile htmlStr, filePath
     
     driver.NavigateTo "file:///" & filePath
     driver.Wait 1000
@@ -147,8 +160,10 @@ Sub test_frames_with_iframes()
 End Sub
 
 Sub test_frames_with_nested_iframes()
-    Dim driver As New WebDriver
-    Dim elems As WebElements, elem As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim elems As SeleniumVBA.WebElements, elem As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
     driver.OpenBrowser

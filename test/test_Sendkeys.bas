@@ -1,7 +1,14 @@
 Attribute VB_Name = "test_Sendkeys"
+Option Explicit
+Option Private Module
+
 Sub test_sendkeys()
-    Dim driver As New WebDriver
-    Dim keys As New WebKeyboard
+    Dim driver As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim keySeq As String
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
 
     driver.StartEdge
     

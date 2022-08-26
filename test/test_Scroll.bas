@@ -1,9 +1,15 @@
 Attribute VB_Name = "test_Scroll"
+Option Explicit
+Option Private Module
+
 Sub test_scroll_ops()
     'see https://www.guru99.com/scroll-up-down-selenium-webdriver.html
     'for more info and tutorials see https://www.guru99.com/selenium-tutorial.html
-    Dim driver As New WebDriver
-    Dim webElem As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim webElem As SeleniumVBA.WebElement
+    Dim i As Integer
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
     driver.OpenBrowser

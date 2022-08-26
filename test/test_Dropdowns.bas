@@ -1,7 +1,12 @@
 Attribute VB_Name = "test_Dropdowns"
+Option Explicit
+Option Private Module
+
 Sub test_select()
     'https://www.guru99.com/select-option-dropdown-selenium-webdriver.html
-    Dim driver As New WebDriver, fruits As WebElement
+    Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
+
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.7
+' SeleniumVBA v1.8
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -59,8 +59,9 @@ Attribute VB_Exposed = True
 '
 ' Notes:
 '
-' - WebCapabilities object should be instantiated using WebDriver.MakeCapabilities, as in following example
-' - It should be instantiated after the StartEdge, StartChrome, or StartFirefox methods, and passed to OpenBrowser method
+' - WebCapabilities object should be instantiated using WebDriver.CreateCapabilities
+' - It should be instantiated after the StartEdge, StartChrome, or StartFirefox methods,
+' - and passed to OpenBrowser method, as in following example...
 '
 ' Example:
 '
@@ -71,6 +72,22 @@ Attribute VB_Exposed = True
 '   caps.RunInvisble
 '   driver.OpenBrowser caps
 '
+' Use the following to remove the "Chrome/Edge is being controlled by automated test software" browser notification for Chrome/Edge.
+'
+'   Me.ExcludeSwitches = "enable-automation"
+'   Me.SetOption "useAutomationExtension", False
+'
+'   The above  works fine for Chrome, but when used with Edge, a "Sync your Profile" popup may occur...
+'   To avoid this popup, must run Edge in Incognito(InPrivate) Mode
+'
+' The OpenBrowser method of WebDriver class has optional input parameters that can be used to avoid directly
+'   instantiating the Capabilities object:
+'
+'   invisible (Boolean): If set to True (default=False), adds the --headless argument to the default Capabilities object
+'   incognito (Boolean): If set to True (default=False), adds the --Incognito argument to the default Capabilities object
+'   capabilitiesFilePath (String): If specified, initializes the default Capabilities object with a previously saved json file
+'   (see: SaveToFile method of the WebCapabilities class, and example in test_Capabilities module)
+'
 
 Option Explicit
 
@@ -79,220 +96,154 @@ Private browserOptionKey As String
 Private browserName_ As String
 Private driver_ As WebDriver
 
-Public Property Let Args(Value() As String)
-    SetOption "args", Value
-End Property
+Public Enum svbaAlertHandling
+    svbaAccept
+    svbaDismiss
+    svbaIgnore
+    svbaDismissAndNotify
+    svbaAcceptAndNotify
+End Enum
 
-Public Property Get Args() As String()
-    Args = GetOption("args")
-End Property
+'-------------------------------------------------------------------------
+' Capability Settings
+'-------------------------------------------------------------------------
 
-Public Property Let Binary(ByVal Value As String)
-    SetOption "binary", Value
-End Property
-
-Public Property Get Binary() As String
-    Binary = GetOption("binary")
-End Property
-
-Public Property Let Extensions(Value() As String)
-    SetOption "extensions", Value
-End Property
-
-Public Property Get Extensions() As String()
-    Extensions = GetOption("extensions")
-End Property
-
-Public Property Let LocalState(ByVal Value As Dictionary)
-    SetOption "localState", Value
-End Property
-
-Public Property Get LocalState() As Dictionary
-    Set LocalState = GetOption("localState")
-End Property
-
-Public Property Let Prefs(Value As Dictionary)
-    SetOption "prefs", Value
-End Property
-
-Public Property Get Prefs() As Dictionary
-    Set Prefs = GetOption("prefs")
-End Property
-
-Public Property Let Detach(Value As Boolean)
-    SetOption "detach", Value
-End Property
-
-Public Property Get Detach() As Boolean
-    Detach = GetOption("detach")
-End Property
-
-Public Property Let DebuggerAddress(ByVal Value As String)
-    SetOption "debuggerAddress", Value
-End Property
-
-Public Property Get DebuggerAddress() As String
-    DebuggerAddress = GetOption("debuggerAddress")
-End Property
-
-Public Property Let ExcludeSwitches(Value() As String)
-    SetOption "excludeSwitches", Value
-End Property
-
-Public Property Get ExcludeSwitches() As String()
-    ExcludeSwitches = GetOption("excludeSwitches")
-End Property
-
-Public Property Let MinidumpPath(ByVal Value As String)
-    SetOption "minidumpPath", Value
-End Property
-
-Public Property Get MinidumpPath() As String
-    MinidumpPath = GetOption("minidumpPath")
-End Property
-
-Public Property Let MobileEmulation(Value As Dictionary)
-    SetOption "mobileEmulation", Value
-End Property
-
-Public Property Get MobileEmulation() As Dictionary
-    Set MobileEmulation = GetOption("mobileEmulation")
-End Property
-
-Public Property Let PerfLoggingPrefs(Value As Dictionary)
-    SetOption "perfLoggingPrefs", Value
-End Property
-
-Public Property Get PerfLoggingPrefs() As Dictionary
-    Set PerfLoggingPrefs = GetOption("perfLoggingPrefs")
-End Property
-
-Public Property Let WindowTypes(ByVal Value As String)
-    SetOption "windowTypes", Value
-End Property
-
-Public Property Get WindowTypes() As String
-    WindowTypes = GetOption("windowTypes")
-End Property
-
-Public Sub SetCapability(ByVal key As String, Value As Variant)
-    If IsObject(Value) Then
-        Set data_("alwaysMatch")(key) = Value
+Public Sub SetCapability(ByVal key As String, val As Variant)
+    'set a generic capability
+    If IsObject(val) Then
+        Set data_("alwaysMatch")(key) = val
     Else
-        data_("alwaysMatch")(key) = Value
+        data_("alwaysMatch")(key) = val
     End If
 End Sub
 
-Public Function GetCapability(ByVal key As String)
-    If IsObject(data_("alwaysMatch")(key)) Then
-        Set GetCapability = data_("alwaysMatch")(key)
-    Else
-        GetCapability = data_("alwaysMatch")(key)
-    End If
-End Function
+Public Sub SetAcceptInsecureCerts(ByVal val As Boolean)
+    Me.SetCapability "acceptInsecureCerts", val
+End Sub
 
-Public Sub SetOption(ByVal key As String, Value As Variant)
-    If IsObject(Value) Then
-        Set data_("alwaysMatch")(browserOptionKey)(key) = Value
+Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
+    Me.SetCapability "unhandledPromptBehavior", GetAlertHandlingString(val)
+End Sub
+
+'-------------------------------------------------------------------------
+' Option Settings
+'-------------------------------------------------------------------------
+
+Public Sub SetOption(ByVal key As String, val As Variant)
+    'set a generic option
+    If IsObject(val) Then
+        Set data_("alwaysMatch")(browserOptionKey)(key) = val
     Else
-        data_("alwaysMatch")(browserOptionKey)(key) = Value
+        data_("alwaysMatch")(browserOptionKey)(key) = val
     End If
 End Sub
 
-Public Function GetOption(ByVal key As String) As Variant
-    If IsObject(data_("alwaysMatch")(browserOptionKey)(key)) Then
-        Set GetOption = data_("alwaysMatch")(browserOptionKey)(key)
-    Else
-        GetOption = data_("alwaysMatch")(browserOptionKey)(key)
-    End If
-End Function
+Public Sub AddExcludeSwitches(ParamArray addList() As Variant)
+    AddToOptionList "excludeSwitches", ParamListToStringArray(addList)
+End Sub
 
-Public Sub AddArgument(ByVal argument As String)
-    Dim arguments() As String
-    Dim idx As Integer: idx = -1
+Public Sub AddWindowTypes(ParamArray addList() As Variant)
+    AddToOptionList "windowTypes", ParamListToStringArray(addList)
+End Sub
 
-    On Error Resume Next
-    idx = UBound(Args)
-    On Error GoTo 0
+Public Sub AddExtensions(ParamArray addList() As Variant)
+    AddToOptionList "extensions", ParamListToStringArray(addList)
+End Sub
+
+Public Sub SetBinary(ByVal browserPath As String)
+    'set the path to the browser executable to use
+    Me.SetOption "binary", browserPath
+End Sub
+
+Public Sub RemoveControlNotification()
+    'this removes the "Chrome/Edge is being controlled by automated test software" browser notification
+    Select Case browserName_
+    Case "chrome"
+        Me.AddExcludeSwitches "enable-automation"
+        Me.SetOption "useAutomationExtension", False
+    Case "msedge"
+        Me.AddExcludeSwitches "enable-automation"
+        Me.SetOption "useAutomationExtension", False
+        'for msedge, you may be greeted with an unwanted "Sync your profile" dialog
+        'to get rid of that, run in incognito mode
+    Case "firefox"
+        'no need to do anything
+    End Select
+End Sub
+
+'-------------------------------------------------------------------------
+' Option Argument Settings
+'-------------------------------------------------------------------------
+
+Public Sub AddArguments(ParamArray addList() As Variant)
+    AddToOptionList "args", ParamListToStringArray(addList)
+End Sub
+
+Public Sub RunInvisible()
+    Me.AddArguments "--headless"
+End Sub
+
+Public Sub RunIncognito()
+    Select Case browserName_
+    Case "chrome"
+        Me.AddArguments "--incognito"
+    Case "msedge"
+        Me.AddArguments "--inprivate"
+    Case "firefox"
+        Me.AddArguments "-private"
+    End Select
+End Sub
+
+Public Sub SetProfile(ByVal profilePath As String)
+    'this sets a user-defined profile - it will create and populate the profile directory even if it does not exist
+    'it is recommended not to make profiles for SeleniumVBA in the default C:\Users\[user]\AppData\Local\Google\Chrome\User Data
+    'Instead copy profiles needed from the default location into a different location to access with SeleniumVBA
+    Dim fso As New FileSystemObject
+    Dim userDir As String, profileName As String
     
-    If idx >= 0 Then
-        arguments = Args
-    End If
-        
-    ReDim Preserve arguments(idx + 1)
-    arguments(UBound(arguments)) = argument
+    profilePath = WebShared.GetFullLocalPath(profilePath)
     
-    Args = arguments
+    Select Case browserName_
+    Case "chrome", "msedge"
+        userDir = fso.GetParentFolderName(profilePath)
+        profileName = fso.GetBaseName(profilePath)
+        Me.AddArguments "--user-data-dir=" & userDir
+        Me.AddArguments "--profile-directory=" & profileName
+    Case "firefox"
+        'unlike edge and chrome, firefox requires that the folder exists
+        'hence check and if doesn't exist, then create it
+        If Not fso.FolderExists(profilePath) Then CreateFolderPath profilePath
+        Me.AddArguments "-profile", profilePath
+    End Select
 End Sub
 
-Public Sub SetArguments(ByVal val As String, Optional ByVal delimiter As String = " ")
-    SetOption "args", Split(val, delimiter)
+Public Sub SetUserAgent(ByVal val As String)
+    Select Case browserName_
+    Case "msedge", "chrome"
+        Me.AddArguments "--user-agent=" & val
+    Case "firefox"
+        Me.SetPreference "general.useragent.override", val
+    End Select
 End Sub
 
-Public Property Let SetUserAgent(ByVal val As String)
-    If Left(val, 13) <> "--user-agent=" Then val = "--user-agent=" & val
-    AddArgument val
-End Property
+'-------------------------------------------------------------------------
+' Option Preference Settings
+'-------------------------------------------------------------------------
 
-'helper method to add prefs
-Public Sub AddPref(ByVal key As String, ByVal Value As Variant)
-    If Prefs Is Nothing Then
+Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
+    'set a generic preference
+    If Not data_("alwaysMatch")(browserOptionKey).Exists("prefs") Then
         SetOption "prefs", New Dictionary
     End If
     
-    If key = "download.default_directory" Then Value = WebShared.GetFullLocalPath(Value, driver_.DefaultIOFolder)
-    If key = "browser.download.dir" Then Value = WebShared.GetFullLocalPath(Value, driver_.DefaultIOFolder)
-
-    Prefs(key) = Value
-End Sub
-
-'convert to Dictionary (WebDriver takes Dictionary)
-Public Function Dictionary() As Dictionary
-Attribute Dictionary.VB_UserMemId = 0
-    'edit class in text editor and uncomment line below to make Dictionary the default method for the class
-    'this would then allow this syntax: caps() -> caps.Dictionary
-    'Attribute Dictionary.VB_UserMemId = 0
-    Set Dictionary = data_
-End Function
-
-'convert to JSON string for debugging
-Public Function ToJson() As String
-    Dim jc As New WebJSonConverter
-    ToJson = jc.ConvertToJson(data_, 4)
-End Function
-
-Friend Sub InitializeFor(ByVal browserName As String, Optional ByVal optionKey As String)
-    Set data_ = New Dictionary
-    data_.Add "browserName", browserName
-    data_.Add "alwaysMatch", New Dictionary
-    browserName_ = browserName
+    If key = "download.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
+    If key = "browser.download.dir" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
     
-    Dim browserOptions As New Dictionary
-    browserOptions.Add "args", Nothing
-    browserOptions.Add "binary", Nothing
-    browserOptions.Add "extensions", Nothing
-    browserOptions.Add "localState", Nothing
-    browserOptions.Add "prefs", Nothing
-    browserOptions.Add "detach", Nothing
-    browserOptions.Add "debuggerAddress", Nothing
-    browserOptions.Add "excludeSwitches", Nothing
-    browserOptions.Add "minidumpPath", Nothing
-    browserOptions.Add "mobileEmulation", Nothing
-    browserOptions.Add "perfLoggingPrefs", Nothing
-    browserOptions.Add "windowTypes", Nothing
-    
-    Select Case LCase(browserName)
-        Case "chrome"
-            browserOptionKey = "goog:chromeOptions"
-        Case "msedge"
-            browserOptionKey = "ms:edgeOptions"
-        Case "firefox"
-            browserOptionKey = "moz:firefoxOptions"
-        Case Else
-            browserOptionKey = optionKey
-    End Select
-    
-    data_("alwaysMatch").Add browserOptionKey, browserOptions
+    If IsObject(val) Then
+        Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+    Else
+        data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+    End If
 End Sub
 
 Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
@@ -300,22 +251,61 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\
 
     Select Case browserName_
     Case "chrome", "msedge"
-        Me.AddPref "download.default_directory", downloadDirectoryPath
-        Me.AddPref "download.directory_upgrade", True
-        Me.AddPref "download.prompt_for_download", False 'false disables prompting user for download permission
-        Me.AddPref "safebrowsing.enabled", True
-        Me.AddPref "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer
-        'Me.AddPref "safebrowsing.disable_download_protection", True
+        Me.SetPreference "download.default_directory", downloadDirectoryPath
+        Me.SetPreference "download.directory_upgrade", True
+        Me.SetPreference "download.prompt_for_download", False 'false disables prompting user for download permission
+        Me.SetPreference "safebrowsing.enabled", True
+        Me.SetPreference "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer
+        'Me.SetPreference "safebrowsing.disable_download_protection", True
     Case "firefox"
-        Me.AddPref "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
-        Me.AddPref "browser.download.dir", downloadDirectoryPath
-        Me.AddPref "pdfjs.disabled", True  'disable the built-in PDF viewer
-        'Me.AddPref "browser.download.manager.showWhenStarting", False
-        'Me.AddPref "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
-        'Me.AddPref "browser.download.useDownloadDir", True
-        'Me.AddPref "browser.download.viewableInternally.enabledTypes", ""
-        'this is needed to prevent a pdf from being opened instead of downloaded
+        Me.SetPreference "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
+        Me.SetPreference "browser.download.dir", downloadDirectoryPath
+        Me.SetPreference "pdfjs.disabled", True  'disable the built-in PDF viewer
+        'Me.SetPreference "browser.download.manager.showWhenStarting", False
+        'Me.SetPreference "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
+        'Me.SetPreference "browser.download.useDownloadDir", True
+        'Me.SetPreference "browser.download.viewableInternally.enabledTypes", ""
     End Select
+End Sub
+
+'-------------------------------------------------------------------------
+' Public helper methods
+'-------------------------------------------------------------------------
+
+'convert to Dictionary (used in WebDriver class)
+Public Function Dictionary() As Dictionary
+Attribute Dictionary.VB_UserMemId = 0
+    Set Dictionary = data_
+End Function
+
+'convert to JSON string for debugging, also used in SaveToFile method
+Public Function ToJson() As String
+    Dim jc As New WebJSonConverter
+    ToJson = jc.ConvertToJson(data_, 4)
+End Function
+
+Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
+    Dim fso As New FileSystemObject, ts As textstream
+    Dim jc As New WebJSonConverter
+    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    Set ts = fso.CreateTextFile(filePath, True)
+    ts.Write Me.ToJson
+    ts.Close
+End Sub
+
+Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json")
+    Dim fso As New FileSystemObject, ts As textstream
+    Dim jc As New WebJSonConverter
+        
+    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    
+    If Not fso.FileExists(filePath) Then Err.raise 1, , "Capabilities Json file does not exist!"
+    
+    Set ts = fso.OpenTextFile(filePath)
+    Set data_ = jc.ParseJSON(ts.ReadAll)
+    ts.Close
+    
+    If data_("browserName") <> browserName_ Then Err.raise 1, , "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
 Public Sub InitializeForChrome()
@@ -330,10 +320,145 @@ Public Sub InitializeForFirefox()
     InitializeFor "firefox"
 End Sub
 
-Public Sub RunInvisible()
-    Me.AddArgument "--headless"
+'-------------------------------------------------------------------------
+' Private helper methods
+'-------------------------------------------------------------------------
+Friend Sub InitializeFor(ByVal browserName As String)
+    Set data_ = New Dictionary
+    data_.Add "browserName", browserName
+    data_.Add "alwaysMatch", New Dictionary
+    browserName_ = browserName
+    
+    Dim browserOptions As New Dictionary
+    
+    Select Case LCase(browserName)
+        Case "chrome"
+            browserOptionKey = "goog:chromeOptions"
+        Case "msedge"
+            browserOptionKey = "ms:edgeOptions"
+        Case "firefox"
+            browserOptionKey = "moz:firefoxOptions"
+    End Select
+    
+    data_("alwaysMatch").Add browserOptionKey, browserOptions
 End Sub
 
 Friend Property Set WebDriver(ByRef obj As WebDriver)
     Set driver_ = obj
 End Property
+
+Private Function GetAlertHandlingString(ByVal val As svbaAlertHandling) As String
+    Select Case val
+    Case svbaAlertHandling.svbaAccept
+        GetAlertHandlingString = "accept"
+    Case svbaAlertHandling.svbaAcceptAndNotify
+        GetAlertHandlingString = "accept and notify"
+    Case svbaAlertHandling.svbaDismiss
+        GetAlertHandlingString = "dismiss"
+    Case svbaAlertHandling.svbaDismissAndNotify
+        GetAlertHandlingString = "dismiss and notify"
+    Case svbaAlertHandling.svbaIgnore
+        GetAlertHandlingString = "ignore"
+    End Select
+End Function
+
+Private Sub AddToOptionList(ByVal optionName As String, addList() As String)
+    'add to list of option parameters, while checking for duplicates
+    Dim parameters() As String, found As Boolean, j As Integer, i As Integer
+    Dim lboundParms As Integer, uboundParms As Integer
+
+    If IsArray(data_("alwaysMatch")(browserOptionKey)(optionName)) Then
+        parameters = data_("alwaysMatch")(browserOptionKey)(optionName)
+        lboundParms = LBound(parameters)
+        uboundParms = UBound(parameters)
+    Else 'starting from scratch
+        lboundParms = 1 '1 for 1-based, 0 for 0-based
+        uboundParms = lboundParms - 1
+    End If
+
+    For i = LBound(addList) To UBound(addList)
+        found = False
+        For j = lboundParms To uboundParms
+            If addList(i) = parameters(j) Then found = True: Exit For
+        Next j
+        If Not found Then
+            uboundParms = uboundParms + 1
+            ReDim Preserve parameters(lboundParms To uboundParms)
+            parameters(uboundParms) = addList(i)
+        End If
+    Next i
+    'put the expanded list back
+    data_("alwaysMatch")(browserOptionKey)(optionName) = parameters
+End Sub
+
+Private Function ParamListToStringArray(ParamArray parmList() As Variant) As String()
+    'a parameter array can include arrays as list elements - expand into a string array
+    Dim i As Integer, j As Integer, k As Integer
+    Dim strlist() As String
+    
+    'count number of parameters in list
+    k = 0
+    For i = LBound(parmList) To UBound(parmList)
+        If IsArray(parmList(i)) Then
+            k = k + UBound(parmList(i)) - LBound(parmList(i)) + 1
+        Else
+            k = k + 1
+        End If
+    Next i
+    
+    'size the output array
+    ReDim strlist(1 To k)
+    
+    'now store the parameters from list into string array
+    k = 0
+    For i = LBound(parmList) To UBound(parmList)
+        If IsArray(parmList(i)) Then
+            For j = LBound(parmList(i)) To UBound(parmList(i))
+                k = k + 1
+                strlist(k) = parmList(i)(j)
+            Next j
+        Else
+            k = k + 1
+            strlist(k) = parmList(i)
+        End If
+    Next i
+    
+    ParamListToStringArray = strlist
+End Function
+
+'https://stackoverflow.com/questions/31033820/filesystemobject-createfolder-to-create-directory-and-subdirectories
+Private Function CreateFolderPath(ByVal folderPath As String) As Boolean
+    Static fso As FileSystemObject
+ 
+    'Initialize fso variable if not already setup
+    If fso Is Nothing Then Set fso = New FileSystemObject
+
+    'Is the folderPath paramater populated
+    If Len(folderPath) = 0 Then
+      CreateFolderPath = False
+      Exit Function
+    End If
+
+    'If the folderPath exists as a file, the function fails.
+    If fso.FileExists(folderPath) Then
+        CreateFolderPath = False
+        Exit Function
+    End If
+ 
+    'If the folderPath already exists as a folder, don't do anything and return success.
+    If fso.FolderExists(folderPath) Then
+        CreateFolderPath = True
+        Exit Function
+    End If
+ 
+    'recursively create the parent folder, then if successful create the top folder.
+    If CreateFolderPath(fso.GetParentFolderName(folderPath)) Then
+        If fso.CreateFolder(folderPath) Is Nothing Then
+            CreateFolderPath = False
+        Else
+           CreateFolderPath = True
+        End If
+    Else
+        CreateFolderPath = False
+    End If
+End Function

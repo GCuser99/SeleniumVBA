@@ -1,4 +1,7 @@
 Attribute VB_Name = "test_Firefox"
+Option Explicit
+Option Private Module
+
 'To run in Geckodriver, you must have the Firefox browser installed, and then download the
 'appropriate version of geckodriver.exe from the following link:
 '
@@ -21,7 +24,9 @@ Attribute VB_Name = "test_Firefox"
 '
 
 Sub test_logging()
-    Dim driver As New WebDriver, fruits As WebElement
+    Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     'driver.CommandWindowStyle = vbNormalFocus
     
@@ -59,10 +64,12 @@ Sub test_logging()
     driver.Shutdown
 End Sub
 
-Sub test_file_download2()
-    Dim driver As New WebDriver, caps As WebCapabilities
+Sub test_file_download()
+    Dim driver As SeleniumVBA.WebDriver, caps As SeleniumVBA.WebCapabilities
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     driver.StartFirefox
     
@@ -97,12 +104,14 @@ End Sub
 Sub test_action_chain()
     'wheel-type actions are not allowed in Firefox, so must remove ScrollBy action from chain
     'otherwise action chains work fine
-    Dim driver As New WebDriver, actions As WebActionChain
-    Dim from1 As WebElement, to1 As WebElement
-    Dim from2 As WebElement, to2 As WebElement
-    Dim from3 As WebElement, to3 As WebElement
-    Dim from4 As WebElement, to4 As WebElement
-    Dim elem As WebElement
+    Dim driver As SeleniumVBA.WebDriver, actions As SeleniumVBA.WebActionChain
+    Dim from1 As SeleniumVBA.WebElement, to1 As SeleniumVBA.WebElement
+    Dim from2 As SeleniumVBA.WebElement, to2 As SeleniumVBA.WebElement
+    Dim from3 As SeleniumVBA.WebElement, to3 As SeleniumVBA.WebElement
+    Dim from4 As SeleniumVBA.WebElement, to4 As SeleniumVBA.WebElement
+    Dim elem As SeleniumVBA.WebElement
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartFirefox
     
@@ -143,9 +152,12 @@ End Sub
 
 Sub test_element_aria()
     'Firefox does not support Aria attributes
-    Dim driver As New WebDriver, str As String
+    Dim driver As SeleniumVBA.WebDriver, str As String
+    Dim filePath As String
     
-    'driver.DefaultIOFolder = ThisWorkbook.Path
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
@@ -169,8 +181,10 @@ End Sub
 
 Sub test_shadowroot()
     'Firefox has partial support for Shadowroots
-    Dim driver As New WebDriver, shadowHost As WebElement
-    Dim shadowContent As WebElement, shadowRootelem As WebShadowRoot
+    Dim driver As SeleniumVBA.WebDriver, shadowHost As SeleniumVBA.WebElement
+    Dim shadowContent As SeleniumVBA.WebElement, shadowRootelem As WebShadowRoot
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartFirefox
     driver.OpenBrowser
@@ -196,7 +210,9 @@ End Sub
 
 Sub test_Alerts()
     'see https://www.guru99.com/alert-popup-handling-selenium.html
-    Dim driver As New WebDriver
+    Dim driver As SeleniumVBA.WebDriver
+
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartFirefox
     driver.OpenBrowser
@@ -230,8 +246,10 @@ Sub test_Alerts()
 End Sub
 
 Sub test_GetSessionInfo()
-    Dim driver As New WebDriver
+    Dim driver As SeleniumVBA.WebDriver
     Dim col As Collection
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartFirefox
     

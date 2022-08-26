@@ -1,6 +1,12 @@
 Attribute VB_Name = "test_PositionSize"
+Option Explicit
+Option Private Module
+
 Sub test_position_size()
-    Dim driver As New WebDriver, webElem As WebElement, rect As Dictionary
+    Dim driver As SeleniumVBA.WebDriver, webElem As SeleniumVBA.WebElement, rect As Dictionary
+    Dim url As String
+
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
