@@ -12,7 +12,7 @@ Sub test_hide_headless()
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
-    driver.OpenBrowser , True  'a way of running headless mode without explicitly adding --headless arg to Capabilities
+    driver.OpenBrowser invisible:=True  'a way of running headless mode without explicitly adding --headless arg to Capabilities
     
     'get the user agent for this browser setup
     ua = driver.GetUserAgent
@@ -27,7 +27,7 @@ Sub test_hide_headless()
     'update WebCapabilities UserArgent argument
     caps.SetUserAgent Replace(ua, "HeadlessChrome", "Chrome")
     
-    driver.OpenBrowser caps, True
+    driver.OpenBrowser caps, invisible:=True
     
     'to see a full list of headers navigate to https://www.httpbin.org/headers
     driver.NavigateTo "https://www.whatismybrowser.com/detect/what-is-my-user-agent/"

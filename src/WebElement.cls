@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.8
+' SeleniumVBA v1.9
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -61,12 +61,12 @@ Friend Property Set driver(objWebDriver As WebDriver)
     Set driver_ = objWebDriver
 End Property
 
-Friend Property Let ElementId(ByVal val As String)
+Friend Property Let elementId(ByVal val As String)
     elementId_ = val
 End Property
 
-Friend Property Get ElementId() As String
-    ElementId = elementId_
+Friend Property Get elementId() As String
+    elementId = elementId_
 End Property
 
 Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png")

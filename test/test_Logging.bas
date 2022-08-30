@@ -13,7 +13,7 @@ Sub test_logging()
     '(see https://chromedriver.chromium.org/logging). This method creates a readable log file to user's path of choice...
 
     'True enables verbose logging
-    driver.StartChrome , , True
+    driver.StartChrome enableLogging:=True
     driver.OpenBrowser
 
     driver.NavigateTo "https://jsbin.com/osebed/2"

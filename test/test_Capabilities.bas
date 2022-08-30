@@ -2,9 +2,8 @@ Attribute VB_Name = "test_Capabilities"
 Option Explicit
 Option Private Module
 
-' see also test_FileUpDownload for another example using Capabilities
-
-Sub test_headless()
+'see also test_FileUpDownload for another example using Capabilities
+Sub test_invisible()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
 
@@ -15,7 +14,7 @@ Sub test_headless()
     'note that WebCapabilities object should be created after starting the driver (StartEdge, StartChrome, of StartFirefox methods)
     Set caps = driver.CreateCapabilities
     
-    caps.AddArguments "--headless"  'makes browser run in invisible mode
+    caps.RunInvisible 'makes browser run in invisible mode
     
     driver.OpenBrowser caps 'here is where caps is passed to driver
     
@@ -65,6 +64,32 @@ Sub test_incognito()
     
     driver.Wait 3000
     
+    'driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_user_profile()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    
+    Set caps = driver.CreateCapabilities
+    
+    'this will create and populate a profile if it doesn't yet exist,
+    'otherwise will use a previously created profile
+    'recommended to customize your Selenium profiles in a different location
+    'than the profiles in AppData to avoid conflicts with manual browsing
+    'must specify the path to profile, not just the profile name
+    caps.SetProfile ".\User Data\Chrome\profile 1"
+    
+    driver.OpenBrowser caps
+    
+    driver.NavigateTo "https://www.google.com/"
+    driver.Wait 1000
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -84,7 +109,7 @@ Sub test_initialize_caps_from_file()
     caps.SetDownloadPrefs
     caps.RemoveControlNotification
     caps.SetUserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36"
-    caps.SetProfile ".\User Data\Chrome\profile 1"
+    'caps.SetProfile ".\User Data\Chrome\profile 1"
     
     'save to json file
     caps.SaveToFile "chrome.json"
@@ -120,33 +145,7 @@ Sub test_initialize_caps_from_file()
     driver.Shutdown
 End Sub
 
-Sub test_user_profile()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartChrome
-    
-    Set caps = driver.CreateCapabilities
-    
-    'this will create and populate a profile if it doesn't yet exist,
-    'otherwise will use a previously created profile
-    'recommended to customize your Selenium profiles in a different location
-    'than the profiles in AppData to avoid conflicts with manual browsing
-    'must specify the path to profile, not just the profile name
-    caps.SetProfile ".\User Data\Chrome\profile 1"
-    
-    driver.OpenBrowser caps
-    
-    driver.NavigateTo "https://www.google.com/"
-    driver.Wait 1000
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-Sub test_unhandledPrompts()
+Sub test_unhandled_prompts()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
     
@@ -163,12 +162,41 @@ Sub test_unhandledPrompts()
 
     driver.NavigateTo "https://www.google.com"
     
-    driver.ExecuteScript "alert('HI');"
+    driver.ExecuteScript "alert('Hi!');"
     
     driver.Wait 2000
     
     Debug.Print driver.GetTitle
     
     driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_detach_browser()
+    'use this if you want browser to remain open after shutdown clean-up - only for Chrome/Edge
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.CommandWindowStyle = vbNormalFocus
+    
+    driver.StartEdge
+    
+    Set caps = driver.CreateCapabilities
+    
+    'this sets whether browser is closed (false) or left open (true)
+    'when the driver is sent the shutdown command before browser is closed
+    'defaults to false
+    'only applicable to edge/chrome browsers
+    caps.SetDetachBrowser True
+    
+    driver.OpenBrowser caps
+    
+    driver.NavigateTo "https://www.google.com/"
+    
+    driver.Wait 1000
+    
+    'driver.CloseBrowser 'detach does nothing if browser is closed properly by user
     driver.Shutdown
 End Sub

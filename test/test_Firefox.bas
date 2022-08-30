@@ -22,7 +22,6 @@ Option Private Module
 '  Apparently this support may be coming: see https://github.com/mozilla/geckodriver/issues/2005
 '- PrintScale method of PrintSettings class does not seem to have effect
 '
-
 Sub test_logging()
     Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
     
