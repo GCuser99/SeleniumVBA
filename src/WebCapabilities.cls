@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.8
+' SeleniumVBA v1.9
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -72,14 +72,6 @@ Attribute VB_Exposed = True
 '   caps.RunInvisble
 '   driver.OpenBrowser caps
 '
-' Use the following to remove the "Chrome/Edge is being controlled by automated test software" browser notification for Chrome/Edge.
-'
-'   Me.ExcludeSwitches = "enable-automation"
-'   Me.SetOption "useAutomationExtension", False
-'
-'   The above  works fine for Chrome, but when used with Edge, a "Sync your Profile" popup may occur...
-'   To avoid this popup, must run Edge in Incognito(InPrivate) Mode
-'
 ' The OpenBrowser method of WebDriver class has optional input parameters that can be used to avoid directly
 '   instantiating the Capabilities object:
 '
@@ -113,7 +105,12 @@ Public Sub SetCapability(ByVal key As String, val As Variant)
     If IsObject(val) Then
         Set data_("alwaysMatch")(key) = val
     Else
-        data_("alwaysMatch")(key) = val
+        If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
+            Dim jc As New WebJSonConverter
+            Set data_("alwaysMatch")(key) = jc.ParseJSON(val)
+        Else 'its a string parameter
+            data_("alwaysMatch")(key) = val
+        End If
     End If
 End Sub
 
@@ -130,27 +127,43 @@ End Sub
 '-------------------------------------------------------------------------
 
 Public Sub SetOption(ByVal key As String, val As Variant)
-    'set a generic option
-    If IsObject(val) Then
+    'set an option
+    'input val can be a string, a json string, array, or an object (dictionary or collection)
+    If IsObject(val) Then 'collection or dictionary
         Set data_("alwaysMatch")(browserOptionKey)(key) = val
     Else
-        data_("alwaysMatch")(browserOptionKey)(key) = val
+        If IsArray(val) Then
+            data_("alwaysMatch")(browserOptionKey)(key) = val
+        Else 'string
+            If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
+                Dim jc As New WebJSonConverter
+                Set data_("alwaysMatch")(browserOptionKey)(key) = jc.ParseJSON(val)
+            Else 'its a string parameter
+                data_("alwaysMatch")(browserOptionKey)(key) = val
+            End If
+        End If
     End If
 End Sub
 
 Public Sub AddExcludeSwitches(ParamArray addList() As Variant)
-    AddToOptionList "excludeSwitches", ParamListToStringArray(addList)
+    Dim varry() As Variant
+    varry = addList
+    AddToOptionList "excludeSwitches", ParamListToStringArray(varry)
 End Sub
 
 Public Sub AddWindowTypes(ParamArray addList() As Variant)
-    AddToOptionList "windowTypes", ParamListToStringArray(addList)
+    Dim varry() As Variant
+    varry = addList
+    AddToOptionList "windowTypes", ParamListToStringArray(varry)
 End Sub
 
 Public Sub AddExtensions(ParamArray addList() As Variant)
-    AddToOptionList "extensions", ParamListToStringArray(addList)
+    Dim varry() As Variant
+    varry = addList
+    AddToOptionList "extensions", ParamListToStringArray(varry)
 End Sub
 
-Public Sub SetBinary(ByVal browserPath As String)
+Public Sub SetBrowserBinary(ByVal browserPath As String)
     'set the path to the browser executable to use
     Me.SetOption "binary", browserPath
 End Sub
@@ -171,12 +184,22 @@ Public Sub RemoveControlNotification()
     End Select
 End Sub
 
+Public Sub SetDetachBrowser(ByVal val As Boolean)
+    'this sets whether browser is closed (false) or left open (true) when the driver is sent the shutdown command
+    If browserName_ = "firefox" Then
+        Exit Sub 'as yet have not found a working equivalent - SetPreference("detach", True) does not work
+    End If
+    Me.SetOption "detach", val
+End Sub
+
 '-------------------------------------------------------------------------
 ' Option Argument Settings
 '-------------------------------------------------------------------------
 
 Public Sub AddArguments(ParamArray addList() As Variant)
-    AddToOptionList "args", ParamListToStringArray(addList)
+    Dim varry() As Variant
+    varry = addList
+    AddToOptionList "args", ParamListToStringArray(varry)
 End Sub
 
 Public Sub RunInvisible()
@@ -210,7 +233,7 @@ Public Sub SetProfile(ByVal profilePath As String)
         Me.AddArguments "--user-data-dir=" & userDir
         Me.AddArguments "--profile-directory=" & profileName
     Case "firefox"
-        'unlike edge and chrome, firefox requires that the folder exists
+        'unlike edge and chrome, firefox requires that the folder to exist
         'hence check and if doesn't exist, then create it
         If Not fso.FolderExists(profilePath) Then CreateFolderPath profilePath
         Me.AddArguments "-profile", profilePath
@@ -232,17 +255,26 @@ End Sub
 
 Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
     'set a generic preference
+    'input val can be a string, a json string, or an object (dictionary)
     If Not data_("alwaysMatch")(browserOptionKey).Exists("prefs") Then
         SetOption "prefs", New Dictionary
     End If
     
+    'need to come up with a more generalized approach to paths - this is just a band-aid
     If key = "download.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
     If key = "browser.download.dir" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
+    If key = "savefile.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
     
     If IsObject(val) Then
         Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
     Else
-        data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+        If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'it's json string - try to parse
+            'convert to dictionary or collection
+            Dim jc As New WebJSonConverter
+            Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJSON(val)
+        Else
+            data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+        End If
     End If
 End Sub
 
@@ -391,18 +423,25 @@ Private Sub AddToOptionList(ByVal optionName As String, addList() As String)
     data_("alwaysMatch")(browserOptionKey)(optionName) = parameters
 End Sub
 
-Private Function ParamListToStringArray(ParamArray parmList() As Variant) As String()
+Private Function ParamListToStringArray(parmList() As Variant) As String()
     'a parameter array can include arrays as list elements - expand into a string array
     Dim i As Integer, j As Integer, k As Integer
     Dim strlist() As String
+    Dim temp As Variant
     
     'count number of parameters in list
     k = 0
     For i = LBound(parmList) To UBound(parmList)
+        temp = parmList(i)
         If IsArray(parmList(i)) Then
             k = k + UBound(parmList(i)) - LBound(parmList(i)) + 1
         Else
-            k = k + 1
+            If Left(parmList(i), 1) = "[" Then  'its a json string - try to parse
+                Dim jc As New WebJSonConverter
+                k = k + jc.ParseJSON(parmList(i)).Count
+            Else 'its a string parameter
+                k = k + 1
+            End If
         End If
     Next i
     
@@ -418,8 +457,17 @@ Private Function ParamListToStringArray(ParamArray parmList() As Variant) As Str
                 strlist(k) = parmList(i)(j)
             Next j
         Else
-            k = k + 1
-            strlist(k) = parmList(i)
+            If Left(parmList(i), 1) = "[" Then  'its a json string
+                Dim col As Collection
+                Set col = jc.ParseJSON(parmList(i))
+                For j = 1 To col.Count
+                    k = k + 1
+                    strlist(k) = col(j)
+                Next j
+            Else 'its a string parameter
+                k = k + 1
+                strlist(k) = parmList(i)
+            End If
         End If
     Next i
     
@@ -433,7 +481,7 @@ Private Function CreateFolderPath(ByVal folderPath As String) As Boolean
     'Initialize fso variable if not already setup
     If fso Is Nothing Then Set fso = New FileSystemObject
 
-    'Is the folderPath paramater populated
+    'Is the folderPath parameter populated
     If Len(folderPath) = 0 Then
       CreateFolderPath = False
       Exit Function

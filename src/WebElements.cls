@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.8
+' SeleniumVBA v1.9
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -53,7 +53,7 @@ Friend Property Set WebDriver(ByRef obj As WebDriver)
 End Property
 
 Public Function Add(element As WebElement) As WebElement
-    colWebElement.Add element, element.ElementId
+    colWebElement.Add element, element.elementId
     Set Add = element
 End Function
 
@@ -69,7 +69,7 @@ Public Sub Remove(indexOrWebElement As Variant)
     If TypeName(indexOrWebElement) = "WebElement" Then
         Dim welem As WebElement
         Set welem = indexOrWebElement 'Friend property ElementID can not be invoked with late binding
-        colWebElement.Remove welem.ElementId
+        colWebElement.Remove welem.elementId
     Else
         colWebElement.Remove indexOrWebElement
     End If
@@ -90,10 +90,10 @@ End Sub
 
 Public Function IsMember(element As WebElement) As Boolean
     Dim i As Long, elemId As String
-    elemId = element.ElementId
+    elemId = element.elementId
     IsMember = False
     For i = 1 To Me.Count
-        If Me.Item(i).ElementId = elemId Then
+        If Me.Item(i).elementId = elemId Then
             IsMember = True
             Exit For
         End If
