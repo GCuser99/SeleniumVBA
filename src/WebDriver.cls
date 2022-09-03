@@ -75,7 +75,21 @@ Private driverUrl_ As String
 Private browserName_ As String
 Private appWinStyle As VbAppWinStyle
 Private defaultIOFolder_ As String
-Private defaultBinaryFolder_  As String
+Private defaultBinaryFolder_ As String
+
+Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original style of Highlighted elements to be able to UnHighlight them at a future time
+Public Enum VBAcolors
+    Unchanged = -1
+    Black = VBA.ColorConstants.vbBlack
+    Blue = VBA.ColorConstants.vbBlue
+    Cyan = VBA.ColorConstants.vbCyan
+    Green = VBA.ColorConstants.vbGreen
+    Magenta = VBA.ColorConstants.vbMagenta
+    Red = VBA.ColorConstants.vbRed
+    Yellow = VBA.ColorConstants.vbYellow
+    'other custom fine-tuned colors can be added, for example: "Brown = VBA.RGB(128, 0, 0)"
+End Enum
+Private SetHightlightFoundElems_Settings As Collection
 
 Private driverFilename As String
 Private processID As String
@@ -343,6 +357,7 @@ End Function
 Public Function FindElement(by_ As by, ByVal Value As String, Optional parentElement As WebElement) As WebElement
     Dim Data As Dictionary
     Dim cmd As Variant
+    Dim elem As New WebElement
     Set Data = ToSelector(by_, Value)
     If Not parentElement Is Nothing Then
         Data.Add "id", parentElement.ElementId
@@ -351,7 +366,9 @@ Public Function FindElement(by_ As by, ByVal Value As String, Optional parentEle
         cmd = CMD_FIND_ELEMENT
     End If
     
-    Set FindElement = ToWebElement(Execute(cmd, Data)("value")(ELEMENT_KEY))
+    Set elem = ToWebElement(Execute(cmd, Data)("value")(ELEMENT_KEY))
+    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    Set FindElement = elem
 End Function
 
 Public Function FindElements(by_ As by, ByVal Value As String, Optional parentElement As WebElement) As WebElements
@@ -376,6 +393,8 @@ Public Function FindElements(by_ As by, ByVal Value As String, Optional parentEl
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
     Next
     
+    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    Set elems.WebDriver = Me
     Set FindElements = elems
 End Function
 
@@ -394,8 +413,21 @@ Public Function FindChildElements(element As WebElement) As WebElements
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
     Next
     
+    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    Set elems.WebDriver = Me
     Set FindChildElements = elems
 End Function
+
+Private Sub SetHightlightFoundElems_exec(elementOrElements As Object)
+    With SetHightlightFoundElems_Settings
+        Select Case TypeName(elementOrElements)
+            Case "WebElement"
+                SetHighlight True, elementOrElements, .Item(1), .Item(2), .Item(3)
+            Case "WebElements"
+                SetHighlight True, elementOrElements, .Item(4), .Item(5), .Item(6)
+        End Select
+    End With
+End Sub
 
 Private Function ToSelector(by_ As by, ByVal Value As String) As Dictionary
     Dim Data As New Dictionary
@@ -596,8 +628,11 @@ End Function
 
 Public Function GetActiveElement() As WebElement
     Dim Data As New Dictionary
-   ' Return element
-    Set GetActiveElement = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
+    
+    Dim elem As WebElement
+    Set elem = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
+    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    Set GetActiveElement = elem
 End Function
 
 Public Function GetProperty(ByVal Name As String, element As WebElement) As String
@@ -942,6 +977,101 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
         End If
     End Select
 End Function
+
+Public Sub SetHighlight(OnOffSwitch As Boolean, elementOrElements As Object, _
+                Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Blue, _
+                Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True)
+    
+    Dim elements As WebElements
+    Set elements = ObjToWebElements(elementOrElements)
+    Dim element As WebElement
+    
+    If OnOffSwitch = True Then
+        Static lastElems As WebElements
+        If lastElems Is Nothing Then Set lastElems = New WebElements
+        If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Scripting.Dictionary
+
+        'handling of last highlighted elements
+        If UnHighlightLast = True And lastElems.Count > 0 Then
+            SetHighlight False, lastElems
+            lastElems.RemoveAll
+        End If
+        For Each element In elements
+            lastElems.Add element
+        Next
+         
+        'Create the JS string for the highlighting SetAttribute
+        Dim borderColorString As String, backgroundColorString As String
+        If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
+            Err.raise 1, , "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+        End If
+        If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
+            borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
+        End If
+        If backgroundColor <> VBAcolors.Unchanged Then
+            backgroundColorString = "background:" & rgbLongToString(backgroundColor)
+        End If
+        Dim finalString As String
+        finalString = IIf(borderColorString <> vbNullString, borderColorString & "; ", vbNullString) & backgroundColorString
+        
+        For Each element In elements
+            If ScrollIntoView And (element Is elements.Item(1)) Then element.ScrollIntoView
+            'Dim maxYcoord As Long
+            'maxYcoord = Application.WorksheetFunction.Max(maxYcoord, element.GetRect("y"))
+        
+            'store original style of element for future SetUnHighlight
+            If Not SetHighlight_ElemsOrigStyle.Exists(element.ElementId) Then
+                SetHighlight_ElemsOrigStyle.Add element.ElementId, element.GetAttribute("style")
+            End If
+            
+            'highlight element
+            element.SetAttribute "style", finalString
+        Next
+        'draft string (incomplete code) to highlight WebElements by single command:
+        'ExecuteScript "arguments[0].setAttribute('style', arguments[1])", elements, finalString
+        'MsgBox maxYcoord
+        'Stop
+    Else 'if UnHighlight
+        For Each element In elements
+            If SetHighlight_ElemsOrigStyle.Exists(element.ElementId) Then
+                element.SetAttribute "style", SetHighlight_ElemsOrigStyle.Item(element.ElementId)
+                SetHighlight_ElemsOrigStyle.Remove element.ElementId
+            End If
+        Next
+    End If
+End Sub
+    Private Function rgbLongToString(rgbColor As Long) As String
+        If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, , "Error: argument rgbColor out of range (0 to 16777215)"
+        Dim r As Long, g As Long, b As Long
+        r = rgbColor And &HFF
+        g = (rgbColor And &H100FF00) / &H100
+        b = (rgbColor And &HFF0000) / &H10000
+        rgbLongToString = "rgb(" & r & "," & g & "," & b & ")"
+    End Function
+    Private Function ObjToWebElements(elementOrElements As Object) As WebElements
+        Select Case TypeName(elementOrElements)
+            Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
+            Case "WebElements": Set ObjToWebElements = elementOrElements
+            Case Else: Err.raise 1, , "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+        End Select
+    End Function
+
+Public Sub SetHightlightFoundElems(OnOffSwitch As Boolean, Optional ElemBorderSizePx As Byte = 5, _
+                Optional ElemBorderColor As VBAcolors = Blue, Optional ElemBackgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                Optional ElemsBorderSizePx As Byte = 5, _
+                Optional ElemsBorderColor As VBAcolors = Cyan, Optional ElemsBackgroundColor As VBAcolors = VBAcolors.Unchanged)
+    If OnOffSwitch = True Then
+        'store border and color settings:
+        If SetHightlightFoundElems_Settings Is Nothing Then Set SetHightlightFoundElems_Settings = New Collection
+        With SetHightlightFoundElems_Settings
+            .Add ElemBorderSizePx:  .Add ElemBorderColor:  .Add ElemBackgroundColor:
+            .Add ElemsBorderSizePx: .Add ElemsBorderColor: .Add ElemsBackgroundColor:
+        End With
+    Else
+        Set SetHightlightFoundElems_Settings = Nothing
+    End If
+End Sub
 
 'Convert dictionary from script to dictionary (converted to web element)
 Private Function ScriptDictToConvertedDict(dict As Variant) As Object
@@ -1512,7 +1642,10 @@ Public Function FindElementFromShadowRoot(by_ As by, ByVal Value As String, sRoo
     Dim Data As Dictionary
     Set Data = ToSelector(by_, Value)
     Data.Add "sid", sRoot.shadowRootId
-    Set FindElementFromShadowRoot = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
+    Dim elem As WebElement
+    Set elem = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
+    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    Set FindElementFromShadowRoot = elem
 End Function
 
 Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRoot As WebShadowRoot) As WebElements
@@ -1530,6 +1663,8 @@ Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRo
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
     Next
     
+    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    Set elems.WebDriver = Me
     Set FindElementsFromShadowRoot = elems
 End Function
 
