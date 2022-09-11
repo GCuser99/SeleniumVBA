@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.9
+' SeleniumVBA v2.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -58,10 +58,10 @@ Friend Property Get shadowRootId()
     shadowRootId = shadowRootId_
 End Property
 
-Public Function FindElement(by_ As by, ByVal Value As String) As WebElement
-    Set FindElement = driver_.FindElementFromShadowRoot(by_, Value, Me)
+Public Function FindElement(by_ As by, ByVal val As String) As WebElement
+    Set FindElement = driver_.FindElementFromShadowRoot(by_, val, Me)
 End Function
 
-Public Function FindElements(by_ As by, ByVal Value As String) As WebElements
-    Set FindElements = driver_.FindElementsFromShadowRoot(by_, Value, Me)
+Public Function FindElements(by_ As by, ByVal val As String) As WebElements
+    Set FindElements = driver_.FindElementsFromShadowRoot(by_, val, Me)
 End Function

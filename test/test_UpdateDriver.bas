@@ -7,13 +7,13 @@ Option Private Module
 '
 'To immediately check on the version alignment between installed Selenium WebDrivers and Browsers, and to then
 'install compatible drivers if not compatible, run the "test_UpdateDrivers" subroutine below. This will install the
-'compatible versions of WebDriver for both Chrome and Edge, even if you have not yet installed them. Note that
+'compatible versions of WebDriver Chrome, Edge, and Firefox even if you have not yet installed them. Note that
 'the default folder for installation is the same folder that this Excel file resides.
 '
 '---------------------------------------------------------------------------------------------------------------
 '
-'There is also capability in the WebDriver class to auto-check and conditionally install every time the StartChrome and StartEdge
-'methods are invoked. However the default in this version of SeleniumVBA is set NOT to auto-check and install due
+'There is also capability in the WebDriver class to auto-check and conditionally install every time the StartChrome, StartEdge,
+'and StartFirefox methods are invoked. However the default in this version of SeleniumVBA is set NOT to auto-check and install due
 'to lack of testing thus far but it works fine for me and so....
 '
 'SeleniumVBA can auto-check the Selenium WebDriver and Browser versions for compatibility
@@ -33,6 +33,8 @@ Option Private Module
 'Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 '
 'Chrome: https://chromedriver.chromium.org/downloads
+'
+'Firefox: https://github.com/mozilla/geckodriver/releases
 '
 'Be sure to install drivers with the same major version (number to left of first period)
 'as corresponding browser. Place the driver(s) in the same directory as where this Excel file resides.

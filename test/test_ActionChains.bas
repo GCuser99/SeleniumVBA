@@ -92,7 +92,7 @@ Sub test_drag_and_drop()
     
     driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
     
-    driver.Wait 500 'this is needed for 32 bit IE
+    driver.Wait 500
     
     Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
     Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.9
+' SeleniumVBA v2.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -78,9 +78,10 @@ Private defaultIOFolder_ As String
 Private defaultBinaryFolder_ As String
 
 Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original style of Highlighted elements to be able to UnHighlight them at a future time
+
 Public Enum VBAcolors
     Unchanged = -1
-    Black = VBA.ColorConstants.vbBlack
+    black = VBA.ColorConstants.vbBlack
     Blue = VBA.ColorConstants.vbBlue
     Cyan = VBA.ColorConstants.vbCyan
     Green = VBA.ColorConstants.vbGreen
@@ -89,6 +90,7 @@ Public Enum VBAcolors
     Yellow = VBA.ColorConstants.vbYellow
     'other custom fine-tuned colors can be added, for example: "Brown = VBA.RGB(128, 0, 0)"
 End Enum
+
 Private SetHightlightFoundElems_Settings As Collection
 
 Private driverFilename As String
@@ -117,8 +119,8 @@ Private CMD_ELEMENT_SCREENSHOT
 Private CMD_FIND_ELEMENT
 Private CMD_FIND_ELEMENTS
 Private CMD_GET_ACTIVE_ELEMENT
-Private CMD_FIND_CHILD_ELEMENT
-Private CMD_FIND_CHILD_ELEMENTS
+Private CMD_FIND_ELEMENT_FROM_ELEMENT
+Private CMD_FIND_ELEMENTS_FROM_ELEMENT
 Private CMD_CLICK_ELEMENT
 Private CMD_CLEAR_ELEMENT
 Private CMD_GET_ELEMENT_TEXT
@@ -177,7 +179,7 @@ Private CMD_GET_ELEMENT_ARIA_LABEL
 Public Enum by
     ID = 0
     tagName = 1
-    ClassName = 2
+    className = 2
     Name = 3
     cssSelector = 4
     XPath = 5
@@ -330,10 +332,6 @@ End Sub
 Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Optional ByVal raise As Boolean = True) As Boolean
     Dim Data As New Dictionary, resp As Dictionary, savTimeOutms As Long
     
-    If Left(url, 8) = "file:///" Then
-        url = "file:///" & WebShared.GetFullLocalPath(Mid(url, 9, 99999), defaultIOFolder_)
-    End If
-    
     Data.Add "url", url
     If Not IsMissing(timeOutms) Then
         savTimeOutms = GetPageLoadTimeout()
@@ -355,35 +353,39 @@ Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Option
     
 End Function
 
-Public Function FindElement(by_ As by, ByVal Value As String, Optional parentElement As WebElement) As WebElement
+Public Sub NavigateToFile(ByVal htmlFilePath As String)
+    NavigateTo "file:///" & WebShared.GetFullLocalPath(htmlFilePath, defaultIOFolder_)
+End Sub
+
+Public Function FindElement(by_ As by, ByVal val As String, Optional parentElement As WebElement) As WebElement
     Dim Data As Dictionary
     Dim cmd As Variant
     Dim elem As New WebElement
-    Set Data = ToSelector(by_, Value)
+    Set Data = ToSelector(by_, val)
     If Not parentElement Is Nothing Then
         Data.Add "id", parentElement.elementId
-        cmd = CMD_FIND_CHILD_ELEMENT
+        cmd = CMD_FIND_ELEMENT_FROM_ELEMENT
     Else
         cmd = CMD_FIND_ELEMENT
     End If
-    
+
     Set elem = ToWebElement(Execute(cmd, Data)("value")(ELEMENT_KEY))
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
     Set FindElement = elem
 End Function
 
-Public Function FindElements(by_ As by, ByVal Value As String, Optional parentElement As WebElement) As WebElements
+Public Function FindElements(by_ As by, ByVal val As String, Optional parentElement As WebElement) As WebElements
     Dim Data As Dictionary
     Dim i As Integer
     Dim cmd As Variant
     Dim elements As Collection
     Dim elems As New WebElements
     
-    Set Data = ToSelector(by_, Value)
+    Set Data = ToSelector(by_, val)
     
     If Not parentElement Is Nothing Then
         Data.Add "id", parentElement.elementId
-        cmd = CMD_FIND_CHILD_ELEMENTS
+        cmd = CMD_FIND_ELEMENTS_FROM_ELEMENT
     Else
         cmd = CMD_FIND_ELEMENTS
     End If
@@ -393,30 +395,10 @@ Public Function FindElements(by_ As by, ByVal Value As String, Optional parentEl
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
     Next
-    
+
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
     Set elems.WebDriver = Me
     Set FindElements = elems
-End Function
-
-Public Function FindChildElements(element As WebElement) As WebElements
-    Dim Data As New Dictionary, elements As Collection
-    Dim elems As New WebElements
-    Dim i As Integer
-    
-    Data.Add "using", "css selector"
-    Data.Add "value", "option"
-    Data.Add "id", element.elementId
-    
-    Set elements = Execute(CMD_FIND_CHILD_ELEMENTS, Data)("value") 'returns 1-based Collection
-    
-    For i = 1 To elements.Count
-        elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
-    Next
-    
-    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
-    Set elems.WebDriver = Me
-    Set FindChildElements = elems
 End Function
 
 Private Sub SetHightlightFoundElems_exec(elementOrElements As Object)
@@ -430,104 +412,104 @@ Private Sub SetHightlightFoundElems_exec(elementOrElements As Object)
     End With
 End Sub
 
-Private Function ToSelector(by_ As by, ByVal Value As String) As Dictionary
+Private Function ToSelector(by_ As by, ByVal val As String) As Dictionary
     Dim Data As New Dictionary
     
     Select Case by_
     Case by.ID
         Data.Add "using", "css selector"
-        Data.Add "value", "[id=""" + Value + """]"
+        Data.Add "value", "[id=""" & val & """]"
     Case by.tagName
         Data.Add "using", "css selector"
-        Data.Add "value", Value
-    Case by.ClassName
+        Data.Add "value", val
+    Case by.className
         Data.Add "using", "css selector"
-        Data.Add "value", "." + Value
+        Data.Add "value", "." & val
     Case by.Name
         Data.Add "using", "css selector"
-        Data.Add "value", "[name=""" + Value + """]"
+        Data.Add "value", "[name=""" & val & """]"
     Case by.cssSelector
         Data.Add "using", "css selector"
-        Data.Add "value", Value
+        Data.Add "value", val
     Case by.XPath
         Data.Add "using", "xpath"
-        Data.Add "value", Value
+        Data.Add "value", val
     Case by.linkText
         Data.Add "using", "link text"
-        Data.Add "value", Value
+        Data.Add "value", val
     Case by.PartialLinkText
         Data.Add "using", "partial link text"
-        Data.Add "value", Value
+        Data.Add "value", val
     Case Else
         Data.Add "using", "css selector"
-        Data.Add "value", Value
+        Data.Add "value", val
     End Select
     
     Set ToSelector = Data
 End Function
 
-Public Function FindElementByID(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByID = FindElement(by.ID, Value, parentElement)
+Public Function FindElementByID(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByID = FindElement(by.ID, val, parentElement)
 End Function
 
-Public Function FindElementByTagName(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByTagName = FindElement(by.tagName, Value, parentElement)
+Public Function FindElementByTagName(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByTagName = FindElement(by.tagName, val, parentElement)
 End Function
 
-Public Function FindElementByClassName(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByClassName = FindElement(by.ClassName, Value, parentElement)
+Public Function FindElementByClassName(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByClassName = FindElement(by.className, val, parentElement)
 End Function
 
-Public Function FindElementByCssSelector(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByCssSelector = FindElement(by.cssSelector, Value, parentElement)
+Public Function FindElementByCssSelector(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByCssSelector = FindElement(by.cssSelector, val, parentElement)
 End Function
 
-Public Function FindElementByLinkText(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByLinkText = FindElement(by.linkText, Value, parentElement)
+Public Function FindElementByLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByLinkText = FindElement(by.linkText, val, parentElement)
 End Function
 
-Public Function FindElementByName(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByName = FindElement(by.Name, Value, parentElement)
+Public Function FindElementByName(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByName = FindElement(by.Name, val, parentElement)
 End Function
 
-Public Function FindElementByPartialLinkText(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByPartialLinkText = FindElement(by.PartialLinkText, Value, parentElement)
+Public Function FindElementByPartialLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByPartialLinkText = FindElement(by.PartialLinkText, val, parentElement)
 End Function
 
-Public Function FindElementByXPath(ByVal Value As String, Optional parentElement As WebElement) As WebElement
-    Set FindElementByXPath = FindElement(by.XPath, Value, parentElement)
+Public Function FindElementByXPath(ByVal val As String, Optional parentElement As WebElement) As WebElement
+    Set FindElementByXPath = FindElement(by.XPath, val, parentElement)
 End Function
 
-Public Function FindElementsByXPath(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByXPath = FindElements(by.XPath, Value, parentElement)
+Public Function FindElementsByXPath(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByXPath = FindElements(by.XPath, val, parentElement)
 End Function
 
-Public Function FindElementsByID(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByID = FindElements(by.ID, Value, parentElement)
+Public Function FindElementsByID(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByID = FindElements(by.ID, val, parentElement)
 End Function
 
-Public Function FindElementsByTagName(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByTagName = FindElements(by.tagName, Value, parentElement)
+Public Function FindElementsByTagName(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByTagName = FindElements(by.tagName, val, parentElement)
 End Function
 
-Public Function FindElementsByClassName(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByClassName = FindElements(by.ClassName, Value, parentElement)
+Public Function FindElementsByClassName(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByClassName = FindElements(by.className, val, parentElement)
 End Function
 
-Public Function FindElementsByCssSelector(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByCssSelector = FindElements(by.cssSelector, Value, parentElement)
+Public Function FindElementsByCssSelector(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByCssSelector = FindElements(by.cssSelector, val, parentElement)
 End Function
 
-Public Function FindElementsByLinkText(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByLinkText = FindElements(by.linkText, Value, parentElement)
+Public Function FindElementsByLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByLinkText = FindElements(by.linkText, val, parentElement)
 End Function
 
-Public Function FindElementsByName(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByName = FindElements(by.Name, Value, parentElement)
+Public Function FindElementsByName(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByName = FindElements(by.Name, val, parentElement)
 End Function
 
-Public Function FindElementsByPartialLinkText(ByVal Value As String, Optional parentElement As WebElement) As WebElements
-    Set FindElementsByPartialLinkText = FindElements(by.PartialLinkText, Value, parentElement)
+Public Function FindElementsByPartialLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElements
+    Set FindElementsByPartialLinkText = FindElements(by.PartialLinkText, val, parentElement)
 End Function
 
 Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearBeforeTyping As Boolean = True)
@@ -629,8 +611,8 @@ End Function
 
 Public Function GetActiveElement() As WebElement
     Dim Data As New Dictionary
-    
     Dim elem As WebElement
+    
     Set elem = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
     Set GetActiveElement = elem
@@ -651,6 +633,87 @@ Public Function GetProperty(ByVal Name As String, element As WebElement) As Stri
         GetProperty = resp("value")
     End If
 End Function
+
+Public Sub SetHighlight(OnOffSwitch As Boolean, elementOrElements As Object, _
+                Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Blue, _
+                Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True)
+
+    Dim elements As WebElements
+    Set elements = ObjToWebElements(elementOrElements)
+    Dim element As WebElement
+
+    If OnOffSwitch = True Then
+        Static lastElems As WebElements
+        If lastElems Is Nothing Then Set lastElems = New WebElements
+        If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Scripting.Dictionary
+
+        'handling of last highlighted elements
+        If UnHighlightLast = True And lastElems.Count > 0 Then
+            SetHighlight False, lastElems
+            lastElems.RemoveAll
+        End If
+        
+        For Each element In elements
+            If Not lastElems.IsMember(element) Then lastElems.Add element
+        Next element
+
+        'Create the JS string for the highlighting SetAttribute
+        Dim borderColorString As String, backgroundColorString As String
+        If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
+            Err.raise 1, , "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+        End If
+        If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
+            borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
+        End If
+        If backgroundColor <> VBAcolors.Unchanged Then
+            backgroundColorString = "background:" & rgbLongToString(backgroundColor)
+        End If
+        Dim finalString As String
+        finalString = IIf(borderColorString <> vbNullString, borderColorString & "; ", vbNullString) & backgroundColorString
+
+        For Each element In elements
+            If ScrollIntoView And (element Is elements.Item(1)) Then element.ScrollIntoView
+            'Dim maxYcoord As Long
+            'maxYcoord = Application.WorksheetFunction.Max(maxYcoord, element.GetRect("y"))
+
+            'store original style of element for future SetUnHighlight
+            If Not SetHighlight_ElemsOrigStyle.Exists(element.elementId) Then
+                SetHighlight_ElemsOrigStyle.Add element.elementId, element.GetAttribute("style")
+            End If
+
+            'highlight element
+            element.SetAttribute "style", finalString
+        Next
+        'draft string (incomplete code) to highlight WebElements by single command:
+        'ExecuteScript "arguments[0].setAttribute('style', arguments[1])", elements, finalString
+        'MsgBox maxYcoord
+        'Stop
+    Else 'if UnHighlight
+        For Each element In elements
+            If SetHighlight_ElemsOrigStyle.Exists(element.elementId) Then
+                element.SetAttribute "style", SetHighlight_ElemsOrigStyle.Item(element.elementId)
+                SetHighlight_ElemsOrigStyle.Remove element.elementId
+            End If
+        Next
+    End If
+End Sub
+
+Public Sub SetHightlightFoundElems(OnOffSwitch As Boolean, Optional ElemBorderSizePx As Byte = 5, _
+                Optional ElemBorderColor As VBAcolors = Blue, Optional ElemBackgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                Optional ElemsBorderSizePx As Byte = 5, _
+                Optional ElemsBorderColor As VBAcolors = Cyan, Optional ElemsBackgroundColor As VBAcolors = VBAcolors.Unchanged)
+    If OnOffSwitch = True Then
+        'store border and color settings:
+        If SetHightlightFoundElems_Settings Is Nothing Then Set SetHightlightFoundElems_Settings = New Collection
+        With SetHightlightFoundElems_Settings
+            .Add ElemBorderSizePx:  .Add ElemBorderColor:  .Add ElemBackgroundColor:
+            .Add ElemsBorderSizePx: .Add ElemsBorderColor: .Add ElemsBackgroundColor:
+        End With
+    Else
+        Set SetHightlightFoundElems_Settings = Nothing
+    End If
+End Sub
 
 Public Function HasProperty(ByVal Name As String, element As WebElement) As Boolean
     If GetProperty(Name, element) = "" Then HasProperty = False Else HasProperty = True
@@ -677,10 +740,10 @@ Public Function GetAttribute(ByVal Name As String, element As WebElement) As Str
     End If
 End Function
 
-Public Sub SetAttribute(element As WebElement, ByVal Name As String, ByVal Value As String)
+Public Sub SetAttribute(element As WebElement, ByVal Name As String, ByVal val As String)
     'this sets the value of an html element attribute. Consider SendKeys or Action Chain for more control of user input elements.
     'If the attribute does not exist, then this does not throw an error.
-    ExecuteScript "arguments[0].setAttribute('" & Name & "', arguments[1])", element, Value
+    ExecuteScript "arguments[0].setAttribute('" & Name & "', arguments[1])", element, val
 End Sub
 
 Public Function GetAriaRole(element As WebElement) As String
@@ -721,25 +784,19 @@ Public Function GetTagName(element As WebElement) As String
     GetTagName = Execute(CMD_GET_ELEMENT_TAG_NAME, Data)("value")
 End Function
 
-Public Sub SelectByValue(ByVal Value As String, element As WebElement)
-    Dim Data As New Dictionary
+Public Sub SelectByValue(ByVal val As String, element As WebElement)
     Dim elem As WebElement
-    Data.Add "using", "css selector"
-    Data.Add "value", "option[value =" & """" & Value & """" & "]"
-    Data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
+    
+    Set elem = FindElement(by.tagName, "option[value =" & """" & val & """" & "]", element)
     If Not IsSelected(elem) Then
         elem.Click
     End If
 End Sub
 
-Public Sub SelectByVisibleText(ByVal Text As String, element As WebElement)
-    Dim Data As New Dictionary
+Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
     Dim elem As WebElement
-    Data.Add "using", "xpath"
-    Data.Add "value", ".//option[normalize-space(.) = " & """" & Text & """" & "]"
-    Data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
+
+    Set elem = FindElement(by.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
     If Not IsSelected(elem) Then
         elem.Click
     End If
@@ -749,11 +806,13 @@ Public Function GetSelectTagsOptions(element As WebElement) As String()
     Dim elems As WebElements
     Dim ret() As String
     Dim i As Integer
+    
     Set elems = FindElements(by.tagName, "option", element)
     ReDim ret(baseArrayIdx To elems.Count - 1 + baseArrayIdx)
     For i = 1 To elems.Count
         ret(i - 1 + baseArrayIdx) = elems(i).GetText
     Next
+    
     GetSelectTagsOptions = ret
 End Function
 
@@ -762,7 +821,8 @@ Public Function GetAllSelectedOptionsText(element As WebElement) As String()
     Dim ret() As String
     Dim i As Integer
     Dim j As Integer
-    Set elems = FindChildElements(element)
+
+    Set elems = FindElements(by.cssSelector, "option", element)
     ReDim ret(baseArrayIdx To elems.Count - 1 + baseArrayIdx)
     j = baseArrayIdx - 1
     For i = 1 To elems.Count
@@ -771,6 +831,7 @@ Public Function GetAllSelectedOptionsText(element As WebElement) As String()
             ret(j) = elems(i).GetText
         End If
     Next i
+    
     If j >= baseArrayIdx Then ReDim Preserve ret(baseArrayIdx To j - 1 + baseArrayIdx) Else ret = VBA.Split(VBA.vbNullString)
     GetAllSelectedOptionsText = ret
 End Function
@@ -778,33 +839,31 @@ End Function
 Public Function GetSelectedOptionText(element As WebElement) As String
     Dim elems As WebElements
     Dim i As Integer
-    Set elems = FindChildElements(element)
+
+    Set elems = FindElements(by.cssSelector, "option", element)
     For i = 1 To elems.Count
         If IsSelected(elems(i)) Then
             GetSelectedOptionText = elems(i).GetText
             Exit Function
         End If
     Next i
+    
     GetSelectedOptionText = ""
 End Function
 
-Public Sub DeSelectByValue(ByVal Value As String, element As WebElement)
-    Dim Data As New Dictionary, elem As WebElement
-    Data.Add "using", "css selector"
-    Data.Add "value", "option[value =" & """" & Value & """" & "]"
-    Data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
+Public Sub DeSelectByValue(ByVal val As String, element As WebElement)
+    Dim elem As WebElement
+
+    Set elem = FindElement(by.cssSelector, "option[value =" & """" & val & """" & "]", element)
     If IsSelected(elem) Then
         elem.Click
     End If
 End Sub
 
-Public Sub DeSelectByVisibleText(ByVal Text As String, element As WebElement)
-    Dim Data As New Dictionary, elem As WebElement
-    Data.Add "using", "xpath"
-    Data.Add "value", ".//option[normalize-space(.) = " & """" & Text & """" & "]"
-    Data.Add "id", element.elementId
-    Set elem = ToWebElement(Execute(CMD_FIND_CHILD_ELEMENT, Data)("value")(ELEMENT_KEY))
+Public Sub DeSelectByVisibleText(ByVal text As String, element As WebElement)
+    Dim elem As WebElement
+    
+    Set elem = FindElement(by.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
     If IsSelected(elem) Then
         elem.Click
     End If
@@ -828,7 +887,7 @@ End Sub
 Public Sub SelectAll(element As WebElement)
     Dim elems As WebElements
     Dim i As Integer
-    Set elems = FindChildElements(element)
+    Set elems = FindElements(by.cssSelector, "option", element)
     SetFocus element
     For i = 1 To elems.Count
         ExecuteScript "arguments[0].options[" & CStr(i - 1) & "].selected = true;", element
@@ -838,7 +897,7 @@ End Sub
 Public Sub DeSelectAll(element As WebElement)
     Dim elems As WebElements
     Dim i As Integer
-    Set elems = FindChildElements(element)
+    Set elems = FindElements(by.cssSelector, "option", element)
     SetFocus element
     For i = 1 To elems.Count
         ExecuteScript "arguments[0].options[" & CStr(i - 1) & "].selected = false;", element
@@ -847,7 +906,7 @@ End Sub
 
 Public Sub DeSelectByIndex(ByVal index As Integer, element As WebElement)
     Dim elems As WebElements
-    Set elems = FindChildElements(element)
+    Set elems = FindElements(by.cssSelector, "option", element)
     If IsSelected(elems(index - baseDomIdx + 1)) Then
         ExecuteScript "return arguments[0].selectedIndex = " & CStr(index - baseDomIdx), elems(index - baseDomIdx + 1)
         elems(index - baseDomIdx + 1).Click
@@ -979,101 +1038,6 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
     End Select
 End Function
 
-Public Sub SetHighlight(OnOffSwitch As Boolean, elementOrElements As Object, _
-                Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Blue, _
-                Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True)
-    
-    Dim elements As WebElements
-    Set elements = ObjToWebElements(elementOrElements)
-    Dim element As WebElement
-    
-    If OnOffSwitch = True Then
-        Static lastElems As WebElements
-        If lastElems Is Nothing Then Set lastElems = New WebElements
-        If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Scripting.Dictionary
-
-        'handling of last highlighted elements
-        If UnHighlightLast = True And lastElems.Count > 0 Then
-            SetHighlight False, lastElems
-            lastElems.RemoveAll
-        End If
-        For Each element In elements
-            lastElems.Add element
-        Next
-         
-        'Create the JS string for the highlighting SetAttribute
-        Dim borderColorString As String, backgroundColorString As String
-        If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            Err.raise 1, , "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
-        End If
-        If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
-            borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
-        End If
-        If backgroundColor <> VBAcolors.Unchanged Then
-            backgroundColorString = "background:" & rgbLongToString(backgroundColor)
-        End If
-        Dim finalString As String
-        finalString = IIf(borderColorString <> vbNullString, borderColorString & "; ", vbNullString) & backgroundColorString
-        
-        For Each element In elements
-            If ScrollIntoView And (element Is elements.Item(1)) Then element.ScrollIntoView
-            'Dim maxYcoord As Long
-            'maxYcoord = Application.WorksheetFunction.Max(maxYcoord, element.GetRect("y"))
-        
-            'store original style of element for future SetUnHighlight
-            If Not SetHighlight_ElemsOrigStyle.Exists(element.ElementId) Then
-                SetHighlight_ElemsOrigStyle.Add element.ElementId, element.GetAttribute("style")
-            End If
-            
-            'highlight element
-            element.SetAttribute "style", finalString
-        Next
-        'draft string (incomplete code) to highlight WebElements by single command:
-        'ExecuteScript "arguments[0].setAttribute('style', arguments[1])", elements, finalString
-        'MsgBox maxYcoord
-        'Stop
-    Else 'if UnHighlight
-        For Each element In elements
-            If SetHighlight_ElemsOrigStyle.Exists(element.ElementId) Then
-                element.SetAttribute "style", SetHighlight_ElemsOrigStyle.Item(element.ElementId)
-                SetHighlight_ElemsOrigStyle.Remove element.ElementId
-            End If
-        Next
-    End If
-End Sub
-    Private Function rgbLongToString(rgbColor As Long) As String
-        If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, , "Error: argument rgbColor out of range (0 to 16777215)"
-        Dim r As Long, g As Long, b As Long
-        r = rgbColor And &HFF
-        g = (rgbColor And &H100FF00) / &H100
-        b = (rgbColor And &HFF0000) / &H10000
-        rgbLongToString = "rgb(" & r & "," & g & "," & b & ")"
-    End Function
-    Private Function ObjToWebElements(elementOrElements As Object) As WebElements
-        Select Case TypeName(elementOrElements)
-            Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
-            Case "WebElements": Set ObjToWebElements = elementOrElements
-            Case Else: Err.raise 1, , "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
-        End Select
-    End Function
-
-Public Sub SetHightlightFoundElems(OnOffSwitch As Boolean, Optional ElemBorderSizePx As Byte = 5, _
-                Optional ElemBorderColor As VBAcolors = Blue, Optional ElemBackgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                Optional ElemsBorderSizePx As Byte = 5, _
-                Optional ElemsBorderColor As VBAcolors = Cyan, Optional ElemsBackgroundColor As VBAcolors = VBAcolors.Unchanged)
-    If OnOffSwitch = True Then
-        'store border and color settings:
-        If SetHightlightFoundElems_Settings Is Nothing Then Set SetHightlightFoundElems_Settings = New Collection
-        With SetHightlightFoundElems_Settings
-            .Add ElemBorderSizePx:  .Add ElemBorderColor:  .Add ElemBackgroundColor:
-            .Add ElemsBorderSizePx: .Add ElemsBorderColor: .Add ElemsBackgroundColor:
-        End With
-    Else
-        Set SetHightlightFoundElems_Settings = Nothing
-    End If
-End Sub
-
 'Convert dictionary from script to dictionary (converted to web element)
 Private Function ScriptDictToConvertedDict(dict As Variant) As Object
     If dict.Exists(ELEMENT_KEY) Then
@@ -1083,16 +1047,16 @@ Private Function ScriptDictToConvertedDict(dict As Variant) As Object
         Exit Function
     End If
     Dim ret As New Dictionary
-    Dim key
-    For Each key In dict.keys
-        If TypeName(dict(key)) = "Collection" Then
-            ret(key) = ScriptCollectionToConvertedArray(dict(key))
-        ElseIf TypeName(dict(key)) = "Dictionary" Then
-            Set ret(key) = ScriptDictToConvertedDict(dict(key))
-        ElseIf IsObject(dict(key)) Then
-            Set ret(key) = dict(key)
+    Dim Key
+    For Each Key In dict.keys
+        If TypeName(dict(Key)) = "Collection" Then
+            ret(Key) = ScriptCollectionToConvertedArray(dict(Key))
+        ElseIf TypeName(dict(Key)) = "Dictionary" Then
+            Set ret(Key) = ScriptDictToConvertedDict(dict(Key))
+        ElseIf IsObject(dict(Key)) Then
+            Set ret(Key) = dict(Key)
         Else
-            ret(key) = dict(key)
+            ret(Key) = dict(Key)
         End If
     Next
     Set ScriptDictToConvertedDict = ret
@@ -1352,12 +1316,12 @@ Public Sub Wait(Optional ByVal milliseconds As Long = 300)
     'ExecuteScriptAsync "window.setTimeout(arguments[arguments.length - 1], arguments[0]);", milliseconds
 End Sub
 
-Public Function IsPresent(by_ As by, ByVal Value As String) As Boolean
+Public Function IsPresent(by_ As by, ByVal val As String) As Boolean
     Dim timeout As Long, resp As Dictionary, Data As Dictionary
     
     timeout = GetImplicitlyWait()
     If timeout <> 0 Then SetImplicitlyWait 0
-    Set Data = ToSelector(by_, Value)
+    Set Data = ToSelector(by_, val)
     Set resp = Execute(CMD_FIND_ELEMENT, Data, False) 'don't raise an error if not present
     If IsResponseError(resp) Then
         IsPresent = False
@@ -1639,33 +1603,35 @@ Public Function ActionChain() As WebActionChain
     Set ActionChain.Data = data_
 End Function
 
-Public Function FindElementFromShadowRoot(by_ As by, ByVal Value As String, sRoot As WebShadowRoot) As WebElement
+Public Function FindElementFromShadowRoot(by_ As by, ByVal val As String, sRoot As WebShadowRoot) As WebElement
     Dim Data As Dictionary
-    Set Data = ToSelector(by_, Value)
-    Data.Add "sid", sRoot.shadowRootId
     Dim elem As WebElement
+    
+    Set Data = ToSelector(by_, val)
+    Data.Add "sid", sRoot.shadowRootId
     Set elem = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
     Set FindElementFromShadowRoot = elem
 End Function
 
-Public Function FindElementsFromShadowRoot(by_ As by, ByVal Value As String, sRoot As WebShadowRoot) As WebElements
+Public Function FindElementsFromShadowRoot(by_ As by, ByVal val As String, sRoot As WebShadowRoot) As WebElements
     Dim Data As Dictionary
     Dim elements As Collection
     Dim elems As WebElements
     Dim i As Integer
     
-    Set Data = ToSelector(by_, Value)
+    Set Data = ToSelector(by_, val)
     Data.Add "sid", sRoot.shadowRootId
     
     Set elements = Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")
     
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
-    Next
+    Next i
     
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
     Set elems.WebDriver = Me
+    
     Set FindElementsFromShadowRoot = elems
 End Function
 
@@ -1761,6 +1727,103 @@ Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As St
     ts.Write snippet
     ts.Close
 End Sub
+
+Public Function GetParentElement(childElement As WebElement) As WebElement
+    Set GetParentElement = childElement.FindElement(by.XPath, "./parent::*")
+End Function
+
+Public Function GetChildElements(parentElement As WebElement) As WebElements
+    'this gets the immediate descendant elements - note that this is not same as element.FindElements(by.tagName, "*")
+    Set GetChildElements = parentElement.FindElements(by.XPath, "./child::*")
+End Function
+
+Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False) As Variant()
+    Dim v() As Variant
+    Dim tableChildren As WebElements, tableChild As WebElement
+    Dim row As WebElement, rows As WebElements
+    Dim cell As WebElement, cells As WebElements
+    Dim rowStore As New WebElements
+    Dim cellChild As WebElement
+    Dim maxCols As Integer, numCells As Integer
+    Dim i As Integer, j As Integer
+    Dim foundTable As Boolean
+    
+    'check if we really have a table
+    If Not table.GetTagName = "table" Then 'report error
+        Err.raise 1, , "Error: input element to TableToArray method must be a table"
+    End If
+    
+    'get the immediate child descendants of the table
+    Set tableChildren = table.GetChildElements
+    
+    'loop through each child and store the row data for further processing
+    For Each tableChild In tableChildren
+        Select Case tableChild.GetTagName
+        Case "tbody"
+            Set rows = tableChild.GetChildElements
+            For Each row In rows
+                rowStore.Add row
+            Next row
+        Case "thead"
+            If Not skipHeader Then
+                Set rows = tableChild.GetChildElements
+                For Each row In rows
+                    rowStore.Add row
+                Next row
+            End If
+        Case "tfoot"
+            If Not skipFooter Then
+                Set rows = tableChild.GetChildElements
+                For Each row In rows
+                    rowStore.Add row
+                Next row
+            End If
+        Case "tr"
+            rowStore.Add tableChild
+        Case Else 'colgroup, caption, coltag
+            'no data here so ignore these
+        End Select
+    Next tableChild
+    
+    'calculate the number of columns of the array that will be needed for output
+    maxCols = -1
+    For Each row In rowStore
+        numCells = row.GetChildElements.Count
+        If numCells > maxCols Then maxCols = numCells
+    Next row
+    
+    ReDim v(baseArrayIdx To rowStore.Count - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
+    
+    'extract cell data (td and th elements) from each row
+    i = baseArrayIdx - 1
+    For Each row In rowStore
+        i = i + 1
+        Set cells = row.GetChildElements
+        j = baseArrayIdx - 1
+        For Each cell In cells
+            j = j + 1
+            'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
+            'search to see if there is at least one table
+            'if there are more than one in the cell then only process first!
+            If cell.GetChildElements.Count > 0 Then
+                foundTable = False
+                For Each cellChild In cell.GetChildElements
+                    If cellChild.GetTagName = "table" Then
+                        'recursive call to TableToArray
+                        v(i, j) = Me.TableToArray(cellChild, skipHeader, skipFooter)
+                        foundTable = True
+                        Exit For
+                    End If
+                Next cellChild
+                If Not foundTable Then v(i, j) = cell.GetText
+            Else
+                v(i, j) = cell.GetText
+            End If
+        Next cell
+    Next row
+
+    TableToArray = v
+End Function
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
     Dim Method As String, path As String
@@ -1867,6 +1930,23 @@ Private Function params(ParamArray keysAndValues()) As Dictionary
     Set params = dict
 End Function
 
+Private Function rgbLongToString(rgbColor As Long) As String
+    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, , "Error: argument rgbColor out of range (0 to 16777215)"
+    Dim r As Long, g As Long, b As Long
+    r = rgbColor And &HFF
+    g = (rgbColor And &H100FF00) / &H100
+    b = (rgbColor And &HFF0000) / &H10000
+    rgbLongToString = "rgb(" & r & "," & g & "," & b & ")"
+End Function
+
+Private Function ObjToWebElements(elementOrElements As Object) As WebElements
+    Select Case TypeName(elementOrElements)
+        Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
+        Case "WebElements": Set ObjToWebElements = elementOrElements
+        Case Else: Err.raise 1, , "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+    End Select
+End Function
+
 Private Sub InitCommands()
     CMD_STATUS = Array("GET", "/status")
     CMD_NEW_SESSION = Array("POST", "/session")
@@ -1888,8 +1968,8 @@ Private Sub InitCommands()
     CMD_FIND_ELEMENT = Array("POST", "/session/$sessionId/element")
     CMD_FIND_ELEMENTS = Array("POST", "/session/$sessionId/elements")
     CMD_GET_ACTIVE_ELEMENT = Array("GET", "/session/$sessionId/element/active")
-    CMD_FIND_CHILD_ELEMENT = Array("POST", "/session/$sessionId/element/$id/element")
-    CMD_FIND_CHILD_ELEMENTS = Array("POST", "/session/$sessionId/element/$id/elements")
+    CMD_FIND_ELEMENT_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/element")
+    CMD_FIND_ELEMENTS_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/elements")
     CMD_CLICK_ELEMENT = Array("POST", "/session/$sessionId/element/$id/click")
     CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
     CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
@@ -1980,7 +2060,7 @@ Private Function DecodeBase64(ByVal strData As String) As Byte()
     'create node with type of base 64 and decode
     Set domNode = domDoc.createElement("b64")
     domNode.DataType = "bin.base64"
-    domNode.Text = strData
+    domNode.text = strData
     DecodeBase64 = domNode.nodeTypedValue
 End Function
 

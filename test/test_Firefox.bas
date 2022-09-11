@@ -167,7 +167,7 @@ Sub test_element_aria()
     
     driver.SaveHTMLToFile str, filePath
     
-    driver.NavigateTo "file:///" & filePath
+    driver.NavigateToFile filePath
     
     driver.Wait 1000
     

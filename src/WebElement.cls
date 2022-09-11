@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.9
+' SeleniumVBA v2.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -73,16 +73,16 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
     driver_.SaveScreenshot filePath, Me
 End Sub
 
-Public Function FindElement(by_ As by, ByVal Value As String) As WebElement
-    Set FindElement = driver_.FindElement(by_, Value, Me)
+Public Function FindElement(by_ As by, ByVal val As String) As WebElement
+    Set FindElement = driver_.FindElement(by_, val, Me)
 End Function
 
-Public Function FindElements(by_ As by, ByVal Value As String) As WebElements
-    Set FindElements = driver_.FindElements(by_, Value, Me)
+Public Function FindElements(by_ As by, ByVal val As String) As WebElements
+    Set FindElements = driver_.FindElements(by_, val, Me)
 End Function
 
-Public Sub SetAttribute(ByVal Name As String, ByVal Value As String)
-    driver_.SetAttribute Me, Name, Value
+Public Sub SetAttribute(ByVal Name As String, ByVal val As String)
+    driver_.SetAttribute Me, Name, val
 End Sub
 
 Public Sub SendKeys(ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = True)
@@ -157,12 +157,12 @@ Public Function IsSelected() As Boolean
     IsSelected = driver_.IsSelected(Me)
 End Function
 
-Public Sub SelectByValue(ByVal Value As String)
-    driver_.SelectByValue Value, Me
+Public Sub SelectByValue(ByVal val As String)
+    driver_.SelectByValue val, Me
 End Sub
 
-Public Sub SelectByVisibleText(ByVal Text As String)
-    driver_.SelectByVisibleText Text, Me
+Public Sub SelectByVisibleText(ByVal text As String)
+    driver_.SelectByVisibleText text, Me
 End Sub
 
 Public Sub SelectByIndex(ByVal index As Integer)
@@ -189,12 +189,12 @@ Public Sub DeSelectAll()
     driver_.DeSelectAll Me
 End Sub
 
-Public Sub DeSelectByValue(ByVal Value As String)
-    driver_.DeSelectByValue Value, Me
+Public Sub DeSelectByValue(ByVal val As String)
+    driver_.DeSelectByValue val, Me
 End Sub
 
-Public Sub DeSelectByVisibleText(ByVal Text As String)
-    driver_.DeSelectByVisibleText Text, Me
+Public Sub DeSelectByVisibleText(ByVal text As String)
+    driver_.DeSelectByVisibleText text, Me
 End Sub
 
 Public Sub DeSelectByIndex(ByVal index As Integer)
@@ -255,6 +255,18 @@ End Sub
 
 Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS = 30000) As WebElement
     Set WaitUntilReady = driver_.WaitUntilReady(Me, maxWaitTimeMS)
+End Function
+
+Public Function GetParentElement() As WebElement
+    Set GetParentElement = driver_.GetParentElement(Me)
+End Function
+
+Public Function GetChildElements() As WebElements
+    Set GetChildElements = driver_.GetChildElements(Me)
+End Function
+
+Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False) As Variant()
+    TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter)
 End Function
 
 Private Sub Class_Terminate()

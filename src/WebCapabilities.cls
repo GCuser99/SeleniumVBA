@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.9
+' SeleniumVBA v2.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -100,16 +100,16 @@ End Enum
 ' Capability Settings
 '-------------------------------------------------------------------------
 
-Public Sub SetCapability(ByVal key As String, val As Variant)
+Public Sub SetCapability(ByVal Key As String, val As Variant)
     'set a generic capability
     If IsObject(val) Then
-        Set data_("alwaysMatch")(key) = val
+        Set data_("alwaysMatch")(Key) = val
     Else
         If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
             Dim jc As New WebJSonConverter
-            Set data_("alwaysMatch")(key) = jc.ParseJSON(val)
+            Set data_("alwaysMatch")(Key) = jc.ParseJSON(val)
         Else 'its a string parameter
-            data_("alwaysMatch")(key) = val
+            data_("alwaysMatch")(Key) = val
         End If
     End If
 End Sub
@@ -126,20 +126,20 @@ End Sub
 ' Option Settings
 '-------------------------------------------------------------------------
 
-Public Sub SetOption(ByVal key As String, val As Variant)
+Public Sub SetOption(ByVal Key As String, val As Variant)
     'set an option
     'input val can be a string, a json string, array, or an object (dictionary or collection)
     If IsObject(val) Then 'collection or dictionary
-        Set data_("alwaysMatch")(browserOptionKey)(key) = val
+        Set data_("alwaysMatch")(browserOptionKey)(Key) = val
     Else
         If IsArray(val) Then
-            data_("alwaysMatch")(browserOptionKey)(key) = val
+            data_("alwaysMatch")(browserOptionKey)(Key) = val
         Else 'string
             If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
                 Dim jc As New WebJSonConverter
-                Set data_("alwaysMatch")(browserOptionKey)(key) = jc.ParseJSON(val)
+                Set data_("alwaysMatch")(browserOptionKey)(Key) = jc.ParseJSON(val)
             Else 'its a string parameter
-                data_("alwaysMatch")(browserOptionKey)(key) = val
+                data_("alwaysMatch")(browserOptionKey)(Key) = val
             End If
         End If
     End If
@@ -253,7 +253,7 @@ End Sub
 ' Option Preference Settings
 '-------------------------------------------------------------------------
 
-Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
+Public Sub SetPreference(ByVal Key As String, ByVal val As Variant)
     'set a generic preference
     'input val can be a string, a json string, or an object (dictionary)
     If Not data_("alwaysMatch")(browserOptionKey).Exists("prefs") Then
@@ -261,19 +261,19 @@ Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
     End If
     
     'need to come up with a more generalized approach to paths - this is just a band-aid
-    If key = "download.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
-    If key = "browser.download.dir" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
-    If key = "savefile.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
+    If Key = "download.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
+    If Key = "browser.download.dir" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
+    If Key = "savefile.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
     
     If IsObject(val) Then
-        Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+        Set data_("alwaysMatch")(browserOptionKey)("prefs")(Key) = val
     Else
         If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'it's json string - try to parse
             'convert to dictionary or collection
             Dim jc As New WebJSonConverter
-            Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJSON(val)
+            Set data_("alwaysMatch")(browserOptionKey)("prefs")(Key) = jc.ParseJSON(val)
         Else
-            data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+            data_("alwaysMatch")(browserOptionKey)("prefs")(Key) = val
         End If
     End If
 End Sub

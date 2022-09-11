@@ -26,7 +26,7 @@ Sub test_frames_with_frameset()
     htmlStr = "<html><div><frameset rows='50%,50%'><frame name='top' id='topid' src='./snippettop.html'/><frame name='bottom' id='bottomid' src='./snippetbottom.html'/><noframes><body>Your browser does not support frames.</body></noframes></frameset></div></html>"
     driver.SaveHTMLToFile htmlStr, ".\snippet.html"
     
-    driver.NavigateTo "file:///" & ".\snippet.html"
+    driver.NavigateToFile ".\snippet.html"
     driver.Wait
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
@@ -73,7 +73,7 @@ Sub test_frames_with_embed_objects()
     htmlStr = "<html><body><div><embed name='embed frame' type='text/html' src='./snippettop.html' width='500' height='200'></div><div><object name='object frame' data='./snippetbottom.html' width='500' height='200'></object></div></body></html>"
     driver.SaveHTMLToFile htmlStr, ".\snippet.html"
     
-    driver.NavigateTo "file:///" & ".\snippet.html"
+    driver.NavigateToFile ".\snippet.html"
     driver.Wait 1000
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
@@ -126,7 +126,7 @@ Sub test_frames_with_iframes()
     htmlStr = "<html><body><div class='box'><iframe name='iframe1' id='IF1' height='50%' width='50%' src='./snippettop.html'></div></iframe>  <div class='box'><iframe name='iframe2' id='IF2' height='50%' width='50%'  align='left' src='.\snippetbottom.html'></iframe></div></body></html>"
     driver.SaveHTMLToFile htmlStr, ".\snippet.html"
     
-    driver.NavigateTo "file:///" & ".\snippet.html"
+    driver.NavigateToFile ".\snippet.html"
     driver.Wait 1000
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.9
+' SeleniumVBA v2.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -429,7 +429,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
         'search the table for the first driver version entry (most recent) for a given browser version
         htmldoc.body.innerHTML = responseText
         Set table = htmldoc.getElementsByTagName("table")(0)
-        For Each row In table.Rows
+        For Each row In table.rows
             If row.getElementsByTagName("td").length > 0 Then
                 Set cells = row.getElementsByTagName("td")
                 If CInt(vermajor) >= CInt(Split(cells(2).outerText)(0)) Then

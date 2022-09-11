@@ -205,7 +205,7 @@ Sub test_kiosk_printing()
     'this advanced test uses kiosk printing to save a webpage to pdf file (Chrome/Edge only)
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
-    Dim jc As New WebJSonConverter
+    Dim jc As SeleniumVBA.WebJSonConverter
     Dim settings As New Dictionary
     Dim appState As New Dictionary
     Dim recentDestination As New Dictionary
@@ -213,6 +213,7 @@ Sub test_kiosk_printing()
     Dim mediaSizeOptions As New Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
+    Set jc = SeleniumVBA.New_WebJSonConverter
     
     driver.StartEdge
     

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v1.9
+' SeleniumVBA v2.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -46,6 +46,7 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private colWebElement As Collection
+
 Private driver_ As WebDriver
 
 Friend Property Set WebDriver(ByRef obj As WebDriver)
