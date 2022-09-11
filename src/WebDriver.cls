@@ -1047,16 +1047,16 @@ Private Function ScriptDictToConvertedDict(dict As Variant) As Object
         Exit Function
     End If
     Dim ret As New Dictionary
-    Dim Key
-    For Each Key In dict.keys
-        If TypeName(dict(Key)) = "Collection" Then
-            ret(Key) = ScriptCollectionToConvertedArray(dict(Key))
-        ElseIf TypeName(dict(Key)) = "Dictionary" Then
-            Set ret(Key) = ScriptDictToConvertedDict(dict(Key))
-        ElseIf IsObject(dict(Key)) Then
-            Set ret(Key) = dict(Key)
+    Dim key
+    For Each key In dict.keys
+        If TypeName(dict(key)) = "Collection" Then
+            ret(key) = ScriptCollectionToConvertedArray(dict(key))
+        ElseIf TypeName(dict(key)) = "Dictionary" Then
+            Set ret(key) = ScriptDictToConvertedDict(dict(key))
+        ElseIf IsObject(dict(key)) Then
+            Set ret(key) = dict(key)
         Else
-            ret(Key) = dict(Key)
+            ret(key) = dict(key)
         End If
     Next
     Set ScriptDictToConvertedDict = ret

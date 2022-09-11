@@ -671,7 +671,7 @@ Public Function Clear(Optional element As WebElement) As WebActionChain
     Set Clear.Data = data_
 End Function
 
-Public Function CtrlKey(ByVal Key As String, Optional element As WebElement) As WebActionChain
+Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As WebActionChain
     'Sends a Ctrl-[key] down and up
     Dim inputChan As New Dictionary, inputChans() As Variant
     Dim actions() As Dictionary
@@ -682,8 +682,8 @@ Public Function CtrlKey(ByVal Key As String, Optional element As WebElement) As 
 
     ReDim actions(0 To 4)
     Set actions(0) = ActionKeyDown("\ue009") 'control key
-    Set actions(1) = ActionKeyDown(Key)
-    Set actions(2) = ActionKeyUp(Key)
+    Set actions(1) = ActionKeyDown(key)
+    Set actions(2) = ActionKeyUp(key)
     Set actions(3) = ActionKeyUp("\ue009")
     Set actions(4) = ActionPause
 
@@ -704,7 +704,7 @@ Public Function CtrlKey(ByVal Key As String, Optional element As WebElement) As 
     Set CtrlKey.Data = data_
 End Function
 
-Public Function ShiftKey(ByVal Key As String, Optional element As WebElement) As WebActionChain
+Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As WebActionChain
     'Sends a Shift-[key] down and up
     Dim inputChan As New Dictionary, inputChans() As Variant
     Dim actions() As Dictionary
@@ -715,8 +715,8 @@ Public Function ShiftKey(ByVal Key As String, Optional element As WebElement) As
     
     ReDim actions(0 To 4)
     Set actions(0) = ActionKeyDown("\ue008") 'shift key
-    Set actions(1) = ActionKeyDown(Key)
-    Set actions(2) = ActionKeyUp(Key)
+    Set actions(1) = ActionKeyDown(key)
+    Set actions(2) = ActionKeyUp(key)
     Set actions(3) = ActionKeyUp("\ue008")
     Set actions(4) = ActionPause
 
