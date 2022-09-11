@@ -1,4 +1,4 @@
-## SeleniumVBA v1.9
+## SeleniumVBA v2.0
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, and Firefox written in Windows Excel VBA
 
