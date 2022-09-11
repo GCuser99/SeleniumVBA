@@ -46,6 +46,11 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private colWebElement As Collection
+Private driver_ As WebDriver
+
+Friend Property Set WebDriver(ByRef obj As WebDriver)
+    Set driver_ = obj
+End Property
 
 Public Function Add(element As WebElement) As WebElement
     colWebElement.Add element, element.elementId
@@ -95,6 +100,18 @@ Public Function IsMember(element As WebElement) As Boolean
     Next i
 End Function
 
+Public Function Highlight(Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Cyan, _
+                     Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                     Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True) _
+                     As WebElements
+    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, UnHighlightLast
+    Set Highlight = Me
+End Function
+
+Public Sub UnHighlight()
+    driver_.SetHighlight False, Me
+End Sub
+
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
     'Attribute NewEnum.VB_UserMemID = -4
@@ -110,5 +127,3 @@ Private Sub Class_Terminate()
     RemoveAll
     Set colWebElement = Nothing
 End Sub
-
-

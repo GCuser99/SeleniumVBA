@@ -137,6 +137,18 @@ Public Function GetAriaRole() As String
     GetAriaRole = driver_.GetAriaRole(Me)
 End Function
 
+Public Function Highlight(Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Blue, _
+                     Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                     Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True) _
+                     As WebElement
+    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, UnHighlightLast
+    Set Highlight = Me
+End Function
+
+Public Sub UnHighlight()
+    driver_.SetHighlight False, Me
+End Sub
+
 Public Function IsMultiSelect() As Boolean
     IsMultiSelect = driver_.IsMultiSelect(Me)
 End Function
