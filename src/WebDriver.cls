@@ -370,7 +370,9 @@ Public Function FindElement(by_ As by, ByVal val As String, Optional parentEleme
     End If
 
     Set elem = ToWebElement(Execute(cmd, Data)("value")(ELEMENT_KEY))
+    
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    
     Set FindElement = elem
 End Function
 
@@ -397,7 +399,9 @@ Public Function FindElements(by_ As by, ByVal val As String, Optional parentElem
     Next
 
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    
     Set elems.WebDriver = Me
+    
     Set FindElements = elems
 End Function
 
@@ -614,7 +618,9 @@ Public Function GetActiveElement() As WebElement
     Dim elem As WebElement
     
     Set elem = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
+    
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    
     Set GetActiveElement = elem
 End Function
 
@@ -1610,7 +1616,9 @@ Public Function FindElementFromShadowRoot(by_ As by, ByVal val As String, sRoot 
     Set Data = ToSelector(by_, val)
     Data.Add "sid", sRoot.shadowRootId
     Set elem = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
+    
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    
     Set FindElementFromShadowRoot = elem
 End Function
 
@@ -1630,6 +1638,7 @@ Public Function FindElementsFromShadowRoot(by_ As by, ByVal val As String, sRoot
     Next i
     
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    
     Set elems.WebDriver = Me
     
     Set FindElementsFromShadowRoot = elems
