@@ -1,0 +1,1 @@
+The BuildAddin.xlsm provides functionality for (re)building the SeleniumVBA.xlam macro file and publishing GitHub components (source, zip file, etc). Advanced knowledge of working with the VBIDE object model is required.
