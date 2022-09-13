@@ -56,7 +56,7 @@ Sub test_highlight()
     driver.Wait 1500
     driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").Highlight borderColor:=Green
     driver.Wait 1500
-    driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").Highlight borderColor:=black, backgroundColor:=Green
+    driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").Highlight borderColor:=Black, backgroundColor:=Green
     driver.Wait 1500
     
     driver.CloseBrowser
