@@ -81,7 +81,7 @@ Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original styl
 
 Public Enum VBAcolors
     Unchanged = -1
-    black = VBA.ColorConstants.vbBlack
+    Black = VBA.ColorConstants.vbBlack
     Blue = VBA.ColorConstants.vbBlue
     Cyan = VBA.ColorConstants.vbCyan
     Green = VBA.ColorConstants.vbGreen
