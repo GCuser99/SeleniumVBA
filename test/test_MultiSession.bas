@@ -52,12 +52,12 @@ Sub test_MultiSession_Edge()
     driver1.NavigateTo "http://demo.guru99.com/test/delete_customer.php"
     driver1.Wait 1000
     
-    driver2.NavigateTo "https://www.google.com/"
+    driver2.NavigateTo "https://www.wikipedia.org/"
     driver2.Wait 1000
     
-    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.Name, "q").SendKeys keySeq
+    driver2.FindElement(by.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
@@ -117,12 +117,12 @@ Sub test_MultiSession_mix_Edge_Chrome()
     driver1.NavigateTo "http://demo.guru99.com/test/delete_customer.php"
     driver1.Wait 1000
     
-    driver2.NavigateTo "https://www.google.com/"
+    driver2.NavigateTo "https://www.wikipedia.org/"
     driver2.Wait 1000
     
-    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.Name, "q").SendKeys keySeq
+    driver2.FindElement(by.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
@@ -181,12 +181,12 @@ Sub test_MultiSession_Firefox()
     driver1.NavigateTo "http://demo.guru99.com/test/delete_customer.php"
     driver1.Wait 1000
     
-    driver2.NavigateTo "https://www.google.com/"
+    driver2.NavigateTo "https://www.wikipedia.org/"
     driver2.Wait 1000
+
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
-    
-    driver2.FindElement(by.Name, "q").SendKeys keySeq
+    driver2.FindElement(by.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent

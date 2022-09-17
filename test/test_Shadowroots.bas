@@ -37,7 +37,7 @@ Sub test_shadowroots_clear_browser_history()
     driver.OpenBrowser
     
     'make some browsing history
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     driver.NavigateTo "chrome://settings/clearBrowserData/"
     driver.Wait 1000

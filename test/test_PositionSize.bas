@@ -11,10 +11,10 @@ Sub test_position_size()
     driver.StartEdge
     driver.OpenBrowser
     
-    url = "https://www.google.com/"
+    url = "https://www.wikipedia.org/"
 
     driver.NavigateTo url
-    Set webElem = driver.FindElement(by.Name, "q")
+    Set webElem = driver.FindElement(by.ID, "searchInput")
 
     driver.Wait 500
     

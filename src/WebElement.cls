@@ -265,8 +265,8 @@ Public Function GetChildElements() As WebElements
     Set GetChildElements = driver_.GetChildElements(Me)
 End Function
 
-Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False) As Variant()
-    TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter)
+Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+    TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter, createSpanData)
 End Function
 
 Private Sub Class_Terminate()

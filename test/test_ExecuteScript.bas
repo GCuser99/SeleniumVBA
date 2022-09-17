@@ -56,7 +56,7 @@ Sub test_executeScriptAsync()
     driver.StartEdge
     driver.OpenBrowser
     
-    url = "https://www.google.com/"
+    url = "https://www.wikipedia.org/"
 
     waitTime = 3000
     

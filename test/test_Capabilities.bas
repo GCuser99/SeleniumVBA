@@ -18,7 +18,7 @@ Sub test_invisible()
     
     driver.OpenBrowser caps 'here is where caps is passed to driver
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     Debug.Print "User Agent: " & driver.GetUserAgent
 
@@ -27,7 +27,7 @@ Sub test_invisible()
     'now let's do it the easy way using optional OpenBrowser parameter...
     driver.OpenBrowser invisible:=True
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     Debug.Print "User Agent: " & driver.GetUserAgent
     
@@ -51,7 +51,7 @@ Sub test_incognito()
     
     driver.OpenBrowser caps  'here is where caps is passed to driver
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.Wait 3000
     
@@ -60,7 +60,7 @@ Sub test_incognito()
     'now let's do it the easy way using optional OpenBrowser parameter...
     driver.OpenBrowser incognito:=True
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.Wait 3000
     
@@ -87,7 +87,7 @@ Sub test_user_profile()
     
     driver.OpenBrowser caps
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
     driver.CloseBrowser
@@ -128,7 +128,7 @@ Sub test_initialize_caps_from_file()
     'pass caps to OpenBrowser
     driver.OpenBrowser caps
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.Wait 3000
     
@@ -137,7 +137,7 @@ Sub test_initialize_caps_from_file()
     'lastly, do above the easy way using optional OpenBrowser parameter...
     driver.OpenBrowser capabilitiesFilePath:="chrome.json"
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.Wait 3000
     
@@ -193,7 +193,7 @@ Sub test_detach_browser()
     
     driver.OpenBrowser caps
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.Wait 1000
     
@@ -283,7 +283,7 @@ Sub test_kiosk_printing()
     
     driver.OpenBrowser caps:=caps
     
-    driver.NavigateTo "https://news.google.com"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.Wait 1000
     

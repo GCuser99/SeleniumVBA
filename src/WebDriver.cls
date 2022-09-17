@@ -81,7 +81,7 @@ Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original styl
 
 Public Enum VBAcolors
     Unchanged = -1
-    black = VBA.ColorConstants.vbBlack
+    Black = VBA.ColorConstants.vbBlack
     Blue = VBA.ColorConstants.vbBlue
     Cyan = VBA.ColorConstants.vbCyan
     Green = VBA.ColorConstants.vbGreen
@@ -350,10 +350,12 @@ Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Option
     Else
         NavigateTo = True
     End If
-    
 End Function
 
 Public Sub NavigateToFile(ByVal htmlFilePath As String)
+    'input file must have html extension to be interpreted as a webpage
+    'NavigateTo (CMD_GET) will automatically discern whether the input is a file or url, even without the 'file:///'
+    'So the only functional value of this method is to handle relative paths!
     NavigateTo "file:///" & WebShared.GetFullLocalPath(htmlFilePath, defaultIOFolder_)
 End Sub
 
@@ -1746,92 +1748,20 @@ Public Function GetChildElements(parentElement As WebElement) As WebElements
     Set GetChildElements = parentElement.FindElements(by.XPath, "./child::*")
 End Function
 
-Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False) As Variant()
-    Dim v() As Variant
-    Dim tableChildren As WebElements, tableChild As WebElement
-    Dim row As WebElement, rows As WebElements
-    Dim cell As WebElement, cells As WebElements
-    Dim rowStore As New WebElements
-    Dim cellChild As WebElement
-    Dim maxCols As Integer, numCells As Integer
-    Dim i As Integer, j As Integer
-    Dim foundTable As Boolean
-    
+Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+    Dim htmlDoc As New HTMLDocument, htmltable As htmltable
+
     'check if we really have a table
     If Not table.GetTagName = "table" Then 'report error
         Err.raise 1, , "Error: input element to TableToArray method must be a table"
     End If
     
-    'get the immediate child descendants of the table
-    Set tableChildren = table.GetChildElements
-    
-    'loop through each child and store the row data for further processing
-    For Each tableChild In tableChildren
-        Select Case tableChild.GetTagName
-        Case "tbody"
-            Set rows = tableChild.GetChildElements
-            For Each row In rows
-                rowStore.Add row
-            Next row
-        Case "thead"
-            If Not skipHeader Then
-                Set rows = tableChild.GetChildElements
-                For Each row In rows
-                    rowStore.Add row
-                Next row
-            End If
-        Case "tfoot"
-            If Not skipFooter Then
-                Set rows = tableChild.GetChildElements
-                For Each row In rows
-                    rowStore.Add row
-                Next row
-            End If
-        Case "tr"
-            rowStore.Add tableChild
-        Case Else 'colgroup, caption, coltag
-            'no data here so ignore these
-        End Select
-    Next tableChild
-    
-    'calculate the number of columns of the array that will be needed for output
-    maxCols = -1
-    For Each row In rowStore
-        numCells = row.GetChildElements.Count
-        If numCells > maxCols Then maxCols = numCells
-    Next row
-    
-    ReDim v(baseArrayIdx To rowStore.Count - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
-    
-    'extract cell data (td and th elements) from each row
-    i = baseArrayIdx - 1
-    For Each row In rowStore
-        i = i + 1
-        Set cells = row.GetChildElements
-        j = baseArrayIdx - 1
-        For Each cell In cells
-            j = j + 1
-            'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
-            'search to see if there is at least one table
-            'if there are more than one in the cell then only process first!
-            If cell.GetChildElements.Count > 0 Then
-                foundTable = False
-                For Each cellChild In cell.GetChildElements
-                    If cellChild.GetTagName = "table" Then
-                        'recursive call to TableToArray
-                        v(i, j) = Me.TableToArray(cellChild, skipHeader, skipFooter)
-                        foundTable = True
-                        Exit For
-                    End If
-                Next cellChild
-                If Not foundTable Then v(i, j) = cell.GetText
-            Else
-                v(i, j) = cell.GetText
-            End If
-        Next cell
-    Next row
+    'convert the WebElement table into an html dom table object
+    'using a html dom table for processing is greater than 25x faster than using Selenium selectors to process table
+    htmlDoc.body.innerHTML = table.GetOuterHTML
+    Set htmltable = htmlDoc.getElementsByTagName("table").Item(0)
 
-    TableToArray = v
+    TableToArray = htmlTableToArray(htmltable, skipHeader, skipFooter, createSpanData)
 End Function
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
@@ -2145,3 +2075,78 @@ Private Function ActiveVBAProjectFolderPath() As String
     If strPath <> "" Then strPath = fso.GetParentFolderName(strPath)
     ActiveVBAProjectFolderPath = strPath
 End Function
+
+Private Function htmlTableToArray(table As htmltable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+    Dim row As HTMLTableRow
+    Dim cell As HTMLTableCell
+    Dim cellChild As HTMLHtmlElement
+    Dim maxCols As Integer
+    Dim i As Integer
+    Dim foundTable As Boolean
+    Dim rowSpan As Integer
+    Dim colSpan As Integer
+    Dim v() As Variant
+    
+    If skipHeader Then table.deleteTHead
+    If skipFooter Then table.deleteTFoot
+    
+    If createSpanData Then
+        'first handle row spans
+        For Each row In table.rows
+            For Each cell In row.cells
+                rowSpan = cell.rowSpan
+                If rowSpan > 1 Then
+                    For i = row.RowIndex + 1 To row.RowIndex + rowSpan - 1
+                        table.rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
+                    Next i
+                End If
+            Next cell
+        Next row
+        
+        'now process column spans
+        For Each row In table.rows
+            For Each cell In row.cells
+                colSpan = cell.colSpan
+                If colSpan > 1 Then
+                    For i = 1 To colSpan - 1
+                        row.insertCell(row.cells.Length).innerText = cell.innerText
+                    Next i
+                End If
+            Next cell
+        Next row
+    End If
+    
+    'calculate the number of array columns needed for output
+    For Each row In table.rows
+        If row.cells.Length > maxCols Then maxCols = row.cells.Length
+    Next row
+    
+    'dimension output array
+    ReDim v(baseArrayIdx To table.rows.Length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
+    
+    'extract cell data (td and th elements) from each row
+    For Each row In table.rows
+        For Each cell In row.cells
+            'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
+            'search to see if there is at least one table
+            'if there are more than one in the cell then only process first!
+            If cell.Children.Length > 0 Then
+                foundTable = False
+                For Each cellChild In cell.Children
+                    If cellChild.tagName = "TABLE" Then
+                        'recursive call to TableToArray
+                        v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData)
+                        foundTable = True
+                        Exit For
+                    End If
+                Next cellChild
+                If Not foundTable Then v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
+            Else
+                v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
+            End If
+        Next cell
+    Next row
+    
+    htmlTableToArray = v
+End Function
+

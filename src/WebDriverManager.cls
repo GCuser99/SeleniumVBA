@@ -345,7 +345,7 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
 End Function
 
 Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal browserVersion) As String
-    Dim htmldoc As New HTMLDocument, table As IHTMLTable, row As IHTMLTableRow, cells As IHTMLElementCollection
+    Dim htmlDoc As New HTMLDocument, table As IHTMLTable, row As IHTMLTableRow, cells As IHTMLElementCollection
     Dim vermajor As String, vermajorsearch As String, verminor As String, verbuild As String, versearch As String
     Dim responseText As Variant, url As String, try As Integer
     'for chrome info:
@@ -427,10 +427,10 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
         End If
         
         'search the table for the first driver version entry (most recent) for a given browser version
-        htmldoc.body.innerHTML = responseText
-        Set table = htmldoc.getElementsByTagName("table")(0)
+        htmlDoc.body.innerHTML = responseText
+        Set table = htmlDoc.getElementsByTagName("table")(0)
         For Each row In table.rows
-            If row.getElementsByTagName("td").length > 0 Then
+            If row.getElementsByTagName("td").Length > 0 Then
                 Set cells = row.getElementsByTagName("td")
                 If CInt(vermajor) >= CInt(Split(cells(2).outerText)(0)) Then
                     GetCompatibleDriverVersion = Trim(cells(0).outerText)

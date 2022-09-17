@@ -15,10 +15,10 @@ Sub test_print()
     'must open browser in headless (invisible) mode for PrintToPDF to work
     driver.OpenBrowser , True
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    driver.FindElement(by.Name, "q").SendKeys "This is COOL!" & vbCrLf
+    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci" & vbCrLf
     
     driver.Wait 1000
     
@@ -53,7 +53,7 @@ Sub test_screenshot()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
     driver.SaveScreenshot
@@ -78,12 +78,12 @@ Sub test_element_screenshot()
     driver.StartEdge
     driver.OpenBrowser
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    driver.FindElement(by.Name, "q").SendKeys "This is COOL!" & vbCrLf
+    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci"
     driver.Wait 1000
-    driver.FindElement(by.Name, "q").SaveScreenshot
+    driver.FindElement(by.ID, "searchInput").SaveScreenshot
 
     driver.Wait 1000
     

@@ -60,10 +60,10 @@ Sub test_action_chain_sendkeys()
     
     driver.OpenBrowser
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 500
     
-    Set searchBox = driver.FindElement(by.Name, "q")
+    Set searchBox = driver.FindElement(by.ID, "searchInput")
     
     Set actions = driver.ActionChain
     

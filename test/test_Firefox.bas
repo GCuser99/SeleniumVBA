@@ -199,6 +199,7 @@ Sub test_shadowroot()
     'the following returns "HTTP method not allowed" for Firefox
     'apparently FindElement support for shadowroots may be coming:
     'https://github.com/mozilla/geckodriver/issues/2005
+    'https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned&view=subtest
     Set shadowContent = shadowRootelem.FindElement(by.ID, "shadow_content")
     
     Debug.Print shadowContent.GetText 'should return "some text"

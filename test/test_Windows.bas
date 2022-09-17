@@ -11,14 +11,14 @@ Sub test_windows1()
     driver.StartChrome
     driver.OpenBrowser
 
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
     hnd1 = driver.GetCurrentWindowHandle
     hnd2 = driver.SwitchToNewWindow(svbaTab) 'this will create a new browser tab
     'hnd2 = Driver.SwitchToNewWindow(svbaWindow) 'this will create a new browser window
     
-    driver.NavigateTo "https://news.google.com/"
+    driver.NavigateTo "https://en.wikipedia.org/wiki/Main_Page"
     driver.Wait 1000
     
     Debug.Print hnd2 & " is same as " & driver.GetCurrentWindowHandle

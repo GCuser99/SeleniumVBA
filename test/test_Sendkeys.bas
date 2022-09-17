@@ -14,12 +14,12 @@ Sub test_sendkeys()
     
     driver.OpenBrowser
     
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver.FindElement(by.Name, "q").SendKeys keySeq
+    driver.FindElement(by.ID, "searchInput").SendKeys keySeq
 
     driver.Wait 1000
     
