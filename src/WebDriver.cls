@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.0
+' SeleniumVBA v2.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -59,8 +59,11 @@ Attribute VB_Exposed = True
 
 Option Explicit
 
-'change to True if auto-check-and-update desired
-Private Const checkDriverBrowserVersionAlignment = False
+'set to True if auto-check-and-update desired
+Private Const checkDriverBrowserVersionAlignment = True
+
+'set version compatibility threshold for triggering a driver update
+Private Const minDriverBrowserCompatibilityLevel = svbaBuildMajor
 
 'desired lower bound of returned arrays
 Private Const baseArrayIdx = 1
@@ -72,7 +75,7 @@ Private Const baseDomIdx = 1
 
 Private sessionId_ As String
 Private driverUrl_ As String
-Private browserName_ As String
+Private browser_ As svbaBrowser
 Private appWinStyle As VbAppWinStyle
 Private defaultIOFolder_ As String
 Private defaultBinaryFolder_ As String
@@ -199,42 +202,36 @@ Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
 End Property
 
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
-    Start "msedge", driverPath, localHostPort, enableLogging, logFilePath
+    Start svbaBrowser.Edge, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome.log")
-    Start "chrome", driverPath, localHostPort, enableLogging, logFilePath
+    Start svbaBrowser.Chrome, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox.log")
-    Start "firefox", driverPath, localHostPort, enableLogging, logFilePath
+    Start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
+Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
     Dim fso As New Scripting.FileSystemObject, serviceArgs As String, commandStr As String
     
-    browserName_ = browserName
+    browser_ = browser
     
-    If browserName_ = "firefox" Then
+    If browser_ = svbaBrowser.Firefox Then
         'for firefox, if previous session is still open on same port, then will get "Session is already started"
         'on OpenBrowser so kill all driver instances on the assigned port
         'could use KillDriver on Chrome/Edge too, but since they support multi-sessions on same port, this will eliminate
         'that functionality if important
-        KillDriver browserName_, localHostPort
+        KillDriver browser_, localHostPort
     End If
     
     driverPath = WebShared.GetFullLocalPath(driverPath, defaultBinaryFolder_)
-    
+
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
-        Select Case browserName_
-        Case "msedge"
-            mngr.AlignEdgeDriverWithBrowser driverPath
-        Case "chrome"
-            mngr.AlignChromeDriverWithBrowser driverPath
-        Case "firefox"
-            mngr.AlignFirefoxDriverWithBrowser driverPath
-        End Select
+        'it's important to run these in silent mode so that if there is a problem, we don't get in the way of automation activity
+        Debug.Print mngr.AlignDriverWithBrowser(browser_, driverPath, minDriverBrowserCompatibilityLevel, True)
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -245,10 +242,10 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
 
     If enableLogging Then
         logFilePath = WebShared.GetFullLocalPath(logFilePath, defaultIOFolder_)
-        Select Case browserName_
-        Case "msedge", "chrome"
+        Select Case browser_
+        Case svbaBrowser.Edge, svbaBrowser.Chrome
             serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
-        Case "firefox"
+        Case svbaBrowser.Firefox
             'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
             'apparently firefox does not support command line argument for specifying log file path
             'so using cmd.exe to redirect log from console window
@@ -262,7 +259,7 @@ Private Sub Start(ByVal browserName As String, ByVal driverPath As String, ByVal
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        Err.raise 1, , "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+        Err.raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     End If
     
     'if we've got this far, then store some global variable values for later use
@@ -274,12 +271,12 @@ Public Sub Shutdown()
     'this will shut down all WebDriver instances using this driver's assigned port
     'which can be a good thing if there are multiple "rogue" instances lurking
     
-    Select Case browserName_
-    Case "chrome", "msedge"
+    Select Case browser_
+    Case svbaBrowser.Edge, svbaBrowser.Chrome
         'this will shutdown driver and session - equivalent to CloseBrowser and kill driver process
         'see "detach" option for chrome/edge to affect this behavior
         Execute CMD_SHUTDOWN
-    Case "firefox"
+    Case svbaBrowser.Firefox
         'firefox does not recognize shutdown command, so need to roll our own...
         'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
         If sessionId_ <> "" Then CloseBrowser
@@ -291,7 +288,7 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     Dim resp As Dictionary
     
     If sessionId_ <> "" Then
-        Err.raise 1, , "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
+        Err.raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
     End If
     
     If caps Is Nothing Then
@@ -312,7 +309,7 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     sessionId_ = resp("sessionId")
     
     'here's some more info that can be extracted if needed...
-    'browserName_ = resp("capabilities")("browserName")
+    'browserName = resp("capabilities")("browserName")
     'browserVersion = resp("capabilities")("browserVersion")
     'driverVersion = resp("capabilities")("chrome")("chromedriverVersion")
     'driverVersion = resp("capabilities")("msedge")("msedgedriverVersion")
@@ -320,7 +317,7 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
     'Debug.Print resp("capabilities")("msedge")("userDataDir")
     'Debug.Print resp("capabilities")("goog:chromeOptions")("debuggerAddress")
     'DebuggerAddress = resp("capabilities")("ms:edgeOptions")("debuggerAddress")
-    'Debug.Print resp("capabilities")(browserName_)("userDataDir")
+    'Debug.Print resp("capabilities")(GetBrowserName())("userDataDir")
 End Sub
 
 Public Sub CloseBrowser()
@@ -669,7 +666,7 @@ Public Sub SetHighlight(OnOffSwitch As Boolean, elementOrElements As Object, _
         'Create the JS string for the highlighting SetAttribute
         Dim borderColorString As String, backgroundColorString As String
         If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            Err.raise 1, , "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+            Err.raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
         End If
         If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
             borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
@@ -757,8 +754,8 @@ End Sub
 Public Function GetAriaRole(element As WebElement) As String
     Dim Data As New Dictionary, resp As Dictionary
     
-    If browserName_ = "firefox" Then
-        Err.raise 1, , "Aria methods not supported for Firefox WebDriver"
+    If browser_ = svbaBrowser.Firefox Then
+        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     Data.Add "id", element.elementId
@@ -773,8 +770,8 @@ End Function
 Public Function GetAriaLabel(element As WebElement) As String
     Dim Data As New Dictionary, resp As Dictionary
     
-    If browserName_ = "firefox" Then
-        Err.raise 1, , "Aria methods not supported for Firefox WebDriver"
+    If browser_ = svbaBrowser.Firefox Then
+        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     Data.Add "id", element.elementId
@@ -1352,7 +1349,7 @@ Public Function IsDisplayed(element As WebElement) As Boolean
 End Function
 
 Public Function GetBrowserName() As String
-    GetBrowserName = browserName_
+    GetBrowserName = WebShared.GetBrowserName(browser_)
 End Function
 
 Public Function GetAlertText() As String
@@ -1440,12 +1437,12 @@ Public Function CreateCapabilities() As WebCapabilities
     Dim caps As New WebCapabilities
     
     'insure that this function is being called in the correct order
-    If browserName_ = "" Or sessionId_ <> "" Then
-        Err.raise 1, , "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+    If browser_ = 0 Or sessionId_ <> "" Then
+        Err.raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
     End If
     
     'now initialize Capabilities
-    caps.InitializeFor browserName_
+    caps.InitializeFor browser_
     
     Set caps.WebDriver = Me
 
@@ -1585,8 +1582,8 @@ End Function
 
 Public Function GetSessionsInfo() As Collection
     'change to dictionary output?
-    If browserName_ = "firefox" Then
-        Err.raise 1, , "GetSessionsInfo not supported for Firefox WebDriver"
+    If browser_ = svbaBrowser.Firefox Then
+        Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = Execute(CMD_GET_ALL_SESSIONS)("value")
 End Function
@@ -1661,13 +1658,13 @@ Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTime
     'such as "Click" on same line
     'see https://www.w3.org/TR/webdriver/#element-displayedness
     Dim startTime As Single, nowTime As Single, endTime As Single
-    startTime = VBA.Timer
+    startTime = VBA.timer
     nowTime = startTime
     endTime = startTime + maxWaitTimeMS / 1000#
     
     Do While nowTime < endTime
         If element.IsDisplayed Then Exit Do
-        nowTime = VBA.Timer()
+        nowTime = VBA.timer()
         Dim elapsedTime As Single
         If nowTime < startTime Then 'oops - someone is burning the midnight oil!
             endTime = endTime - elapsedTime
@@ -1685,7 +1682,7 @@ Public Function GetUserAgent() As String
     If sessionId_ <> "" Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        Err.raise 1, , "GetUserAgent must be executed after OpenBrowser!"
+        Err.raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
     End If
 End Function
 
@@ -1753,7 +1750,7 @@ Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As B
 
     'check if we really have a table
     If Not table.GetTagName = "table" Then 'report error
-        Err.raise 1, , "Error: input element to TableToArray method must be a table"
+        Err.raise 1, "WebDriver", "Error: input element to TableToArray method must be a table"
     End If
     
     'convert the WebElement table into an html dom table object
@@ -1797,7 +1794,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
-        Err.raise 1, , GetResponseErrorMessage(response)
+        Err.raise 1, "WebDriver", GetResponseErrorMessage(response)
     End If
 
     Set Execute = response 'always pass a dictionary object - let caller parse info based on context, including error
@@ -1870,7 +1867,7 @@ Private Function params(ParamArray keysAndValues()) As Dictionary
 End Function
 
 Private Function rgbLongToString(rgbColor As Long) As String
-    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, , "Error: argument rgbColor out of range (0 to 16777215)"
+    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
     Dim r As Long, g As Long, b As Long
     r = rgbColor And &HFF
     g = (rgbColor And &H100FF00) / &H100
@@ -1882,7 +1879,7 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
     Select Case TypeName(elementOrElements)
         Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
         Case "WebElements": Set ObjToWebElements = elementOrElements
-        Case Else: Err.raise 1, , "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+        Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
 
@@ -1967,7 +1964,7 @@ End Sub
 
 Private Sub Class_Initialize()
     InitCommands
-    CommandWindowStyle = vbHide
+    Me.CommandWindowStyle = vbHide
     'note that user has control through the DefaultIOFolder and DefaultBinaryFolder
     'properties so these below are just reasonable starting points...
     'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
@@ -1979,11 +1976,11 @@ End Sub
 Private Sub TimerWait(ByVal durationMS As Long)
     'pause in milliseconds
     Dim startTime As Single, endTime As Single, nowTime As Single, elapsedTime As Single
-    startTime = VBA.Timer()
+    startTime = VBA.timer()
     nowTime = startTime
     endTime = startTime + durationMS / 1000#
     Do While nowTime < endTime
-        nowTime = VBA.Timer()
+        nowTime = VBA.timer()
         If nowTime < startTime Then
             endTime = endTime - elapsedTime
             startTime = 0
@@ -2012,7 +2009,7 @@ Private Sub SaveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
     Close fp
 End Sub
 
-Private Sub KillDriver(ByVal browserName As String, Optional ByVal port As Integer = 0)
+Private Sub KillDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
     'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
     Dim objService As WbemScripting.SWbemServices
     Dim objDriverList As WbemScripting.SWbemObjectSet
@@ -2021,12 +2018,12 @@ Private Sub KillDriver(ByVal browserName As String, Optional ByVal port As Integ
     Dim objParent As WbemScripting.SWbemObject
     Dim sImageName As String, ret As Variant, pid As String
     
-    Select Case browserName
-    Case "chrome"
+    Select Case browser
+    Case svbaBrowser.Chrome
         sImageName = "chromedriver%"
-    Case "msedge"
+    Case svbaBrowser.Edge
         sImageName = "msedgedriver%"
-    Case "firefox"
+    Case svbaBrowser.Firefox
         sImageName = "geckodriver%"
     End Select
     
@@ -2065,15 +2062,15 @@ Private Function TaskKillByPid(ByVal pid As String)
 End Function
 
 Private Function ActiveVBAProjectFolderPath() As String
-    Dim fso As New FileSystemObject, strPath As String
-    strPath = ""
+    Dim fso As New FileSystemObject, strpath As String
+    strpath = ""
     'if the Excel file holding the active vba project has not yet been saved, then this will throw an error
     '...so return vbNullString in that case
     On Error Resume Next
-    strPath = Application.VBE.ActiveVBProject.Filename
+    strpath = Application.VBE.ActiveVBProject.Filename
     On Error GoTo 0
-    If strPath <> "" Then strPath = fso.GetParentFolderName(strPath)
-    ActiveVBAProjectFolderPath = strPath
+    If strpath <> "" Then strpath = fso.GetParentFolderName(strpath)
+    ActiveVBAProjectFolderPath = strpath
 End Function
 
 Private Function htmlTableToArray(table As htmltable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
@@ -2149,4 +2146,3 @@ Private Function htmlTableToArray(table As htmltable, Optional ByVal skipHeader 
     
     htmlTableToArray = v
 End Function
-

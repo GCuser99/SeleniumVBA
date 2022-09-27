@@ -12,19 +12,12 @@ Option Private Module
 '
 '---------------------------------------------------------------------------------------------------------------
 '
-'There is also capability in the WebDriver class to auto-check and conditionally install every time the StartChrome, StartEdge,
-'and StartFirefox methods are invoked. However the default in this version of SeleniumVBA is set NOT to auto-check and install due
-'to lack of testing thus far but it works fine for me and so....
+'There is also the optional capability in the WebDriver class to auto-check and conditionally install every time the StartChrome, StartEdge,
+'and StartFirefox methods are invoked. The default in this version of SeleniumVBA is set to auto-check and install.
 '
-'SeleniumVBA can auto-check the Selenium WebDriver and Browser versions for compatibility
-'when StartChrome and StartEdge methods are invoked, and if not compatible, can automatically download
-'and install drivers. To make that happen, modify the following line in WebDriver class:
+'If user wishes to turn this functionality off and manage the alignment themselves, then set the flag below in WebDriver class to False.
 '
 'Private Const CheckDriverBrowserVersionAlignment = False
-'
-'To:
-'
-'Private Const CheckDriverBrowserVersionAlignment = True
 '
 '---------------------------------------------------------------------------------------------------------------
 '
@@ -62,7 +55,7 @@ Sub test_updateDriversForSeleniumBasic()
     
     Set mngr = SeleniumVBA.New_WebDriverManager
     
-    mngr.DefaultBinaryFolder = mngr.GetSeleniumBasicFolder
+    mngr.DefaultBinaryFolder = mngr.GetSeleniumBasicFolderPath
     
     MsgBox mngr.AlignEdgeDriverWithBrowser("edgedriver.exe")
     MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe")

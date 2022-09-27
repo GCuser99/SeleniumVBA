@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.0
+' SeleniumVBA v2.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -85,7 +85,7 @@ Option Explicit
 
 Private data_ As New Dictionary
 Private browserOptionKey As String
-Private browserName_ As String
+Private browser_ As svbaBrowser
 Private driver_ As WebDriver
 
 Public Enum svbaAlertHandling
@@ -170,23 +170,23 @@ End Sub
 
 Public Sub RemoveControlNotification()
     'this removes the "Chrome/Edge is being controlled by automated test software" browser notification
-    Select Case browserName_
-    Case "chrome"
+    Select Case browser_
+    Case svbaBrowser.Chrome
         Me.AddExcludeSwitches "enable-automation"
         Me.SetOption "useAutomationExtension", False
-    Case "msedge"
+    Case svbaBrowser.Edge
         Me.AddExcludeSwitches "enable-automation"
         Me.SetOption "useAutomationExtension", False
         'for msedge, you may be greeted with an unwanted "Sync your profile" dialog
         'to get rid of that, run in incognito mode
-    Case "firefox"
+    Case svbaBrowser.Firefox
         'no need to do anything
     End Select
 End Sub
 
 Public Sub SetDetachBrowser(ByVal val As Boolean)
     'this sets whether browser is closed (false) or left open (true) when the driver is sent the shutdown command
-    If browserName_ = "firefox" Then
+    If browser_ = svbaBrowser.Firefox Then
         Exit Sub 'as yet have not found a working equivalent - SetPreference("detach", True) does not work
     End If
     Me.SetOption "detach", val
@@ -207,12 +207,12 @@ Public Sub RunInvisible()
 End Sub
 
 Public Sub RunIncognito()
-    Select Case browserName_
-    Case "chrome"
+    Select Case browser_
+    Case svbaBrowser.Chrome
         Me.AddArguments "--incognito"
-    Case "msedge"
+    Case svbaBrowser.Edge
         Me.AddArguments "--inprivate"
-    Case "firefox"
+    Case svbaBrowser.Firefox
         Me.AddArguments "-private"
     End Select
 End Sub
@@ -226,13 +226,13 @@ Public Sub SetProfile(ByVal profilePath As String)
     
     profilePath = WebShared.GetFullLocalPath(profilePath)
     
-    Select Case browserName_
-    Case "chrome", "msedge"
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         userDir = fso.GetParentFolderName(profilePath)
         profileName = fso.GetBaseName(profilePath)
         Me.AddArguments "--user-data-dir=" & userDir
         Me.AddArguments "--profile-directory=" & profileName
-    Case "firefox"
+    Case svbaBrowser.Firefox
         'unlike edge and chrome, firefox requires that the folder to exist
         'hence check and if doesn't exist, then create it
         If Not fso.FolderExists(profilePath) Then CreateFolderPath profilePath
@@ -241,10 +241,10 @@ Public Sub SetProfile(ByVal profilePath As String)
 End Sub
 
 Public Sub SetUserAgent(ByVal val As String)
-    Select Case browserName_
-    Case "msedge", "chrome"
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.AddArguments "--user-agent=" & val
-    Case "firefox"
+    Case svbaBrowser.Firefox
         Me.SetPreference "general.useragent.override", val
     End Select
 End Sub
@@ -281,15 +281,15 @@ End Sub
 Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
     downloadDirectoryPath = WebShared.GetFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
 
-    Select Case browserName_
-    Case "chrome", "msedge"
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.SetPreference "download.default_directory", downloadDirectoryPath
         Me.SetPreference "download.directory_upgrade", True
         Me.SetPreference "download.prompt_for_download", False 'false disables prompting user for download permission
         Me.SetPreference "safebrowsing.enabled", True
         Me.SetPreference "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer
         'Me.SetPreference "safebrowsing.disable_download_protection", True
-    Case "firefox"
+    Case svbaBrowser.Firefox
         Me.SetPreference "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
         Me.SetPreference "browser.download.dir", downloadDirectoryPath
         Me.SetPreference "pdfjs.disabled", True  'disable the built-in PDF viewer
@@ -331,44 +331,44 @@ Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json
         
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filePath) Then Err.raise 1, , "Capabilities Json file does not exist!"
+    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist!"
     
     Set ts = fso.OpenTextFile(filePath)
     Set data_ = jc.ParseJSON(ts.ReadAll)
     ts.Close
     
-    If data_("browserName") <> browserName_ Then Err.raise 1, , "Browser name from file does not match browser name assigned to driver instance."
+    If data_("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
 Public Sub InitializeForChrome()
-    InitializeFor "chrome"
+    InitializeFor svbaBrowser.Chrome
 End Sub
 
 Public Sub InitializeForEdge()
-    InitializeFor "msedge"
+    InitializeFor svbaBrowser.Edge
 End Sub
 
 Public Sub InitializeForFirefox()
-    InitializeFor "firefox"
+    InitializeFor svbaBrowser.Firefox
 End Sub
 
 '-------------------------------------------------------------------------
 ' Private helper methods
 '-------------------------------------------------------------------------
-Friend Sub InitializeFor(ByVal browserName As String)
+Friend Sub InitializeFor(ByVal browser As svbaBrowser)
     Set data_ = New Dictionary
-    data_.Add "browserName", browserName
+    data_.Add "browserName", WebShared.GetBrowserName(browser)
     data_.Add "alwaysMatch", New Dictionary
-    browserName_ = browserName
+    browser_ = browser
     
     Dim browserOptions As New Dictionary
     
-    Select Case LCase(browserName)
-        Case "chrome"
+    Select Case browser
+        Case svbaBrowser.Chrome
             browserOptionKey = "goog:chromeOptions"
-        Case "msedge"
+        Case svbaBrowser.Edge
             browserOptionKey = "ms:edgeOptions"
-        Case "firefox"
+        Case svbaBrowser.Firefox
             browserOptionKey = "moz:firefoxOptions"
     End Select
     

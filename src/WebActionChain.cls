@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.0
+' SeleniumVBA v2.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -742,7 +742,7 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     Dim actions() As Dictionary
     
     If driver_.GetBrowserName = "firefox" Then
-        Err.raise 1, , "Scroll actions not supported for Firefox WebDriver"
+        Err.raise 1, "WebActionChain", "Scroll actions not supported for Firefox WebDriver"
     End If
     
     ReDim actions(0 To 0)
@@ -770,7 +770,7 @@ Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOff
     Dim actions() As Dictionary
     
     If driver_.GetBrowserName = "firefox" Then
-        Err.raise 1, , "Scroll actions not supported for Firefox WebDriver"
+        Err.raise 1, "WebActionChain", "Scroll actions not supported for Firefox WebDriver"
     End If
     
     ReDim actions(0 To 0)

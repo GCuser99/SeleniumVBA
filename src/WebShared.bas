@@ -45,7 +45,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         
         'check that reference path exists and notify user if not
         If Not fso.FolderExists(basePath) Then
-            Err.raise 1, , "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+            Err.raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
         End If
         
         'employ fso to make the conversion of relative path to absolute
@@ -56,11 +56,11 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
     End If
 End Function
 
-Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
+Private Function GetLocalOneDrivePath(ByVal strpath As String) As String
     ' thanks to @6DiegoDiego9 for doing research on this (see https://stackoverflow.com/a/72736800/11738627)
     ' this function returns the original/local disk path associated with a synched OneDrive or SharePoint cloud url
     
-    If IsPathHTTPS(strPath) Then
+    If IsPathHTTPS(strpath) Then
         Const HKEY_CURRENT_USER = &H80000001
         Dim objReg As WbemScripting.SWbemObjectEx 'changed to early binding by GCUser99
         Dim regPath As String
@@ -81,9 +81,9 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
         If IsArrayInitialized(subKeys) Then 'found OneDrive in registry
             For Each subKey In subKeys
                 objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
-                If InStr(strPath, strValue) > 0 Then
+                If InStr(strpath, strValue) > 0 Then
                     objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
-                    strSecPart = Replace(Mid(strPath, Len(strValue)), "/", pathSep)
+                    strSecPart = Replace(Mid(strpath, Len(strValue)), "/", pathSep)
                     GetLocalOneDrivePath = strMountpoint & strSecPart
         
                     Do Until Dir(GetLocalOneDrivePath, vbDirectory) <> "" Or InStr(2, strSecPart, pathSep) = 0
@@ -96,7 +96,7 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
         End If
     End If
         
-    GetLocalOneDrivePath = strPath 'pass unchanged
+    GetLocalOneDrivePath = strpath 'pass unchanged
 End Function
 
 Private Function IsPathRelative(ByVal sPath As String) As Boolean
@@ -116,3 +116,13 @@ Private Function IsArrayInitialized(ByRef arry() As Variant) As Boolean
     If (Not arry) = -1 Then IsArrayInitialized = False Else IsArrayInitialized = True
 End Function
 
+Public Function GetBrowserName(ByVal browser As svbaBrowser) As String
+    Select Case browser
+    Case svbaBrowser.Chrome
+        GetBrowserName = "chrome"
+    Case svbaBrowser.Edge
+        GetBrowserName = "msedge"
+    Case svbaBrowser.Firefox
+        GetBrowserName = "firefox"
+    End Select
+End Function
