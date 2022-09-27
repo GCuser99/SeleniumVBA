@@ -1,4 +1,4 @@
-## SeleniumVBA v2.0
+## SeleniumVBA v2.1
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, and Firefox written in Windows Excel VBA
 
@@ -95,6 +95,9 @@ Sub doActionChain()
     driver.Shutdown
 End Sub
 ```
+## Collaborators
+
+[@6DiegoDiego9](https://github.com/6DiegoDiego9)
 
 ## Credits
 
