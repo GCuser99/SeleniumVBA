@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.1
+' SeleniumVBA v2.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -205,7 +205,7 @@ Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As Strin
 End Function
 
 Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional ByVal driverPath) As String
-    Dim wsh As New IWshRuntimeLibrary.wshShell 'CreateObject("WScript.Shell")
+    Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
     Dim resp As Variant, i As Integer, ver As String
 
@@ -423,7 +423,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
 End Function
 
 Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser) As String
-    Dim wsh As New IWshRuntimeLibrary.wshShell 'CreateObject("WScript.Shell")
+    Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim regkey As String, resp As String
     
     Select Case browser
@@ -611,10 +611,10 @@ Private Function BrowserNameStr(ByVal val As svbaBrowser)
 End Function
 
 Private Sub Class_Initialize()
-    DefaultBinaryFolder = ThisWorkbook.path
+    DefaultBinaryFolder = ThisWorkbook.Path
 End Sub
 
 Private Function TaskKillByImage(ByVal taskName As String)
-    Dim wsh As New IWshRuntimeLibrary.wshShell
+    Dim wsh As New IWshRuntimeLibrary.WshShell
     TaskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
 End Function

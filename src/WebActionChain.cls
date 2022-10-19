@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.1
+' SeleniumVBA v2.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -97,8 +97,11 @@ Private Const DEFAULT_PAUSE_DURATION = 300
 Private driver_ As WebDriver
 Private data_ As Dictionary
 
-Private CMD_ACTIONS
-Private CMD_CLEAR_ACTIONS
+Private Type typCMD
+    CMD_ACTIONS As Variant
+    CMD_CLEAR_ACTIONS As Variant
+End Type
+Private tCMD As typCMD
 
 Private Enum ButtonType
     leftButton = 0
@@ -800,9 +803,9 @@ Public Sub Perform()
     'we cannot pass a multi-chan Data_("actions") as-is without synchronizing the input channels
     'see https://www.w3.org/TR/webdriver/#actions
     'we can either aggregate and synchronize the inputs into 3 channels (keyboard, pointer, and wheel)
-    'and make one call to CMD_ACTIONS
+    'and make one call to tCMD.CMD_ACTIONS
     'or we execute one input channel at a time in the order in which the inputs were added,
-    'making multi-calls to CMD_ACTIONS
+    'making multi-calls to tCMD.CMD_ACTIONS
     
     'Note for future: Firefox and IEdriverServer doe not support wheel actions
     
@@ -811,12 +814,12 @@ Public Sub Perform()
         'inputChans = data_("actions")
         'For i = 0 To UBound(inputChans)
         '    data_("actions") = Array(inputChans(i))
-        '    driver_.Execute CMD_ACTIONS, data_
+        '    driver_.Execute tCMD.CMD_ACTIONS, data_
         'Next i
         
         '... or synchronize input channels and call Execute method once
         'for typical action chains, this is 5-10% faster...
-        driver_.Execute CMD_ACTIONS, SyncChannels(data_)
+        driver_.Execute tCMD.CMD_ACTIONS, SyncChannels(data_)
         
         'it seems that reset actions should always been done on Perform, but Selenium Python doesn't(?)
         
@@ -954,7 +957,7 @@ End Function
 'make this public for compatibility with Selenium Python? (see Perform method)
 Private Sub ResetActions()
     'clears actions that are already stored locally and on the remote end
-    driver_.Execute CMD_CLEAR_ACTIONS, data_ 'remote end clear
+    driver_.Execute tCMD.CMD_CLEAR_ACTIONS, data_ 'remote end clear
     data_.Remove "actions" 'local end clear
 End Sub
 
@@ -1076,6 +1079,6 @@ Private Function AppendInputChannel(inputChans() As Variant, inputChan As Dictio
 End Function
 
 Private Sub Class_Initialize()
-    CMD_ACTIONS = Array("POST", "/session/$sessionId/actions")
-    CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions")
+    tCMD.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions")
+    tCMD.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions")
 End Sub

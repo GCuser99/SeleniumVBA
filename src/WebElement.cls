@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.1
+' SeleniumVBA v2.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -137,7 +137,7 @@ Public Function GetAriaRole() As String
     GetAriaRole = driver_.GetAriaRole(Me)
 End Function
 
-Public Function Highlight(Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Blue, _
+Public Function Highlight(Optional borderSizePx As Byte = 4, Optional borderColor As VBAcolors = Blue, _
                      Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
                      Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True) _
                      As WebElement
