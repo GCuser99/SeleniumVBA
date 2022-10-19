@@ -35,10 +35,10 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         'make sure no unintended beginning or ending spaces
         basePath = VBA.Trim(basePath)
         
-        If basePath = "" Then basePath = ThisWorkbook.path
+        If basePath = "" Then basePath = ThisWorkbook.Path
         
         'its possible that user specified a relative reference folder path - convert it to absolute relative to ThisWorkbook.Path
-        If IsPathRelative(basePath) Then basePath = GetFullLocalPath(basePath, ThisWorkbook.path)
+        If IsPathRelative(basePath) Then basePath = GetFullLocalPath(basePath, ThisWorkbook.Path)
 
         'convert OneDrive path if needed
         If IsPathHTTPS(basePath) Then basePath = GetLocalOneDrivePath(basePath)
@@ -80,9 +80,9 @@ Private Function GetLocalOneDrivePath(ByVal strpath As String) As String
         
         If IsArrayInitialized(subKeys) Then 'found OneDrive in registry
             For Each subKey In subKeys
-                objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
+                objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
                 If InStr(strpath, strValue) > 0 Then
-                    objReg.getStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
+                    objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
                     strSecPart = Replace(Mid(strpath, Len(strValue)), "/", pathSep)
                     GetLocalOneDrivePath = strMountpoint & strSecPart
         

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.1
+' SeleniumVBA v2.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -94,7 +94,9 @@ Public Enum VBAcolors
     'other custom fine-tuned colors can be added, for example: "Brown = VBA.RGB(128, 0, 0)"
 End Enum
 
+'Highlighting globals:
 Private SetHightlightFoundElems_Settings As Collection
+Private lastElems As WebElements
 
 Private driverFilename As String
 Private processID As String
@@ -102,82 +104,85 @@ Private processID As String
 Private Const ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf"
 Private Const SHADOW_KEY = "shadow-6066-11e4-a52e-4f735466cecf"
 
-Private CMD_STATUS
-Private CMD_NEW_SESSION
-Private CMD_GET_ALL_SESSIONS
-Private CMD_QUIT
-Private CMD_GET_CURRENT_WINDOW_HANDLE
-Private CMD_GET_WINDOW_HANDLES
-Private CMD_GET
-Private CMD_GO_FORWARD
-Private CMD_GO_BACK
-Private CMD_REFRESH
-Private CMD_EXECUTE_SCRIPT
-Private CMD_EXECUTE_SCRIPT_ASYNC
-Private CMD_GET_CURRENT_URL
-Private CMD_GET_TITLE
-Private CMD_GET_PAGE_SOURCE
-Private CMD_SCREENSHOT
-Private CMD_ELEMENT_SCREENSHOT
-Private CMD_FIND_ELEMENT
-Private CMD_FIND_ELEMENTS
-Private CMD_GET_ACTIVE_ELEMENT
-Private CMD_FIND_ELEMENT_FROM_ELEMENT
-Private CMD_FIND_ELEMENTS_FROM_ELEMENT
-Private CMD_CLICK_ELEMENT
-Private CMD_CLEAR_ELEMENT
-Private CMD_GET_ELEMENT_TEXT
-Private CMD_SEND_KEYS_TO_ELEMENT
-'Private CMD_UPLOAD_FILE                              'not wrapped yet
-Private CMD_GET_ELEMENT_TAG_NAME
-Private CMD_IS_ELEMENT_SELECTED
-Private CMD_IS_ELEMENT_ENABLED
-Private CMD_IS_ELEMENT_DISPLAYED
-Private CMD_GET_ELEMENT_RECT
-Private CMD_GET_ELEMENT_ATTRIBUTE
-Private CMD_GET_ELEMENT_PROPERTY
-Private CMD_GET_ALL_COOKIES
-Private CMD_ADD_COOKIE
-Private CMD_GET_COOKIE
-Private CMD_DELETE_ALL_COOKIES
-Private CMD_DELETE_COOKIE
-Private CMD_SWITCH_TO_FRAME
-Private CMD_SWITCH_TO_PARENT_FRAME
-Private CMD_SWITCH_TO_WINDOW
-Private CMD_NEW_WINDOW
-Private CMD_CLOSE
-Private CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY
-Private CMD_SET_TIMEOUTS
-Private CMD_GET_TIMEOUTS
-Private CMD_DISMISS_ALERT
-Private CMD_ACCEPT_ALERT
-Private CMD_SET_ALERT_VALUE
-Private CMD_GET_ALERT_TEXT
-Private CMD_CLICK
-'Private CMD_ACTIONS                                  'used in ActionChain.cls
-'Private CMD_CLEAR_ACTIONS                            'used in ActionChain.cls
-Private CMD_SET_WINDOW_RECT
-Private CMD_GET_WINDOW_RECT
-Private CMD_MAXIMIZE_WINDOW
-'Private CMD_GET_LOCATION                             'not wrapped yet
-'Private CMD_SET_LOCATION                             'not wrapped yet
-'Private CMD_GET_APP_CACHE_STATUS                     'not wrapped yet
-'Private CMD_GET_NETWORK_CONNECTION                   'not wrapped yet
-'Private CMD_SET_NETWORK_CONNECTION                   'not wrapped yet
-'Private CMD_GET_LOG                                  'see logging option in StartEdge and StartChrome methods
-'Private CMD_GET_AVAILABLE_LOG_TYPES                  'see logging option in StartEdge and StartChrome methods
-'Private CMD_CURRENT_CONTEXT_HANDLE                   'not wrapped yet
-'Private CMD_CONTEXT_HANDLES                          'not wrapped yet
-'Private CMD_SWITCH_TO_CONTEXT                        'not wrapped yet
-Private CMD_FULLSCREEN_WINDOW
-Private CMD_MINIMIZE_WINDOW
-Private CMD_SHUTDOWN
-Private CMD_PRINT_PAGE
-Private CMD_GET_ELEMENT_SHADOW_ROOT
-Private CMD_FIND_ELEMENT_FROM_SHADOW_ROOT
-Private CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT
-Private CMD_GET_ELEMENT_ARIA_ROLE
-Private CMD_GET_ELEMENT_ARIA_LABEL
+Private Type typCMD
+    CMD_STATUS As Variant
+    CMD_NEW_SESSION As Variant
+    CMD_GET_ALL_SESSIONS As Variant
+    CMD_QUIT As Variant
+    CMD_GET_CURRENT_WINDOW_HANDLE As Variant
+    CMD_GET_WINDOW_HANDLES As Variant
+    CMD_GET As Variant
+    CMD_GO_FORWARD As Variant
+    CMD_GO_BACK As Variant
+    CMD_REFRESH As Variant
+    CMD_EXECUTE_SCRIPT As Variant
+    CMD_EXECUTE_SCRIPT_ASYNC As Variant
+    CMD_GET_CURRENT_URL As Variant
+    CMD_GET_TITLE As Variant
+    CMD_GET_PAGE_SOURCE As Variant
+    CMD_SCREENSHOT As Variant
+    CMD_ELEMENT_SCREENSHOT As Variant
+    CMD_FIND_ELEMENT As Variant
+    CMD_FIND_ELEMENTS As Variant
+    CMD_GET_ACTIVE_ELEMENT As Variant
+    CMD_FIND_ELEMENT_FROM_ELEMENT As Variant
+    CMD_FIND_ELEMENTS_FROM_ELEMENT As Variant
+    CMD_CLICK_ELEMENT As Variant
+    CMD_CLEAR_ELEMENT As Variant
+    CMD_GET_ELEMENT_TEXT As Variant
+    CMD_SEND_KEYS_TO_ELEMENT As Variant
+    'CMD_UPLOAD_FILE As Variant                    'not wrapped yet
+    CMD_GET_ELEMENT_TAG_NAME As Variant
+    CMD_IS_ELEMENT_SELECTED As Variant
+    CMD_IS_ELEMENT_ENABLED As Variant
+    CMD_IS_ELEMENT_DISPLAYED As Variant
+    CMD_GET_ELEMENT_RECT As Variant
+    CMD_GET_ELEMENT_ATTRIBUTE As Variant
+    CMD_GET_ELEMENT_PROPERTY As Variant
+    CMD_GET_ALL_COOKIES As Variant
+    CMD_ADD_COOKIE As Variant
+    CMD_GET_COOKIE As Variant
+    CMD_DELETE_ALL_COOKIES As Variant
+    CMD_DELETE_COOKIE As Variant
+    CMD_SWITCH_TO_FRAME As Variant
+    CMD_SWITCH_TO_PARENT_FRAME As Variant
+    CMD_SWITCH_TO_WINDOW As Variant
+    CMD_NEW_WINDOW As Variant
+    CMD_CLOSE As Variant
+    CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY As Variant
+    CMD_SET_TIMEOUTS As Variant
+    CMD_GET_TIMEOUTS As Variant
+    CMD_DISMISS_ALERT As Variant
+    CMD_ACCEPT_ALERT As Variant
+    CMD_SET_ALERT_VALUE As Variant
+    CMD_GET_ALERT_TEXT As Variant
+    CMD_CLICK As Variant
+    'CMD_ACTIONS As Variant                        'used in ActionChain.cls
+    'CMD_CLEAR_ACTIONS As Variant                  'used in ActionChain.cls
+    CMD_SET_WINDOW_RECT As Variant
+    CMD_GET_WINDOW_RECT As Variant
+    CMD_MAXIMIZE_WINDOW As Variant
+    'CMD_GET_LOCATION As Variant                   'not wrapped yet
+    'CMD_SET_LOCATION As Variant                   'not wrapped yet
+    'CMD_GET_APP_CACHE_STATUS As Variant           'not wrapped yet
+    'CMD_GET_NETWORK_CONNECTION As Variant         'not wrapped yet
+    'CMD_SET_NETWORK_CONNECTION As Variant         'not wrapped yet
+    'CMD_GET_LOG As Variant                        'see logging option in StartEdge and StartChrome methods
+    'CMD_GET_AVAILABLE_LOG_TYPES As Variant        'see logging option in StartEdge and StartChrome methods
+    'CMD_CURRENT_CONTEXT_HANDLE As Variant         'not wrapped yet
+    'CMD_CONTEXT_HANDLES As Variant                'not wrapped yet
+    'CMD_SWITCH_TO_CONTEXT As Variant              'not wrapped yet
+    CMD_FULLSCREEN_WINDOW As Variant
+    CMD_MINIMIZE_WINDOW As Variant
+    CMD_SHUTDOWN As Variant
+    CMD_PRINT_PAGE As Variant
+    CMD_GET_ELEMENT_SHADOW_ROOT As Variant
+    CMD_FIND_ELEMENT_FROM_SHADOW_ROOT As Variant
+    CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT As Variant
+    CMD_GET_ELEMENT_ARIA_ROLE As Variant
+    CMD_GET_ELEMENT_ARIA_LABEL As Variant
+End Type
+Private tCMD As typCMD
 
 Public Enum by
     ID = 0
@@ -231,7 +236,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
         'it's important to run these in silent mode so that if there is a problem, we don't get in the way of automation activity
-        Debug.Print mngr.AlignDriverWithBrowser(browser_, driverPath, minDriverBrowserCompatibilityLevel, True)
+        mngr.AlignDriverWithBrowser browser_, driverPath, minDriverBrowserCompatibilityLevel, True
     End If
     
     If Not fso.FileExists(driverPath) Then
@@ -275,7 +280,7 @@ Public Sub Shutdown()
     Case svbaBrowser.Edge, svbaBrowser.Chrome
         'this will shutdown driver and session - equivalent to CloseBrowser and kill driver process
         'see "detach" option for chrome/edge to affect this behavior
-        Execute CMD_SHUTDOWN
+        Execute tCMD.CMD_SHUTDOWN
     Case svbaBrowser.Firefox
         'firefox does not recognize shutdown command, so need to roll our own...
         'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
@@ -304,7 +309,7 @@ Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisibl
         caps.RunIncognito
     End If
     
-    Set resp = Execute(CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
+    Set resp = Execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
     
     sessionId_ = resp("sessionId")
     
@@ -322,7 +327,7 @@ End Sub
 
 Public Sub CloseBrowser()
     Dim Data As New Dictionary
-    Execute CMD_QUIT, Data
+    Execute tCMD.CMD_QUIT, Data
     sessionId_ = ""
 End Sub
 
@@ -335,7 +340,7 @@ Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms, Option
         If savTimeOutms <> timeOutms Then SetPageLoadTimeout timeOutms
     End If
     
-    Set resp = Execute(CMD_GET, Data, raise)
+    Set resp = Execute(tCMD.CMD_GET, Data, raise)
 
     If Not IsMissing(timeOutms) Then
         If savTimeOutms <> timeOutms Then SetPageLoadTimeout savTimeOutms
@@ -351,24 +356,24 @@ End Function
 
 Public Sub NavigateToFile(ByVal htmlFilePath As String)
     'input file must have html extension to be interpreted as a webpage
-    'NavigateTo (CMD_GET) will automatically discern whether the input is a file or url, even without the 'file:///'
+    'NavigateTo (tCMD.CMD_GET) will automatically discern whether the input is a file or url, even without the 'file:///'
     'So the only functional value of this method is to handle relative paths!
     NavigateTo "file:///" & WebShared.GetFullLocalPath(htmlFilePath, defaultIOFolder_)
 End Sub
 
 Public Function FindElement(by_ As by, ByVal val As String, Optional parentElement As WebElement) As WebElement
     Dim Data As Dictionary
-    Dim cmd As Variant
+    Dim vCMD As Variant
     Dim elem As New WebElement
     Set Data = ToSelector(by_, val)
     If Not parentElement Is Nothing Then
         Data.Add "id", parentElement.elementId
-        cmd = CMD_FIND_ELEMENT_FROM_ELEMENT
+        vCMD = tCMD.CMD_FIND_ELEMENT_FROM_ELEMENT
     Else
-        cmd = CMD_FIND_ELEMENT
+        vCMD = tCMD.CMD_FIND_ELEMENT
     End If
 
-    Set elem = ToWebElement(Execute(cmd, Data)("value")(ELEMENT_KEY))
+    Set elem = ToWebElement(Execute(vCMD, Data)("value")(ELEMENT_KEY))
     
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
     
@@ -378,7 +383,7 @@ End Function
 Public Function FindElements(by_ As by, ByVal val As String, Optional parentElement As WebElement) As WebElements
     Dim Data As Dictionary
     Dim i As Integer
-    Dim cmd As Variant
+    Dim vCMD As Variant
     Dim elements As Collection
     Dim elems As New WebElements
     
@@ -386,12 +391,12 @@ Public Function FindElements(by_ As by, ByVal val As String, Optional parentElem
     
     If Not parentElement Is Nothing Then
         Data.Add "id", parentElement.elementId
-        cmd = CMD_FIND_ELEMENTS_FROM_ELEMENT
+        vCMD = tCMD.CMD_FIND_ELEMENTS_FROM_ELEMENT
     Else
-        cmd = CMD_FIND_ELEMENTS
+        vCMD = tCMD.CMD_FIND_ELEMENTS
     End If
     
-    Set elements = Execute(cmd, Data)("value")
+    Set elements = Execute(vCMD, Data)("value")
     
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
@@ -521,7 +526,7 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
     Dim chars() As String
     
     Data.Add "id", element.elementId
-    If clearBeforeTyping = True Then Execute CMD_CLEAR_ELEMENT, Data
+    If clearBeforeTyping = True Then Execute tCMD.CMD_CLEAR_ELEMENT, Data
     
     'split key sequence into chunks with special keys (pattern "\ue0*") by themselves
     ReDim chunk(0 To Len(keys) - 1)
@@ -566,7 +571,7 @@ Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional clearB
         End If
         Data("text") = chunk(i)
         Data("value") = chars
-        Execute CMD_SEND_KEYS_TO_ELEMENT, Data
+        Execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, Data
     Next i
 End Sub
 
@@ -574,9 +579,9 @@ Public Sub Click(Optional element As WebElement)
     Dim Data As New Dictionary
     If Not element Is Nothing Then
         Data.Add "id", element.elementId
-        Execute CMD_CLICK_ELEMENT, Data
+        Execute tCMD.CMD_CLICK_ELEMENT, Data
     Else
-        Execute CMD_CLICK, Data
+        Execute tCMD.CMD_CLICK, Data
     End If
 End Sub
 
@@ -587,28 +592,28 @@ End Sub
 Public Function GetText(element As WebElement) As String
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    GetText = Execute(CMD_GET_ELEMENT_TEXT, Data)("value")
+    GetText = Execute(tCMD.CMD_GET_ELEMENT_TEXT, Data)("value")
 End Function
 
 Public Sub GoBack()
     Dim Data As New Dictionary
-    Execute CMD_GO_BACK, Data
+    Execute tCMD.CMD_GO_BACK, Data
 End Sub
 
 Public Sub GoForward()
     Dim Data As New Dictionary
-    Execute CMD_GO_FORWARD, Data
+    Execute tCMD.CMD_GO_FORWARD, Data
 End Sub
 
 Public Sub Refresh()
     Dim Data As New Dictionary
-    Execute CMD_REFRESH, Data
+    Execute tCMD.CMD_REFRESH, Data
 End Sub
 
 Public Function GetCurrentURL() As String
     Dim Data As New Dictionary
     Dim encodeURL As String
-    encodeURL = Execute(CMD_GET_CURRENT_URL, Data)("value")
+    encodeURL = Execute(tCMD.CMD_GET_CURRENT_URL, Data)("value")
     GetCurrentURL = ExecuteScript("return decodeURI('" & encodeURL & "')")
 End Function
 
@@ -616,7 +621,7 @@ Public Function GetActiveElement() As WebElement
     Dim Data As New Dictionary
     Dim elem As WebElement
     
-    Set elem = ToWebElement(Execute(CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
+    Set elem = ToWebElement(Execute(tCMD.CMD_GET_ACTIVE_ELEMENT, Data)("value")(ELEMENT_KEY))
     
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
     
@@ -630,7 +635,7 @@ Public Function GetProperty(ByVal Name As String, element As WebElement) As Stri
     Data.Add "name", Name
     Data.Add "id", element.elementId
     
-    Set resp = Execute(CMD_GET_ELEMENT_PROPERTY, Data)
+    Set resp = Execute(tCMD.CMD_GET_ELEMENT_PROPERTY, Data)
     
     If IsNull(resp("value")) Then
         GetProperty = ""
@@ -640,22 +645,22 @@ Public Function GetProperty(ByVal Name As String, element As WebElement) As Stri
 End Function
 
 Public Sub SetHighlight(OnOffSwitch As Boolean, elementOrElements As Object, _
-                Optional borderSizePx As Byte = 5, Optional borderColor As VBAcolors = Blue, _
+                Optional borderSizePx As Byte = 4, Optional borderColor As VBAcolors = Blue, _
                 Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True)
+                Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True, _
+                Optional bForgiving_UnHighlight As Boolean = False)
 
     Dim elements As WebElements
     Set elements = ObjToWebElements(elementOrElements)
     Dim element As WebElement
 
     If OnOffSwitch = True Then
-        Static lastElems As WebElements
         If lastElems Is Nothing Then Set lastElems = New WebElements
         If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Scripting.Dictionary
 
         'handling of last highlighted elements
         If UnHighlightLast = True And lastElems.Count > 0 Then
-            SetHighlight False, lastElems
+            SetHighlight False, lastElems, bForgiving_UnHighlight:=True
             lastElems.RemoveAll
         End If
         
@@ -697,16 +702,25 @@ Public Sub SetHighlight(OnOffSwitch As Boolean, elementOrElements As Object, _
     Else 'if UnHighlight
         For Each element In elements
             If SetHighlight_ElemsOrigStyle.Exists(element.elementId) Then
+                If bForgiving_UnHighlight = True Then On Error GoTo ErrHnd
                 element.SetAttribute "style", SetHighlight_ElemsOrigStyle.Item(element.elementId)
+                If bForgiving_UnHighlight = True Then On Error GoTo 0
                 SetHighlight_ElemsOrigStyle.Remove element.elementId
             End If
         Next
     End If
+    Exit Sub
+ErrHnd:
+If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
+    Resume Next
+Else
+    With Err: Err.raise .Number, .source, .Description, .HelpFile, .HelpContext: End With
+End If
 End Sub
 
-Public Sub SetHightlightFoundElems(OnOffSwitch As Boolean, Optional ElemBorderSizePx As Byte = 5, _
+Public Sub SetHightlightFoundElems(OnOffSwitch As Boolean, Optional ElemBorderSizePx As Byte = 4, _
                 Optional ElemBorderColor As VBAcolors = Blue, Optional ElemBackgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                Optional ElemsBorderSizePx As Byte = 5, _
+                Optional ElemsBorderSizePx As Byte = 4, _
                 Optional ElemsBorderColor As VBAcolors = Cyan, Optional ElemsBackgroundColor As VBAcolors = VBAcolors.Unchanged)
     If OnOffSwitch = True Then
         'store border and color settings:
@@ -715,7 +729,15 @@ Public Sub SetHightlightFoundElems(OnOffSwitch As Boolean, Optional ElemBorderSi
             .Add ElemBorderSizePx:  .Add ElemBorderColor:  .Add ElemBackgroundColor:
             .Add ElemsBorderSizePx: .Add ElemsBorderColor: .Add ElemsBackgroundColor:
         End With
-    Else
+    Else 'when set to False, clear any active Highlight
+        If Not lastElems Is Nothing Then
+            If lastElems.Count > 0 Then
+                Dim elem As WebElement
+                For Each elem In lastElems
+                    SetHighlight False, elem, bForgiving_UnHighlight:=True
+                Next
+            End If
+        End If
         Set SetHightlightFoundElems_Settings = Nothing
     End If
 End Sub
@@ -737,7 +759,7 @@ Public Function GetAttribute(ByVal Name As String, element As WebElement) As Str
     Data.Add "id", element.elementId
     Data.Add "name", Name
     Dim resp As Dictionary
-    Set resp = Execute(CMD_GET_ELEMENT_ATTRIBUTE, Data)
+    Set resp = Execute(tCMD.CMD_GET_ELEMENT_ATTRIBUTE, Data)
     If IsNull(resp("value")) Then
         GetAttribute = ""
     Else
@@ -759,7 +781,7 @@ Public Function GetAriaRole(element As WebElement) As String
     End If
     
     Data.Add "id", element.elementId
-    Set resp = Execute(CMD_GET_ELEMENT_ARIA_ROLE, Data)
+    Set resp = Execute(tCMD.CMD_GET_ELEMENT_ARIA_ROLE, Data)
     If IsNull(resp("value")) Then
         GetAriaRole = ""
     Else
@@ -775,7 +797,7 @@ Public Function GetAriaLabel(element As WebElement) As String
     End If
     
     Data.Add "id", element.elementId
-    Set resp = Execute(CMD_GET_ELEMENT_ARIA_LABEL, Data)
+    Set resp = Execute(tCMD.CMD_GET_ELEMENT_ARIA_LABEL, Data)
     If IsNull(resp("value")) Then
         GetAriaLabel = ""
     Else
@@ -786,7 +808,7 @@ End Function
 Public Function GetTagName(element As WebElement) As String
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    GetTagName = Execute(CMD_GET_ELEMENT_TAG_NAME, Data)("value")
+    GetTagName = Execute(tCMD.CMD_GET_ELEMENT_TAG_NAME, Data)("value")
 End Function
 
 Public Sub SelectByValue(ByVal val As String, element As WebElement)
@@ -877,7 +899,7 @@ End Sub
 Public Function IsSelected(element As WebElement) As Boolean
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    IsSelected = Execute(CMD_IS_ELEMENT_SELECTED, Data)("value")
+    IsSelected = Execute(tCMD.CMD_IS_ELEMENT_SELECTED, Data)("value")
 End Function
 
 Public Function IsMultiSelect(selectElement As WebElement) As Boolean
@@ -942,7 +964,7 @@ Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs
     End If
     Data.Add "args", Args
     
-    Set resp = Execute(CMD_EXECUTE_SCRIPT_ASYNC, Data)
+    Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT_ASYNC, Data)
     
     Select Case TypeName(resp("value"))
     Case "Collection"
@@ -1001,7 +1023,7 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
     End If
     Data.Add "args", Args
     
-    Set resp = Execute(CMD_EXECUTE_SCRIPT, Data)
+    Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT, Data)
     
     Select Case TypeName(resp("value"))
     Case "Collection"
@@ -1095,10 +1117,10 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
     filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
     
     If element Is Nothing Then
-        pngstr = Execute(CMD_SCREENSHOT, Data)("value")
+        pngstr = Execute(tCMD.CMD_SCREENSHOT, Data)("value")
     Else
         Data.Add "id", element.elementId
-        pngstr = Execute(CMD_ELEMENT_SCREENSHOT, Data)("value")
+        pngstr = Execute(tCMD.CMD_ELEMENT_SCREENSHOT, Data)("value")
     End If
     
     SaveByteArrayToFile DecodeBase64(pngstr), filePath
@@ -1113,7 +1135,7 @@ Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Opt
         Set Data = settings.ToDictionary
     End If
     
-    pdfstr = Execute(CMD_PRINT_PAGE, Data)("value")
+    pdfstr = Execute(tCMD.CMD_PRINT_PAGE, Data)("value")
 
     SaveByteArrayToFile DecodeBase64(pdfstr), filePath
 End Sub
@@ -1122,17 +1144,17 @@ Public Function GetRect(element As WebElement) As Dictionary
     'returns dictionary with following keys x, y, width, height
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    Set GetRect = Execute(CMD_GET_ELEMENT_RECT, Data)("value")
+    Set GetRect = Execute(tCMD.CMD_GET_ELEMENT_RECT, Data)("value")
 End Function
 
 Public Function GetPageSource() As String
     Dim Data As New Dictionary
-    GetPageSource = Execute(CMD_GET_PAGE_SOURCE, Data)("value")
+    GetPageSource = Execute(tCMD.CMD_GET_PAGE_SOURCE, Data)("value")
 End Function
 
 Public Function GetCurrentWindowHandle() As String
     Dim Data As New Dictionary
-    GetCurrentWindowHandle = Execute(CMD_GET_CURRENT_WINDOW_HANDLE, Data)("value")
+    GetCurrentWindowHandle = Execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, Data)("value")
 End Function
 
 Public Function GetWindowHandles() As String()
@@ -1141,7 +1163,7 @@ Public Function GetWindowHandles() As String()
     Dim ret() As String
     Dim i As Integer
     
-    Set handles = Execute(CMD_GET_WINDOW_HANDLES, Data)("value")
+    Set handles = Execute(tCMD.CMD_GET_WINDOW_HANDLES, Data)("value")
     
     'To array of handles
     ReDim ret(baseArrayIdx To handles.Count - 1 + baseArrayIdx)
@@ -1159,7 +1181,7 @@ Public Function SwitchToNewWindow(Optional ByVal windowType As svbaWindowType = 
     If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
     
     Data.Add "type", wtype 'tab or window
-    hndl = Execute(CMD_NEW_WINDOW, Data)("value")("handle")
+    hndl = Execute(tCMD.CMD_NEW_WINDOW, Data)("value")("handle")
     
     SwitchToWindow hndl 'above just creates a new window - we still need to switch to it
     
@@ -1176,7 +1198,7 @@ Public Function SwitchToWindow(ByVal handleOrIndex As Variant) As String
     End If
     
     Data.Add "handle", hndl
-    Execute CMD_SWITCH_TO_WINDOW, Data
+    Execute tCMD.CMD_SWITCH_TO_WINDOW, Data
     
     SwitchToWindow = hndl
 End Function
@@ -1185,13 +1207,13 @@ Public Sub CloseWindow(Optional ByVal handleOrIndex As Variant)
     If Not IsMissing(handleOrIndex) Then SwitchToWindow handleOrIndex
     'closes the active window
     Dim Data As New Dictionary
-    Execute CMD_CLOSE, Data
+    Execute tCMD.CMD_CLOSE, Data
 End Sub
 
 Public Function GetWindowRect() As Dictionary
     'returns dictionary with following keys x, y, width, height
     Dim Data As New Dictionary
-    Set GetWindowRect = Execute(CMD_GET_WINDOW_RECT, Data)("value")
+    Set GetWindowRect = Execute(tCMD.CMD_GET_WINDOW_RECT, Data)("value")
 End Function
 
 Public Function SetWindowRect(Optional ByVal x As Variant, Optional ByVal y As Variant, Optional ByVal width As Variant, Optional ByVal height As Variant) As Dictionary
@@ -1207,7 +1229,7 @@ Public Function SetWindowRect(Optional ByVal x As Variant, Optional ByVal y As V
     Data.Add "y", y
     Data.Add "width", width
     Data.Add "height", height
-    Set SetWindowRect = Execute(CMD_SET_WINDOW_RECT, Data)("value")
+    Set SetWindowRect = Execute(tCMD.CMD_SET_WINDOW_RECT, Data)("value")
 End Function
 
 Public Sub SetWindowSize(Optional ByVal width As Variant, Optional ByVal height As Variant)
@@ -1229,17 +1251,17 @@ End Sub
 
 Public Sub MaximizeWindow()
     Dim Data As New Dictionary
-    Execute CMD_MAXIMIZE_WINDOW, Data
+    Execute tCMD.CMD_MAXIMIZE_WINDOW, Data
 End Sub
 
 Public Sub FullScreenWindow()
     Dim Data As New Dictionary
-    Execute CMD_FULLSCREEN_WINDOW, Data
+    Execute tCMD.CMD_FULLSCREEN_WINDOW, Data
 End Sub
 
 Public Sub MinimizeWindow()
     Dim Data As New Dictionary
-    Execute CMD_MINIMIZE_WINDOW, Data
+    Execute tCMD.CMD_MINIMIZE_WINDOW, Data
 End Sub
 
 Public Sub SwitchToFrame(frameElement As WebElement)
@@ -1247,26 +1269,26 @@ Public Sub SwitchToFrame(frameElement As WebElement)
     Dim elem As New Dictionary
     elem.Add ELEMENT_KEY, frameElement.elementId
     Data.Add "id", elem
-    Execute CMD_SWITCH_TO_FRAME, Data
+    Execute tCMD.CMD_SWITCH_TO_FRAME, Data
 End Sub
 
 Public Sub SwitchToFrameByIndex(ByVal index As Integer)
     Dim Data As New Dictionary
     Data.Add "id", index - baseDomIdx
-    Execute CMD_SWITCH_TO_FRAME, Data
+    Execute tCMD.CMD_SWITCH_TO_FRAME, Data
 End Sub
 
 Public Sub SwitchToDefaultContent()
     'switches to main document
     Dim Data As New Dictionary
     Data.Add "id", Null
-    Execute CMD_SWITCH_TO_FRAME, Data
+    Execute tCMD.CMD_SWITCH_TO_FRAME, Data
 End Sub
 
 Public Sub SwitchToParentFrame()
     'if top-level frame then this switches to main document
     Dim Data As New Dictionary
-    Execute CMD_SWITCH_TO_PARENT_FRAME, Data
+    Execute tCMD.CMD_SWITCH_TO_PARENT_FRAME, Data
 End Sub
 
 Public Function GetCurrentFrameName() As String
@@ -1276,34 +1298,34 @@ End Function
 Public Sub SetImplicitlyWait(Optional ByVal millisecond As Long = 0)
     Dim Data As New Dictionary
     Data.Add "implicit", millisecond
-    Execute CMD_SET_TIMEOUTS, Data
+    Execute tCMD.CMD_SET_TIMEOUTS, Data
 End Sub
 
 Public Sub SetPageLoadTimeout(Optional ByVal millisecond As Long = 300000)
     Dim Data As New Dictionary
     Data.Add "pageLoad", millisecond
-    Execute CMD_SET_TIMEOUTS, Data
+    Execute tCMD.CMD_SET_TIMEOUTS, Data
 End Sub
 
 Public Sub SetScriptTimeout(Optional ByVal millisecond As Long = 30000)
     Dim Data As New Dictionary
     Data.Add "script", millisecond
-    Execute CMD_SET_TIMEOUTS, Data
+    Execute tCMD.CMD_SET_TIMEOUTS, Data
 End Sub
 
 Public Function GetImplicitlyWait() As Long
     Dim Data As New Dictionary
-    GetImplicitlyWait = Execute(CMD_GET_TIMEOUTS, Data)("value")("implicit")
+    GetImplicitlyWait = Execute(tCMD.CMD_GET_TIMEOUTS, Data)("value")("implicit")
 End Function
 
 Public Function GetPageLoadTimeout() As Long
     Dim Data As New Dictionary
-    GetPageLoadTimeout = Execute(CMD_GET_TIMEOUTS, Data)("value")("pageLoad")
+    GetPageLoadTimeout = Execute(tCMD.CMD_GET_TIMEOUTS, Data)("value")("pageLoad")
 End Function
 
 Public Function GetScriptTimeout() As Long
     Dim Data As New Dictionary
-    GetScriptTimeout = Execute(CMD_GET_TIMEOUTS, Data)("value")("script")
+    GetScriptTimeout = Execute(tCMD.CMD_GET_TIMEOUTS, Data)("value")("script")
 End Function
 
 Public Sub Wait(Optional ByVal milliseconds As Long = 300)
@@ -1327,7 +1349,7 @@ Public Function IsPresent(by_ As by, ByVal val As String) As Boolean
     timeout = GetImplicitlyWait()
     If timeout <> 0 Then SetImplicitlyWait 0
     Set Data = ToSelector(by_, val)
-    Set resp = Execute(CMD_FIND_ELEMENT, Data, False) 'don't raise an error if not present
+    Set resp = Execute(tCMD.CMD_FIND_ELEMENT, Data, False) 'don't raise an error if not present
     If IsResponseError(resp) Then
         IsPresent = False
     Else
@@ -1339,13 +1361,13 @@ End Function
 Public Function IsEnabled(element As WebElement) As Boolean
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    IsEnabled = Execute(CMD_IS_ELEMENT_ENABLED, Data)("value")
+    IsEnabled = Execute(tCMD.CMD_IS_ELEMENT_ENABLED, Data)("value")
 End Function
 
 Public Function IsDisplayed(element As WebElement) As Boolean
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
-    IsDisplayed = Execute(CMD_IS_ELEMENT_DISPLAYED, Data)("value")
+    IsDisplayed = Execute(tCMD.CMD_IS_ELEMENT_DISPLAYED, Data)("value")
 End Function
 
 Public Function GetBrowserName() As String
@@ -1354,28 +1376,28 @@ End Function
 
 Public Function GetAlertText() As String
     Dim Data As New Dictionary
-    GetAlertText = Execute(CMD_GET_ALERT_TEXT, Data)("value")
+    GetAlertText = Execute(tCMD.CMD_GET_ALERT_TEXT, Data)("value")
 End Function
 
 Public Sub SetAlertText(ByVal alertText As String)
     Dim Data As New Dictionary
     Data.Add "text", alertText
-    Execute CMD_SET_ALERT_VALUE, Data
+    Execute tCMD.CMD_SET_ALERT_VALUE, Data
 End Sub
 
 Public Sub AcceptAlert()
     Dim Data As New Dictionary
-    Execute CMD_ACCEPT_ALERT, Data
+    Execute tCMD.CMD_ACCEPT_ALERT, Data
 End Sub
 
 Public Sub DismissAlert()
     Dim Data As New Dictionary
-    Execute CMD_DISMISS_ALERT, Data
+    Execute tCMD.CMD_DISMISS_ALERT, Data
 End Sub
 
 Public Function IsAlertPresent() As Boolean
     Dim Data As New Dictionary, resp As Dictionary
-    Set resp = Execute(CMD_GET_ALERT_TEXT, Data, False)
+    Set resp = Execute(tCMD.CMD_GET_ALERT_TEXT, Data, False)
     If IsResponseError(resp) Then
         IsAlertPresent = False
     Else
@@ -1388,18 +1410,18 @@ Public Sub Clear(element As WebElement)
     Data.Add "id", element.elementId
     Data.Add "text", vbNullString
     Data.Add "value", vbNullString
-    Execute CMD_CLEAR_ELEMENT, Data
+    Execute tCMD.CMD_CLEAR_ELEMENT, Data
 End Sub
 
 Public Function GetTitle() As String
     Dim Data As New Dictionary
-    GetTitle = Execute(CMD_GET_TITLE, Data)("value")
+    GetTitle = Execute(tCMD.CMD_GET_TITLE, Data)("value")
 End Function
 
 Public Function GetShadowRoot(element As WebElement) As WebShadowRoot
     Dim Data As New Dictionary, resp As Dictionary
     Data.Add "id", element.elementId
-    Set resp = Execute(CMD_GET_ELEMENT_SHADOW_ROOT, Data)
+    Set resp = Execute(tCMD.CMD_GET_ELEMENT_SHADOW_ROOT, Data)
     Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOW_KEY))
 End Function
 
@@ -1407,7 +1429,7 @@ Public Function GetCSSProperty(ByVal Name As String, element As WebElement) As S
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
     Data.Add "name", Name
-    GetCSSProperty = Execute(CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, Data)("value")
+    GetCSSProperty = Execute(tCMD.CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, Data)("value")
 End Function
 
 Public Function GetInnerHTML(Optional element As WebElement) As String
@@ -1508,7 +1530,7 @@ End Function
 
 Public Function GetAllCookies() As WebCookies
     Dim Data As New Dictionary, resp As Collection, ck As WebCookie, cks As WebCookies
-    Set resp = Execute(CMD_GET_ALL_COOKIES, Data)("value")
+    Set resp = Execute(tCMD.CMD_GET_ALL_COOKIES, Data)("value")
     'Dim jc As New WebJSonConverter
     'Debug.Print jc.ConvertToJson(resp, 4)
     Set cks = Me.CreateCookies
@@ -1522,7 +1544,7 @@ Public Function GetAllCookies() As WebCookies
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
@@ -1531,7 +1553,7 @@ End Function
 Public Function GetCookie(ByVal cookieName) As WebCookie
     Dim Data As New Dictionary, resp As Dictionary, ck As New WebCookie
     Data.Add "name", cookieName
-    Set resp = Execute(CMD_GET_COOKIE, Data)("value")
+    Set resp = Execute(tCMD.CMD_GET_COOKIE, Data)("value")
     If resp.Exists("name") Then ck.Name = resp("name")
     If resp.Exists("domain") Then ck.Domain = resp("domain")
     If resp.Exists("expiry") Then ck.ExpiryUnix = resp("expiry")
@@ -1539,14 +1561,14 @@ Public Function GetCookie(ByVal cookieName) As WebCookie
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.path = resp("path")
+    If resp.Exists("path") Then ck.Path = resp("path")
     Set GetCookie = ck
 End Function
 
 Public Sub DeleteCookie(ByVal cookieName As String)
     Dim Data As New Dictionary
     Data.Add "name", cookieName
-    Execute CMD_DELETE_COOKIE, Data
+    Execute tCMD.CMD_DELETE_COOKIE, Data
 End Sub
 
 Public Sub SetCookie(ck As WebCookie)
@@ -1556,7 +1578,7 @@ Public Sub SetCookie(ck As WebCookie)
     'jc.OptionsUseDoubleForLargeNumbers = True
     If ck.Name <> "" And ck.Value <> "" Then
         Data.Add "cookie", ck.ToDictionary
-        Execute CMD_ADD_COOKIE, Data
+        Execute tCMD.CMD_ADD_COOKIE, Data
     End If
 End Sub
 
@@ -1569,7 +1591,7 @@ End Sub
 
 Public Sub DeleteAllCookies()
     Dim Data As New Dictionary
-    Execute CMD_DELETE_ALL_COOKIES, Data
+    Execute tCMD.CMD_DELETE_ALL_COOKIES, Data
 End Sub
 
 Public Function IsPageFound(ByVal url As String) As Boolean
@@ -1585,12 +1607,12 @@ Public Function GetSessionsInfo() As Collection
     If browser_ = svbaBrowser.Firefox Then
         Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
-    Set GetSessionsInfo = Execute(CMD_GET_ALL_SESSIONS)("value")
+    Set GetSessionsInfo = Execute(tCMD.CMD_GET_ALL_SESSIONS)("value")
 End Function
 
 Public Function GetDriverStatus() As Dictionary
     'Dim jc As New WebJSonConverter
-    Set GetDriverStatus = Execute(CMD_STATUS)("value")
+    Set GetDriverStatus = Execute(tCMD.CMD_STATUS)("value")
     'DriverVersion = resp("build")("version")
     'DriverVersion = Trim(Left(DriverVersion, InStr(DriverVersion, "(") - 1))
     'resp("message") 'gets info "MSEdgeDriver ready for new sessions."
@@ -1614,7 +1636,7 @@ Public Function FindElementFromShadowRoot(by_ As by, ByVal val As String, sRoot 
     
     Set Data = ToSelector(by_, val)
     Data.Add "sid", sRoot.shadowRootId
-    Set elem = ToWebElement(Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
+    Set elem = ToWebElement(Execute(tCMD.CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")(ELEMENT_KEY))
     
     If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
     
@@ -1630,7 +1652,7 @@ Public Function FindElementsFromShadowRoot(by_ As by, ByVal val As String, sRoot
     Set Data = ToSelector(by_, val)
     Data.Add "sid", sRoot.shadowRootId
     
-    Set elements = Execute(CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")
+    Set elements = Execute(tCMD.CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, Data)("value")
     
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
@@ -1762,12 +1784,12 @@ Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As B
 End Function
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim Method As String, path As String
+    Dim Method As String, Path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
     Method = driverCommand(0)
-    path = driverCommand(1)
+    Path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1779,22 +1801,34 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
-            path = Replace(path, "$" & parmKey, parameters(parmKey))
+        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
+            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
     Next parmKey
     
-    'there are commands that don't require sessionId in path: CMD_STATUS, CMD_NEW_SESSION, CMD_GET_ALL_SESSIONS, CMD_SHUTDOWN
+    'there are commands that don't require sessionId in path: tCMD.CMD_STATUS, tCMD.CMD_NEW_SESSION, tCMD.CMD_GET_ALL_SESSIONS, tCMD.CMD_SHUTDOWN
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(Method, driverUrl_ & path, cmdArgs)
+    Set response = SendRequest(Method, driverUrl_ & Path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
-        Err.raise 1, "WebDriver", GetResponseErrorMessage(response)
+        Dim lHttpStatus As Long
+        Select Case response.Item("value").Item("error")
+            'Complete list of error codes & numbers taken from here https://www.w3.org/TR/webdriver/#dfn-error-code as of 18-oct-2022
+            Case "element click intercepted", "element not interactable", "insecure certificate", "invalid argument", "invalid cookie domain", "invalid element state", "invalid selector"
+                lHttpStatus = 400 'Bad Request
+            Case "invalid session id", "no such alert", "no such cookie", "no such element", "no such frame", "no such window", "no such shadow root", "stale element reference", "detached shadow root", "unknown command"
+                lHttpStatus = 404 'Not Found
+            Case "javascript Error", "move target out of bounds", "script timeout error", "session not created", "timeout", "unable to set cookie", "unable to capture screen", "unexpected alert open", "unknown error", "unsupported operation"
+                lHttpStatus = 500 'Internal Server Error
+            Case "unknown method"
+                lHttpStatus = 405 'Method Not Allowed
+        End Select
+        Err.raise lHttpStatus, "WebDriver", GetResponseErrorMessage(response)
     End If
 
     Set Execute = response 'always pass a dictionary object - let caller parse info based on context, including error
@@ -1884,82 +1918,84 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
 End Function
 
 Private Sub InitCommands()
-    CMD_STATUS = Array("GET", "/status")
-    CMD_NEW_SESSION = Array("POST", "/session")
-    CMD_GET_ALL_SESSIONS = Array("GET", "/sessions")
-    CMD_QUIT = Array("DELETE", "/session/$sessionId")
-    CMD_GET_CURRENT_WINDOW_HANDLE = Array("GET", "/session/$sessionId/window")
-    CMD_GET_WINDOW_HANDLES = Array("GET", "/session/$sessionId/window/handles")
-    CMD_GET = Array("POST", "/session/$sessionId/url")
-    CMD_GO_FORWARD = Array("POST", "/session/$sessionId/forward")
-    CMD_GO_BACK = Array("POST", "/session/$sessionId/back")
-    CMD_REFRESH = Array("POST", "/session/$sessionId/refresh")
-    CMD_EXECUTE_SCRIPT = Array("POST", "/session/$sessionId/execute/sync")
-    CMD_EXECUTE_SCRIPT_ASYNC = Array("POST", "/session/$sessionId/execute/async")
-    CMD_GET_CURRENT_URL = Array("GET", "/session/$sessionId/url")
-    CMD_GET_TITLE = Array("GET", "/session/$sessionId/title")
-    CMD_GET_PAGE_SOURCE = Array("GET", "/session/$sessionId/source")
-    CMD_SCREENSHOT = Array("GET", "/session/$sessionId/screenshot")
-    CMD_ELEMENT_SCREENSHOT = Array("GET", "/session/$sessionId/element/$id/screenshot")
-    CMD_FIND_ELEMENT = Array("POST", "/session/$sessionId/element")
-    CMD_FIND_ELEMENTS = Array("POST", "/session/$sessionId/elements")
-    CMD_GET_ACTIVE_ELEMENT = Array("GET", "/session/$sessionId/element/active")
-    CMD_FIND_ELEMENT_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/element")
-    CMD_FIND_ELEMENTS_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/elements")
-    CMD_CLICK_ELEMENT = Array("POST", "/session/$sessionId/element/$id/click")
-    CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
-    CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
-    CMD_SEND_KEYS_TO_ELEMENT = Array("POST", "/session/$sessionId/element/$id/value")
-    'CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
-    CMD_GET_ELEMENT_TAG_NAME = Array("GET", "/session/$sessionId/element/$id/name")
-    CMD_IS_ELEMENT_SELECTED = Array("GET", "/session/$sessionId/element/$id/selected")
-    CMD_IS_ELEMENT_ENABLED = Array("GET", "/session/$sessionId/element/$id/enabled")
-    CMD_IS_ELEMENT_DISPLAYED = Array("GET", "/session/$sessionId/element/$id/displayed")
-    CMD_GET_ELEMENT_RECT = Array("GET", "/session/$sessionId/element/$id/rect")
-    CMD_GET_ELEMENT_ATTRIBUTE = Array("GET", "/session/$sessionId/element/$id/attribute/$name")
-    CMD_GET_ELEMENT_PROPERTY = Array("GET", "/session/$sessionId/element/$id/property/$name")
-    CMD_GET_ALL_COOKIES = Array("GET", "/session/$sessionId/cookie")
-    CMD_ADD_COOKIE = Array("POST", "/session/$sessionId/cookie")
-    CMD_GET_COOKIE = Array("GET", "/session/$sessionId/cookie/$name")
-    CMD_DELETE_ALL_COOKIES = Array("DELETE", "/session/$sessionId/cookie")
-    CMD_DELETE_COOKIE = Array("DELETE", "/session/$sessionId/cookie/$name")
-    CMD_SWITCH_TO_FRAME = Array("POST", "/session/$sessionId/frame")
-    CMD_SWITCH_TO_PARENT_FRAME = Array("POST", "/session/$sessionId/frame/parent")
-    CMD_SWITCH_TO_WINDOW = Array("POST", "/session/$sessionId/window")
-    CMD_NEW_WINDOW = Array("POST", "/session/$sessionId/window/new")
-    CMD_CLOSE = Array("DELETE", "/session/$sessionId/window")
-    CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY = Array("GET", "/session/$sessionId/element/$id/css/$name")
-    CMD_SET_TIMEOUTS = Array("POST", "/session/$sessionId/timeouts")
-    CMD_GET_TIMEOUTS = Array("GET", "/session/$sessionId/timeouts")
-    CMD_DISMISS_ALERT = Array("POST", "/session/$sessionId/alert/dismiss")
-    CMD_ACCEPT_ALERT = Array("POST", "/session/$sessionId/alert/accept")
-    CMD_SET_ALERT_VALUE = Array("POST", "/session/$sessionId/alert/text")
-    CMD_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
-    CMD_CLICK = Array("POST", "/session/$sessionId/click")
-    'CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in ActionChain.cls
-    'CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in ActionChain.cls
-    CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
-    CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
-    CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-    'CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-    'CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
-    'CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
-    'CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
-    'CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
-    'CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
-    'CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
-    'CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
-    'CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
-    'CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
-    CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
-    CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
-    CMD_SHUTDOWN = Array("GET", "/shutdown")
-    CMD_PRINT_PAGE = Array("POST", "/session/$sessionId/print")
-    CMD_GET_ELEMENT_SHADOW_ROOT = Array("GET", "/session/$sessionId/element/$id/shadow")
-    CMD_FIND_ELEMENT_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/element")
-    CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/elements")
-    CMD_GET_ELEMENT_ARIA_ROLE = Array("GET", "/session/$sessionId/element/$id/computedrole")
-    CMD_GET_ELEMENT_ARIA_LABEL = Array("GET", "/session/$sessionId/element/$id/computedlabel")
+    With tCMD
+        .CMD_STATUS = Array("GET", "/status")
+        .CMD_NEW_SESSION = Array("POST", "/session")
+        .CMD_GET_ALL_SESSIONS = Array("GET", "/sessions")
+        .CMD_QUIT = Array("DELETE", "/session/$sessionId")
+        .CMD_GET_CURRENT_WINDOW_HANDLE = Array("GET", "/session/$sessionId/window")
+        .CMD_GET_WINDOW_HANDLES = Array("GET", "/session/$sessionId/window/handles")
+        .CMD_GET = Array("POST", "/session/$sessionId/url")
+        .CMD_GO_FORWARD = Array("POST", "/session/$sessionId/forward")
+        .CMD_GO_BACK = Array("POST", "/session/$sessionId/back")
+        .CMD_REFRESH = Array("POST", "/session/$sessionId/refresh")
+        .CMD_EXECUTE_SCRIPT = Array("POST", "/session/$sessionId/execute/sync")
+        .CMD_EXECUTE_SCRIPT_ASYNC = Array("POST", "/session/$sessionId/execute/async")
+        .CMD_GET_CURRENT_URL = Array("GET", "/session/$sessionId/url")
+        .CMD_GET_TITLE = Array("GET", "/session/$sessionId/title")
+        .CMD_GET_PAGE_SOURCE = Array("GET", "/session/$sessionId/source")
+        .CMD_SCREENSHOT = Array("GET", "/session/$sessionId/screenshot")
+        .CMD_ELEMENT_SCREENSHOT = Array("GET", "/session/$sessionId/element/$id/screenshot")
+        .CMD_FIND_ELEMENT = Array("POST", "/session/$sessionId/element")
+        .CMD_FIND_ELEMENTS = Array("POST", "/session/$sessionId/elements")
+        .CMD_GET_ACTIVE_ELEMENT = Array("GET", "/session/$sessionId/element/active")
+        .CMD_FIND_ELEMENT_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/element")
+        .CMD_FIND_ELEMENTS_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/elements")
+        .CMD_CLICK_ELEMENT = Array("POST", "/session/$sessionId/element/$id/click")
+        .CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
+        .CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
+        .CMD_SEND_KEYS_TO_ELEMENT = Array("POST", "/session/$sessionId/element/$id/value")
+        '.CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
+        .CMD_GET_ELEMENT_TAG_NAME = Array("GET", "/session/$sessionId/element/$id/name")
+        .CMD_IS_ELEMENT_SELECTED = Array("GET", "/session/$sessionId/element/$id/selected")
+        .CMD_IS_ELEMENT_ENABLED = Array("GET", "/session/$sessionId/element/$id/enabled")
+        .CMD_IS_ELEMENT_DISPLAYED = Array("GET", "/session/$sessionId/element/$id/displayed")
+        .CMD_GET_ELEMENT_RECT = Array("GET", "/session/$sessionId/element/$id/rect")
+        .CMD_GET_ELEMENT_ATTRIBUTE = Array("GET", "/session/$sessionId/element/$id/attribute/$name")
+        .CMD_GET_ELEMENT_PROPERTY = Array("GET", "/session/$sessionId/element/$id/property/$name")
+        .CMD_GET_ALL_COOKIES = Array("GET", "/session/$sessionId/cookie")
+        .CMD_ADD_COOKIE = Array("POST", "/session/$sessionId/cookie")
+        .CMD_GET_COOKIE = Array("GET", "/session/$sessionId/cookie/$name")
+        .CMD_DELETE_ALL_COOKIES = Array("DELETE", "/session/$sessionId/cookie")
+        .CMD_DELETE_COOKIE = Array("DELETE", "/session/$sessionId/cookie/$name")
+        .CMD_SWITCH_TO_FRAME = Array("POST", "/session/$sessionId/frame")
+        .CMD_SWITCH_TO_PARENT_FRAME = Array("POST", "/session/$sessionId/frame/parent")
+        .CMD_SWITCH_TO_WINDOW = Array("POST", "/session/$sessionId/window")
+        .CMD_NEW_WINDOW = Array("POST", "/session/$sessionId/window/new")
+        .CMD_CLOSE = Array("DELETE", "/session/$sessionId/window")
+        .CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY = Array("GET", "/session/$sessionId/element/$id/css/$name")
+        .CMD_SET_TIMEOUTS = Array("POST", "/session/$sessionId/timeouts")
+        .CMD_GET_TIMEOUTS = Array("GET", "/session/$sessionId/timeouts")
+        .CMD_DISMISS_ALERT = Array("POST", "/session/$sessionId/alert/dismiss")
+        .CMD_ACCEPT_ALERT = Array("POST", "/session/$sessionId/alert/accept")
+        .CMD_SET_ALERT_VALUE = Array("POST", "/session/$sessionId/alert/text")
+        .CMD_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
+        .CMD_CLICK = Array("POST", "/session/$sessionId/click")
+        '.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in ActionChain.cls
+        '.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in ActionChain.cls
+        .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
+        .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
+        .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
+        '.CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
+        '.CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+        '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
+        '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
+        '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
+        '.CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
+        '.CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
+        '.CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
+        '.CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
+        '.CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
+        .CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
+        .CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
+        .CMD_SHUTDOWN = Array("GET", "/shutdown")
+        .CMD_PRINT_PAGE = Array("POST", "/session/$sessionId/print")
+        .CMD_GET_ELEMENT_SHADOW_ROOT = Array("GET", "/session/$sessionId/element/$id/shadow")
+        .CMD_FIND_ELEMENT_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/element")
+        .CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/elements")
+        .CMD_GET_ELEMENT_ARIA_ROLE = Array("GET", "/session/$sessionId/element/$id/computedrole")
+        .CMD_GET_ELEMENT_ARIA_LABEL = Array("GET", "/session/$sessionId/element/$id/computedlabel")
+    End With
 End Sub
 
 Private Sub Class_Initialize()
@@ -1969,7 +2005,7 @@ Private Sub Class_Initialize()
     'properties so these below are just reasonable starting points...
     'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
     'referencing the SeleniumVBA Add-in, but same otherwise
-    Me.DefaultBinaryFolder = ThisWorkbook.path
+    Me.DefaultBinaryFolder = ThisWorkbook.Path
     Me.DefaultIOFolder = ActiveVBAProjectFolderPath
 End Sub
 
@@ -2057,7 +2093,7 @@ Private Sub KillDriver(ByVal browser As svbaBrowser, Optional ByVal port As Inte
 End Sub
 
 Private Function TaskKillByPid(ByVal pid As String)
-    Dim wsh As New IWshRuntimeLibrary.wshShell
+    Dim wsh As New IWshRuntimeLibrary.WshShell
     TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function
 

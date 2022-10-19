@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.1
+' SeleniumVBA v2.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -289,6 +289,11 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\
         Me.SetPreference "safebrowsing.enabled", True
         Me.SetPreference "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer
         'Me.SetPreference "safebrowsing.disable_download_protection", True
+        'Me.SetPreference "profile.default_content_settings.popups", False '0
+        'Me.SetPreference "profile.default_content_settings.javascript", True '1
+        'Me.SetPreference "profile.default_content_setting_values.notifications", 2
+        'Me.SetPreference "profile.content_settings.exceptions.automatic_downloads.*.setting", True '1
+        'Me.SetPreference "profile.default_content_setting_values.automatic_downloads", True '1
     Case svbaBrowser.Firefox
         Me.SetPreference "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
         Me.SetPreference "browser.download.dir", downloadDirectoryPath
