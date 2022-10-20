@@ -1,4 +1,4 @@
-Attribute VB_Name = "ClassConstructors"
+Attribute VB_Name = "ClassFactory"
 ' These methods are used to instantiate the objects in other projects that reference this Add-in project
 ' See https://docs.microsoft.com/en-us/previous-versions/office/troubleshoot/office-developer/set-up-vb-project-using-class
 '
