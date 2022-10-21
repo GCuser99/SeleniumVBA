@@ -5,9 +5,11 @@ Option Private Module
 Sub test_print()
     Dim driver As SeleniumVBA.WebDriver
     Dim settings As SeleniumVBA.WebPrintSettings
+    Dim keys As SeleniumVBA.WebKeyboard
 
     Set driver = SeleniumVBA.New_WebDriver
     Set settings = SeleniumVBA.New_WebPrintSettings
+    Set keys = SeleniumVBA.New_WebKeyboard
     
     'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
@@ -18,7 +20,7 @@ Sub test_print()
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci" & vbCrLf
+    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
     
     driver.Wait 1000
     

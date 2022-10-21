@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.2
+' SeleniumVBA v2.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -325,7 +325,7 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
     Dim fso As New FileSystemObject, ts As textstream
     Dim jc As New WebJSonConverter
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
-    Set ts = fso.CreateTextFile(filePath, True)
+    Set ts = fso.CreateTextFile(filePath, True, True)
     ts.Write Me.ToJson
     ts.Close
 End Sub
@@ -337,8 +337,8 @@ Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
     If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist!"
-    
-    Set ts = fso.OpenTextFile(filePath)
+    'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
+    Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     Set data_ = jc.ParseJSON(ts.ReadAll)
     ts.Close
     

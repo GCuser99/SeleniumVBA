@@ -21,7 +21,7 @@ Sub test_sendkeys()
     
     driver.FindElement(by.ID, "searchInput").SendKeys keySeq
 
-    driver.Wait 1000
+    driver.Wait 1500
     
     driver.CloseBrowser
     driver.Shutdown

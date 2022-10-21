@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.2
+' SeleniumVBA v2.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -213,9 +213,9 @@ Public Function IsDisplayed() As Boolean
     IsDisplayed = driver_.IsDisplayed(Me)
 End Function
 
-Public Sub Clear()
-    driver_.Clear Me
-End Sub
+Public Function Clear() As WebElement
+    Set Clear = driver_.Clear(Me)
+End Function
 
 Public Function GetInnerHTML() As String
     GetInnerHTML = driver_.GetInnerHTML(Me)
@@ -225,21 +225,21 @@ Public Function GetOuterHTML() As String
     GetOuterHTML = driver_.GetOuterHTML(Me)
 End Function
 
-Public Sub SetFocus()
-    driver_.SetFocus Me
-End Sub
+Public Function SetFocus() As WebElement
+    Set SetFocus = driver_.SetFocus(Me)
+End Function
 
-Public Sub SetFocusNoScroll()
-    driver_.SetFocusNoScroll Me
-End Sub
+Public Function SetFocusNoScroll() As WebElement
+    Set SetFocusNoScroll = driver_.SetFocusNoScroll(Me)
+End Function
 
-Public Sub ScrollToElement(Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0)
-    driver_.ScrollToElement Me, xOffset, yOffset
-End Sub
+Public Function ScrollToElement(Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
+    Set ScrollToElement = driver_.ScrollToElement(Me, xOffset, yOffset)
+End Function
 
-Public Sub ScrollIntoView(Optional ByVal alignTop As Boolean = True)
-    driver_.ScrollIntoView Me, alignTop
-End Sub
+Public Function ScrollIntoView(Optional ByVal alignTop As Boolean = True) As WebElement
+    Set ScrollIntoView = driver_.ScrollIntoView(Me, alignTop)
+End Function
 
 Public Function GetShadowRoot() As WebShadowRoot
     Set GetShadowRoot = driver_.GetShadowRoot(Me)

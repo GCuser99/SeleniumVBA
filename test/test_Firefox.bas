@@ -12,7 +12,6 @@ Option Private Module
 '
 'Known limitations for of Geckodriver:
 '
-'- Wheel-type actions in action chains not supported (no action scrolls)
 '- Aria methods not supported (GetAriaLabel & GetAriaRole)
 '- Shutdown Method not recognized (currrently using taskkill to shutdown)
 '- Multi-sessions not supported
@@ -96,55 +95,6 @@ Sub test_file_download()
     
     driver.Wait 4000
             
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-Sub test_action_chain()
-    'wheel-type actions are not allowed in Firefox, so must remove ScrollBy action from chain
-    'otherwise action chains work fine
-    Dim driver As SeleniumVBA.WebDriver, actions As SeleniumVBA.WebActionChain
-    Dim from1 As SeleniumVBA.WebElement, to1 As SeleniumVBA.WebElement
-    Dim from2 As SeleniumVBA.WebElement, to2 As SeleniumVBA.WebElement
-    Dim from3 As SeleniumVBA.WebElement, to3 As SeleniumVBA.WebElement
-    Dim from4 As SeleniumVBA.WebElement, to4 As SeleniumVBA.WebElement
-    Dim elem As SeleniumVBA.WebElement
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartFirefox
-    
-    driver.OpenBrowser
-    
-    driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
-    
-    Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
-    Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")
-    
-    Set from2 = driver.FindElement(by.XPath, "//*[@id='credit1']/a")
-    Set to2 = driver.FindElement(by.XPath, "//*[@id='loan']/li")
-    
-    Set from3 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to3 = driver.FindElement(by.XPath, "//*[@id='amt7']/li")
-    
-    Set from4 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to4 = driver.FindElement(by.XPath, "//*[@id='amt8']/li")
-    
-    driver.Wait 1000
-    
-    driver.ScrollBy , 500
-    
-    Set actions = driver.ActionChain
-    'scroll actions are not accepted by Firefox
-    'actions.ScrollBy , 500
-    actions.DragAndDrop(from1, to1).Wait
-    actions.DragAndDrop(from2, to2).Wait
-    actions.DragAndDrop(from3, to3).Wait
-    'an alternative method to Drag and Drop
-    actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton.Wait (1000)
-    actions.Perform 'do all the actions defined above
-    
-    driver.Wait 1000
     driver.CloseBrowser
     driver.Shutdown
 End Sub

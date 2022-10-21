@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.2
+' SeleniumVBA v2.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -106,7 +106,7 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
     Dim fs As New FileSystemObject, ts As textstream, darray() As Dictionary, i
     Dim jc As New WebJSonConverter
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
-    Set ts = fs.CreateTextFile(filePath, True)
+    Set ts = fs.CreateTextFile(filePath, True, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
@@ -122,8 +122,8 @@ Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt"
     Me.RemoveAll
     
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
-    
-    Set ts = fs.OpenTextFile(filePath)
+    'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
+    Set ts = fs.OpenTextFile(filePath, , , TristateUseDefault)
     str = ts.ReadAll
     ts.Close
     Set v = jc.ParseJSON(str)

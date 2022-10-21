@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.2
+' SeleniumVBA v2.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99

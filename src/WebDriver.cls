@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.2
+' SeleniumVBA v2.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -1405,13 +1405,14 @@ Public Function IsAlertPresent() As Boolean
     End If
 End Function
 
-Public Sub Clear(element As WebElement)
+Public Function Clear(element As WebElement) As WebElement
     Dim Data As New Dictionary
     Data.Add "id", element.elementId
     Data.Add "text", vbNullString
     Data.Add "value", vbNullString
     Execute tCMD.CMD_CLEAR_ELEMENT, Data
-End Sub
+    Set Clear = element
+End Function
 
 Public Function GetTitle() As String
     Dim Data As New Dictionary
@@ -1435,7 +1436,7 @@ End Function
 Public Function GetInnerHTML(Optional element As WebElement) As String
     Dim script As String
     If element Is Nothing Then
-        script = "return document.body.innerHTML"
+        script = "return document.documentElement.innerHTML"
         GetInnerHTML = ExecuteScript(script)
     Else
         script = "return arguments[0].innerHTML"
@@ -1446,7 +1447,7 @@ End Function
 Public Function GetOuterHTML(Optional element As WebElement) As String
     Dim script As String
     If element Is Nothing Then
-        script = "return document.body.outerHTML"
+        script = "return document.documentElement.outerHTML"
         GetOuterHTML = ExecuteScript(script)
     Else
         script = "return arguments[0].outerHTML"
@@ -1477,28 +1478,32 @@ Public Function CreateCookies() As WebCookies
     Set CreateCookies = cks
 End Function
 
-Public Sub SetFocus(element As WebElement)
+Public Function SetFocus(element As WebElement) As WebElement
     Dim script As String
     script = "arguments[0].focus({'preventScroll': arguments[1]})"
     ExecuteScript script, element, 0  'Scroll
-End Sub
+    Set SetFocus = element
+End Function
 
-Public Sub SetFocusNoScroll(element As WebElement)
+Public Function SetFocusNoScroll(element As WebElement) As WebElement
     Dim script As String
     script = "arguments[0].focus({'preventScroll': arguments[1]})"
     ExecuteScript script, element, 1  'No Scroll
-End Sub
+    Set SetFocusNoScroll = element
+End Function
 
-Public Sub ScrollToElement(element As WebElement, Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0)
+Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
     ScrollIntoView element, True
     ScrollBy xOffset, yOffset
-End Sub
+    Set ScrollToElement = element
+End Function
 
-Public Sub ScrollIntoView(element As WebElement, Optional ByVal alignTop As Boolean = True)
+Public Function ScrollIntoView(element As WebElement, Optional ByVal alignTop As Boolean = True) As WebElement
     Dim script As String
     script = "arguments[0].scrollIntoView(" & LCase(alignTop) & ");"
     ExecuteScript script, element
-End Sub
+    Set ScrollIntoView = element
+End Function
 
 Public Sub ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0)
     Dim script As String
@@ -1753,7 +1758,7 @@ Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As St
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject, ts As textstream
     filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
-    Set ts = fs.CreateTextFile(filePath, True)
+    Set ts = fs.CreateTextFile(filePath, True, True)
     ts.Write snippet
     ts.Close
 End Sub

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.2
+' SeleniumVBA v2.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -93,7 +93,7 @@ Attribute VB_Exposed = True
 
 Option Explicit
 
-Private Const DEFAULT_PAUSE_DURATION = 300
+Private Const DEFAULT_PAUSE_DURATION = 350
 Private driver_ As WebDriver
 Private data_ As Dictionary
 
@@ -744,10 +744,6 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     Dim inputChan As New Dictionary, inputChans() As Variant
     Dim actions() As Dictionary
     
-    If driver_.GetBrowserName = "firefox" Then
-        Err.raise 1, "WebActionChain", "Scroll actions not supported for Firefox WebDriver"
-    End If
-    
     ReDim actions(0 To 0)
     Set actions(0) = ActionScroll(, , xOffset, yOffset, , element.elementId)
     
@@ -771,10 +767,6 @@ End Function
 Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
     Dim inputChan As New Dictionary, inputChans() As Variant
     Dim actions() As Dictionary
-    
-    If driver_.GetBrowserName = "firefox" Then
-        Err.raise 1, "WebActionChain", "Scroll actions not supported for Firefox WebDriver"
-    End If
     
     ReDim actions(0 To 0)
     Set actions(0) = ActionScroll(, , xOffset, yOffset)
@@ -807,7 +799,7 @@ Public Sub Perform()
     'or we execute one input channel at a time in the order in which the inputs were added,
     'making multi-calls to tCMD.CMD_ACTIONS
     
-    'Note for future: Firefox and IEdriverServer doe not support wheel actions
+    'Note for future: IEdriverServer dose not support wheel actions
     
     If data_.Exists("actions") Then
         'multi-call method:
