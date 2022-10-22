@@ -115,7 +115,7 @@ Sub test_element_aria()
     driver.StartFirefox
     driver.OpenBrowser
     
-    driver.SaveHTMLToFile str, filePath
+    driver.SaveStringToFile str, filePath
     
     driver.NavigateToFile filePath
     

@@ -1754,12 +1754,12 @@ Public Sub DeleteFiles(ParamArray filelist() As Variant)
     Next i
 End Sub
 
-Public Sub SaveHTMLToFile(ByVal snippet As String, Optional ByVal filePath As String = ".\snippet.html")
+Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filePath As String = ".\snippet.html")
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject, ts As textstream
     filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
     Set ts = fs.CreateTextFile(filePath, True, True)
-    ts.Write snippet
+    ts.Write val
     ts.Close
 End Sub
 

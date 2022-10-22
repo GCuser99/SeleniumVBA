@@ -12,7 +12,7 @@ Sub test_highlight()
     driver.OpenBrowser
     
     htmlStr = "<html><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>3</td><td><table border='l'><tbody><tr><td>4A</td><td>4B</td></tr><tr><td>4C</td><td>4D</td></tr></tbody></table></td></tr></tbody><tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
-    driver.SaveHTMLToFile htmlStr, ".\snippet.html"
+    driver.SaveStringToFile htmlStr, ".\snippet.html"
     
     driver.NavigateToFile ".\snippet.html"
     

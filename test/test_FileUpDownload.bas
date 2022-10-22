@@ -15,7 +15,7 @@ Sub test_file_upload()
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
-    driver.SaveHTMLToFile str, ".\snippet.html"
+    driver.SaveStringToFile str, ".\snippet.html"
     
     driver.NavigateTo "https://demo.guru99.com/test/upload/"
 
