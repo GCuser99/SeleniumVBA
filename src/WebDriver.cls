@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.3
+' SeleniumVBA v2.3.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -78,7 +78,7 @@ Private driverUrl_ As String
 Private browser_ As svbaBrowser
 Private appWinStyle As VbAppWinStyle
 Private defaultIOFolder_ As String
-Private defaultBinaryFolder_ As String
+Private DefaultDriverFolder_ As String
 
 Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original style of Highlighted elements to be able to UnHighlight them at a future time
 
@@ -202,6 +202,99 @@ End Enum
 
 'Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
+Private Sub Class_Initialize()
+    InitCommands
+    Me.CommandWindowStyle = vbHide
+    'note that user has control through the DefaultIOFolder and DefaultDriverFolder
+    'properties so these below are just reasonable starting points...
+    'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
+    'referencing the SeleniumVBA Add-in, but same otherwise
+    Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
+    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
+    Me.DefaultIOFolder = ActiveVBAProjectFolderPath
+End Sub
+
+Private Sub InitCommands()
+    With tCMD
+        .CMD_STATUS = Array("GET", "/status")
+        .CMD_NEW_SESSION = Array("POST", "/session")
+        .CMD_GET_ALL_SESSIONS = Array("GET", "/sessions")
+        .CMD_QUIT = Array("DELETE", "/session/$sessionId")
+        .CMD_GET_CURRENT_WINDOW_HANDLE = Array("GET", "/session/$sessionId/window")
+        .CMD_GET_WINDOW_HANDLES = Array("GET", "/session/$sessionId/window/handles")
+        .CMD_GET = Array("POST", "/session/$sessionId/url")
+        .CMD_GO_FORWARD = Array("POST", "/session/$sessionId/forward")
+        .CMD_GO_BACK = Array("POST", "/session/$sessionId/back")
+        .CMD_REFRESH = Array("POST", "/session/$sessionId/refresh")
+        .CMD_EXECUTE_SCRIPT = Array("POST", "/session/$sessionId/execute/sync")
+        .CMD_EXECUTE_SCRIPT_ASYNC = Array("POST", "/session/$sessionId/execute/async")
+        .CMD_GET_CURRENT_URL = Array("GET", "/session/$sessionId/url")
+        .CMD_GET_TITLE = Array("GET", "/session/$sessionId/title")
+        .CMD_GET_PAGE_SOURCE = Array("GET", "/session/$sessionId/source")
+        .CMD_SCREENSHOT = Array("GET", "/session/$sessionId/screenshot")
+        .CMD_ELEMENT_SCREENSHOT = Array("GET", "/session/$sessionId/element/$id/screenshot")
+        .CMD_FIND_ELEMENT = Array("POST", "/session/$sessionId/element")
+        .CMD_FIND_ELEMENTS = Array("POST", "/session/$sessionId/elements")
+        .CMD_GET_ACTIVE_ELEMENT = Array("GET", "/session/$sessionId/element/active")
+        .CMD_FIND_ELEMENT_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/element")
+        .CMD_FIND_ELEMENTS_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/elements")
+        .CMD_CLICK_ELEMENT = Array("POST", "/session/$sessionId/element/$id/click")
+        .CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
+        .CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
+        .CMD_SEND_KEYS_TO_ELEMENT = Array("POST", "/session/$sessionId/element/$id/value")
+        '.CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
+        .CMD_GET_ELEMENT_TAG_NAME = Array("GET", "/session/$sessionId/element/$id/name")
+        .CMD_IS_ELEMENT_SELECTED = Array("GET", "/session/$sessionId/element/$id/selected")
+        .CMD_IS_ELEMENT_ENABLED = Array("GET", "/session/$sessionId/element/$id/enabled")
+        .CMD_IS_ELEMENT_DISPLAYED = Array("GET", "/session/$sessionId/element/$id/displayed")
+        .CMD_GET_ELEMENT_RECT = Array("GET", "/session/$sessionId/element/$id/rect")
+        .CMD_GET_ELEMENT_ATTRIBUTE = Array("GET", "/session/$sessionId/element/$id/attribute/$name")
+        .CMD_GET_ELEMENT_PROPERTY = Array("GET", "/session/$sessionId/element/$id/property/$name")
+        .CMD_GET_ALL_COOKIES = Array("GET", "/session/$sessionId/cookie")
+        .CMD_ADD_COOKIE = Array("POST", "/session/$sessionId/cookie")
+        .CMD_GET_COOKIE = Array("GET", "/session/$sessionId/cookie/$name")
+        .CMD_DELETE_ALL_COOKIES = Array("DELETE", "/session/$sessionId/cookie")
+        .CMD_DELETE_COOKIE = Array("DELETE", "/session/$sessionId/cookie/$name")
+        .CMD_SWITCH_TO_FRAME = Array("POST", "/session/$sessionId/frame")
+        .CMD_SWITCH_TO_PARENT_FRAME = Array("POST", "/session/$sessionId/frame/parent")
+        .CMD_SWITCH_TO_WINDOW = Array("POST", "/session/$sessionId/window")
+        .CMD_NEW_WINDOW = Array("POST", "/session/$sessionId/window/new")
+        .CMD_CLOSE = Array("DELETE", "/session/$sessionId/window")
+        .CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY = Array("GET", "/session/$sessionId/element/$id/css/$name")
+        .CMD_SET_TIMEOUTS = Array("POST", "/session/$sessionId/timeouts")
+        .CMD_GET_TIMEOUTS = Array("GET", "/session/$sessionId/timeouts")
+        .CMD_DISMISS_ALERT = Array("POST", "/session/$sessionId/alert/dismiss")
+        .CMD_ACCEPT_ALERT = Array("POST", "/session/$sessionId/alert/accept")
+        .CMD_SET_ALERT_VALUE = Array("POST", "/session/$sessionId/alert/text")
+        .CMD_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
+        .CMD_CLICK = Array("POST", "/session/$sessionId/click")
+        '.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in ActionChain.cls
+        '.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in ActionChain.cls
+        .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
+        .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
+        .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
+        '.CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
+        '.CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+        '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
+        '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
+        '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
+        '.CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
+        '.CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
+        '.CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
+        '.CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
+        '.CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
+        .CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
+        .CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
+        .CMD_SHUTDOWN = Array("GET", "/shutdown")
+        .CMD_PRINT_PAGE = Array("POST", "/session/$sessionId/print")
+        .CMD_GET_ELEMENT_SHADOW_ROOT = Array("GET", "/session/$sessionId/element/$id/shadow")
+        .CMD_FIND_ELEMENT_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/element")
+        .CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/elements")
+        .CMD_GET_ELEMENT_ARIA_ROLE = Array("GET", "/session/$sessionId/element/$id/computedrole")
+        .CMD_GET_ELEMENT_ARIA_LABEL = Array("GET", "/session/$sessionId/element/$id/computedlabel")
+    End With
+End Sub
+
 Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
     appWinStyle = style
 End Property
@@ -231,7 +324,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
         KillDriver browser_, localHostPort
     End If
     
-    driverPath = WebShared.GetFullLocalPath(driverPath, defaultBinaryFolder_)
+    driverPath = WebShared.GetFullLocalPath(driverPath, DefaultDriverFolder_)
 
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
@@ -1721,12 +1814,13 @@ Public Property Get DefaultIOFolder() As String
     DefaultIOFolder = defaultIOFolder_
 End Property
 
-Public Property Let DefaultBinaryFolder(ByVal folderPath As String)
-    defaultBinaryFolder_ = WebShared.GetFullLocalPath(folderPath)
+Public Property Let DefaultDriverFolder(folderPath As String)
+'Note: default folder is Downloads dir
+    DefaultDriverFolder_ = WebShared.GetFullLocalPath(folderPath)
 End Property
 
-Public Property Get DefaultBinaryFolder() As String
-    DefaultBinaryFolder = defaultBinaryFolder_
+Public Property Get DefaultDriverFolder() As String
+    DefaultDriverFolder = DefaultDriverFolder_
 End Property
 
 Public Sub DeleteFiles(ParamArray filelist() As Variant)
@@ -1921,98 +2015,6 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
         Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
-
-Private Sub InitCommands()
-    With tCMD
-        .CMD_STATUS = Array("GET", "/status")
-        .CMD_NEW_SESSION = Array("POST", "/session")
-        .CMD_GET_ALL_SESSIONS = Array("GET", "/sessions")
-        .CMD_QUIT = Array("DELETE", "/session/$sessionId")
-        .CMD_GET_CURRENT_WINDOW_HANDLE = Array("GET", "/session/$sessionId/window")
-        .CMD_GET_WINDOW_HANDLES = Array("GET", "/session/$sessionId/window/handles")
-        .CMD_GET = Array("POST", "/session/$sessionId/url")
-        .CMD_GO_FORWARD = Array("POST", "/session/$sessionId/forward")
-        .CMD_GO_BACK = Array("POST", "/session/$sessionId/back")
-        .CMD_REFRESH = Array("POST", "/session/$sessionId/refresh")
-        .CMD_EXECUTE_SCRIPT = Array("POST", "/session/$sessionId/execute/sync")
-        .CMD_EXECUTE_SCRIPT_ASYNC = Array("POST", "/session/$sessionId/execute/async")
-        .CMD_GET_CURRENT_URL = Array("GET", "/session/$sessionId/url")
-        .CMD_GET_TITLE = Array("GET", "/session/$sessionId/title")
-        .CMD_GET_PAGE_SOURCE = Array("GET", "/session/$sessionId/source")
-        .CMD_SCREENSHOT = Array("GET", "/session/$sessionId/screenshot")
-        .CMD_ELEMENT_SCREENSHOT = Array("GET", "/session/$sessionId/element/$id/screenshot")
-        .CMD_FIND_ELEMENT = Array("POST", "/session/$sessionId/element")
-        .CMD_FIND_ELEMENTS = Array("POST", "/session/$sessionId/elements")
-        .CMD_GET_ACTIVE_ELEMENT = Array("GET", "/session/$sessionId/element/active")
-        .CMD_FIND_ELEMENT_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/element")
-        .CMD_FIND_ELEMENTS_FROM_ELEMENT = Array("POST", "/session/$sessionId/element/$id/elements")
-        .CMD_CLICK_ELEMENT = Array("POST", "/session/$sessionId/element/$id/click")
-        .CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
-        .CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
-        .CMD_SEND_KEYS_TO_ELEMENT = Array("POST", "/session/$sessionId/element/$id/value")
-        '.CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
-        .CMD_GET_ELEMENT_TAG_NAME = Array("GET", "/session/$sessionId/element/$id/name")
-        .CMD_IS_ELEMENT_SELECTED = Array("GET", "/session/$sessionId/element/$id/selected")
-        .CMD_IS_ELEMENT_ENABLED = Array("GET", "/session/$sessionId/element/$id/enabled")
-        .CMD_IS_ELEMENT_DISPLAYED = Array("GET", "/session/$sessionId/element/$id/displayed")
-        .CMD_GET_ELEMENT_RECT = Array("GET", "/session/$sessionId/element/$id/rect")
-        .CMD_GET_ELEMENT_ATTRIBUTE = Array("GET", "/session/$sessionId/element/$id/attribute/$name")
-        .CMD_GET_ELEMENT_PROPERTY = Array("GET", "/session/$sessionId/element/$id/property/$name")
-        .CMD_GET_ALL_COOKIES = Array("GET", "/session/$sessionId/cookie")
-        .CMD_ADD_COOKIE = Array("POST", "/session/$sessionId/cookie")
-        .CMD_GET_COOKIE = Array("GET", "/session/$sessionId/cookie/$name")
-        .CMD_DELETE_ALL_COOKIES = Array("DELETE", "/session/$sessionId/cookie")
-        .CMD_DELETE_COOKIE = Array("DELETE", "/session/$sessionId/cookie/$name")
-        .CMD_SWITCH_TO_FRAME = Array("POST", "/session/$sessionId/frame")
-        .CMD_SWITCH_TO_PARENT_FRAME = Array("POST", "/session/$sessionId/frame/parent")
-        .CMD_SWITCH_TO_WINDOW = Array("POST", "/session/$sessionId/window")
-        .CMD_NEW_WINDOW = Array("POST", "/session/$sessionId/window/new")
-        .CMD_CLOSE = Array("DELETE", "/session/$sessionId/window")
-        .CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY = Array("GET", "/session/$sessionId/element/$id/css/$name")
-        .CMD_SET_TIMEOUTS = Array("POST", "/session/$sessionId/timeouts")
-        .CMD_GET_TIMEOUTS = Array("GET", "/session/$sessionId/timeouts")
-        .CMD_DISMISS_ALERT = Array("POST", "/session/$sessionId/alert/dismiss")
-        .CMD_ACCEPT_ALERT = Array("POST", "/session/$sessionId/alert/accept")
-        .CMD_SET_ALERT_VALUE = Array("POST", "/session/$sessionId/alert/text")
-        .CMD_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
-        .CMD_CLICK = Array("POST", "/session/$sessionId/click")
-        '.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in ActionChain.cls
-        '.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in ActionChain.cls
-        .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
-        .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
-        .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-        '.CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-        '.CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
-        '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
-        '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
-        '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
-        '.CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
-        '.CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
-        '.CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
-        '.CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
-        '.CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
-        .CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
-        .CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
-        .CMD_SHUTDOWN = Array("GET", "/shutdown")
-        .CMD_PRINT_PAGE = Array("POST", "/session/$sessionId/print")
-        .CMD_GET_ELEMENT_SHADOW_ROOT = Array("GET", "/session/$sessionId/element/$id/shadow")
-        .CMD_FIND_ELEMENT_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/element")
-        .CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/elements")
-        .CMD_GET_ELEMENT_ARIA_ROLE = Array("GET", "/session/$sessionId/element/$id/computedrole")
-        .CMD_GET_ELEMENT_ARIA_LABEL = Array("GET", "/session/$sessionId/element/$id/computedlabel")
-    End With
-End Sub
-
-Private Sub Class_Initialize()
-    InitCommands
-    Me.CommandWindowStyle = vbHide
-    'note that user has control through the DefaultIOFolder and DefaultBinaryFolder
-    'properties so these below are just reasonable starting points...
-    'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
-    'referencing the SeleniumVBA Add-in, but same otherwise
-    Me.DefaultBinaryFolder = ThisWorkbook.Path
-    Me.DefaultIOFolder = ActiveVBAProjectFolderPath
-End Sub
 
 Private Sub TimerWait(ByVal durationMS As Long)
     'pause in milliseconds

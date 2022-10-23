@@ -41,7 +41,7 @@ Sub test_updateDrivers()
     
     Set mngr = SeleniumVBA.New_WebDriverManager
     
-    'mngr.DefaultBinaryFolder = [your binary folder path here] 'defaults to ".\"
+    'mngr.DefaultDriverFolder = [your binary folder path here] 'defaults to Downloads dir
     
     MsgBox mngr.AlignEdgeDriverWithBrowser()
     MsgBox mngr.AlignChromeDriverWithBrowser()
@@ -55,7 +55,7 @@ Sub test_updateDriversForSeleniumBasic()
     
     Set mngr = SeleniumVBA.New_WebDriverManager
     
-    mngr.DefaultBinaryFolder = mngr.GetSeleniumBasicFolderPath
+    mngr.DefaultDriverFolder = mngr.GetSeleniumBasicFolderPath
     
     MsgBox mngr.AlignEdgeDriverWithBrowser("edgedriver.exe")
     MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe")

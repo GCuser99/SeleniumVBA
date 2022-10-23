@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.3
+' SeleniumVBA v2.3.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -73,7 +73,7 @@ Attribute VB_Exposed = True
 '   The Align* methods have a runSilent input parameter that if set to True, will not throw any of the expected errors -
 '   this is used with the auto-check/install of the WebDriver Start* methods to make this feature as innocuous/stealth as possible.
 '   Relative driver paths are supported (e.g. ".\msedgedriver.exe").
-'   Use the DefaultBinaryFolder property to specify a driver location other than ".\"
+'   Use the DefaultDriverFolder property to specify a driver location other than the Downloads dir
 '   A different level of minimum version compatibility can be specified [svbaMajor, svbaMinor, svbaBuildMajor, svbaExactMatch].
 '   The default level is set for the Align* methods to svbaExactMatch, meaning that the most recent compatible release
 '   will be installed if it is not already. However, as an example, the setting for the auto-check in the Start method of
@@ -95,7 +95,7 @@ Private Declare PtrSafe Function URLDownloadToFile Lib "urlmon" _
     ByVal szURL As String, ByVal szFileName As String, _
     ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 
-Private mDefaultBinaryFolder As String
+Private mDefaultDriverFolder As String
 
 Public Enum svbaCompatibility
     svbaNotCompatible = 0
@@ -111,12 +111,17 @@ Public Enum svbaBrowser
     Firefox = 3
 End Enum
 
-Public Property Let DefaultBinaryFolder(ByVal folderPath As String)
-    mDefaultBinaryFolder = WebShared.GetFullLocalPath(folderPath)
+Private Sub Class_Initialize()
+    Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
+    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
+End Sub
+
+Public Property Let DefaultDriverFolder(ByVal folderPath As String)
+    mDefaultDriverFolder = WebShared.GetFullLocalPath(folderPath)
 End Property
 
-Public Property Get DefaultBinaryFolder() As String
-    DefaultBinaryFolder = mDefaultBinaryFolder
+Public Property Get DefaultDriverFolder() As String
+    DefaultDriverFolder = mDefaultDriverFolder
 End Property
 
 Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal driverPath As String, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent = False) As String
@@ -220,7 +225,7 @@ Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional
         End Select
     End If
     
-    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultBinaryFolder)
+    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultDriverFolder)
     
     If Not fso.FileExists(driverPath) Then
         GetInstalledDriverVersion = "000.0.000.00"
@@ -464,7 +469,7 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
         End Select
     End If
     
-    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultBinaryFolder)
+    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultDriverFolder)
     
     driverFolder = fso.GetParentFolderName(driverPath)
     driverFilename = fso.GetFileName(driverPath)
@@ -609,10 +614,6 @@ Private Function BrowserNameStr(ByVal val As svbaBrowser)
         BrowserNameStr = "Firefox"
     End Select
 End Function
-
-Private Sub Class_Initialize()
-    DefaultBinaryFolder = ThisWorkbook.Path
-End Sub
 
 Private Function TaskKillByImage(ByVal taskName As String)
     Dim wsh As New IWshRuntimeLibrary.WshShell
