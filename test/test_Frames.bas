@@ -123,7 +123,7 @@ Sub test_frames_with_iframes()
     driver.SaveStringToFile htmlStr, ".\snippetbottom.html"
     
     'save the main snippet
-    htmlStr = "<html><body><div class='box'><iframe name='iframe1' id='IF1' height='50%' width='50%' src='./snippettop.html'></div></iframe>  <div class='box'><iframe name='iframe2' id='IF2' height='50%' width='50%'  align='left' src='.\snippetbottom.html'></iframe></div></body></html>"
+    htmlStr = "<html><body><div class='box'><iframe name='iframe1' id='IF1' height='50%' width='50%' src='./snippettop.html'></iframe></div>  <div class='box'><iframe name='iframe2' id='IF2' height='50%' width='50%'  align='left' src='.\snippetbottom.html'></iframe></div></body></html>"
     driver.SaveStringToFile htmlStr, ".\snippet.html"
     
     driver.NavigateToFile ".\snippet.html"

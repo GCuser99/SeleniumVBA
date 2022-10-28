@@ -45,7 +45,7 @@ Sub test_highlight()
     Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText
     driver.Wait
     
-    'driver.SetHightlightFoundElems False
+    driver.SetHightlightFoundElems False
     
     'highlight specified elements (all arguments optional):
     driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table").Highlight borderColor:=Magenta

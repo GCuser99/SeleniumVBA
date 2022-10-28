@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.3.1
+' SeleniumVBA v2.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -807,7 +807,7 @@ ErrHnd:
 If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
     Resume Next
 Else
-    With Err: Err.raise .Number, .source, .Description, .HelpFile, .HelpContext: End With
+    With Err: Err.raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
 End If
 End Sub
 
@@ -1769,8 +1769,8 @@ Public Sub UploadFile(element As WebElement, ByVal filePath As String)
     SendKeys element, filePath
 End Sub
 
-Public Sub DragAndDrop(source As WebElement, target As WebElement)
-    ActionChain.DragAndDrop(source, target).Perform
+Public Sub DragAndDrop(Source As WebElement, target As WebElement)
+    ActionChain.DragAndDrop(Source, target).Perform
 End Sub
 
 Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS = 30000) As WebElement
@@ -1867,19 +1867,75 @@ Public Function GetChildElements(parentElement As WebElement) As WebElements
 End Function
 
 Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
-    Dim htmlDoc As New HTMLDocument, htmltable As htmltable
+    Dim htmlDoc As New HTMLDocument, htmlTable As htmlTable
 
-    'check if we really have a table
-    If Not table.GetTagName = "table" Then 'report error
-        Err.raise 1, "WebDriver", "Error: input element to TableToArray method must be a table"
+    'convert the WebElement table into an html dom table object
+    'input WebElement can either be a table or tbody element
+    'using a html dom table for processing is greater than 25x faster than using Selenium selectors to process table
+    
+    Set htmlTable = htmlDoc.createElement("table")
+    
+    Select Case table.GetTagName
+    Case "table"
+        htmlTable.innerHTML = table.GetInnerHTML
+    Case "tbody"
+        htmlTable.innerHTML = table.GetOuterHTML
+    Case Else 'report error
+        Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+    End Select
+
+    TableToArray = htmlTableToArray(htmlTable, skipHeader, skipFooter, createSpanData)
+End Function
+
+Public Function PageToHTMLDoc(Optional sanitize As Boolean = False) As HTMLDocument
+    'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
+    Dim htmlDoc As New HTMLDocument
+    
+    If sanitize Then
+        htmlDoc.DocumentElement.innerHTML = sanitizeHTML(Me.GetPageSource)
+    Else
+        htmlDoc.DocumentElement.innerHTML = Me.GetPageSource
     End If
     
-    'convert the WebElement table into an html dom table object
-    'using a html dom table for processing is greater than 25x faster than using Selenium selectors to process table
-    htmlDoc.body.innerHTML = table.GetOuterHTML
-    Set htmltable = htmlDoc.getElementsByTagName("table").Item(0)
+    Do While htmlDoc.readyState <> "complete"
+        DoEvents
+    Loop
+    
+    Set PageToHTMLDoc = htmlDoc
+End Function
 
-    TableToArray = htmlTableToArray(htmltable, skipHeader, skipFooter, createSpanData)
+Public Function PageToXMLDoc() As MSXML2.DOMDocument60
+    Dim xmlDoc As New MSXML2.DOMDocument60
+    xmlDoc.LoadXML getXMLStringFromPage()
+    Set PageToXMLDoc = xmlDoc
+End Function
+
+Public Function PageToJSONObject() As Object
+    'will return a dictionary or collection depending on json source
+    Dim jc As New WebJSonConverter
+    Set PageToJSONObject = jc.ParseJSON(getJSONStringFromPage())
+End Function
+
+Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False)
+    'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
+    If sanitize Then
+        Me.SaveStringToFile sanitizeHTML(Me.GetPageSource), filePath
+    Else
+        Me.SaveStringToFile Me.GetPageSource, filePath
+    End If
+End Sub
+
+Public Sub PageToXMLFile(ByVal filePath As String, Optional ByVal prettyPrint = False)
+    Me.SaveStringToFile getXMLStringFromPage(prettyPrint), filePath
+End Sub
+
+Public Sub PageToJSONFile(ByVal filePath As String, Optional ByVal prettyPrint = False)
+    Me.SaveStringToFile getJSONStringFromPage(prettyPrint), filePath
+End Sub
+
+Public Function PageToString() As String
+    'for consistency...
+    PageToString = Me.GetPageSource()
 End Function
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
@@ -2116,7 +2172,7 @@ Private Function ActiveVBAProjectFolderPath() As String
     ActiveVBAProjectFolderPath = strpath
 End Function
 
-Private Function htmlTableToArray(table As htmltable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
     Dim row As HTMLTableRow
     Dim cell As HTMLTableCell
     Dim cellChild As HTMLHtmlElement
@@ -2188,4 +2244,291 @@ Private Function htmlTableToArray(table As htmltable, Optional ByVal skipHeader 
     Next row
     
     htmlTableToArray = v
+End Function
+
+Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
+    Dim str As String
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        If Me.IsPresent(by.XPath, "//*[@id='webkit-xml-viewer-source-xml']") Then
+            str = Me.FindElementByXPath("//*[@id='webkit-xml-viewer-source-xml']").GetInnerHTML
+        End If
+    Case svbaBrowser.Firefox
+        str = Me.GetPageSource
+    End Select
+    
+    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
+    
+    If prettyPrint Then str = formatXML(str)
+    
+    getXMLStringFromPage = str
+End Function
+
+Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
+    Dim str As String
+    Dim jc As New WebJSonConverter
+    Dim j As Long, i As Long
+    
+    If browser_ = svbaBrowser.Firefox Then
+        'check to see if preference "devtools.jsonview.enabled" = True (default)
+        If Not Me.IsPresent(by.tagName, "pre") Then
+            'Firefox using jsonview, so now click rawdata tab
+            If Me.IsPresent(by.ID, "rawdata-tab") Then
+                Me.FindElementByID("rawdata-tab").Click
+            Else
+                Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+            End If
+        End If
+        
+        str = Me.FindElementByTagName("pre").GetText
+        
+        'firefox returns a wrongly interpreted json if webpage source came from NavigateToFile *.json
+        'GCUser99 has reported this bug - see https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
+        str = fixFirefoxBug1797871(str)
+    Else
+        If Me.IsPresent(by.tagName, "pre") Then
+            str = Me.FindElementByTagName("pre").GetText
+        Else
+            Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+        End If
+    End If
+    
+    If prettyPrint Then str = jc.ConvertToJson(jc.ParseJSON(str), 4)
+    
+    getJSONStringFromPage = str
+End Function
+
+Private Function sanitizeHTML(ByVal str As String) As String
+    Dim htmlDoc As New HTMLDocument
+    Dim elems As IHTMLDOMChildrenCollection
+    Dim elem As HTMLGenericElement
+    Dim parentElem As HTMLDivElement
+    Dim i As Long, j As Long
+    Dim ipos1 As Long, ipos2 As Long
+    Dim foundOne As Boolean
+    Dim subStr As String
+    Dim eventsArray() As Variant
+    Dim eventStr As String
+    
+    'This function renders html source "offline" by disabling dynamic content, while leaving the DOM tree intact.
+    
+    'This following are disabled:
+    
+    '- script elements
+    '- url redirects
+    '- src attributes
+    '- srcset attributes
+    '- href attributes
+    '- rel attributes
+    '- url() function in style elements and attributes
+    '- action attributes in form elements
+    '- as attribute in link element when as='script'
+    '- on* event attributes
+    '- data attribute in object elements
+    
+    'To perform above in a reliable and efficient way, the source is loaded into a simulated document fragment using a div element as
+    'the root. This way the source can be parsed using DOM while disconnected from a html document root.
+    'html, head, and body tags in the input string are renamed prior to loading into the div element, and then renamed back
+    'before returning the results.
+    
+    'rename html, head, and body tags
+    'use vbTextCompare for case insensitivity
+    str = Replace(str, "<html>", "<html_>", Compare:=vbTextCompare)
+    str = Replace(str, "<html ", "<html_ ", Compare:=vbTextCompare)
+    str = Replace(str, "</html>", "</html_>", Compare:=vbTextCompare)
+
+    str = Replace(str, "<head>", "<head_>", Compare:=vbTextCompare)
+    str = Replace(str, "<head ", "<head_ ", Compare:=vbTextCompare)
+    str = Replace(str, "</head>", "</head_>", Compare:=vbTextCompare)
+    
+    str = Replace(str, "<body>", "<body_>", Compare:=vbTextCompare)
+    str = Replace(str, "<body ", "<body_ ", Compare:=vbTextCompare)
+    str = Replace(str, "</body>", "</body_>", Compare:=vbTextCompare)
+
+    'create the simulated document fragment using a div element
+    Set parentElem = htmlDoc.createElement("div")
+    'assign the input string to inner html of the parent element
+    parentElem.innerHTML = str
+    
+    'disable scripts
+    Set elems = parentElem.querySelectorAll("script")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.innerText = ""
+    Next i
+    
+    'disable redirect
+    Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "content", ""
+    Next i
+    
+    'disable src attributes
+    Set elems = parentElem.querySelectorAll("*[src]")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "src", ""
+    Next i
+    
+    'disable srcset attributes
+    Set elems = parentElem.querySelectorAll("*[srcset]")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "srcset", ""
+    Next i
+    
+    'disable href attributes
+    Set elems = parentElem.querySelectorAll("*[href]")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        If Not (elem.GetAttribute("href") Like "about:blank*") Then
+            elem.SetAttribute "href", ""
+        End If
+    Next i
+    
+    'disable rel attributes
+    Set elems = parentElem.querySelectorAll("*[rel]")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "rel", ""
+    Next i
+    
+    'disable url() function in style elements
+    Set elems = parentElem.querySelectorAll("style")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        subStr = LCase(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
+        foundOne = False
+        ipos1 = InStr(1, subStr, "url(")
+        Do While ipos1
+            ipos2 = InStr(ipos1 + 4, subStr, ")")
+            subStr = Mid(subStr, 1, ipos1 + 3) & Mid(subStr, ipos2)
+            foundOne = True
+            ipos1 = InStr(ipos1 + 5, subStr, "url(")
+            DoEvents
+        Loop
+        If foundOne Then elem.innerHTML = subStr
+    Next i
+    
+    'disable url() function in style attributes
+    Set elems = parentElem.querySelectorAll("[style*='url(']")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        subStr = LCase(elem.GetAttribute("style"))
+        foundOne = False
+        ipos1 = InStr(1, subStr, "url(")
+        Do While ipos1
+            ipos2 = InStr(ipos1 + 4, subStr, ")")
+            subStr = Mid(subStr, 1, ipos1 + 3) & Mid(subStr, ipos2)
+            foundOne = True
+            ipos1 = InStr(ipos1 + 5, subStr, "url(")
+            DoEvents
+        Loop
+        If foundOne Then elem.SetAttribute "style", subStr
+    Next i
+    
+    'disable action attributes in form elements
+    Set elems = parentElem.querySelectorAll("form[action]")
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "action", ""
+    Next i
+    
+    'disable as attributes equal to "script" in link elements
+    Set elems = parentElem.querySelectorAll("link[as='script']") 'make sure this doesnt need doublequotes
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "as", ""
+    Next i
+    
+    'disable data attributes in object elements
+    Set elems = parentElem.querySelectorAll("object[data]") 'make sure this doesnt need doublequotes
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "data", ""
+    Next i
+    
+    'disable on* event attributes
+    eventsArray = Array("onclick", "onload", "onoffline", "ononline", "onunload", "onpageshow", "onpagehide", "onerror", "onresize", "onhashchange", "onbeforeunload", "onpopstate", "onmessage")
+    For j = 0 To UBound(eventsArray)
+        eventStr = eventsArray(j)
+        Set elems = parentElem.querySelectorAll("*[" & eventStr & "]")
+        For i = 0 To elems.Length - 1
+            Set elem = elems.Item(i)
+            'can't use SetAttribute for on* event attributes so let's remove it instead
+            elem.removeAttribute eventStr
+            'add a replacement attribute with dummy suffix - will remove suffix with replace after dom processing
+            elem.SetAttribute eventStr & "___xxx123", ""
+        Next i
+    Next j
+
+    'load processed source back into str
+    str = parentElem.innerHTML
+    
+    'rename dummy tags back to original tag names
+    str = Replace(str, "<html_", "<html", , 1)
+    str = Replace(str, "</html_>", "</html>", , 1)
+
+    str = Replace(str, "<head_", "<head", , 1)
+    str = Replace(str, "</head_>", "</head>", , 1)
+    
+    str = Replace(str, "<body_", "<body")
+    str = Replace(str, "</body_>", "</body>")
+    
+    str = Replace(str, "___xxx123", "")
+    
+    sanitizeHTML = str
+End Function
+
+Private Function formatXML(ByVal val As String) As String
+    Dim xslDoc As New MSXML2.DOMDocument60
+    Dim xmlDocFormatted As New MSXML2.DOMDocument60
+    Dim xmlDoc As New MSXML2.DOMDocument60
+    
+    xmlDoc.LoadXML val
+    
+    xslDoc.LoadXML "<?xml version=" & Chr(34) & "1.0" & Chr(34) & "?>" _
+            & "<xsl:stylesheet version=" & Chr(34) & "1.0" & Chr(34) _
+            & "                xmlns:xsl=" & Chr(34) & "http://www.w3.org/1999/XSL/Transform" & Chr(34) & ">" _
+            & "<xsl:strip-space elements=" & Chr(34) & "*" & Chr(34) & " />" _
+            & "<xsl:output method=" & Chr(34) & "xml" & Chr(34) & " indent=" & Chr(34) & "yes" & Chr(34) & "" _
+            & "            encoding=" & Chr(34) & "UTF-8" & Chr(34) & "/>" _
+            & " <xsl:template match=" & Chr(34) & "node() | @*" & Chr(34) & ">" _
+            & "  <xsl:copy>" _
+            & "   <xsl:apply-templates select=" & Chr(34) & "node() | @*" & Chr(34) & " />" _
+            & "  </xsl:copy>" _
+            & " </xsl:template>" _
+            & "</xsl:stylesheet>"
+    
+    xslDoc.async = False
+    xmlDoc.transformNodeToObject xslDoc, xmlDocFormatted
+    formatXML = xmlDocFormatted.XML
+End Function
+
+Private Function fixFirefoxBug1797871(ByVal str As String) As String
+    Dim i As Long, j As Long
+    Dim bytes() As Byte
+    'see https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
+    'firefox json viewer oPnly accepts utf-8 encoded text files
+    'this works for preference "devtools.jsonview.enabled", [True or False]
+    bytes = str
+    'check the first 2 bytes for the "mis-interpretion" pattern and if found then unscramble
+    If bytes(0) = 253 And bytes(1) = 255 Then
+        j = -2
+        For i = 0 To UBound(bytes) - 1 Step 2
+            'strip out double 0's and black-diamond question marks
+            If Not (bytes(i) = 0 And bytes(i + 1) = 0) And Not (bytes(i) = 253 And bytes(i + 1) = 255) Then
+                j = j + 2
+                bytes(j) = bytes(i)
+                bytes(j + 1) = bytes(i + 1)
+            End If
+        Next i
+        ReDim Preserve bytes(0 To j + 1)
+        str = bytes
+        
+        fixFirefoxBug1797871 = Replace(str, vbNewLine & vbNewLine, vbNewLine)
+    Else
+        fixFirefoxBug1797871 = str
+    End If
 End Function

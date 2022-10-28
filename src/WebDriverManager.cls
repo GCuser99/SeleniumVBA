@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.3.1
+' SeleniumVBA v2.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -547,6 +547,11 @@ End Function
 
 Public Function GetUserTempFolderPath()
     GetUserTempFolderPath = Environ$("LocalAppData") & "\Temp\"
+End Function
+
+Public Function GetDownloadsFolderPath()
+    Dim oShell As New Shell32.Shell
+    GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.Path
 End Function
 
 Private Function IsProcessRunning(ByVal process As String)
