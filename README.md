@@ -15,7 +15,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 
 ## Setup
 
-SeleniumVBA has been designed to work out-of-the-box. Just download the [SeleniumVBA.xlam](https://github.com/GCuser99/SeleniumVBA/tree/main/dist) Excel Addin, open it, and run any one of the subs in the "test" Standard modules. If the Selenium WebDriver does not exist, or is out-of-date, SeleniumVBA will detect this automatically and download the appropriate driver to a desired location (currently defaults to user's download folder but that is easily configurable).
+**SeleniumVBA has been designed to work right out-of-the-box**. Just download the [SeleniumVBA.xlam](https://github.com/GCuser99/SeleniumVBA/tree/main/dist) Excel Addin, open it, and run any one of the subs in the "test" Standard modules. If the Selenium WebDriver does not exist, or is out-of-date, SeleniumVBA will detect this automatically and download the appropriate driver to a desired location (currently defaults to user's download folder but that is easily configurable).
 
 The user can also programmatically invoke driver updates via the WebDriverManager class (see example below).
 
