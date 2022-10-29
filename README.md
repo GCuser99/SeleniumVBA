@@ -46,8 +46,12 @@ End Sub
 
 ```vba
 Sub updateDrivers()
-    'this checks if driver is installed, or if installed driver is compatibile
-    'with installed browser, and then if needed, installs an updated driver
+    'This checks if driver is installed, or if installed driver is compatibile
+    'with installed browser, and then if needed, installs an updated driver.
+
+    'Note: SeleniumVBA automatically detects and updates (if needed) silently in the 
+    'background everytime a WebDriver session is started - so running this sub is
+    'not required to maintain driver/browser compatibility.
     Dim mngr As New WebDriverManager
     
     'mngr.DefaultDriverFolder = [your binary folder path here] 'defaults to Downloads dir
