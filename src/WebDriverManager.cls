@@ -602,11 +602,14 @@ Private Function RequestData(ByVal url As String, Optional maxTries = 20) As Var
             RequestData = "Error: Cannot Connect to Server"
         Case Else 'an unexpected error
             RequestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
+            Debug.Print "Please report this error to developers: RequestData Status= " & client.status & ", " & "Response= " & client.responseText
             Exit Function
         End Select
         
         Debug.Print "try: ", try, client.status, client.responseText, url
     Next try
+    'if here then had too many 12029/12031's
+    RequestData = "Error: Cannot Connect to Server"
 End Function
 
 Private Function BrowserNameStr(ByVal val As svbaBrowser)

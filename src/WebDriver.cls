@@ -1422,7 +1422,7 @@ Public Function GetScriptTimeout() As Long
 End Function
 
 Public Sub Wait(Optional ByVal milliseconds As Long = 300)
-    'both of the system-level timers below work"
+    'both of the system-level timers below work
     '
     TimerWait milliseconds
     'Sleep milliseconds 'this works great, but lets try to do without windows api if possible
@@ -1870,7 +1870,7 @@ Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As B
     Dim htmlDoc As New HTMLDocument, htmlTable As htmlTable
 
     'convert the WebElement table into an html dom table object
-    'input WebElement can either be a table or tbody element
+    'input WebElement can either be a table or a tbody element
     'using a html dom table for processing is greater than 25x faster than using Selenium selectors to process table
     
     Set htmlTable = htmlDoc.createElement("table")
@@ -2510,14 +2510,14 @@ Private Function fixFirefoxBug1797871(ByVal str As String) As String
     Dim i As Long, j As Long
     Dim bytes() As Byte
     'see https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
-    'firefox json viewer oPnly accepts utf-8 encoded text files
+    'firefox json viewer only accepts utf-8 encoded text files
     'this works for preference "devtools.jsonview.enabled", [True or False]
     bytes = str
     'check the first 2 bytes for the "mis-interpretion" pattern and if found then unscramble
     If bytes(0) = 253 And bytes(1) = 255 Then
         j = -2
         For i = 0 To UBound(bytes) - 1 Step 2
-            'strip out double 0's and black-diamond question marks
+            'strip out nulls (double zeros) and black-diamond question marks
             If Not (bytes(i) = 0 And bytes(i + 1) = 0) And Not (bytes(i) = 253 And bytes(i + 1) = 255) Then
                 j = j + 2
                 bytes(j) = bytes(i)

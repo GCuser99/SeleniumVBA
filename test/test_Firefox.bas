@@ -215,3 +215,46 @@ Sub test_GetSessionInfo()
     driver.Shutdown
 End Sub
 
+Sub test_firefox_json_viewer_bug()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    Dim jsonStr As String
+    
+    'see bug report https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
+    'this tests use of function fixFirefoxBug1797871 in WebDriver class
+    
+    jsonStr = "{""key1"": ""simple json example"",""key2"": ""for firefox bug report"",""key3"": ""utf-8 encoding using notepad"",""key4"": ""this works with firefox json viewer""}"
+
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartFirefox
+    
+    driver.SaveStringToFile jsonStr, "test.json"
+    
+    Set caps = driver.CreateCapabilities
+    caps.SetPreference "devtools.jsonview.enabled", True '(this is the default)
+    
+    driver.OpenBrowser caps:=caps
+
+    driver.NavigateToFile "test.json"
+    driver.Wait 2000
+    
+    driver.FindElementByID("rawdata-tab").Click
+    
+    driver.Wait 3000
+    
+    Debug.Print "with jsonview enabled", driver.PageToJSONObject()("key1")
+    
+    driver.CloseBrowser
+    
+    caps.SetPreference "devtools.jsonview.enabled", False
+    
+    driver.OpenBrowser caps:=caps
+
+    driver.NavigateToFile "test.json"
+    driver.Wait 5000
+    
+    Debug.Print "with jsonview disabled", driver.PageToJSONObject()("key1")
+   
+    driver.Shutdown
+End Sub

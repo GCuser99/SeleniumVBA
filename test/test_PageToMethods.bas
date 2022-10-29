@@ -62,7 +62,7 @@ Sub test_PageToXMLMethods()
     'read the test file back into browser
     driver.NavigateToFile "test.xml"
     
-    driver.Wait 1000
+    driver.Wait 2000
     
     driver.CloseBrowser
     driver.Shutdown
