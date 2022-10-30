@@ -1,4 +1,7 @@
 Attribute VB_Name = "test_PageToMethods"
+Option Explicit
+Option Private Module
+
 Sub test_PageToHTMLMethods()
     Dim driver As SeleniumVBA.WebDriver
     Dim htmlDoc As HTMLDocument
