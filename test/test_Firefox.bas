@@ -221,9 +221,9 @@ Sub test_firefox_json_viewer_bug()
     Dim jsonStr As String
     
     'see bug report https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
-    'this tests use of function fixFirefoxBug1797871 in WebDriver class
+    'this tests function fixFirefoxBug1797871 in WebDriver class to fix problem
     
-    jsonStr = "{""key1"": ""simple json example"",""key2"": ""for firefox bug report"",""key3"": ""utf-8 encoding using notepad"",""key4"": ""this works with firefox json viewer""}"
+    jsonStr = "{""key1"": ""simple json example"",""key2"": ""for firefox bug report"",""key3"": ""utf-16 encoding"",""key4"": ""this does not work with firefox json viewer""}"
 
     Set driver = SeleniumVBA.New_WebDriver
     

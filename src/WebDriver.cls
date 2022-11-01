@@ -2511,7 +2511,7 @@ Private Function fixFirefoxBug1797871(ByVal str As String) As String
     Dim bytes() As Byte
     'see https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
     'firefox json viewer only accepts utf-8 encoded text files
-    'this works for preference "devtools.jsonview.enabled", [True or False]
+    'the following works for preference "devtools.jsonview.enabled", [True or False]
     bytes = str
     'check the first 2 bytes for the "mis-interpretion" pattern and if found then unscramble
     If bytes(0) = 253 And bytes(1) = 255 Then
