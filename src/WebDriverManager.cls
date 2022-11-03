@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4
+' SeleniumVBA v2.4.1
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -344,7 +344,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
 
         'search for major version, decrementing by one until success
         Do While verMajor >= 75
-            url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor
+            url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor & "_WINDOWS"
             
             responseText = RequestData(url)
             
@@ -599,7 +599,7 @@ Private Function RequestData(ByVal url As String, Optional maxTries = 20) As Var
             Exit Function
         Case 12029, 12031
             'Don't exit loop - make another try to see if we can connect
-            RequestData = "Error: Cannot Connect to Server"
+            'RequestData = "Error: Cannot Connect to Server"
         Case Else 'an unexpected error
             RequestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
             Debug.Print "Please report this error to developers: RequestData Status= " & client.status & ", " & "Response= " & client.responseText
