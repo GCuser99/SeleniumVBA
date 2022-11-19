@@ -41,8 +41,9 @@ Sub doSendKeys()
     driver.Shutdown
 End Sub
 ```
+
 ## File Download Example
-```
+```vba
 Sub doFileDownload()
     Dim driver As New WebDriver
     Dim caps As WebCapabilities
