@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -210,7 +210,7 @@ Private Sub Class_Initialize()
     'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
     'referencing the SeleniumVBA Add-in, but same otherwise
     Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
-    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
+    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.path 'ThisWorkbook.Path
     Me.DefaultIOFolder = ActiveVBAProjectFolderPath
 End Sub
 
@@ -311,12 +311,16 @@ Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe",
     Start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
+Public Sub StartIE(Optional ByVal driverPath As String = "IEDriverServer.exe", Optional ByVal localHostPort As Long = 5555, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\ie.log")
+    Start svbaBrowser.IE, driverPath, localHostPort, enableLogging, logFilePath
+End Sub
+
 Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
     Dim fso As New Scripting.FileSystemObject, serviceArgs As String, commandStr As String
     
     browser_ = browser
     
-    If browser_ = svbaBrowser.Firefox Then
+    If browser_ = svbaBrowser.Firefox Or browser_ = svbaBrowser.IE Then
         'for firefox, if previous session is still open on same port, then will get "Session is already started"
         'on OpenBrowser so kill all driver instances on the assigned port
         'could use KillDriver on Chrome/Edge too, but since they support multi-sessions on same port, this will eliminate
@@ -349,6 +353,8 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
             'so using cmd.exe to redirect log from console window
             serviceArgs = " -vv"" > " & Replace(logFilePath, " ", "^ ") 'need to escape spaces in log path
             commandStr = Chr(34) & Environ("comspec") & Chr(34) & " /c " & """"
+        Case svbaBrowser.IE
+            serviceArgs = " --log-level=TRACE --log-file=" & Chr(34) & logFilePath & Chr(34)
         End Select
     End If
     
@@ -379,6 +385,11 @@ Public Sub Shutdown()
         'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
         If sessionId_ <> "" Then CloseBrowser
         TaskKillByPid processID
+    Case svbaBrowser.IE
+        'unfortunately, CMD_SHUTDOWN in IE mode does not kill all driver sub-processes such as the broswer
+        'so similar to Firefox, must check if browser is still open, and close if needed
+        If sessionId_ <> "" Then CloseBrowser
+        Execute tCMD.CMD_SHUTDOWN
     End Select
 End Sub
 
@@ -1159,24 +1170,24 @@ Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As
 End Function
 
 'Convert dictionary from script to dictionary (converted to web element)
-Private Function ScriptDictToConvertedDict(dict As Variant) As Object
-    If dict.Exists(ELEMENT_KEY) Then
+Private Function ScriptDictToConvertedDict(Dict As Variant) As Object
+    If Dict.Exists(ELEMENT_KEY) Then
         ' Convert to WebElement
-        Set ScriptDictToConvertedDict = ToWebElement(dict(ELEMENT_KEY))
+        Set ScriptDictToConvertedDict = ToWebElement(Dict(ELEMENT_KEY))
         ' Return immediately (ignore other items if they exist)
         Exit Function
     End If
     Dim ret As New Dictionary
     Dim key
-    For Each key In dict.keys
-        If TypeName(dict(key)) = "Collection" Then
-            ret(key) = ScriptCollectionToConvertedArray(dict(key))
-        ElseIf TypeName(dict(key)) = "Dictionary" Then
-            Set ret(key) = ScriptDictToConvertedDict(dict(key))
-        ElseIf IsObject(dict(key)) Then
-            Set ret(key) = dict(key)
+    For Each key In Dict.keys
+        If TypeName(Dict(key)) = "Collection" Then
+            ret(key) = ScriptCollectionToConvertedArray(Dict(key))
+        ElseIf TypeName(Dict(key)) = "Dictionary" Then
+            Set ret(key) = ScriptDictToConvertedDict(Dict(key))
+        ElseIf IsObject(Dict(key)) Then
+            Set ret(key) = Dict(key)
         Else
-            ret(key) = dict(key)
+            ret(key) = Dict(key)
         End If
     Next
     Set ScriptDictToConvertedDict = ret
@@ -1203,11 +1214,11 @@ Private Function ScriptCollectionToConvertedArray(col As Variant) As Variant()
     ScriptCollectionToConvertedArray = arry
 End Function
 
-Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png", Optional element As WebElement)
+Public Sub SaveScreenshot(Optional ByVal filepath As String = ".\screenshot.png", Optional element As WebElement)
     Dim Data As New Dictionary
     Dim pngstr As String
         
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
+    filepath = WebShared.GetFullLocalPath(filepath, defaultIOFolder_)
     
     If element Is Nothing Then
         pngstr = Execute(tCMD.CMD_SCREENSHOT, Data)("value")
@@ -1216,13 +1227,13 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
         pngstr = Execute(tCMD.CMD_ELEMENT_SCREENSHOT, Data)("value")
     End If
     
-    SaveByteArrayToFile DecodeBase64(pngstr), filePath
+    SaveByteArrayToFile DecodeBase64(pngstr), filepath
 End Sub
 
-Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As WebPrintSettings)
+Public Sub PrintToPDF(Optional ByVal filepath As String = ".\printpage.pdf", Optional settings As WebPrintSettings)
     Dim Data As New Dictionary, pdfstr As String
     
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
+    filepath = WebShared.GetFullLocalPath(filepath, defaultIOFolder_)
     
     If Not settings Is Nothing Then
         Set Data = settings.ToDictionary
@@ -1230,7 +1241,7 @@ Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Opt
     
     pdfstr = Execute(tCMD.CMD_PRINT_PAGE, Data)("value")
 
-    SaveByteArrayToFile DecodeBase64(pdfstr), filePath
+    SaveByteArrayToFile DecodeBase64(pdfstr), filepath
 End Sub
 
 Public Function GetRect(element As WebElement) As Dictionary
@@ -1642,7 +1653,7 @@ Public Function GetAllCookies() As WebCookies
         If resp(i).Exists("sameSite") Then ck.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then ck.Secure = resp(i)("secure")
         If resp(i).Exists("value") Then ck.Value = resp(i)("value")
-        If resp(i).Exists("path") Then ck.Path = resp(i)("path")
+        If resp(i).Exists("path") Then ck.path = resp(i)("path")
         cks.Add ck
     Next i
     Set GetAllCookies = cks
@@ -1659,7 +1670,7 @@ Public Function GetCookie(ByVal cookieName) As WebCookie
     If resp.Exists("sameSite") Then ck.SameSite = resp("sameSite")
     If resp.Exists("secure") Then ck.Secure = resp("secure")
     If resp.Exists("value") Then ck.Value = resp("value")
-    If resp.Exists("path") Then ck.Path = resp("path")
+    If resp.Exists("path") Then ck.path = resp("path")
     Set GetCookie = ck
 End Function
 
@@ -1701,7 +1712,6 @@ Public Function IsPageFound(ByVal url As String) As Boolean
 End Function
 
 Public Function GetSessionsInfo() As Collection
-    'change to dictionary output?
     If browser_ = svbaBrowser.Firefox Then
         Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
@@ -1763,10 +1773,10 @@ Public Function FindElementsFromShadowRoot(by_ As by, ByVal val As String, sRoot
     Set FindElementsFromShadowRoot = elems
 End Function
 
-Public Sub UploadFile(element As WebElement, ByVal filePath As String)
+Public Sub UploadFile(element As WebElement, ByVal filepath As String)
     'this is just a special wrapper for sendkeys (upload file mode)
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
-    SendKeys element, filePath
+    filepath = WebShared.GetFullLocalPath(filepath, defaultIOFolder_)
+    SendKeys element, filepath
 End Sub
 
 Public Sub DragAndDrop(Source As WebElement, target As WebElement)
@@ -1848,11 +1858,11 @@ Public Sub DeleteFiles(ParamArray filelist() As Variant)
     Next i
 End Sub
 
-Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filePath As String = ".\snippet.html")
+Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filepath As String = ".\snippet.html")
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject, ts As textstream
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
-    Set ts = fs.CreateTextFile(filePath, True, True)
+    filepath = WebShared.GetFullLocalPath(filepath, defaultIOFolder_)
+    Set ts = fs.CreateTextFile(filepath, True, True)
     ts.Write val
     ts.Close
 End Sub
@@ -1913,24 +1923,24 @@ End Function
 Public Function PageToJSONObject() As Object
     'will return a dictionary or collection depending on json source
     Dim jc As New WebJSonConverter
-    Set PageToJSONObject = jc.ParseJSON(getJSONStringFromPage())
+    Set PageToJSONObject = jc.ParseJson(getJSONStringFromPage())
 End Function
 
-Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False)
+Public Sub PageToHTMLFile(ByVal filepath As String, Optional ByVal sanitize As Boolean = False)
     'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
     If sanitize Then
-        Me.SaveStringToFile sanitizeHTML(Me.GetPageSource), filePath
+        Me.SaveStringToFile sanitizeHTML(Me.GetPageSource), filepath
     Else
-        Me.SaveStringToFile Me.GetPageSource, filePath
+        Me.SaveStringToFile Me.GetPageSource, filepath
     End If
 End Sub
 
-Public Sub PageToXMLFile(ByVal filePath As String, Optional ByVal prettyPrint = False)
-    Me.SaveStringToFile getXMLStringFromPage(prettyPrint), filePath
+Public Sub PageToXMLFile(ByVal filepath As String, Optional ByVal PrettyPrint = False)
+    Me.SaveStringToFile getXMLStringFromPage(PrettyPrint), filepath
 End Sub
 
-Public Sub PageToJSONFile(ByVal filePath As String, Optional ByVal prettyPrint = False)
-    Me.SaveStringToFile getJSONStringFromPage(prettyPrint), filePath
+Public Sub PageToJSONFile(ByVal filepath As String, Optional ByVal PrettyPrint = False)
+    Me.SaveStringToFile getJSONStringFromPage(PrettyPrint), filepath
 End Sub
 
 Public Function PageToString() As String
@@ -1939,12 +1949,12 @@ Public Function PageToString() As String
 End Function
 
 Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
-    Dim Method As String, Path As String
+    Dim Method As String, path As String
     Dim cmdArgs As New Dictionary, parmKey As Variant
     Dim response As Dictionary
     
     Method = driverCommand(0)
-    Path = driverCommand(1)
+    path = driverCommand(1)
     
     If parameters Is Nothing Then
         Set parameters = New Dictionary
@@ -1956,8 +1966,8 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     End If
     
     For Each parmKey In parameters.keys
-        If InStr(Path, "$" & parmKey) > 0 Then 'path parameter
-            Path = Replace(Path, "$" & parmKey, parameters(parmKey))
+        If InStr(path, "$" & parmKey) > 0 Then 'path parameter
+            path = Replace(path, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -1967,7 +1977,7 @@ Friend Function Execute(driverCommand, Optional parameters As Dictionary = Nothi
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(Method, driverUrl_ & Path, cmdArgs)
+    Set response = SendRequest(Method, driverUrl_ & path, cmdArgs)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
@@ -2043,16 +2053,16 @@ Private Function SendRequest(ByVal Method As String, ByVal url As String, Option
         DoEvents
     Loop
 
-    Set SendRequest = jc.ParseJSON(client.responseText)
+    Set SendRequest = jc.ParseJson(client.responseText)
 End Function
 
 Private Function params(ParamArray keysAndValues()) As Dictionary
-    Dim dict As New Dictionary
+    Dim Dict As New Dictionary
     Dim i As Integer
     For i = 0 To UBound(keysAndValues) - 1 Step 2
-        dict.Add keysAndValues(i), keysAndValues(i + 1)
+        Dict.Add keysAndValues(i), keysAndValues(i + 1)
     Next i
-    Set params = dict
+    Set params = Dict
 End Function
 
 Private Function rgbLongToString(rgbColor As Long) As String
@@ -2099,11 +2109,11 @@ Private Function DecodeBase64(ByVal strData As String) As Byte()
     DecodeBase64 = domNode.nodeTypedValue
 End Function
 
-Private Sub SaveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
+Private Sub SaveByteArrayToFile(byteArray() As Byte, ByVal filepath As String)
     Dim fp As Long, fso As New FileSystemObject
-    If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
+    If fso.FileExists(filepath) Then fso.DeleteFile filepath, True
     fp = FreeFile
-    Open filePath For Binary Access Write As #fp
+    Open filepath For Binary Access Write As #fp
     Put #fp, 1, byteArray
     Close fp
 End Sub
@@ -2124,6 +2134,8 @@ Private Sub KillDriver(ByVal browser As svbaBrowser, Optional ByVal port As Inte
         sImageName = "msedgedriver%"
     Case svbaBrowser.Firefox
         sImageName = "geckodriver%"
+    Case svbaBrowser.IE
+        sImageName = "IEDriverServer%"
     End Select
     
     Set objService = GetObject("winmgmts:\\.\root\CIMV2")
@@ -2246,10 +2258,10 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     htmlTableToArray = v
 End Function
 
-Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
+Private Function getXMLStringFromPage(Optional ByVal PrettyPrint As Boolean = False) As String
     Dim str As String
     Select Case browser_
-    Case svbaBrowser.Chrome, svbaBrowser.Edge
+    Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
         If Me.IsPresent(by.XPath, "//*[@id='webkit-xml-viewer-source-xml']") Then
             str = Me.FindElementByXPath("//*[@id='webkit-xml-viewer-source-xml']").GetInnerHTML
         End If
@@ -2259,12 +2271,12 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
     
     If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
     
-    If prettyPrint Then str = formatXML(str)
+    If PrettyPrint Then str = formatXML(str)
     
     getXMLStringFromPage = str
 End Function
 
-Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
+Private Function getJSONStringFromPage(Optional ByVal PrettyPrint As Boolean = False) As String
     Dim str As String
     Dim jc As New WebJSonConverter
     Dim j As Long, i As Long
@@ -2293,7 +2305,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         End If
     End If
     
-    If prettyPrint Then str = jc.ConvertToJson(jc.ParseJSON(str), 4)
+    If PrettyPrint Then str = jc.ConvertToJson(jc.ParseJson(str), 4)
     
     getJSONStringFromPage = str
 End Function

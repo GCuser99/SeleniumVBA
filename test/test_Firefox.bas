@@ -77,7 +77,7 @@ Sub test_file_download()
     
     caps.SetDownloadPrefs
     
-    Debug.Print caps.ToJson
+    Debug.Print caps.ToJSON
 
     driver.OpenBrowser caps
     
@@ -102,7 +102,7 @@ End Sub
 Sub test_element_aria()
     'Firefox does not support Aria attributes
     Dim driver As SeleniumVBA.WebDriver, str As String
-    Dim filePath As String
+    Dim filepath As String
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -110,14 +110,14 @@ Sub test_element_aria()
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
-    filePath = ".\snippet.html"
+    filepath = ".\snippet.html"
     
     driver.StartFirefox
     driver.OpenBrowser
     
-    driver.SaveStringToFile str, filePath
+    driver.SaveStringToFile str, filepath
     
-    driver.NavigateToFile filePath
+    driver.NavigateToFile filepath
     
     driver.Wait 1000
     
@@ -197,7 +197,7 @@ End Sub
 
 Sub test_GetSessionInfo()
     Dim driver As SeleniumVBA.WebDriver
-    Dim col As Collection
+    Dim jc As New WebJSonConverter
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -207,7 +207,7 @@ Sub test_GetSessionInfo()
     
     'firefox does not support "Get All Sessions" command
     
-    Set col = driver.GetSessionsInfo
+    Debug.Print jc.ConvertToJson(driver.GetSessionsInfo, 4)
     
     driver.Wait 1000
     driver.CloseBrowser

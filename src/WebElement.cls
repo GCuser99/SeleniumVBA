@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -69,8 +69,8 @@ Friend Property Get elementId() As String
     elementId = elementId_
 End Property
 
-Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png")
-    driver_.SaveScreenshot filePath, Me
+Public Sub SaveScreenshot(Optional ByVal filepath As String = ".\screenshot.png")
+    driver_.SaveScreenshot filepath, Me
 End Sub
 
 Public Function FindElement(by_ As by, ByVal val As String) As WebElement
@@ -249,8 +249,8 @@ Public Sub DragAndDrop(target As WebElement)
     driver_.DragAndDrop Me, target
 End Sub
 
-Public Sub UploadFile(ByVal filePath As String)
-    driver_.UploadFile Me, filePath
+Public Sub UploadFile(ByVal filepath As String)
+    driver_.UploadFile Me, filepath
 End Sub
 
 Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS = 30000) As WebElement

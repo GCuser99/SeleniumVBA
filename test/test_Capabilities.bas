@@ -64,7 +64,7 @@ Sub test_incognito()
     
     driver.Wait 3000
     
-    'driver.CloseBrowser
+    driver.CloseBrowser
     driver.Shutdown
 End Sub
 
@@ -74,7 +74,7 @@ Sub test_user_profile()
 
     Set driver = SeleniumVBA.New_WebDriver
     
-    driver.StartChrome
+    driver.StartEdge
     
     Set caps = driver.CreateCapabilities
     
@@ -83,7 +83,7 @@ Sub test_user_profile()
     'recommended to customize your Selenium profiles in a different location
     'than the profiles in AppData to avoid conflicts with manual browsing
     'must specify the path to profile, not just the profile name
-    caps.SetProfile ".\User Data\Chrome\profile 1"
+    caps.SetProfile ".\User Data\Edge\profile 1"
     
     driver.OpenBrowser caps
     
@@ -254,15 +254,15 @@ Sub test_kiosk_printing()
     'populate paper size options to choose from
     'for this to work, these size properties must match exactly (values and order specified) with chrome preference file in profile
     'C:\Users\[user]\AppData\Local\Google\Chrome\User Data\Default\Preferences
-    mediaSizeOptions.Add "A0", jc.ParseJSON("{'height_microns':1189000,'name':'ISO_A0','width_microns':841000,'custom_display_name':'A0'}")
-    mediaSizeOptions.Add "A1", jc.ParseJSON("{'height_microns':841000,'name':'ISO_A1','width_microns':594000,'custom_display_name':'A1'}")
-    mediaSizeOptions.Add "A2", jc.ParseJSON("{'height_microns':594000,'name':'ISO_A2','width_microns':420000,'custom_display_name':'A2'}")
-    mediaSizeOptions.Add "A3", jc.ParseJSON("{'height_microns':420000,'name':'ISO_A3','width_microns':297000,'custom_display_name':'A3'}")
-    mediaSizeOptions.Add "A4", jc.ParseJSON("{'height_microns':297000,'name':'ISO_A4','width_microns':210000,'custom_display_name':'A4'}")
-    mediaSizeOptions.Add "A5", jc.ParseJSON("{'height_microns':210000,'name':'ISO_A5','width_microns':148000,'custom_display_name':'A5'}")
-    mediaSizeOptions.Add "Letter", jc.ParseJSON("{'height_microns':279400,'name':'NA_LETTER','width_microns':215900,'custom_display_name':'Letter'}")
-    mediaSizeOptions.Add "Legal", jc.ParseJSON("{'height_microns':355600,'name':'NA_LEGAL','width_microns':215900,'custom_display_name':'Legal'}")
-    mediaSizeOptions.Add "Tabloid", jc.ParseJSON("{'height_microns':431800,'name':'NA_LEDGER','width_microns':279400,'custom_display_name':'Tabloid'}")
+    mediaSizeOptions.Add "A0", jc.ParseJson("{'height_microns':1189000,'name':'ISO_A0','width_microns':841000,'custom_display_name':'A0'}")
+    mediaSizeOptions.Add "A1", jc.ParseJson("{'height_microns':841000,'name':'ISO_A1','width_microns':594000,'custom_display_name':'A1'}")
+    mediaSizeOptions.Add "A2", jc.ParseJson("{'height_microns':594000,'name':'ISO_A2','width_microns':420000,'custom_display_name':'A2'}")
+    mediaSizeOptions.Add "A3", jc.ParseJson("{'height_microns':420000,'name':'ISO_A3','width_microns':297000,'custom_display_name':'A3'}")
+    mediaSizeOptions.Add "A4", jc.ParseJson("{'height_microns':297000,'name':'ISO_A4','width_microns':210000,'custom_display_name':'A4'}")
+    mediaSizeOptions.Add "A5", jc.ParseJson("{'height_microns':210000,'name':'ISO_A5','width_microns':148000,'custom_display_name':'A5'}")
+    mediaSizeOptions.Add "Letter", jc.ParseJson("{'height_microns':279400,'name':'NA_LETTER','width_microns':215900,'custom_display_name':'Letter'}")
+    mediaSizeOptions.Add "Legal", jc.ParseJson("{'height_microns':355600,'name':'NA_LEGAL','width_microns':215900,'custom_display_name':'Legal'}")
+    mediaSizeOptions.Add "Tabloid", jc.ParseJson("{'height_microns':431800,'name':'NA_LEDGER','width_microns':279400,'custom_display_name':'Tabloid'}")
     
     'add selected paper size defined above to appState object
     appState.Add "mediaSize", mediaSizeOptions("Legal")

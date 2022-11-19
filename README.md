@@ -1,4 +1,4 @@
-## SeleniumVBA v2.4
+## SeleniumVBA v2.5
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, and Firefox written in Windows Excel VBA
 
@@ -6,7 +6,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 
 ## Features
 
-- Edge, Chrome, and Firefox browser support
+- Edge, Chrome, Firefox, and IE Mode browser support
 - Wrappers for most of Selenium's JSon Wire Protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual driver downloads necessary!
@@ -41,25 +41,27 @@ Sub doSendKeys()
     driver.Shutdown
 End Sub
 ```
-
-## WebDriver/Browser Version Alignment
-
-```vba
-Sub updateDrivers()
-    'This checks if driver is installed, or if installed driver is compatibile
-    'with installed browser, and then if needed, installs an updated driver.
-
-    'Note: SeleniumVBA automatically detects and updates (if needed) silently in the 
-    'background everytime a WebDriver session is started - so running this sub is
-    'not required to maintain driver/browser compatibility.
-    Dim mngr As New WebDriverManager
+## File Download Example
+```
+Sub doFileDownload()
+    Dim driver As New WebDriver
+    Dim caps As WebCapabilities
+   
+    driver.StartChrome
     
-    'mngr.DefaultDriverFolder = [your binary folder path here] 'defaults to Downloads dir
+    'set the directory path for saving download to
+    Set caps = driver.CreateCapabilities
+    caps.SetDownloadPrefs ".\"
+    driver.OpenBrowser caps
     
-    'check/update the drivers and report the informative status messages
-    MsgBox mngr.AlignEdgeDriverWithBrowser()
-    MsgBox mngr.AlignChromeDriverWithBrowser()
-    MsgBox mngr.AlignFirefoxDriverWithBrowser()
+    'delete legacy copy if it exists
+    driver.DeleteFiles ".\test.pdf"
+    
+    driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
+    driver.Wait 2000
+    
+    driver.CloseBrowser
+    driver.Shutdown
 End Sub
 ```
 

@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -791,6 +791,7 @@ End Function
 Public Sub Perform()
     Dim inputChans() As Variant
     Dim synchronize As Boolean
+    Dim i As Long
     
     'we cannot pass a multi-chan Data_("actions") as-is without synchronizing the input channels
     'see https://www.w3.org/TR/webdriver/#actions
@@ -802,19 +803,20 @@ Public Sub Perform()
     'Note for future: IEdriverServer dose not support wheel actions
     
     If data_.Exists("actions") Then
-        'multi-call method:
-        'inputChans = data_("actions")
-        'For i = 0 To UBound(inputChans)
-        '    data_("actions") = Array(inputChans(i))
-        '    driver_.Execute tCMD.CMD_ACTIONS, data_
-        'Next i
-        
-        '... or synchronize input channels and call Execute method once
-        'for typical action chains, this is 5-10% faster...
-        driver_.Execute tCMD.CMD_ACTIONS, SyncChannels(data_)
+        If driver_.GetBrowserName = "internet explorer" Then
+            'multi-call method:
+            inputChans = data_("actions")
+            For i = 0 To UBound(inputChans)
+                data_("actions") = Array(inputChans(i))
+                driver_.Execute tCMD.CMD_ACTIONS, data_
+            Next i
+        Else
+            '... or synchronize input channels and call Execute method once
+            'for typical action chains, this is 5-10% faster...
+            driver_.Execute tCMD.CMD_ACTIONS, SyncChannels(data_)
+        End If
         
         'it seems that reset actions should always been done on Perform, but Selenium Python doesn't(?)
-        
         ResetActions
     End If
 End Sub

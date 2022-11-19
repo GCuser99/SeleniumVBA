@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -102,11 +102,11 @@ Public Function IsMember(ByVal cke As WebCookie) As Boolean
     Next i
 End Function
 
-Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
+Public Sub SaveToFile(Optional ByVal filepath As String = ".\cookies.txt")
     Dim fs As New FileSystemObject, ts As textstream, darray() As Dictionary, i
     Dim jc As New WebJSonConverter
-    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
-    Set ts = fs.CreateTextFile(filePath, True, True)
+    filepath = WebShared.GetFullLocalPath(filepath, driver_.DefaultIOFolder)
+    Set ts = fs.CreateTextFile(filepath, True, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
@@ -115,18 +115,18 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
     ts.Close
 End Sub
 
-Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt") As WebCookies
+Public Function LoadFromFile(Optional ByVal filepath As String = ".\cookies.txt") As WebCookies
     Dim fs As New FileSystemObject, ts As textstream, str As String, v As Collection, ck As WebCookie
     Dim jc As New WebJSonConverter
     
     Me.RemoveAll
     
-    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    filepath = WebShared.GetFullLocalPath(filepath, driver_.DefaultIOFolder)
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
-    Set ts = fs.OpenTextFile(filePath, , , TristateUseDefault)
+    Set ts = fs.OpenTextFile(filepath, , , TristateUseDefault)
     str = ts.ReadAll
     ts.Close
-    Set v = jc.ParseJSON(str)
+    Set v = jc.ParseJson(str)
     
     Dim i As Long
     For i = 1 To v.Count
@@ -138,7 +138,7 @@ Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt"
         ck.SameSite = v(i)("sameSite")
         ck.Secure = v(i)("secure")
         ck.Value = v(i)("value")
-        ck.Path = v(i)("path")
+        ck.path = v(i)("path")
         Me.Add ck
     Next i
     Set LoadFromFile = Me

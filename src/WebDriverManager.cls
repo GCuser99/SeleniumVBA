@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -109,11 +109,12 @@ Public Enum svbaBrowser
     Chrome = 1
     Edge = 2
     Firefox = 3
+    IE = 4
 End Enum
 
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
-    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
+    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.path 'ThisWorkbook.Path
 End Sub
 
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
@@ -190,6 +191,34 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         Else
             respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
+    Case svbaBrowser.IE
+        'edge needs to be installed
+        bverInstalled = GetInstalledBrowserVersion(browser)
+        If Left(bverInstalled, 5) = "Error" Then Err.raise 1, "WebDriverManager", bverInstalled
+        
+        dverInstalled = GetInstalledDriverVersion(browser, driverPath)
+        dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+                 
+        'check if we have an error and then take appropriate action
+        If Left(dverCompat, 5) = "Error" Then
+            If runSilent Then 'don't throw the error - just report back to caller
+                AlignDriverWithBrowser = dverCompat
+                Exit Function
+            Else
+                Err.raise 1, "WebDriverManager", dverCompat
+            End If
+        End If
+        
+        If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
+            'the installed driver version is sufficiently different than the installed browser version
+            'so install it
+            DownloadAndInstallDriver browser, dverCompat, driverPath
+            dverInstalled = dverCompat
+            respStr = "The latest " & BrowserNameStr(browser) & " Webdriver was installed."
+        Else
+            respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
+        End If
+    
     End Select
     
     respStr = respStr & vbNewLine & vbNewLine & "Browser version: " & bverInstalled & vbNewLine & "Driver version:    " & dverInstalled
@@ -209,6 +238,10 @@ Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As Strin
     AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath, minCompatibilityLevel, runSilent)
 End Function
 
+Public Function AlignIEDriverWithBrowser(Optional ByVal driverPath As String = "IEdriverServer.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent = False) As String
+    AlignIEDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.IE, driverPath, minCompatibilityLevel, runSilent)
+End Function
+
 Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional ByVal driverPath) As String
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
@@ -222,6 +255,8 @@ Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional
             driverPath = ".\msedgedriver.exe"
         Case svbaBrowser.Firefox
             driverPath = ".\geckodriver.exe"
+        Case svbaBrowser.IE
+            driverPath = ".\IEdriverServer.exe"
         End Select
     End If
     
@@ -255,12 +290,12 @@ Public Function CheckCompatibilityLevel(ByVal versionString1 As String, ByVal ve
     vermajor1 = Split(versionString1, ".")(0)
     verminor1 = Split(versionString1, ".")(1)
     verbuildmajor1 = Split(versionString1, ".")(2)
-    If UBound(Split(versionString1, ".")) > 2 Then verbuildminor1 = Split(versionString1, ".")(3) Else verbuildminor1 = ""
+    If UBound(Split(versionString1, ".")) > 2 Then verbuildminor1 = Split(versionString1, ".")(3) Else verbuildminor1 = "0"
     
     vermajor2 = Split(versionString2, ".")(0)
     verminor2 = Split(versionString2, ".")(1)
     verbuildmajor2 = Split(versionString2, ".")(2)
-    If UBound(Split(versionString2, ".")) > 2 Then verbuildminor2 = Split(versionString2, ".")(3) Else verbuildminor2 = ""
+    If UBound(Split(versionString2, ".")) > 2 Then verbuildminor2 = Split(versionString2, ".")(3) Else verbuildminor2 = "0"
     
     If vermajor1 <> vermajor2 Then
         CheckCompatibilityLevel = svbaNotCompatible
@@ -303,7 +338,7 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
         url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
         responseText = RequestData(url)
         
-        Set resp = jc.ParseJSON(responseText)
+        Set resp = jc.ParseJson(responseText)
         'now search all
         'if os=64bit then search for win64 otherwise win32
         'below returns download url
@@ -318,6 +353,12 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
             If InStr(durl, searchOS) Then Exit For
         Next i
         GetLatestDriverVersion = resp("name")
+    Case svbaBrowser.IE
+        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"
+        Set resp = jc.ParseJson(RequestData(url))
+        
+        'this gets the latest release
+        GetCompatibleDriverVersion = Mid(resp("tag_name"), 10)
     End Select
 End Function
 
@@ -423,7 +464,16 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
                 Exit For
             End If
         Next row
-
+    Case svbaBrowser.IE
+        'just get the latest release, independent of Edge browser version
+        Dim jc As New WebJSonConverter, json As Dictionary
+        
+        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"
+        
+        Set json = jc.ParseJson(RequestData(url))
+        
+        'this gets the latest release
+        GetCompatibleDriverVersion = Mid(json("tag_name"), 10)
     End Select
 End Function
 
@@ -438,6 +488,8 @@ Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser) As Stri
         regkey = "HKEY_CURRENT_USER\Software\Microsoft\Edge\BLBeacon\version"
     Case svbaBrowser.Firefox
         regkey = "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion"
+    Case svbaBrowser.IE
+        regkey = "HKEY_CURRENT_USER\Software\Microsoft\Edge\BLBeacon\version"
     End Select
     
     'this throws error if key doesnt exist - report back to caller if browser isn't installed
@@ -456,7 +508,8 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
     Dim shll As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
     Dim driverFolder As String, driverFilename As String, tmpInstallFolder As String, createdTmpFolder As Boolean
     Dim tmpInstallZipPath As String, tmpZipDriverFilename As String, tmpInstallDriverpath As String
-    Dim status As Long
+    Dim status As Long, i As Long
+    Dim jc As New WebJSonConverter, json As Dictionary
     
     If IsMissing(driverPath) Then
         Select Case browser
@@ -466,6 +519,8 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
             driverPath = ".\msedgedriver.exe"
         Case svbaBrowser.Firefox
             driverPath = ".\geckodriver.exe"
+        Case Else
+            driverPath = ".\IEDriverServer.exe"
         End Select
     End If
     
@@ -511,6 +566,19 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
         End If
         tmpZipDriverFilename = "geckodriver.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
+    Case svbaBrowser.IE
+        'just get the latest release, independent of Edge browser version
+        Set json = jc.ParseJson(RequestData("https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"))
+        'this finds the executable download link
+        For i = 1 To json("assets").Count
+            If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
+                url = json("assets")(i)("browser_download_url")
+                tmpInstallZipPath = tmpInstallFolder & json("assets")(i)("name")
+                Exit For
+            End If
+        Next i
+        tmpZipDriverFilename = "IEDriverServer.exe"
+        tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     End Select
     
     'download driver zip file to temp install path
@@ -551,7 +619,7 @@ End Function
 
 Public Function GetDownloadsFolderPath()
     Dim oShell As New Shell32.Shell
-    GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.Path
+    GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.path
 End Function
 
 Private Function IsProcessRunning(ByVal process As String)
@@ -620,6 +688,8 @@ Private Function BrowserNameStr(ByVal val As svbaBrowser)
         BrowserNameStr = "Chrome"
     Case svbaBrowser.Firefox
         BrowserNameStr = "Firefox"
+    Case svbaBrowser.IE
+        BrowserNameStr = "IE"
     End Select
 End Function
 

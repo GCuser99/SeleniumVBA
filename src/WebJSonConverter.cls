@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -133,30 +133,30 @@ Private Type json_Options
 End Type
 
 'Public JsonOptions As json_Options 'changed by GCUser99
-Private JSonOptions As json_Options
+Private JsonOptions As json_Options
 
 Public Property Let OptionsUseDoubleForLargeNumbers(ByVal val As Boolean)
-    JSonOptions.UseDoubleForLargeNumbers = val
+    JsonOptions.UseDoubleForLargeNumbers = val
 End Property
 
 Public Property Let OptionsAllowUnquotedKeys(ByVal val As Boolean)
-    JSonOptions.AllowUnquotedKeys = val
+    JsonOptions.AllowUnquotedKeys = val
 End Property
 
 Public Property Let OptionsEscapeSolidus(ByVal val As Boolean)
-    JSonOptions.EscapeSolidus = val
+    JsonOptions.EscapeSolidus = val
 End Property
 
 Public Property Get OptionsUseDoubleForLargeNumbers() As Boolean
-   OptionsUseDoubleForLargeNumbers = JSonOptions.UseDoubleForLargeNumbers
+   OptionsUseDoubleForLargeNumbers = JsonOptions.UseDoubleForLargeNumbers
 End Property
 
 Public Property Get OptionsAllowUnquotedKeys() As Boolean
-    OptionsAllowUnquotedKeys = JSonOptions.AllowUnquotedKeys
+    OptionsAllowUnquotedKeys = JsonOptions.AllowUnquotedKeys
 End Property
 
 Public Property Get OptionsEscapeSolidus() As Boolean
-    OptionsEscapeSolidus = JSonOptions.EscapeSolidus
+    OptionsEscapeSolidus = JsonOptions.EscapeSolidus
 End Property
 
 
@@ -172,7 +172,7 @@ End Property
 ' @return {Object} (Dictionary or Collection)
 ' @throws 10001 - JSON parse error
 ''
-Public Function ParseJSON(ByVal JsonString As String) As Object
+Public Function ParseJson(ByVal JsonString As String) As Object
     Dim json_Index As Long
     json_Index = 1
 
@@ -182,11 +182,11 @@ Public Function ParseJSON(ByVal JsonString As String) As Object
     json_SkipSpaces JsonString, json_Index
     Select Case VBA.Mid$(JsonString, json_Index, 1)
     Case "{"
-        Set ParseJSON = json_ParseObject(JsonString, json_Index)
+        Set ParseJson = json_ParseObject(JsonString, json_Index)
     Case "["
-        Set ParseJSON = json_ParseArray(JsonString, json_Index)
+        Set ParseJson = json_ParseArray(JsonString, json_Index)
     Case "<"
-        Set ParseJSON = New Dictionary
+        Set ParseJson = New Dictionary
     Case Else
         ' Error: Invalid JSON string
         Err.raise 10001, "JSONConverter", json_ParseErrorMessage(JsonString, json_Index, "Expecting '{' or '['")
@@ -240,7 +240,7 @@ Public Function ConvertToJson(ByVal JsonValue As Variant, Optional ByVal Whitesp
         ConvertToJson = """" & json_DateStr & """"
     Case VBA.vbString
         ' String (or large number encoded as string)
-        If Not JSonOptions.UseDoubleForLargeNumbers And json_StringIsLargeNumber(JsonValue) Then
+        If Not JsonOptions.UseDoubleForLargeNumbers And json_StringIsLargeNumber(JsonValue) Then
             ConvertToJson = JsonValue
         Else
             ConvertToJson = """" & json_Encode(JsonValue) & """"
@@ -628,7 +628,7 @@ Private Function json_ParseNumber(json_String As String, ByRef json_Index As Lon
             ' Fix: Parse -> String, Convert -> String longer than 15/16 characters containing only numbers and decimal points -> Number
             ' (decimal doesn't factor into significant digit count, so if present check for 15 digits + decimal = 16)
             json_IsLargeNumber = IIf(InStr(json_Value, "."), Len(json_Value) >= 17, Len(json_Value) >= 16)
-            If Not JSonOptions.UseDoubleForLargeNumbers And json_IsLargeNumber Then
+            If Not JsonOptions.UseDoubleForLargeNumbers And json_IsLargeNumber Then
                 json_ParseNumber = json_Value
             Else
                 ' VBA.Val does not use regional settings, so guard for comma is not needed
@@ -643,7 +643,7 @@ Private Function json_ParseKey(json_String As String, ByRef json_Index As Long) 
     ' Parse key with single or double quotes
     If VBA.Mid$(json_String, json_Index, 1) = """" Or VBA.Mid$(json_String, json_Index, 1) = "'" Then
         json_ParseKey = json_ParseString(json_String, json_Index)
-    ElseIf JSonOptions.AllowUnquotedKeys Then
+    ElseIf JsonOptions.AllowUnquotedKeys Then
         Dim json_Char As String
         Do While json_Index > 0 And json_Index <= Len(json_String)
             json_Char = VBA.Mid$(json_String, json_Index, 1)
@@ -722,7 +722,7 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
         Case 47
         
             ' / -> 47 -> \/ (optional)
-            If JSonOptions.EscapeSolidus Then
+            If JsonOptions.EscapeSolidus Then
                 json_Char = "\/"
             End If
         Case 8

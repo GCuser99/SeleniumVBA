@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.4.1
+' SeleniumVBA v2.5
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -107,7 +107,7 @@ Public Sub SetCapability(ByVal key As String, val As Variant)
     Else
         If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
             Dim jc As New WebJSonConverter
-            Set data_("alwaysMatch")(key) = jc.ParseJSON(val)
+            Set data_("alwaysMatch")(key) = jc.ParseJson(val)
         Else 'its a string parameter
             data_("alwaysMatch")(key) = val
         End If
@@ -137,7 +137,7 @@ Public Sub SetOption(ByVal key As String, val As Variant)
         Else 'string
             If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
                 Dim jc As New WebJSonConverter
-                Set data_("alwaysMatch")(browserOptionKey)(key) = jc.ParseJSON(val)
+                Set data_("alwaysMatch")(browserOptionKey)(key) = jc.ParseJson(val)
             Else 'its a string parameter
                 data_("alwaysMatch")(browserOptionKey)(key) = val
             End If
@@ -210,10 +210,12 @@ Public Sub RunIncognito()
     Select Case browser_
     Case svbaBrowser.Chrome
         Me.AddArguments "--incognito"
-    Case svbaBrowser.Edge
+    Case svbaBrowser.Edge, svbaBrowser.IE
         Me.AddArguments "--inprivate"
     Case svbaBrowser.Firefox
         Me.AddArguments "-private"
+    Case svbaBrowser.IE
+        'no method has been found
     End Select
 End Sub
 
@@ -227,7 +229,7 @@ Public Sub SetProfile(ByVal profilePath As String)
     profilePath = WebShared.GetFullLocalPath(profilePath)
     
     Select Case browser_
-    Case svbaBrowser.Chrome, svbaBrowser.Edge
+    Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
         userDir = fso.GetParentFolderName(profilePath)
         profileName = fso.GetBaseName(profilePath)
         Me.AddArguments "--user-data-dir=" & userDir
@@ -242,7 +244,7 @@ End Sub
 
 Public Sub SetUserAgent(ByVal val As String)
     Select Case browser_
-    Case svbaBrowser.Chrome, svbaBrowser.Edge
+    Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
         Me.AddArguments "--user-agent=" & val
     Case svbaBrowser.Firefox
         Me.SetPreference "general.useragent.override", val
@@ -271,7 +273,7 @@ Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
         If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'it's json string - try to parse
             'convert to dictionary or collection
             Dim jc As New WebJSonConverter
-            Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJSON(val)
+            Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJson(val)
         Else
             data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
         End If
@@ -302,6 +304,8 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\
         'Me.SetPreference "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
         'Me.SetPreference "browser.download.useDownloadDir", True
         'Me.SetPreference "browser.download.viewableInternally.enabledTypes", ""
+    Case svbaBrowser.IE
+        'no known way to do this
     End Select
 End Sub
 
@@ -316,30 +320,30 @@ Attribute Dictionary.VB_UserMemId = 0
 End Function
 
 'convert to JSON string for debugging, also used in SaveToFile method
-Public Function ToJson() As String
+Public Function ToJSON() As String
     Dim jc As New WebJSonConverter
-    ToJson = jc.ConvertToJson(data_, 4)
+    ToJSON = jc.ConvertToJson(data_, 4)
 End Function
 
-Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
+Public Sub SaveToFile(Optional ByVal filepath As String = ".\capabilities.json")
     Dim fso As New FileSystemObject, ts As textstream
     Dim jc As New WebJSonConverter
-    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
-    Set ts = fso.CreateTextFile(filePath, True, True)
-    ts.Write Me.ToJson
+    filepath = WebShared.GetFullLocalPath(filepath, driver_.DefaultIOFolder)
+    Set ts = fso.CreateTextFile(filepath, True, True)
+    ts.Write Me.ToJSON
     ts.Close
 End Sub
 
-Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json")
+Public Sub LoadFromFile(Optional ByVal filepath As String = ".\capabilities.json")
     Dim fso As New FileSystemObject, ts As textstream
     Dim jc As New WebJSonConverter
         
-    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    filepath = WebShared.GetFullLocalPath(filepath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist!"
+    If Not fso.FileExists(filepath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist!"
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
-    Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
-    Set data_ = jc.ParseJSON(ts.ReadAll)
+    Set ts = fso.OpenTextFile(filepath, , , TristateUseDefault)
+    Set data_ = jc.ParseJson(ts.ReadAll)
     ts.Close
     
     If data_("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
@@ -355,6 +359,10 @@ End Sub
 
 Public Sub InitializeForFirefox()
     InitializeFor svbaBrowser.Firefox
+End Sub
+
+Public Sub InitializeForIE()
+    InitializeFor svbaBrowser.IE
 End Sub
 
 '-------------------------------------------------------------------------
@@ -375,6 +383,11 @@ Friend Sub InitializeFor(ByVal browser As svbaBrowser)
             browserOptionKey = "ms:edgeOptions"
         Case svbaBrowser.Firefox
             browserOptionKey = "moz:firefoxOptions"
+        Case svbaBrowser.IE
+            'see https://titusfortner.com/2022/09/28/edge-ie-mode.html
+            browserOptionKey = "se:ieOptions"
+            browserOptions.Add "ie.edgechromium", True 'attach to Edge Chrome browser.
+            browserOptions.Add "ignoreZoomSetting", True 'ignore the zoom level of Internet Explorer
     End Select
     
     data_("alwaysMatch").Add browserOptionKey, browserOptions
@@ -443,7 +456,7 @@ Private Function ParamListToStringArray(parmList() As Variant) As String()
         Else
             If Left(parmList(i), 1) = "[" Then  'its a json string - try to parse
                 Dim jc As New WebJSonConverter
-                k = k + jc.ParseJSON(parmList(i)).Count
+                k = k + jc.ParseJson(parmList(i)).Count
             Else 'its a string parameter
                 k = k + 1
             End If
@@ -464,7 +477,7 @@ Private Function ParamListToStringArray(parmList() As Variant) As String()
         Else
             If Left(parmList(i), 1) = "[" Then  'its a json string
                 Dim col As Collection
-                Set col = jc.ParseJSON(parmList(i))
+                Set col = jc.ParseJson(parmList(i))
                 For j = 1 To col.Count
                     k = k + 1
                     strlist(k) = col(j)
