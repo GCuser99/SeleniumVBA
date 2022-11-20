@@ -76,4 +76,23 @@ Sub test_file_download()
     driver.Shutdown
 End Sub
 
-
+Sub doFileDownload()
+    Dim driver As New WebDriver
+    Dim caps As WebCapabilities
+   
+    driver.StartIE
+    
+    'set the directory path for saving download to
+    Set caps = driver.CreateCapabilities
+    caps.SetDownloadPrefs ".\"
+    driver.OpenBrowser caps
+    
+    'delete legacy copy if it exists
+    driver.DeleteFiles ".\test.pdf"
+    
+    driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
+    driver.Wait 2000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub

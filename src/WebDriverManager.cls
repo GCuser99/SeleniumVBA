@@ -358,7 +358,7 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
         Set resp = jc.ParseJson(RequestData(url))
         
         'this gets the latest release
-        GetCompatibleDriverVersion = Mid(resp("tag_name"), 10)
+        GetLatestDriverVersion = Mid(resp("tag_name"), 10)
     End Select
 End Function
 

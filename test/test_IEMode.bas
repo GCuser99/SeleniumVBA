@@ -1,4 +1,7 @@
 Attribute VB_Name = "test_IEMode"
+Option Explicit
+Option Private Module
+
 'this test module contains tests that fail in IE Mode
 'see following discussion link for limitations:
 'https://github.com/GCuser99/SeleniumVBA/discussions/10#discussion-4123927
@@ -6,14 +9,16 @@ Attribute VB_Name = "test_IEMode"
 'https://jimevansmusic.blogspot.com/2014/09/screenshots-sendkeys-and-sixty-four.html
 
 Sub test_action_chain()
-    Dim driver As New WebDriver, actions As WebActionChain
-    'IE mode does not support wheel-type actions so must avoid ScrollBy action
+    Dim driver As SeleniumVBA.WebDriver
+    Dim actions As SeleniumVBA.WebActionChain
+    Dim from1 As SeleniumVBA.WebElement, to1 As SeleniumVBA.WebElement
+    Dim from2 As SeleniumVBA.WebElement, to2 As SeleniumVBA.WebElement
+    Dim from3 As SeleniumVBA.WebElement, to3 As SeleniumVBA.WebElement
+    Dim from4 As SeleniumVBA.WebElement, to4 As SeleniumVBA.WebElement
+    Dim elem As SeleniumVBA.WebElement
     
-    Dim from1 As WebElement, to1 As WebElement
-    Dim from2 As WebElement, to2 As WebElement
-    Dim from3 As WebElement, to3 As WebElement
-    Dim from4 As WebElement, to4 As WebElement
-    Dim elem As WebElement
+    'IE mode does not support wheel-type actions so must avoid ScrollBy action
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartIE
     driver.OpenBrowser
@@ -55,10 +60,13 @@ End Sub
 
 Sub test_action_chain_sendkeys()
     'This works but must get focus on target element prior to sending keys
-    Dim driver As New WebDriver
-    Dim keys As New WebKeyboard
-    Dim actions As WebActionChain
-    Dim searchBox As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim actions As SeleniumVBA.WebActionChain
+    Dim searchBox As SeleniumVBA.WebElement
+    
+    Set keys = SeleniumVBA.New_WebKeyboard
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartIE
     
@@ -84,8 +92,10 @@ End Sub
 
 Sub test_shadowroot()
     'IE mode does not support Shadowroots
-    Dim driver As New WebDriver, shadowHost As WebElement
-    Dim shadowContent As WebElement, shadowRootelem As WebShadowRoot
+    Dim driver As SeleniumVBA.WebDriver, shadowHost As SeleniumVBA.WebElement
+    Dim shadowContent As SeleniumVBA.WebElement, shadowRootelem As WebShadowRoot
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartIE
     driver.OpenBrowser
@@ -106,8 +116,9 @@ End Sub
 
 Sub test_cookies()
     'with IE Mode, SetCookies method does not actually set the cookies
-
-    Dim driver As New WebDriver, cks As New WebCookies
+    Dim driver As SeleniumVBA.WebDriver, cks As SeleniumVBA.WebCookies
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartIE
     
@@ -146,7 +157,11 @@ Sub test_windows()
     'SwitchToWindow does not switch in IE mode
     'see https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/ie-mode?tabs=c-sharp
     'https://titusfortner.com/2022/09/28/edge-ie-mode.html
-    Dim driver As New WebDriver
+    Dim driver As SeleniumVBA.WebDriver
+    Dim hnd1 As String, hnd2 As String
+    Dim i As Long
+    
+    Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartIE
     driver.OpenBrowser
@@ -254,10 +269,14 @@ Sub test_element_aria()
 End Sub
 
 Sub test_MultiSession_IE()
-
-    Dim driver1 As New WebDriver
-    Dim driver2 As New WebDriver
-    Dim keys As New WebKeyboard
+    Dim driver1 As SeleniumVBA.WebDriver
+    Dim driver2 As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim keyseq As String
+    
+    Set driver1 = SeleniumVBA.New_WebDriver
+    Set driver2 = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
 
     driver1.CommandWindowStyle = vbNormalFocus
     driver2.CommandWindowStyle = vbNormalFocus
@@ -281,9 +300,9 @@ Sub test_MultiSession_IE()
     driver2.NavigateTo "https://www.google.com/"
     driver2.Wait 1000
     
-    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keyseq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.Name, "q").SendKeys keySeq
+    driver2.FindElement(by.Name, "q").SendKeys keyseq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
