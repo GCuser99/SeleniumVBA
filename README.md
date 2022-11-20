@@ -1,6 +1,6 @@
 ## SeleniumVBA v2.5
 
-A comprehensive Selenium wrapper for automating Edge, Chrome, and Firefox written in Windows Excel VBA
+A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Excel VBA
 
 Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
@@ -9,15 +9,15 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 - Edge, Chrome, Firefox, and IE Mode browser support
 - Wrappers for most of Selenium's JSon Wire Protocol
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
-- Automated Browser/WebDriver version alignment - works out-of-the-box with no manual driver downloads necessary!
+- Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Relative paths and OneDrive support
-- Open spec: This wrapper is an HTTP client of the Selenium WebDriver server, conforming closely to [W3C standards](https://www.w3.org/TR/webdriver/).
+- This wrapper is an HTTP client of the Selenium WebDriver server, conforming closely to [W3C standards](https://www.w3.org/TR/webdriver/).
 
 ## Setup
 
 **SeleniumVBA has been designed to work right out-of-the-box**. Just download the [SeleniumVBA.xlam](https://github.com/GCuser99/SeleniumVBA/tree/main/dist) Excel Addin, open it, and run any one of the subs in the "test" Standard modules. If the Selenium WebDriver does not exist, or is out-of-date, SeleniumVBA will detect this automatically and download the appropriate driver to a desired location (currently defaults to user's download folder but that is easily configurable).
 
-The user can also programmatically invoke driver updates via the WebDriverManager class (see example below).
+The user can also programmatically invoke driver updates via the WebDriverManager class.
 
 ## SendKeys Example
 
