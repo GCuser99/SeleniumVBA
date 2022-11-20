@@ -1,6 +1,6 @@
 ## SeleniumVBA v2.5
 
-A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE Mode written in Windows Excel VBA
+A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Excel VBA
 
 Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
