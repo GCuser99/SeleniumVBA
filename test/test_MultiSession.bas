@@ -25,7 +25,7 @@ Sub test_MultiSession_Edge()
     Dim driver1 As SeleniumVBA.WebDriver
     Dim driver2 As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
-    Dim keyseq As String
+    Dim keySeq As String
     
     Set driver1 = SeleniumVBA.New_WebDriver
     Set driver2 = SeleniumVBA.New_WebDriver
@@ -55,17 +55,17 @@ Sub test_MultiSession_Edge()
     driver2.NavigateTo "https://www.wikipedia.org/"
     driver2.Wait 1000
     
-    keyseq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.ID, "searchInput").SendKeys keyseq
+    driver2.FindElement(By.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
                                 
-    driver1.FindElement(by.Name, "cusid").SendKeys "87654"
+    driver1.FindElement(By.Name, "cusid").SendKeys "87654"
     driver1.Wait 1000
     
-    driver1.FindElement(by.Name, "submit").Click
+    driver1.FindElement(By.Name, "submit").Click
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
@@ -90,7 +90,7 @@ Sub test_MultiSession_mix_Edge_Chrome()
     Dim driver1 As SeleniumVBA.WebDriver
     Dim driver2 As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
-    Dim keyseq As String
+    Dim keySeq As String
     
     Set driver1 = SeleniumVBA.New_WebDriver
     Set driver2 = SeleniumVBA.New_WebDriver
@@ -120,17 +120,17 @@ Sub test_MultiSession_mix_Edge_Chrome()
     driver2.NavigateTo "https://www.wikipedia.org/"
     driver2.Wait 1000
     
-    keyseq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.ID, "searchInput").SendKeys keyseq
+    driver2.FindElement(By.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
                                 
-    driver1.FindElement(by.Name, "cusid").SendKeys "87654"
+    driver1.FindElement(By.Name, "cusid").SendKeys "87654"
     driver1.Wait 1000
     
-    driver1.FindElement(by.Name, "submit").Click
+    driver1.FindElement(By.Name, "submit").Click
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
@@ -155,7 +155,7 @@ Sub test_MultiSession_Firefox()
     Dim driver1 As SeleniumVBA.WebDriver
     Dim driver2 As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
-    Dim keyseq As String
+    Dim keySeq As String
     
     Set driver1 = SeleniumVBA.New_WebDriver
     Set driver2 = SeleniumVBA.New_WebDriver
@@ -184,17 +184,17 @@ Sub test_MultiSession_Firefox()
     driver2.NavigateTo "https://www.wikipedia.org/"
     driver2.Wait 1000
 
-    keyseq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.ID, "searchInput").SendKeys keyseq
+    driver2.FindElement(By.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
                                 
-    driver1.FindElement(by.Name, "cusid").SendKeys "87654"
+    driver1.FindElement(By.Name, "cusid").SendKeys "87654"
     driver1.Wait 1000
     
-    driver1.FindElement(by.Name, "submit").Click
+    driver1.FindElement(By.Name, "submit").Click
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent

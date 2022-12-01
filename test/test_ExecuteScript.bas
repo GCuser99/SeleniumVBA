@@ -45,7 +45,7 @@ Sub test_executeScriptAsync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
     Dim driver As SeleniumVBA.WebDriver
     Dim webElem As SeleniumVBA.WebElement
-    Dim jc As SeleniumVBA.WebJSonConverter
+    Dim jc As SeleniumVBA.WebJsonConverter
     Dim url As String, waitTime As Integer
     
     Set driver = SeleniumVBA.New_WebDriver

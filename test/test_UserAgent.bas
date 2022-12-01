@@ -32,7 +32,7 @@ Sub test_hide_headless()
     'to see a full list of headers navigate to https://www.httpbin.org/headers
     driver.NavigateTo "https://www.whatismybrowser.com/detect/what-is-my-user-agent/"
     
-    Debug.Print "Modfified User Agent: " & driver.FindElement(by.ID, "detected_value").GetText
+    Debug.Print "Modfified User Agent: " & driver.FindElement(By.ID, "detected_value").GetText
     
     driver.CloseBrowser
     driver.Shutdown

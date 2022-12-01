@@ -20,7 +20,7 @@ Sub test_print()
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
+    driver.FindElement(By.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
     
     driver.Wait 1000
     
@@ -83,9 +83,9 @@ Sub test_element_screenshot()
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci"
+    driver.FindElement(By.ID, "searchInput").SendKeys "Leonardo da Vinci"
     driver.Wait 1000
-    driver.FindElement(by.ID, "searchInput").SaveScreenshot
+    driver.FindElement(By.ID, "searchInput").SaveScreenshot
 
     driver.Wait 1000
     

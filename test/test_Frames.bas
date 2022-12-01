@@ -30,7 +30,7 @@ Sub test_frames_with_frameset()
     driver.Wait
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(by.tagName, "frame").Count
+    Debug.Print "Number of frames: " & driver.FindElements(By.tagName, "frame").Count
     
     Set elem = driver.FindElementByName("bottom")
     
@@ -77,7 +77,7 @@ Sub test_frames_with_embed_objects()
     driver.Wait 1000
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(by.tagName, "embed").Count + driver.FindElements(by.tagName, "object").Count
+    Debug.Print "Number of frames: " & driver.FindElements(By.tagName, "embed").Count + driver.FindElements(By.tagName, "object").Count
     
     Set elemObject = driver.FindElementByName("object frame")
     Set elemEmbed = driver.FindElementByName("embed frame")
@@ -130,7 +130,7 @@ Sub test_frames_with_iframes()
     driver.Wait 1000
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(by.tagName, "iframe").Count
+    Debug.Print "Number of frames: " & driver.FindElements(By.tagName, "iframe").Count
     
     Set elem = driver.FindElementByName("iframe2")
     
@@ -162,7 +162,7 @@ Sub test_frames_with_nested_iframes()
     driver.Wait 1000
     
     Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(by.tagName, "iframe").Count
+    Debug.Print "Number of frames: " & driver.FindElements(By.tagName, "iframe").Count
     
     Set elem = driver.FindElementByID("frame1") 'cant find this element
     
@@ -170,7 +170,7 @@ Sub test_frames_with_nested_iframes()
     driver.SwitchToFrame elem
     driver.Wait
     Debug.Print "Parent frame text: " & driver.FindElementByTagName("body").GetText
-    Debug.Print "Number of child frames: " & driver.FindElements(by.tagName, "iframe").Count
+    Debug.Print "Number of child frames: " & driver.FindElements(By.tagName, "iframe").Count
     
     'switch to child frame
     driver.SwitchToFrameByIndex 1

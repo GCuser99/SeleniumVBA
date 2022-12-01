@@ -62,7 +62,7 @@ Sub test_windows2()
     
     driver.Wait 2000
     
-    driver.FindElement(by.XPath, "//*[contains(@href,'popup.php')]").Click
+    driver.FindElement(By.XPath, "//*[contains(@href,'popup.php')]").Click
     
     mainWindow = driver.GetCurrentWindowHandle
     whdls = driver.GetWindowHandles
@@ -71,9 +71,9 @@ Sub test_windows2()
         If whdls(i) <> mainWindow Then
             driver.SwitchToWindow whdls(i)
             driver.Wait
-            driver.FindElement(by.Name, "emailid").SendKeys "gaurav.3n@gmail.com"
+            driver.FindElement(By.Name, "emailid").SendKeys "gaurav.3n@gmail.com"
             driver.Wait 2000
-            driver.FindElement(by.Name, "btnLogin").Click
+            driver.FindElement(By.Name, "btnLogin").Click
             driver.Wait 2000
             driver.CloseWindow
             Exit For

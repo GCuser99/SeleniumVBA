@@ -61,4 +61,5 @@ Sub test_updateDriversForSeleniumBasic()
     MsgBox mngr.AlignEdgeDriverWithBrowser("edgedriver.exe")
     MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe")
     MsgBox mngr.AlignFirefoxDriverWithBrowser("geckodriver.exe")
+    MsgBox mngr.AlignIEDriverWithBrowser("IEDriverserver.exe")
 End Sub

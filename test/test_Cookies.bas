@@ -19,9 +19,9 @@ Sub test_cookies()
     
     driver.Wait 500
     
-    driver.FindElement(by.Name, "username").SendKeys ("abc123")
-    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.Name, "submit").Click
+    driver.FindElement(By.Name, "username").SendKeys ("abc123")
+    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(By.Name, "submit").Click
     
     driver.Wait 500
     
@@ -59,9 +59,9 @@ Sub test_cookies2()
     
     driver.Wait 500
     
-    driver.FindElement(by.Name, "username").SendKeys ("abc123")
-    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.Name, "submit").Click
+    driver.FindElement(By.Name, "username").SendKeys ("abc123")
+    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(By.Name, "submit").Click
     
     'get and save the important cookie for this domain
     Set cks = driver.GetAllCookies
@@ -107,9 +107,9 @@ Sub test_cookies3()
     
     driver.Wait 500
     
-    driver.FindElement(by.Name, "username").SendKeys ("abc123")
-    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.Name, "submit").Click
+    driver.FindElement(By.Name, "username").SendKeys ("abc123")
+    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(By.Name, "submit").Click
     
     driver.Wait 500
     

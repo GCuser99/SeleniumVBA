@@ -27,17 +27,17 @@ Sub test_action_chain()
     
     driver.Wait 1000
     
-    Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
-    Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")
+    Set from1 = driver.FindElement(By.XPath, "//*[@id='credit2']/a")
+    Set to1 = driver.FindElement(By.XPath, "//*[@id='bank']/li")
     
-    Set from2 = driver.FindElement(by.XPath, "//*[@id='credit1']/a")
-    Set to2 = driver.FindElement(by.XPath, "//*[@id='loan']/li")
+    Set from2 = driver.FindElement(By.XPath, "//*[@id='credit1']/a")
+    Set to2 = driver.FindElement(By.XPath, "//*[@id='loan']/li")
     
-    Set from3 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to3 = driver.FindElement(by.XPath, "//*[@id='amt7']/li")
+    Set from3 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+    Set to3 = driver.FindElement(By.XPath, "//*[@id='amt7']/li")
     
-    Set from4 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to4 = driver.FindElement(by.XPath, "//*[@id='amt8']/li")
+    Set from4 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+    Set to4 = driver.FindElement(By.XPath, "//*[@id='amt8']/li")
     
     driver.Wait 500
     
@@ -75,7 +75,7 @@ Sub test_action_chain_sendkeys()
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 500
     
-    Set searchBox = driver.FindElement(by.Name, "q")
+    Set searchBox = driver.FindElement(By.Name, "q")
     
     Set actions = driver.ActionChain
     
@@ -101,12 +101,12 @@ Sub test_shadowroot()
     driver.OpenBrowser
     driver.NavigateTo ("http://watir.com/examples/shadow_dom.html")
     
-    Set shadowHost = driver.FindElement(by.cssSelector, "#shadow_host")
+    Set shadowHost = driver.FindElement(By.cssSelector, "#shadow_host")
     
     'this returns "Command not found"
     Set shadowRootelem = shadowHost.GetShadowRoot()
     
-    Set shadowContent = shadowRootelem.FindElement(by.ID, "shadow_content")
+    Set shadowContent = shadowRootelem.FindElement(By.ID, "shadow_content")
     
     Debug.Print shadowContent.GetText  'should return "some text"
     
@@ -128,9 +128,9 @@ Sub test_cookies()
     
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
     
-    driver.FindElement(by.Name, "username").SendKeys ("abc123")
-    driver.FindElement(by.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(by.Name, "submit").Click
+    driver.FindElement(By.Name, "username").SendKeys ("abc123")
+    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
+    driver.FindElement(By.Name, "submit").Click
     
     driver.Wait 500
     
@@ -203,37 +203,25 @@ Sub test_windows()
     driver.Shutdown
 End Sub
 
-Sub test_file_download()
-    'no known way to set download prefs for IE Mode
-    Dim driver As SeleniumVBA.WebDriver, caps As SeleniumVBA.WebCapabilities
+Sub test_file_download2()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
     
     Set driver = SeleniumVBA.New_WebDriver
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
+   
     driver.StartIE
     
-    driver.DeleteFiles ".\BrowserStack - List of devices to test*"
-    
+    'set the directory path for saving download to
     Set caps = driver.CreateCapabilities
-    
-    caps.SetDownloadPrefs
-    
-    Debug.Print caps.ToJSON
-
+    caps.SetDownloadPrefs ".\"
     driver.OpenBrowser caps
     
-    driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
-    driver.Wait 500
+    'delete legacy copy if it exists
+    driver.DeleteFiles ".\test.pdf"
     
-    driver.FindElementByCssSelector(".icon-csv").ScrollToElement , -150
-    driver.Wait 1000
+    driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
+    driver.Wait 2000
     
-    driver.FindElementByCssSelector(".icon-csv").Click
-    'driver.FindElementByCssSelector(".icon-pdf").Click
-    
-    driver.Wait 4000
-            
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -241,7 +229,7 @@ End Sub
 Sub test_element_aria()
     'IE mode does not support Aria attributes
     Dim driver As SeleniumVBA.WebDriver, str As String
-    Dim filepath As String
+    Dim filePath As String
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -249,14 +237,14 @@ Sub test_element_aria()
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
-    filepath = ".\snippet.html"
+    filePath = ".\snippet.html"
     
     driver.StartIE
     driver.OpenBrowser
     
-    driver.SaveStringToFile str, filepath
+    driver.SaveStringToFile str, filePath
     
-    driver.NavigateToFile filepath
+    driver.NavigateToFile filePath
     
     driver.Wait 1000
     
@@ -272,7 +260,7 @@ Sub test_MultiSession_IE()
     Dim driver1 As SeleniumVBA.WebDriver
     Dim driver2 As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
-    Dim keyseq As String
+    Dim keySeq As String
     
     Set driver1 = SeleniumVBA.New_WebDriver
     Set driver2 = SeleniumVBA.New_WebDriver
@@ -300,17 +288,17 @@ Sub test_MultiSession_IE()
     driver2.NavigateTo "https://www.google.com/"
     driver2.Wait 1000
     
-    keyseq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver2.FindElement(by.Name, "q").SendKeys keyseq
+    driver2.FindElement(By.Name, "q").SendKeys keySeq
     driver2.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
                                 
-    driver1.FindElement(by.Name, "cusid").SendKeys "87654"
+    driver1.FindElement(By.Name, "cusid").SendKeys "87654"
     driver1.Wait 1000
     
-    driver1.FindElement(by.Name, "submit").Click
+    driver1.FindElement(By.Name, "submit").Click
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
@@ -469,7 +457,7 @@ Sub test_print()
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    driver.FindElement(by.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
+    driver.FindElement(By.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
     
     driver.Wait 1000
     
@@ -519,7 +507,7 @@ End Sub
 Sub test_GetSessionInfo()
     'this is provided to see a list of default capabilities for IE mode
     Dim driver As SeleniumVBA.WebDriver
-    Dim jc As New WebJSonConverter
+    Dim jc As New WebJsonConverter
     
     Set driver = SeleniumVBA.New_WebDriver
     

@@ -43,8 +43,8 @@ End Function
 '    Set New_WebCookies = New WebCookies
 'End Function
 
-Public Function New_WebJSonConverter() As WebJSonConverter
-    Set New_WebJSonConverter = New WebJSonConverter
+Public Function New_WebJSonConverter() As WebJsonConverter
+    Set New_WebJSonConverter = New WebJsonConverter
 End Function
 
 Public Function New_WebKeyboard() As WebKeyboard

@@ -36,7 +36,7 @@ Sub test_logging()
     driver.NavigateTo "https://jsbin.com/osebed/2"
     driver.Wait
     
-    Set fruits = driver.FindElement(by.ID, "fruits")
+    Set fruits = driver.FindElement(By.ID, "fruits")
     
     If fruits.IsMultiSelect Then
         fruits.SelectByVisibleText "Banana"
@@ -102,7 +102,7 @@ End Sub
 Sub test_element_aria()
     'Firefox does not support Aria attributes
     Dim driver As SeleniumVBA.WebDriver, str As String
-    Dim filepath As String
+    Dim filePath As String
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -110,14 +110,14 @@ Sub test_element_aria()
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     
-    filepath = ".\snippet.html"
+    filePath = ".\snippet.html"
     
     driver.StartFirefox
     driver.OpenBrowser
     
-    driver.SaveStringToFile str, filepath
+    driver.SaveStringToFile str, filePath
     
-    driver.NavigateToFile filepath
+    driver.NavigateToFile filePath
     
     driver.Wait 1000
     
@@ -139,7 +139,7 @@ Sub test_shadowroot()
     driver.OpenBrowser
     driver.NavigateTo ("http://watir.com/examples/shadow_dom.html")
     
-    Set shadowHost = driver.FindElement(by.ID, "shadow_host")
+    Set shadowHost = driver.FindElement(By.ID, "shadow_host")
     
     'this works for Firefox
     Set shadowRootelem = shadowHost.GetShadowRoot()
@@ -150,7 +150,7 @@ Sub test_shadowroot()
     'apparently FindElement support for shadowroots may be coming:
     'https://github.com/mozilla/geckodriver/issues/2005
     'https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned&view=subtest
-    Set shadowContent = shadowRootelem.FindElement(by.ID, "shadow_content")
+    Set shadowContent = shadowRootelem.FindElement(By.ID, "shadow_content")
     
     Debug.Print shadowContent.GetText 'should return "some text"
     
@@ -173,11 +173,11 @@ Sub test_Alerts()
     
     Debug.Print "Is Alert Present: " & driver.IsAlertPresent
                                 
-    driver.FindElement(by.Name, "cusid").SendKeys "87654"
+    driver.FindElement(By.Name, "cusid").SendKeys "87654"
     
     driver.Wait 1000
     
-    driver.FindElement(by.Name, "submit").Click
+    driver.FindElement(By.Name, "submit").Click
     
     driver.Wait 1000
     
@@ -197,7 +197,7 @@ End Sub
 
 Sub test_GetSessionInfo()
     Dim driver As SeleniumVBA.WebDriver
-    Dim jc As New WebJSonConverter
+    Dim jc As New WebJsonConverter
     
     Set driver = SeleniumVBA.New_WebDriver
     

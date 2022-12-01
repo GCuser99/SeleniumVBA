@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.5
+' SeleniumVBA v2.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -122,10 +122,10 @@ Public Property Let Value(ByVal val As String)
 End Property
 
 'The virtual path to transmit with the cookie. The default is /, which is the server root.
-Public Property Get path() As String
-    path = mPath
+Public Property Get Path() As String
+    Path = mPath
 End Property
-Public Property Let path(ByVal val As String)
+Public Property Let Path(ByVal val As String)
     mPath = val
 End Property
 
@@ -144,7 +144,7 @@ End Function
 
 Private Sub Class_Initialize()
     'initialize defaults
-    Me.path = "/"
+    Me.Path = "/"
     Me.Secure = False
     Me.HttpOnly = False
     Me.SameSite = "Lax"

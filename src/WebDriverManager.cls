@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.5
+' SeleniumVBA v2.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -114,7 +114,7 @@ End Enum
 
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
-    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.path 'ThisWorkbook.Path
+    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
 End Sub
 
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
@@ -322,7 +322,7 @@ End Function
 
 Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
     'this function is here for completeness, although not used
-    Dim jc As New WebJSonConverter, resp As New Dictionary, url As String
+    Dim jc As New WebJsonConverter, resp As New Dictionary, url As String
     Dim responseText As Variant, try As Integer, searchOS As String, i As Integer, durl As String
     
     Select Case browser
@@ -466,7 +466,7 @@ Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal b
         Next row
     Case svbaBrowser.IE
         'just get the latest release, independent of Edge browser version
-        Dim jc As New WebJSonConverter, json As Dictionary
+        Dim jc As New WebJsonConverter, json As Dictionary
         
         url = "https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"
         
@@ -509,7 +509,7 @@ Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVe
     Dim driverFolder As String, driverFilename As String, tmpInstallFolder As String, createdTmpFolder As Boolean
     Dim tmpInstallZipPath As String, tmpZipDriverFilename As String, tmpInstallDriverpath As String
     Dim status As Long, i As Long
-    Dim jc As New WebJSonConverter, json As Dictionary
+    Dim jc As New WebJsonConverter, json As Dictionary
     
     If IsMissing(driverPath) Then
         Select Case browser
@@ -619,7 +619,7 @@ End Function
 
 Public Function GetDownloadsFolderPath()
     Dim oShell As New Shell32.Shell
-    GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.path
+    GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.Path
 End Function
 
 Private Function IsProcessRunning(ByVal process As String)

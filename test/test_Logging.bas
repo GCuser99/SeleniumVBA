@@ -19,7 +19,7 @@ Sub test_logging()
     driver.NavigateTo "https://jsbin.com/osebed/2"
     driver.Wait
     
-    Set fruits = driver.FindElement(by.ID, "fruits")
+    Set fruits = driver.FindElement(By.ID, "fruits")
     
     If fruits.IsMultiSelect Then
         fruits.SelectByVisibleText "Banana"

@@ -19,17 +19,17 @@ Sub test_action_chain()
     
     driver.Wait 500
     
-    Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
-    Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")
+    Set from1 = driver.FindElement(By.XPath, "//*[@id='credit2']/a")
+    Set to1 = driver.FindElement(By.XPath, "//*[@id='bank']/li")
     
-    Set from2 = driver.FindElement(by.XPath, "//*[@id='credit1']/a")
-    Set to2 = driver.FindElement(by.XPath, "//*[@id='loan']/li")
+    Set from2 = driver.FindElement(By.XPath, "//*[@id='credit1']/a")
+    Set to2 = driver.FindElement(By.XPath, "//*[@id='loan']/li")
     
-    Set from3 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to3 = driver.FindElement(by.XPath, "//*[@id='amt7']/li")
+    Set from3 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+    Set to3 = driver.FindElement(By.XPath, "//*[@id='amt7']/li")
     
-    Set from4 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to4 = driver.FindElement(by.XPath, "//*[@id='amt8']/li")
+    Set from4 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+    Set to4 = driver.FindElement(By.XPath, "//*[@id='amt8']/li")
     
     driver.Wait 500
     
@@ -63,7 +63,7 @@ Sub test_action_chain_sendkeys()
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 500
     
-    Set searchBox = driver.FindElement(by.ID, "searchInput")
+    Set searchBox = driver.FindElement(By.ID, "searchInput")
     
     Set actions = driver.ActionChain
     
@@ -94,17 +94,17 @@ Sub test_drag_and_drop()
     
     driver.Wait 500
     
-    Set from1 = driver.FindElement(by.XPath, "//*[@id='credit2']/a")
-    Set to1 = driver.FindElement(by.XPath, "//*[@id='bank']/li")
+    Set from1 = driver.FindElement(By.XPath, "//*[@id='credit2']/a")
+    Set to1 = driver.FindElement(By.XPath, "//*[@id='bank']/li")
     
-    Set from2 = driver.FindElement(by.XPath, "//*[@id='credit1']/a")
-    Set to2 = driver.FindElement(by.XPath, "//*[@id='loan']/li")
+    Set from2 = driver.FindElement(By.XPath, "//*[@id='credit1']/a")
+    Set to2 = driver.FindElement(By.XPath, "//*[@id='loan']/li")
     
-    Set from3 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to3 = driver.FindElement(by.XPath, "//*[@id='amt7']/li")
+    Set from3 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+    Set to3 = driver.FindElement(By.XPath, "//*[@id='amt7']/li")
     
-    Set from4 = driver.FindElement(by.XPath, "//*[@id='fourth']/a")
-    Set to4 = driver.FindElement(by.XPath, "//*[@id='amt8']/li")
+    Set from4 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+    Set to4 = driver.FindElement(By.XPath, "//*[@id='amt8']/li")
     
     driver.ScrollTo , 500
     

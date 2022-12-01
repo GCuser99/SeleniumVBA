@@ -14,7 +14,7 @@ Sub test_select()
     driver.NavigateTo "https://jsbin.com/osebed/2"
     driver.Wait 1000
     
-    Set fruits = driver.FindElement(by.ID, "fruits")
+    Set fruits = driver.FindElement(By.ID, "fruits")
     
     fruits.SelectByVisibleText "Banana"
     driver.Wait

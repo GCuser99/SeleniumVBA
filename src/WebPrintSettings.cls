@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.5
+' SeleniumVBA v2.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -155,7 +155,7 @@ End Property
 Friend Function ToDictionary() As Dictionary
     Dim margins As New Dictionary
     Dim page As New Dictionary
-    Dim Data As New Dictionary
+    Dim data As New Dictionary
     
     Dim ufact As Single
     If mUnits = svbaInches Then ufact = 2.54 Else ufact = 1
@@ -168,12 +168,12 @@ Friend Function ToDictionary() As Dictionary
     page.Add "height", mPageHeight * ufact
     page.Add "width", mPageWidth * ufact
     
-    Data.Add "background", mBackground
+    data.Add "background", mBackground
     
     If mOrientation = svbaPortrait Then
-        Data.Add "orientation", "portrait"
+        data.Add "orientation", "portrait"
     Else
-        Data.Add "orientation", "landscape"
+        data.Add "orientation", "landscape"
     End If
     
     Dim i As Long
@@ -181,13 +181,13 @@ Friend Function ToDictionary() As Dictionary
         mPageRanges(i) = CStr(mPageRanges(i))
     Next i
     
-    Data.Add "margin", margins
-    Data.Add "page", page
-    Data.Add "pageRanges", mPageRanges 'eg. Array("1-2", "4-7", 13, "15")
-    Data.Add "scale", mPrintScale
-    Data.Add "shrinkToFit", mShrinkToFit
+    data.Add "margin", margins
+    data.Add "page", page
+    data.Add "pageRanges", mPageRanges 'eg. Array("1-2", "4-7", 13, "15")
+    data.Add "scale", mPrintScale
+    data.Add "shrinkToFit", mShrinkToFit
     
-    Set ToDictionary = Data
+    Set ToDictionary = data
 End Function
 
 Private Sub Class_Initialize()

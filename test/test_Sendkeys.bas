@@ -5,7 +5,7 @@ Option Private Module
 Sub test_sendkeys()
     Dim driver As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
-    Dim keyseq As String
+    Dim keySeq As String
     
     Set driver = SeleniumVBA.New_WebDriver
     Set keys = SeleniumVBA.New_WebKeyboard
@@ -17,9 +17,9 @@ Sub test_sendkeys()
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
     
-    keyseq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
     
-    driver.FindElement(by.ID, "searchInput").SendKeys keyseq
+    driver.FindElement(By.ID, "searchInput").SendKeys keySeq
 
     driver.Wait 1500
     

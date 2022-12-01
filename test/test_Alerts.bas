@@ -17,11 +17,11 @@ Sub test_Alerts()
     
     Debug.Print "Is Alert Present: " & driver.IsAlertPresent
                                 
-    driver.FindElement(by.Name, "cusid").SendKeys "87654"
+    driver.FindElement(By.Name, "cusid").SendKeys "87654"
     
     driver.Wait 1000
     
-    driver.FindElement(by.Name, "submit").Click
+    driver.FindElement(By.Name, "submit").Click
     
     driver.Wait 1000
     

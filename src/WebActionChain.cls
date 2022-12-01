@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+'@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.5
+' SeleniumVBA v2.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -82,18 +83,19 @@ Attribute VB_Exposed = True
 'MoveByOffset           Moves the mouse to an offset from current mouse position. If element is specified,
 '                       then move the mouse by an offset relative to the top-left corner of the element.
 'MoveToElement          Moves the mouse to the middle of an element.
+'MoveTo                 Moves the mouse pointer to (x,y) relative to viewport origin (top-left).
 'Perform                Executes the action chain and then resets the action queue on both the local and remote ends
 'ReleaseButton          Releases a held mouse button on an element
 'ScrollBy               Scrolls window by x and y offsets
 'ScrollToElement        Scrolls to element position with optional x and y offsets
-'SendKeys               Sends keys to current focused element (see Keyboard class for special keys support)
+'SendKeys               Sends key sequence to current focused element (see Keyboard class for special keys support)
 'ShiftKey               Sends a Shift-[Key] sequence to focused element
 'Wait                   Pause all inputs for the specified duration in milliseconds
 '
 
 Option Explicit
 
-Private Const DEFAULT_PAUSE_DURATION = 350
+Private Const DEFAULT_PAUSE_DURATION As Long = 350
 Private driver_ As WebDriver
 Private data_ As Dictionary
 
@@ -114,15 +116,17 @@ Friend Property Set WebDriver(ByRef obj As WebDriver)
     Set driver_ = obj
 End Property
 
-Friend Property Set Data(ByRef obj As Dictionary)
+Friend Property Set DataDictionary(ByRef obj As Dictionary)
     Set data_ = obj
 End Property
 
 'Action Chain Methods:
 
+'@Description("Moves the mouse to the middle of an element.")
 Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolean = False) As WebActionChain
-    'Moves the mouse pointer to the middle of an element.
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute MoveToElement.VB_Description = "Moves the mouse to the middle of an element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -146,8 +150,8 @@ Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolea
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -155,12 +159,14 @@ Public Function MoveToElement(element As WebElement, Optional SetFocus As Boolea
     'now set things up for next link in chain
     Set MoveToElement = New WebActionChain
     Set MoveToElement.WebDriver = driver_
-    Set MoveToElement.Data = data_
+    Set MoveToElement.DataDictionary = data_
 End Function
 
+'@Description("Clicks an element.")
 Public Function Click(Optional element As WebElement) As WebActionChain
-    'clicks an element
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute Click.VB_Description = "Clicks an element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -187,8 +193,8 @@ Public Function Click(Optional element As WebElement) As WebActionChain
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -196,12 +202,14 @@ Public Function Click(Optional element As WebElement) As WebActionChain
     'now set things up for next link in chain
     Set Click = New WebActionChain
     Set Click.WebDriver = driver_
-    Set Click.Data = data_
+    Set Click.DataDictionary = data_
 End Function
 
+'@Description("Holds down the left mouse button on an element.")
 Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
-    'Holds down the left mouse button on an element
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute ClickAndHold.VB_Description = "Holds down the left mouse button on an element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -224,8 +232,8 @@ Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -233,12 +241,14 @@ Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
     'now set things up for next link in chain
     Set ClickAndHold = New WebActionChain
     Set ClickAndHold.WebDriver = driver_
-    Set ClickAndHold.Data = data_
+    Set ClickAndHold.DataDictionary = data_
 End Function
 
+'@Description("Performs a context-click (right click) on an element.")
 Public Function ClickContext(Optional element As WebElement) As WebActionChain
-    'Performs a context-click (right click) on an element
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute ClickContext.VB_Description = "Performs a context-click (right click) on an element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -265,8 +275,8 @@ Public Function ClickContext(Optional element As WebElement) As WebActionChain
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -274,12 +284,14 @@ Public Function ClickContext(Optional element As WebElement) As WebActionChain
     'now set things up for next link in chain
     Set ClickContext = New WebActionChain
     Set ClickContext.WebDriver = driver_
-    Set ClickContext.Data = data_
+    Set ClickContext.DataDictionary = data_
 End Function
 
+'@Description("Double-clicks an element.")
 Public Function DoubleClick(Optional element As WebElement) As WebActionChain
-    'Double-clicks an element
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute DoubleClick.VB_Description = "Double-clicks an element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -310,8 +322,8 @@ Public Function DoubleClick(Optional element As WebElement) As WebActionChain
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -319,12 +331,14 @@ Public Function DoubleClick(Optional element As WebElement) As WebActionChain
     'now set things up for next link in chain
     Set DoubleClick = New WebActionChain
     Set DoubleClick.WebDriver = driver_
-    Set DoubleClick.Data = data_
+    Set DoubleClick.DataDictionary = data_
 End Function
 
+'@Description("Releases a held mouse button on an element.")
 Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
-    'Releasing a held mouse button
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute ReleaseButton.VB_Description = "Releases a held mouse button on an element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -347,8 +361,8 @@ Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -356,12 +370,14 @@ Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
     'now set things up for next link in chain
     Set ReleaseButton = New WebActionChain
     Set ReleaseButton.WebDriver = driver_
-    Set ReleaseButton.Data = data_
+    Set ReleaseButton.DataDictionary = data_
 End Function
 
+'@Description("Holds down the left mouse button on the source element, then moves to the target element and releases the mouse button.")
 Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebElement) As WebActionChain
-    'Holds down the left mouse button on the source element, then moves to the target element and releases the mouse button.
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute DragAndDrop.VB_Description = "Holds down the left mouse button on the source element, then moves to the target element and releases the mouse button."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -380,8 +396,8 @@ Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebEle
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -389,12 +405,14 @@ Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebEle
     'now set things up for next link in chain
     Set DragAndDrop = New WebActionChain
     Set DragAndDrop.WebDriver = driver_
-    Set DragAndDrop.Data = data_
+    Set DragAndDrop.DataDictionary = data_
 End Function
 
+'@Description("Holds down the left mouse button on the source element, then moves to the target offset and releases the mouse button.")
 Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long, ByVal yOffset As Long) As WebActionChain
-    'Holds down the left mouse button on the source element, then moves to the x and y offsets
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute DragAndDropByOffset.VB_Description = "Holds down the left mouse button on the source element, then moves to the target offset and releases the mouse button."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -413,8 +431,8 @@ Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -422,12 +440,14 @@ Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long
     'now set things up for next link in chain
     Set DragAndDropByOffset = New WebActionChain
     Set DragAndDropByOffset.WebDriver = driver_
-    Set DragAndDropByOffset.Data = data_
+    Set DragAndDropByOffset.DataDictionary = data_
 End Function
 
+'@Description("Holds down the left mouse button on the source element, then moves to the x and y offsets.")
 Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, ByVal y As Long) As WebActionChain
-    'Holds down the left mouse button on the source element, then moves to the x and y offsets
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute DragAndDropToPosition.VB_Description = "Holds down the left mouse button on the source element, then moves to the x and y offsets."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -446,8 +466,8 @@ Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, By
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -455,12 +475,14 @@ Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, By
     'now set things up for next link in chain
     Set DragAndDropToPosition = New WebActionChain
     Set DragAndDropToPosition.WebDriver = driver_
-    Set DragAndDropToPosition.Data = data_
+    Set DragAndDropToPosition.DataDictionary = data_
 End Function
 
+'@Description("Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt and Shift).")
 Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
-    'Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt and Shift).
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt and Shift)."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     If Not element Is Nothing Then
@@ -476,8 +498,8 @@ Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElem
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -485,12 +507,14 @@ Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElem
     'now set things up for next link in chain
     Set KeyDown = New WebActionChain
     Set KeyDown.WebDriver = driver_
-    Set KeyDown.Data = data_
+    Set KeyDown.DataDictionary = data_
 End Function
 
+'@Description("Releases a modifier key.")
 Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
-    'Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt and Shift).
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute KeyUp.VB_Description = "Releases a modifier key."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     If Not element Is Nothing Then
@@ -506,8 +530,8 @@ Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElemen
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -515,12 +539,14 @@ Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElemen
     'now set things up for next link in chain
     Set KeyUp = New WebActionChain
     Set KeyUp.WebDriver = driver_
-    Set KeyUp.Data = data_
+    Set KeyUp.DataDictionary = data_
 End Function
 
+'@Description("Pauses execution for time in milliseconds.")
 Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION) As WebActionChain
-    'pauses for time in milliseconds
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute Wait.VB_Description = "Pauses execution for time in milliseconds."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -535,8 +561,8 @@ Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION)
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -544,12 +570,17 @@ Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION)
     'now set things up for next link in chain
     Set Wait = New WebActionChain
     Set Wait.WebDriver = driver_
-    Set Wait.Data = data_
+    Set Wait.DataDictionary = data_
 End Function
 
+'@Description("Moves the mouse to an offset from current mouse position. If element is specified, then moves the mouse by an offset relative to the top-left corner of the element..")
 Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optional element As WebElement) As WebActionChain
-    'Moves the mouse pointer by offsets to current pointer position, or by offset from element top-left
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute MoveByOffset.VB_Description = "Moves the mouse to an offset from current mouse position. If element is specified, then moves the mouse by an offset relative to the top-left corner of the element.."
+    'Note that the mouse pointer gets (re)set to (0,0) at the start of each action chain. If element is not provided,
+    'the offsets are relative to the mouse pointer in the current action chain.
+    'So for instance, actions.MoveByOffset(300,200).MoveByOffset(200,300).Perform will move the mouse pointer to (500,500)
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     Dim parameters As New Dictionary
     
@@ -558,9 +589,10 @@ Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optio
     If Not element Is Nothing Then
         Dim rect As Dictionary
         Set rect = element.GetRect()
-        Dim x As Long, y As Long
-        x = rect("x") + xOffset
-        y = rect("y") + yOffset
+        Dim x As Long
+        Dim y As Long
+        x = rect.Item("x") + xOffset
+        y = rect.Item("y") + yOffset
         ReDim actions(0 To 1)
         Set actions(0) = ActionPointerMove(x, y)
         'ActionPointerMove has built in pause
@@ -576,8 +608,8 @@ Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optio
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -585,26 +617,61 @@ Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optio
     'now set things up for next link in chain
     Set MoveByOffset = New WebActionChain
     Set MoveByOffset.WebDriver = driver_
-    Set MoveByOffset.Data = data_
+    Set MoveByOffset.DataDictionary = data_
 End Function
 
-Public Function SendKeys(ByVal keys As String, Optional element As WebElement) As WebActionChain
-    'Sends keys to an element
-    Dim inputChan As New Dictionary, inputChans() As Variant
+'@Description("Moves the mouse pointer to (x,y) relative to viewport origin (top-left).")
+Public Function MoveTo(ByVal x As Long, ByVal y As Long) As WebActionChain
+Attribute MoveTo.VB_Description = "Moves the mouse pointer to (x,y) relative to viewport origin (top-left)."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
+    Dim parameters As New Dictionary
+    
+    parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
+    
+    ReDim actions(0 To 0)
+    Set actions(0) = ActionPointerMove(x, y)
+    
+    inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
+    inputChan.Add "type", "pointer"
+    inputChan.Add "parameters", parameters
+    inputChan.Add "actions", actions
+    
+    If data_.Exists("actions") Then
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+    Else
+        data_.Add "actions", Array(inputChan)
+    End If
+    
+    'now set things up for next link in chain
+    Set MoveTo = New WebActionChain
+    Set MoveTo.WebDriver = driver_
+    Set MoveTo.DataDictionary = data_
+End Function
+
+'@Description("Sends key sequence to current focused element (see Keyboard class for special keys support).")
+Public Function SendKeys(ByVal keys As String, Optional element As WebElement) As WebActionChain
+Attribute SendKeys.VB_Description = "Sends key sequence to current focused element (see Keyboard class for special keys support)."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
+    Dim actions() As Dictionary
+    Dim charArray() As Variant
 
     ReDim charArray(0 To Len(keys) - 1)
     
-    Dim j As Long, i As Long
+    Dim j As Long
+    Dim i As Long
     j = -1
     For i = 1 To Len(keys)
-        If Mid(keys, i, 4) = "\ue0" Then 'its a special key
+        If Mid$(keys, i, 4) = "\ue0" Then 'its a special key
             j = j + 1
-            charArray(j) = Mid(keys, i, 6)
+            charArray(j) = Mid$(keys, i, 6)
             i = i + 5
         Else
             j = j + 1
-            charArray(j) = Mid(keys, i, 1)
+            charArray(j) = Mid$(keys, i, 1)
         End If
     Next i
     
@@ -627,8 +694,8 @@ Public Function SendKeys(ByVal keys As String, Optional element As WebElement) A
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -636,12 +703,14 @@ Public Function SendKeys(ByVal keys As String, Optional element As WebElement) A
     'now set things up for next link in chain
     Set SendKeys = New WebActionChain
     Set SendKeys.WebDriver = driver_
-    Set SendKeys.Data = data_
+    Set SendKeys.DataDictionary = data_
 End Function
 
+'@Description("Clears the focused element's text field.")
 Public Function Clear(Optional element As WebElement) As WebActionChain
-    'Sends a Ctrl-a to select all text and then delete key
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute Clear.VB_Description = "Clears the focused element's text field."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     If Not element Is Nothing Then
@@ -662,8 +731,8 @@ Public Function Clear(Optional element As WebElement) As WebActionChain
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -671,12 +740,14 @@ Public Function Clear(Optional element As WebElement) As WebActionChain
     'now set things up for next link in chain
     Set Clear = New WebActionChain
     Set Clear.WebDriver = driver_
-    Set Clear.Data = data_
+    Set Clear.DataDictionary = data_
 End Function
 
+'@Description("Sends a Control-[Key] sequence to focused element.")
 Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As WebActionChain
-    'Sends a Ctrl-[key] down and up
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     If Not element Is Nothing Then
@@ -695,8 +766,8 @@ Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As 
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -704,12 +775,14 @@ Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As 
     'now set things up for next link in chain
     Set CtrlKey = New WebActionChain
     Set CtrlKey.WebDriver = driver_
-    Set CtrlKey.Data = data_
+    Set CtrlKey.DataDictionary = data_
 End Function
 
+'@Description("Sends a Shift-[Key] sequence to focused element.")
 Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As WebActionChain
-    'Sends a Shift-[key] down and up
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused element."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     If Not element Is Nothing Then
@@ -728,8 +801,8 @@ Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -737,11 +810,14 @@ Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As
     'now set things up for next link in chain
     Set ShiftKey = New WebActionChain
     Set ShiftKey.WebDriver = driver_
-    Set ShiftKey.Data = data_
+    Set ShiftKey.DataDictionary = data_
 End Function
 
+'@Description("Scrolls to element position with optional x and y offsets.")
 Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute ScrollToElement.VB_Description = "Scrolls to element position with optional x and y offsets."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     ReDim actions(0 To 0)
@@ -752,8 +828,8 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -761,11 +837,14 @@ Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As
     'now set things up for next link in chain
     Set ScrollToElement = New WebActionChain
     Set ScrollToElement.WebDriver = driver_
-    Set ScrollToElement.Data = data_
+    Set ScrollToElement.DataDictionary = data_
 End Function
 
+'@Description("Scrolls window by x and y offsets.")
 Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
-    Dim inputChan As New Dictionary, inputChans() As Variant
+Attribute ScrollBy.VB_Description = "Scrolls window by x and y offsets."
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
     Dim actions() As Dictionary
     
     ReDim actions(0 To 0)
@@ -776,8 +855,8 @@ Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOff
     inputChan.Add "actions", actions
     
     If data_.Exists("actions") Then
-        inputChans = data_("actions")
-        data_("actions") = AppendInputChannel(inputChans, inputChan)
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -785,15 +864,16 @@ Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOff
     'now set things up for next link in chain
     Set ScrollBy = New WebActionChain
     Set ScrollBy.WebDriver = driver_
-    Set ScrollBy.Data = data_
+    Set ScrollBy.DataDictionary = data_
 End Function
 
+'@Description("Executes the action chain and then resets the action queue on both the local and remote ends.")
 Public Sub Perform()
+Attribute Perform.VB_Description = "Executes the action chain and then resets the action queue on both the local and remote ends."
     Dim inputChans() As Variant
-    Dim synchronize As Boolean
     Dim i As Long
     
-    'we cannot pass a multi-chan Data_("actions") as-is without synchronizing the input channels
+    'we cannot pass a multi-chan data_.item("actions") as-is without synchronizing the input channels
     'see https://www.w3.org/TR/webdriver/#actions
     'we can either aggregate and synchronize the inputs into 3 channels (keyboard, pointer, and wheel)
     'and make one call to tCMD.CMD_ACTIONS
@@ -805,9 +885,9 @@ Public Sub Perform()
     If data_.Exists("actions") Then
         If driver_.GetBrowserName = "internet explorer" Then
             'multi-call method:
-            inputChans = data_("actions")
+            inputChans = data_.Item("actions")
             For i = 0 To UBound(inputChans)
-                data_("actions") = Array(inputChans(i))
+                data_.Item("actions") = Array(inputChans(i))
                 driver_.Execute tCMD.CMD_ACTIONS, data_
             Next i
         Else
@@ -821,7 +901,7 @@ Public Sub Perform()
     End If
 End Sub
 
-Private Function SyncChannels(Data As Dictionary) As Dictionary
+Private Function SyncChannels(data As Dictionary) As Dictionary
     'this private function aggregates an unsynchronized set of action input channels
     'to create a three-channel (keyboard, pointer, and wheel) synchronized set
     'that can be passed as a single call to the Selenium action processor
@@ -836,16 +916,20 @@ Private Function SyncChannels(Data As Dictionary) As Dictionary
     Dim mouseActions() As Dictionary
     Dim keyActions() As Dictionary
     Dim scrollActions() As Dictionary
-    Dim hasKeyAction As Boolean, hasMouseAction As Boolean, hasScrollAction As Boolean
-    Dim lastKeyAction, lastMouseAction, lastScrollAction
+    Dim hasKeyAction As Boolean
+    Dim hasMouseAction As Boolean
+    Dim hasScrollAction As Boolean
+    Dim lastKeyAction As Long
+    Dim lastMouseAction As Long
+    Dim lastScrollAction As Long
     Dim inputChans() As Variant
     Dim syncdInputChans() As Variant
     Dim pause As Dictionary
     
-    inputChans = Data("actions")
+    inputChans = data.Item("actions")
                 
     If UBound(inputChans) = 0 Then 'only one channel - no need to sync
-        Set SyncChannels = Data
+        Set SyncChannels = data
         Exit Function
     End If
     
@@ -853,7 +937,8 @@ Private Function SyncChannels(Data As Dictionary) As Dictionary
     Set pause = ActionPause(0) 'dummy pause
     
     'determine in advance the sync'd action array sizes
-    Dim numActions As Long, i As Long
+    Dim numActions As Long
+    Dim i As Long
     numActions = 0
     For i = 0 To UBound(inputChans)
         numActions = numActions + UBound(inputChans(i)("actions")) + 1
@@ -870,10 +955,10 @@ Private Function SyncChannels(Data As Dictionary) As Dictionary
     For i = 0 To UBound(inputChans)
         
         Set inputChan = inputChans(i)
-        actionsToAppend = inputChan("actions")
+        actionsToAppend = inputChan.Item("actions")
         
         Dim j As Long
-        Select Case inputChan("id")
+        Select Case inputChan.Item("id")
         Case "pointerDevice"
             For j = 0 To UBound(actionsToAppend)
                 numActions = numActions + 1
@@ -943,9 +1028,9 @@ Private Function SyncChannels(Data As Dictionary) As Dictionary
         Set syncdInputChans(chanNum - 1) = inputScrollChan
     End If
     
-    Data("actions") = syncdInputChans
+    data.Item("actions") = syncdInputChans
     
-    Set SyncChannels = Data
+    Set SyncChannels = data
 End Function
 
 'make this public for compatibility with Selenium Python? (see Perform method)
@@ -957,14 +1042,14 @@ End Sub
 
 'Following are private single action functions
 
-Private Function ActionKeyDown(Optional ByVal val As String)
+Private Function ActionKeyDown(Optional ByVal val As String) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "keyDown"
     action.Add "value", val
     Set ActionKeyDown = action
 End Function
 
-Private Function ActionKeyUp(Optional ByVal val As String)
+Private Function ActionKeyUp(Optional ByVal val As String) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "keyUp"
     action.Add "value", val
@@ -990,33 +1075,33 @@ Private Function ActionPointerDown(Optional ByVal button As ButtonType = 0) As D
     Set ActionPointerDown = action
 End Function
 
-Private Function ActionPointerUp(Optional ByVal button As ButtonType = 0)
+Private Function ActionPointerUp(Optional ByVal button As ButtonType = 0) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pointerUp"
     action.Add "button", button
     Set ActionPointerUp = action
 End Function
 
-Private Function ActionPause(Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION)
+Private Function ActionPause(Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pause"
     If duration > 0 Then action.Add "duration", duration
     Set ActionPause = action
 End Function
 
-Private Function ActionPointerCancel()
+Private Function ActionPointerCancel() As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pointerCancel"
     Set ActionPointerCancel = action
 End Function
 
-Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin = "viewport", Optional elementId As String) As Dictionary
+Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin As String = "viewport", Optional elementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "pointerMove"
     action.Add "button", button
     
-    If elementId = "" Then
+    If elementId = vbNullString Then
         action.Add "origin", origin  'x,y are relative to. Can be 'viewport', 'pointer' or {"element-6066-11e4-a52e-4f735466cecf": element.id}
     Else
         Dim elem As New Dictionary
@@ -1048,7 +1133,7 @@ Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As 
     
     action.Add "type", "scroll"
     
-    If elementId = "" Then
+    If elementId = vbNullString Then
         action.Add "origin", "viewport"
     Else
         Dim elem As New Dictionary

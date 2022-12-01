@@ -21,42 +21,42 @@ Sub test_highlight()
     'automatically highlight every last found element(s):
     driver.SetHightlightFoundElems True
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").GetText
     driver.Wait
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/thead/tr[1]/th[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[2]").GetText
     driver.Wait
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").GetText
     driver.Wait
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").GetText
     driver.Wait
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").GetText
-    driver.Wait
-    
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText
-    driver.Wait
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText
-    driver.Wait
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText
-    driver.Wait
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").GetText
     driver.Wait
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText
+    driver.Wait
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText
+    driver.Wait
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText
+    driver.Wait
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[2]").GetText
+    driver.Wait
+    
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText
     driver.Wait
     
     driver.SetHightlightFoundElems False
     
     'highlight specified elements (all arguments optional):
-    driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table").Highlight borderColor:=Magenta
+    driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table").Highlight borderColor:=Magenta
     driver.Wait 1500
-    driver.FindElement(by.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").Highlight borderColor:=Blue, UnHighlightLast:=False
+    driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").Highlight borderColor:=Blue, UnHighlightLast:=False
     driver.Wait 1500
-    driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").Highlight borderColor:=Cyan
+    driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").Highlight borderColor:=Cyan
     driver.Wait 1500
-    driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").Highlight borderColor:=Green
+    driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").Highlight borderColor:=Green
     driver.Wait 1500
-    driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").Highlight borderColor:=Black, backgroundColor:=Green
+    driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").Highlight borderColor:=Black, backgroundColor:=Green
     driver.Wait 1500
     
     driver.CloseBrowser

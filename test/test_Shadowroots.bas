@@ -13,11 +13,11 @@ Sub test_shadowroot()
     
     driver.NavigateTo "http://watir.com/examples/shadow_dom.html"
     
-    Set shadowHost = driver.FindElement(by.ID, "shadow_host")
+    Set shadowHost = driver.FindElement(By.ID, "shadow_host")
     
     Set shadowRootelem = shadowHost.GetShadowRoot()
     
-    Set shadowContent = shadowRootelem.FindElement(by.ID, "shadow_content")
+    Set shadowContent = shadowRootelem.FindElement(By.ID, "shadow_content")
     
     Debug.Print shadowContent.GetText  'should return "some text"
     
@@ -27,8 +27,8 @@ End Sub
 
 Sub test_shadowroots_clear_browser_history()
     Dim driver As SeleniumVBA.WebDriver
-    Dim webelem1 As SeleniumVBA.WebElement, webelem2 As SeleniumVBA.WebElement, webelem3 As SeleniumVBA.WebElement
-    Dim webelem4 As SeleniumVBA.WebElement, webelem5 As SeleniumVBA.WebElement, webelem6 As SeleniumVBA.WebElement
+    Dim webElem1 As SeleniumVBA.WebElement, webElem2 As SeleniumVBA.WebElement, webElem3 As SeleniumVBA.WebElement
+    Dim webElem4 As SeleniumVBA.WebElement, webElem5 As SeleniumVBA.WebElement, webElem6 As SeleniumVBA.WebElement
     Dim clearData As SeleniumVBA.WebElement
     
     Set driver = SeleniumVBA.New_WebDriver
@@ -43,14 +43,14 @@ Sub test_shadowroots_clear_browser_history()
     driver.Wait 1000
     
     'work way down the shadowroot tree until we find the clear history button
-    Set webelem1 = driver.FindElement(by.cssSelector, "settings-ui")
-    Set webelem2 = webelem1.GetShadowRoot.FindElement(by.cssSelector, "settings-main") 'belongs to shadow root under downloads-manager
-    Set webelem3 = webelem2.GetShadowRoot.FindElement(by.cssSelector, "settings-basic-page")     'belongs to shadow root under downloads-manager
-    Set webelem4 = webelem3.GetShadowRoot.FindElement(by.cssSelector, "settings-section > settings-privacy-page")
-    Set webelem5 = webelem4.GetShadowRoot.FindElement(by.cssSelector, "settings-clear-browsing-data-dialog")
-    Set webelem6 = webelem5.GetShadowRoot.FindElement(by.cssSelector, "#clearBrowsingDataDialog")
+    Set webElem1 = driver.FindElement(By.cssSelector, "settings-ui")
+    Set webElem2 = webElem1.GetShadowRoot.FindElement(By.cssSelector, "settings-main") 'belongs to shadow root under downloads-manager
+    Set webElem3 = webElem2.GetShadowRoot.FindElement(By.cssSelector, "settings-basic-page")     'belongs to shadow root under downloads-manager
+    Set webElem4 = webElem3.GetShadowRoot.FindElement(By.cssSelector, "settings-section > settings-privacy-page")
+    Set webElem5 = webElem4.GetShadowRoot.FindElement(By.cssSelector, "settings-clear-browsing-data-dialog")
+    Set webElem6 = webElem5.GetShadowRoot.FindElement(By.cssSelector, "#clearBrowsingDataDialog")
     
-    Set clearData = webelem6.FindElement(by.cssSelector, "#clearBrowsingDataConfirm")
+    Set clearData = webElem6.FindElement(By.cssSelector, "#clearBrowsingDataConfirm")
     clearData.Click 'to clear browsing history
     
     driver.Wait 1000

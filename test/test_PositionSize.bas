@@ -14,7 +14,7 @@ Sub test_position_size()
     url = "https://www.wikipedia.org/"
 
     driver.NavigateTo url
-    Set webElem = driver.FindElement(by.ID, "searchInput")
+    Set webElem = driver.FindElement(By.ID, "searchInput")
 
     driver.Wait 500
     

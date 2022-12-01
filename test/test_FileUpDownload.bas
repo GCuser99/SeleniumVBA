@@ -22,15 +22,15 @@ Sub test_file_upload()
     driver.Wait 1000
     
     'enter the file path onto the file-selection input field
-    driver.FindElement(by.ID, "uploadfile_0").UploadFile ".\snippet.html" 'this is just a special wrapper for sendkeys
+    driver.FindElement(By.ID, "uploadfile_0").UploadFile ".\snippet.html" 'this is just a special wrapper for sendkeys
     
     driver.Wait 1000
 
     'check the "I accept the terms of service" check box
-    driver.FindElement(by.ID, "terms").Click
+    driver.FindElement(By.ID, "terms").Click
 
     'click the "Submit File" button
-    driver.FindElement(by.Name, "send").Click
+    driver.FindElement(By.Name, "send").Click
     
     driver.Wait 1000
             
@@ -76,11 +76,13 @@ Sub test_file_download()
     driver.Shutdown
 End Sub
 
-Sub doFileDownload()
-    Dim driver As New WebDriver
-    Dim caps As WebCapabilities
+Sub test_file_download2()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    
+    Set driver = SeleniumVBA.New_WebDriver
    
-    driver.StartIE
+    driver.StartChrome
     
     'set the directory path for saving download to
     Set caps = driver.CreateCapabilities

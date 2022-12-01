@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 ' ==========================================================================
-' SeleniumVBA v2.5
+' SeleniumVBA v2.6
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -106,7 +106,7 @@ Public Sub SetCapability(ByVal key As String, val As Variant)
         Set data_("alwaysMatch")(key) = val
     Else
         If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
-            Dim jc As New WebJSonConverter
+            Dim jc As New WebJsonConverter
             Set data_("alwaysMatch")(key) = jc.ParseJson(val)
         Else 'its a string parameter
             data_("alwaysMatch")(key) = val
@@ -136,7 +136,7 @@ Public Sub SetOption(ByVal key As String, val As Variant)
             data_("alwaysMatch")(browserOptionKey)(key) = val
         Else 'string
             If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
-                Dim jc As New WebJSonConverter
+                Dim jc As New WebJsonConverter
                 Set data_("alwaysMatch")(browserOptionKey)(key) = jc.ParseJson(val)
             Else 'its a string parameter
                 data_("alwaysMatch")(browserOptionKey)(key) = val
@@ -272,7 +272,7 @@ Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
     Else
         If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'it's json string - try to parse
             'convert to dictionary or collection
-            Dim jc As New WebJSonConverter
+            Dim jc As New WebJsonConverter
             Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJson(val)
         Else
             data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
@@ -321,28 +321,28 @@ End Function
 
 'convert to JSON string for debugging, also used in SaveToFile method
 Public Function ToJSON() As String
-    Dim jc As New WebJSonConverter
+    Dim jc As New WebJsonConverter
     ToJSON = jc.ConvertToJson(data_, 4)
 End Function
 
-Public Sub SaveToFile(Optional ByVal filepath As String = ".\capabilities.json")
-    Dim fso As New FileSystemObject, ts As textstream
-    Dim jc As New WebJSonConverter
-    filepath = WebShared.GetFullLocalPath(filepath, driver_.DefaultIOFolder)
-    Set ts = fso.CreateTextFile(filepath, True, True)
+Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
+    Dim fso As New FileSystemObject, ts As TextStream
+    Dim jc As New WebJsonConverter
+    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    Set ts = fso.CreateTextFile(filePath, True, True)
     ts.Write Me.ToJSON
     ts.Close
 End Sub
 
-Public Sub LoadFromFile(Optional ByVal filepath As String = ".\capabilities.json")
-    Dim fso As New FileSystemObject, ts As textstream
-    Dim jc As New WebJSonConverter
+Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json")
+    Dim fso As New FileSystemObject, ts As TextStream
+    Dim jc As New WebJsonConverter
         
-    filepath = WebShared.GetFullLocalPath(filepath, driver_.DefaultIOFolder)
+    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filepath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist!"
+    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist!"
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
-    Set ts = fso.OpenTextFile(filepath, , , TristateUseDefault)
+    Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     Set data_ = jc.ParseJson(ts.ReadAll)
     ts.Close
     
@@ -455,7 +455,7 @@ Private Function ParamListToStringArray(parmList() As Variant) As String()
             k = k + UBound(parmList(i)) - LBound(parmList(i)) + 1
         Else
             If Left(parmList(i), 1) = "[" Then  'its a json string - try to parse
-                Dim jc As New WebJSonConverter
+                Dim jc As New WebJsonConverter
                 k = k + jc.ParseJson(parmList(i)).Count
             Else 'its a string parameter
                 k = k + 1

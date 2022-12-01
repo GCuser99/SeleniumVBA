@@ -18,19 +18,19 @@ Sub test_table()
     
     driver.Wait 1000
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").GetText
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/thead/tr[1]/th[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[2]").GetText
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").GetText
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").GetText
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").GetText
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[2]").GetText
     
-    Debug.Print driver.FindElement(by.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText
+    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText
     
     driver.CloseBrowser
     driver.Shutdown
@@ -52,7 +52,7 @@ Sub test_table_to_array()
     
     driver.Wait 5000
     
-    v = driver.FindElement(by.ID, "mytable").TableToArray()
+    v = driver.FindElement(By.ID, "mytable").TableToArray()
     
     Debug.Print "With createSpanData=True (default):"
     For i = 1 To UBound(v, 1)
@@ -69,7 +69,7 @@ Sub test_table_to_array()
     
     'now process table w/o creating span data
     
-    v = driver.FindElement(by.ID, "mytable").TableToArray(createSpanData:=False)
+    v = driver.FindElement(By.ID, "mytable").TableToArray(createSpanData:=False)
     
     Debug.Print ""
     Debug.Print "With createSpanData=False:"

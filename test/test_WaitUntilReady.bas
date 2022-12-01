@@ -13,14 +13,14 @@ Sub test_WaitUntilReady()
     
     driver.NavigateTo "https://www.google.com/"
     
-    Set searchButton = driver.FindElement(by.Name, "btnK")
+    Set searchButton = driver.FindElement(By.Name, "btnK")
     
     driver.Wait 500
     
     'search button is there, but not interactable...
     Debug.Print "Is search button interactable yet? " & searchButton.IsDisplayed
     
-    driver.FindElement(by.Name, "q").SendKeys "Interactable"
+    driver.FindElement(By.Name, "q").SendKeys "Interactable"
     
     'searchButton.Click 'will often throw an error here because it takes some time
     'for search button to get ready after typing search phrase
