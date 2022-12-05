@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -83,7 +83,7 @@ Attribute VB_Exposed = True
 'MoveByOffset           Moves the mouse to an offset from current mouse position. If element is specified,
 '                       then move the mouse by an offset relative to the top-left corner of the element.
 'MoveToElement          Moves the mouse to the middle of an element.
-'MoveTo                 Moves the mouse pointer to (x,y) relative to viewport origin (top-left).
+'MoveToXY               Moves the mouse pointer to (x,y) relative to viewport origin (top-left).
 'Perform                Executes the action chain and then resets the action queue on both the local and remote ends
 'ReleaseButton          Releases a held mouse button on an element
 'ScrollBy               Scrolls window by x and y offsets
@@ -621,8 +621,8 @@ Attribute MoveByOffset.VB_Description = "Moves the mouse to an offset from curre
 End Function
 
 '@Description("Moves the mouse pointer to (x,y) relative to viewport origin (top-left).")
-Public Function MoveTo(ByVal x As Long, ByVal y As Long) As WebActionChain
-Attribute MoveTo.VB_Description = "Moves the mouse pointer to (x,y) relative to viewport origin (top-left)."
+Public Function MoveToXY(ByVal x As Long, ByVal y As Long) As WebActionChain
+Attribute MoveToXY.VB_Description = "Moves the mouse pointer to (x,y) relative to viewport origin (top-left)."
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions() As Dictionary
@@ -646,9 +646,9 @@ Attribute MoveTo.VB_Description = "Moves the mouse pointer to (x,y) relative to 
     End If
     
     'now set things up for next link in chain
-    Set MoveTo = New WebActionChain
-    Set MoveTo.WebDriver = driver_
-    Set MoveTo.DataDictionary = data_
+    Set MoveToXY = New WebActionChain
+    Set MoveToXY.WebDriver = driver_
+    Set MoveToXY.DataDictionary = data_
 End Function
 
 '@Description("Sends key sequence to current focused element (see Keyboard class for special keys support).")

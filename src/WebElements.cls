@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+'@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -76,6 +77,7 @@ Public Sub Remove(indexOrWebElement As Variant)
     End If
 End Sub
 
+'@DefaultMember
 Public Property Get Item(ByVal index As Variant) As WebElement
 Attribute Item.VB_UserMemId = 0
     'Attribute Dictionary.VB_UserMemId = 0
@@ -113,6 +115,7 @@ Public Sub UnHighlight()
     driver_.SetHighlight False, Me
 End Sub
 
+'@Enumerator
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
     'Attribute NewEnum.VB_UserMemID = -4

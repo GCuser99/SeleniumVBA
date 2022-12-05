@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+'@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -56,20 +57,28 @@ Option Explicit
 Private colCookie As Collection
 Private driver_ As WebDriver
 
+'@Description("Adds a cookie to the collection.")
 Public Function Add(cke As WebCookie) As WebCookie
+Attribute Add.VB_Description = "Adds a cookie to the collection."
     colCookie.Add cke, cke.Name
     Set Add = cke
 End Function
 
+'@Description("Returns the number of cookies in the collection.")
 Public Property Get Count() As Integer
+Attribute Count.VB_Description = "Returns the number of cookies in the collection."
    Count = colCookie.Count
 End Property
 
+'@Description("Returns the number of cookies in the collection.")
 Public Property Get Size() As Integer
+Attribute Size.VB_Description = "Returns the number of cookies in the collection."
    Size = colCookie.Count
 End Property
 
+'@Description("Removes a cookie corresponding to the given index or cookie object.")
 Public Sub Remove(indexOrCookie As Variant)
+Attribute Remove.VB_Description = "Removes a cookie corresponding to the given index or cookie object."
     If TypeName(indexOrCookie) = "Cookie" Then
         colCookie.Remove indexOrCookie.Name
     Else
@@ -77,21 +86,21 @@ Public Sub Remove(indexOrCookie As Variant)
     End If
 End Sub
 
-Public Property Get Item(ByVal Name As Variant) As WebCookie
+'@Description("Returns the cookie of the provided name.")
+'@DefaultMember
+Public Property Get Item(ByVal cookieName As Variant) As WebCookie
+Attribute Item.VB_Description = "Returns the cookie of the provided name."
 Attribute Item.VB_UserMemId = 0
     'Attribute Dictionary.VB_UserMemId = 0
     'uncomment line above in text editor to make this the default property
-    Set Item = colCookie.Item(Name)
+    Set Item = colCookie.Item(cookieName)
 End Property
 
-Friend Sub RemoveAll()
-    Do While colCookie.Count > 0
-        colCookie.Remove 1
-    Loop
-End Sub
-
+'@Description("Returns true if cookie object is already in the collection, false otherwise.")
 Public Function IsMember(ByVal cke As WebCookie) As Boolean
-    Dim i As Long, ckeName As String
+Attribute IsMember.VB_Description = "Returns true if cookie object is already in the collection, false otherwise."
+    Dim i As Long
+    Dim ckeName As String
     ckeName = cke.Name
     IsMember = False
     For i = 1 To Me.Count
@@ -102,8 +111,13 @@ Public Function IsMember(ByVal cke As WebCookie) As Boolean
     Next i
 End Function
 
+'@Description("Saves the cookie collection to a file path.")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
-    Dim fs As New FileSystemObject, ts As TextStream, darray() As Dictionary, i
+Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file path."
+    Dim fs As New FileSystemObject
+    Dim ts As TextStream
+    Dim darray() As Dictionary
+    Dim i As Long
     Dim jc As New WebJsonConverter
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     Set ts = fs.CreateTextFile(filePath, True, True)
@@ -115,8 +129,14 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
     ts.Close
 End Sub
 
+'@Description("Loads the cookie collection from a file path.")
 Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt") As WebCookies
-    Dim fs As New FileSystemObject, ts As TextStream, str As String, v As Collection, ck As WebCookie
+Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file path."
+    Dim fs As New FileSystemObject
+    Dim ts As TextStream
+    Dim str As String
+    Dim v As Collection
+    Dim ck As WebCookie
     Dim jc As New WebJsonConverter
     
     Me.RemoveAll
@@ -144,12 +164,17 @@ Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt"
     Set LoadFromFile = Me
 End Function
 
+'@Enumerator
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
-    'Attribute NewEnum.VB_UserMemID = -4
-    'uncomment line above in text editor to enable For Each iteration in for loop
     Set NewEnum = colCookie.[_NewEnum]
 End Function
+
+Friend Sub RemoveAll()
+    Do While colCookie.Count > 0
+        colCookie.Remove 1
+    Loop
+End Sub
 
 Friend Property Set WebDriver(ByRef obj As WebDriver)
     Set driver_ = obj

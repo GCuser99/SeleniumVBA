@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+'@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -100,25 +101,30 @@ End Enum
 ' Capability Settings
 '-------------------------------------------------------------------------
 
+'@Description("Sets a generic capability.")
 Public Sub SetCapability(ByVal key As String, val As Variant)
-    'set a generic capability
+Attribute SetCapability.VB_Description = "Sets a generic capability."
     If IsObject(val) Then
-        Set data_("alwaysMatch")(key) = val
+        Set data_.Item("alwaysMatch")(key) = val
     Else
-        If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
+        If Left$(val, 1) = "[" Or Left$(val, 1) = "{" Then 'its a json string - try to parse
             Dim jc As New WebJsonConverter
-            Set data_("alwaysMatch")(key) = jc.ParseJson(val)
+            Set data_.Item("alwaysMatch")(key) = jc.ParseJson(val)
         Else 'its a string parameter
-            data_("alwaysMatch")(key) = val
+            data_.Item("alwaysMatch")(key) = val
         End If
     End If
 End Sub
 
+'@Description("Sets the acceptInsecureCerts capability.")
 Public Sub SetAcceptInsecureCerts(ByVal val As Boolean)
+Attribute SetAcceptInsecureCerts.VB_Description = "Sets the acceptInsecureCerts capability."
     Me.SetCapability "acceptInsecureCerts", val
 End Sub
 
+'@Description("Sets the unhandledPromptBehavior capability.")
 Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
+Attribute SetUnhandledPromptBehavior.VB_Description = "Sets the unhandledPromptBehavior capability."
     Me.SetCapability "unhandledPromptBehavior", GetAlertHandlingString(val)
 End Sub
 
@@ -126,49 +132,60 @@ End Sub
 ' Option Settings
 '-------------------------------------------------------------------------
 
+'@Description("Sets an option key/value.")
 Public Sub SetOption(ByVal key As String, val As Variant)
-    'set an option
+Attribute SetOption.VB_Description = "Sets an option key/value."
     'input val can be a string, a json string, array, or an object (dictionary or collection)
     If IsObject(val) Then 'collection or dictionary
-        Set data_("alwaysMatch")(browserOptionKey)(key) = val
+        Set data_.Item("alwaysMatch")(browserOptionKey)(key) = val
     Else
         If IsArray(val) Then
-            data_("alwaysMatch")(browserOptionKey)(key) = val
+            data_.Item("alwaysMatch")(browserOptionKey)(key) = val
         Else 'string
-            If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'its a json string - try to parse
+            If Left$(val, 1) = "[" Or Left$(val, 1) = "{" Then 'its a json string - try to parse
                 Dim jc As New WebJsonConverter
-                Set data_("alwaysMatch")(browserOptionKey)(key) = jc.ParseJson(val)
+                Set data_.Item("alwaysMatch")(browserOptionKey)(key) = jc.ParseJson(val)
             Else 'its a string parameter
-                data_("alwaysMatch")(browserOptionKey)(key) = val
+                data_.Item("alwaysMatch")(browserOptionKey)(key) = val
             End If
         End If
     End If
 End Sub
 
+'@Description("Adds a list of option excludeSwitches.")
 Public Sub AddExcludeSwitches(ParamArray addList() As Variant)
+Attribute AddExcludeSwitches.VB_Description = "Adds a list of option excludeSwitches."
     Dim varry() As Variant
     varry = addList
     AddToOptionList "excludeSwitches", ParamListToStringArray(varry)
 End Sub
 
+'@Description("Adds a list of option windowTypes.")
 Public Sub AddWindowTypes(ParamArray addList() As Variant)
+Attribute AddWindowTypes.VB_Description = "Adds a list of option windowTypes."
     Dim varry() As Variant
     varry = addList
     AddToOptionList "windowTypes", ParamListToStringArray(varry)
 End Sub
 
+'@Description("Adds a list of option extensions.")
 Public Sub AddExtensions(ParamArray addList() As Variant)
+Attribute AddExtensions.VB_Description = "Adds a list of option extensions."
     Dim varry() As Variant
     varry = addList
     AddToOptionList "extensions", ParamListToStringArray(varry)
 End Sub
 
+'@Description("Sets the binary option.")
 Public Sub SetBrowserBinary(ByVal browserPath As String)
+Attribute SetBrowserBinary.VB_Description = "Sets the binary option."
     'set the path to the browser executable to use
     Me.SetOption "binary", browserPath
 End Sub
 
+'@Description("Removes control notification for Edge/Chrome.")
 Public Sub RemoveControlNotification()
+Attribute RemoveControlNotification.VB_Description = "Removes control notification for Edge/Chrome."
     'this removes the "Chrome/Edge is being controlled by automated test software" browser notification
     Select Case browser_
     Case svbaBrowser.Chrome
@@ -179,12 +196,14 @@ Public Sub RemoveControlNotification()
         Me.SetOption "useAutomationExtension", False
         'for msedge, you may be greeted with an unwanted "Sync your profile" dialog
         'to get rid of that, run in incognito mode
-    Case svbaBrowser.Firefox
+    Case svbaBrowser.Firefox, svbaBrowser.IE
         'no need to do anything
     End Select
 End Sub
 
+'@Description("Sets the detach option for Edge/Chrome.")
 Public Sub SetDetachBrowser(ByVal val As Boolean)
+Attribute SetDetachBrowser.VB_Description = "Sets the detach option for Edge/Chrome."
     'this sets whether browser is closed (false) or left open (true) when the driver is sent the shutdown command
     If browser_ = svbaBrowser.Firefox Then
         Exit Sub 'as yet have not found a working equivalent - SetPreference("detach", True) does not work
@@ -196,17 +215,23 @@ End Sub
 ' Option Argument Settings
 '-------------------------------------------------------------------------
 
+'@Description("Adds a list of option arguments.")
 Public Sub AddArguments(ParamArray addList() As Variant)
+Attribute AddArguments.VB_Description = "Adds a list of option arguments."
     Dim varry() As Variant
     varry = addList
     AddToOptionList "args", ParamListToStringArray(varry)
 End Sub
 
+'@Description("Runs headless argument mode.")
 Public Sub RunInvisible()
+Attribute RunInvisible.VB_Description = "Runs headless argument mode."
     Me.AddArguments "--headless"
 End Sub
 
+'@Description("Runs incognito/private argument mode.")
 Public Sub RunIncognito()
+Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode."
     Select Case browser_
     Case svbaBrowser.Chrome
         Me.AddArguments "--incognito"
@@ -219,14 +244,17 @@ Public Sub RunIncognito()
     End Select
 End Sub
 
+'@Description("Sets a user-defined profile path.")
 Public Sub SetProfile(ByVal profilePath As String)
+Attribute SetProfile.VB_Description = "Sets a user-defined profile path."
     'this sets a user-defined profile - it will create and populate the profile directory even if it does not exist
     'it is recommended not to make profiles for SeleniumVBA in the default C:\Users\[user]\AppData\Local\Google\Chrome\User Data
     'Instead copy profiles needed from the default location into a different location to access with SeleniumVBA
     Dim fso As New FileSystemObject
-    Dim userDir As String, profileName As String
+    Dim userDir As String
+    Dim profileName As String
     
-    profilePath = WebShared.GetFullLocalPath(profilePath)
+    profilePath = WebShared.GetFullLocalPath(profilePath, driver_.DefaultIOFolder)
     
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
@@ -242,7 +270,9 @@ Public Sub SetProfile(ByVal profilePath As String)
     End Select
 End Sub
 
+'@Description("Sets the user agent string.")
 Public Sub SetUserAgent(ByVal val As String)
+Attribute SetUserAgent.VB_Description = "Sets the user agent string."
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
         Me.AddArguments "--user-agent=" & val
@@ -255,10 +285,11 @@ End Sub
 ' Option Preference Settings
 '-------------------------------------------------------------------------
 
+'@Description("Sets an option preference key/value.")
 Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
-    'set a generic preference
+Attribute SetPreference.VB_Description = "Sets an option preference key/value."
     'input val can be a string, a json string, or an object (dictionary)
-    If Not data_("alwaysMatch")(browserOptionKey).Exists("prefs") Then
+    If Not data_.Item("alwaysMatch")(browserOptionKey).Exists("prefs") Then
         SetOption "prefs", New Dictionary
     End If
     
@@ -268,19 +299,21 @@ Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
     If key = "savefile.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
     
     If IsObject(val) Then
-        Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+        Set data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = val
     Else
-        If Left(val, 1) = "[" Or Left(val, 1) = "{" Then 'it's json string - try to parse
+        If Left$(val, 1) = "[" Or Left$(val, 1) = "{" Then 'it's json string - try to parse
             'convert to dictionary or collection
             Dim jc As New WebJsonConverter
-            Set data_("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJson(val)
+            Set data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJson(val)
         Else
-            data_("alwaysMatch")(browserOptionKey)("prefs")(key) = val
+            data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = val
         End If
     End If
 End Sub
 
+'@Description("Sets auto-download preferences and directory path.")
 Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
+Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and directory path."
     downloadDirectoryPath = WebShared.GetFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
 
     Select Case browser_
@@ -313,29 +346,37 @@ End Sub
 ' Public helper methods
 '-------------------------------------------------------------------------
 
-'convert to Dictionary (used in WebDriver class)
+'@Description("Returns a capabilities Dictionary object.")
+'@DefaultMember
 Public Function Dictionary() As Dictionary
+Attribute Dictionary.VB_Description = "Returns a capabilities Dictionary object."
 Attribute Dictionary.VB_UserMemId = 0
     Set Dictionary = data_
 End Function
 
-'convert to JSON string for debugging, also used in SaveToFile method
+'@Description("Returns Json string for qc.")
 Public Function ToJSON() As String
+Attribute ToJSON.VB_Description = "Returns Json string for qc."
     Dim jc As New WebJsonConverter
     ToJSON = jc.ConvertToJson(data_, 4)
 End Function
 
+'@Description("Saves the capabilities to file path.")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
-    Dim fso As New FileSystemObject, ts As TextStream
-    Dim jc As New WebJsonConverter
+Attribute SaveToFile.VB_Description = "Saves the capabilities to file path."
+    Dim fso As New FileSystemObject
+    Dim ts As TextStream
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ts.Write Me.ToJSON
     ts.Close
 End Sub
 
+'@Description("Loads the capabilities from file path.")
 Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json")
-    Dim fso As New FileSystemObject, ts As TextStream
+Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path."
+    Dim fso As New FileSystemObject
+    Dim ts As TextStream
     Dim jc As New WebJsonConverter
         
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
@@ -346,22 +387,30 @@ Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json
     Set data_ = jc.ParseJson(ts.ReadAll)
     ts.Close
     
-    If data_("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
+    If data_.Item("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
+'@Description("Initializes capabiliies object for Chrome browser.")
 Public Sub InitializeForChrome()
+Attribute InitializeForChrome.VB_Description = "Initializes capabiliies object for Chrome browser."
     InitializeFor svbaBrowser.Chrome
 End Sub
 
+'@Description("Initializes capabiliies object for Edge browser.")
 Public Sub InitializeForEdge()
+Attribute InitializeForEdge.VB_Description = "Initializes capabiliies object for Edge browser."
     InitializeFor svbaBrowser.Edge
 End Sub
 
+'@Description("Initializes capabiliies object for Firefox browser.")
 Public Sub InitializeForFirefox()
+Attribute InitializeForFirefox.VB_Description = "Initializes capabiliies object for Firefox browser."
     InitializeFor svbaBrowser.Firefox
 End Sub
 
+'@Description("Initializes capabiliies object for Edge IE Mode browser.")
 Public Sub InitializeForIE()
+Attribute InitializeForIE.VB_Description = "Initializes capabiliies object for Edge IE Mode browser."
     InitializeFor svbaBrowser.IE
 End Sub
 
@@ -386,11 +435,11 @@ Friend Sub InitializeFor(ByVal browser As svbaBrowser)
         Case svbaBrowser.IE
             'see https://titusfortner.com/2022/09/28/edge-ie-mode.html
             browserOptionKey = "se:ieOptions"
-            browserOptions.Add "ie.edgechromium", True 'attach to Edge Chrome browser.
-            browserOptions.Add "ignoreZoomSetting", True 'ignore the zoom level of Internet Explorer
+            browserOptions.Add "ie.edgechromium", True 'attach to Edge Chrome browser
+            'browserOptions.Add "ignoreZoomSetting", True 'ignore the zoom level of Internet Explorer - not needed with v4.7.0.0 and later
     End Select
     
-    data_("alwaysMatch").Add browserOptionKey, browserOptions
+    data_.Item("alwaysMatch").Add browserOptionKey, browserOptions
 End Sub
 
 Friend Property Set WebDriver(ByRef obj As WebDriver)
@@ -414,11 +463,15 @@ End Function
 
 Private Sub AddToOptionList(ByVal optionName As String, addList() As String)
     'add to list of option parameters, while checking for duplicates
-    Dim parameters() As String, found As Boolean, j As Integer, i As Integer
-    Dim lboundParms As Integer, uboundParms As Integer
+    Dim parameters() As String
+    Dim found As Boolean
+    Dim j As Integer
+    Dim i As Integer
+    Dim lboundParms As Integer
+    Dim uboundParms As Integer
 
-    If IsArray(data_("alwaysMatch")(browserOptionKey)(optionName)) Then
-        parameters = data_("alwaysMatch")(browserOptionKey)(optionName)
+    If IsArray(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
+        parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
         lboundParms = LBound(parameters)
         uboundParms = UBound(parameters)
     Else 'starting from scratch
@@ -438,23 +491,23 @@ Private Sub AddToOptionList(ByVal optionName As String, addList() As String)
         End If
     Next i
     'put the expanded list back
-    data_("alwaysMatch")(browserOptionKey)(optionName) = parameters
+    data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
 End Sub
 
 Private Function ParamListToStringArray(parmList() As Variant) As String()
     'a parameter array can include arrays as list elements - expand into a string array
-    Dim i As Integer, j As Integer, k As Integer
+    Dim i As Integer
+    Dim j As Integer
+    Dim k As Integer
     Dim strlist() As String
-    Dim temp As Variant
     
     'count number of parameters in list
     k = 0
     For i = LBound(parmList) To UBound(parmList)
-        temp = parmList(i)
         If IsArray(parmList(i)) Then
             k = k + UBound(parmList(i)) - LBound(parmList(i)) + 1
         Else
-            If Left(parmList(i), 1) = "[" Then  'its a json string - try to parse
+            If Left$(parmList(i), 1) = "[" Then  'its a json string - try to parse
                 Dim jc As New WebJsonConverter
                 k = k + jc.ParseJson(parmList(i)).Count
             Else 'its a string parameter
@@ -475,12 +528,12 @@ Private Function ParamListToStringArray(parmList() As Variant) As String()
                 strlist(k) = parmList(i)(j)
             Next j
         Else
-            If Left(parmList(i), 1) = "[" Then  'its a json string
+            If Left$(parmList(i), 1) = "[" Then  'its a json string
                 Dim col As Collection
                 Set col = jc.ParseJson(parmList(i))
                 For j = 1 To col.Count
                     k = k + 1
-                    strlist(k) = col(j)
+                    strlist(k) = col.Item(j)
                 Next j
             Else 'its a string parameter
                 k = k + 1
@@ -501,8 +554,8 @@ Private Function CreateFolderPath(ByVal folderPath As String) As Boolean
 
     'Is the folderPath parameter populated
     If Len(folderPath) = 0 Then
-      CreateFolderPath = False
-      Exit Function
+        CreateFolderPath = False
+        Exit Function
     End If
 
     'If the folderPath exists as a file, the function fails.
@@ -522,7 +575,7 @@ Private Function CreateFolderPath(ByVal folderPath As String) As Boolean
         If fso.CreateFolder(folderPath) Is Nothing Then
             CreateFolderPath = False
         Else
-           CreateFolderPath = True
+            CreateFolderPath = True
         End If
     Else
         CreateFolderPath = False

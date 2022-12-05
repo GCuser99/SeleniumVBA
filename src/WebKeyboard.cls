@@ -5,10 +5,12 @@ END
 Attribute VB_Name = "WebKeyboard"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = False
+Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+'@Exposed
+'@PredeclaredId
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -57,8 +59,8 @@ Private mAltKey As String
 Private mPauseKey As String
 Private mEscapeKey As String
 Private mSpaceKey As String
-Private mPage_UpKey As String
-Private mPage_DownKey As String
+Private mPageUpKey As String
+Private mPageDownKey As String
 Private mEndKey As String
 Private mHomeKey As String
 Private mLeftKey As String
@@ -142,11 +144,11 @@ End Property
 Property Get SpaceKey() As String
     SpaceKey = mSpaceKey
 End Property
-Property Get Page_UpKey() As String
-    Page_UpKey = mPage_UpKey
+Property Get PageUpKey() As String
+    PageUpKey = mPageUpKey
 End Property
-Property Get Page_DownKey() As String
-    Page_DownKey = mPage_DownKey
+Property Get PageDownKey() As String
+    PageDownKey = mPageDownKey
 End Property
 Property Get EndKey() As String
     EndKey = mEndKey
@@ -284,8 +286,8 @@ Private Sub Class_Initialize()
     mPauseKey = "\ue00b"
     mEscapeKey = "\ue00c"
     mSpaceKey = "\ue00d"
-    mPage_UpKey = "\ue00e"
-    mPage_DownKey = "\ue00f"
+    mPageUpKey = "\ue00e"
+    mPageDownKey = "\ue00f"
     mEndKey = "\ue010"
     mHomeKey = "\ue011"
     mLeftKey = "\ue012"

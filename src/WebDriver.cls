@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+'@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -204,15 +205,10 @@ End Enum
 'Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 Private Sub Class_Initialize()
+    Dim oShell As New Shell32.Shell
     InitCommands
     Me.CommandWindowStyle = vbHide
-    'note that user has control through the DefaultIOFolder and DefaultDriverFolder
-    'properties so these below are just reasonable starting points...
-    'ThisWorkbook.Path and ActiveVBAProjectFolderPath will be different for a project
-    'referencing the SeleniumVBA Add-in, but same otherwise
-    Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
     Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
-    Me.DefaultIOFolder = ActiveVBAProjectFolderPath
 End Sub
 
 Private Sub InitCommands()
@@ -1877,24 +1873,24 @@ Public Function GetChildElements(parentElement As WebElement) As WebElements
 End Function
 
 Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
-    Dim htmlDoc As New HTMLDocument, htmlTable As htmlTable
+    Dim htmlDoc As New HTMLDocument, htmlTbl As HTMLTable
 
     'convert the WebElement table into an html dom table object
     'input WebElement can either be a table or a tbody element
     'using a html dom table for processing is greater than 25x faster than using Selenium selectors to process table
     
-    Set htmlTable = htmlDoc.createElement("table")
-    
     Select Case table.GetTagName
     Case "table"
-        htmlTable.innerHTML = table.GetInnerHTML
+        htmlDoc.body.innerHTML = table.GetOuterHTML
     Case "tbody"
-        htmlTable.innerHTML = table.GetOuterHTML
+        htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
     Case Else 'report error
         Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
     End Select
-
-    TableToArray = htmlTableToArray(htmlTable, skipHeader, skipFooter, createSpanData)
+    
+    Set htmlTbl = htmlDoc.body.Children(0)
+    
+    TableToArray = htmlTableToArray(htmlTbl, skipHeader, skipFooter, createSpanData)
 End Function
 
 Public Function PageToHTMLDoc(Optional sanitize As Boolean = False) As HTMLDocument
@@ -2172,19 +2168,8 @@ Private Function TaskKillByPid(ByVal pid As String)
     TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function
 
-Private Function ActiveVBAProjectFolderPath() As String
-    Dim fso As New FileSystemObject, strpath As String
-    strpath = ""
-    'if the Excel file holding the active vba project has not yet been saved, then this will throw an error
-    '...so return vbNullString in that case
-    On Error Resume Next
-    strpath = Application.VBE.ActiveVBProject.Filename
-    On Error GoTo 0
-    If strpath <> "" Then strpath = fso.GetParentFolderName(strpath)
-    ActiveVBAProjectFolderPath = strpath
-End Function
 
-Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+Private Function htmlTableToArray(table As HTMLTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
     Dim row As HTMLTableRow
     Dim cell As HTMLTableCell
     Dim cellChild As HTMLHtmlElement
@@ -2200,19 +2185,19 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     
     If createSpanData Then
         'first handle row spans
-        For Each row In table.rows
+        For Each row In table.Rows
             For Each cell In row.cells
                 rowSpan = cell.rowSpan
                 If rowSpan > 1 Then
                     For i = row.RowIndex + 1 To row.RowIndex + rowSpan - 1
-                        table.rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
+                        table.Rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
                     Next i
                 End If
             Next cell
         Next row
         
         'now process column spans
-        For Each row In table.rows
+        For Each row In table.Rows
             For Each cell In row.cells
                 colSpan = cell.colSpan
                 If colSpan > 1 Then
@@ -2225,15 +2210,15 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     End If
     
     'calculate the number of array columns needed for output
-    For Each row In table.rows
+    For Each row In table.Rows
         If row.cells.Length > maxCols Then maxCols = row.cells.Length
     Next row
     
     'dimension output array
-    ReDim v(baseArrayIdx To table.rows.Length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
+    ReDim v(baseArrayIdx To table.Rows.Length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
     
     'extract cell data (td and th elements) from each row
-    For Each row In table.rows
+    For Each row In table.Rows
         For Each cell In row.cells
             'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
             'search to see if there is at least one table

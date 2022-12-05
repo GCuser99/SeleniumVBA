@@ -7,8 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+'@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.6
+' SeleniumVBA v2.7
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -56,84 +57,94 @@ Private mSecure As Boolean
 Private mValue  As String
 Private mSameSite As String
 
-'Lax, Strict, None
+'@Description("Attribute to let servers specify whether/when cookies are sent with cross-site requests. Values are Strict, Lax (default), and None")
 Public Property Get SameSite() As String
+Attribute SameSite.VB_Description = "Attribute to let servers specify whether/when cookies are sent with cross-site requests. Values are Strict, Lax (default), and None"
     SameSite = mSameSite
 End Property
 Public Property Let SameSite(ByVal val As String)
     mSameSite = val
 End Property
 
-'The name of the domain to associate the cookie with. The default value is the current domain.
+'@Description("Specifies name of the domain to associate the cookie with. The default value is the current domain.")
 Public Property Get Domain() As String
+Attribute Domain.VB_Description = "Specifies name of the domain to associate the cookie with. The default value is the current domain."
     Domain = mDomain
 End Property
-
 Public Property Let Domain(ByVal val As String)
     mDomain = val
 End Property
 
-'Gets or sets the expiration date and time for the cookie.
+'@Description("Gets or sets the expiration date and time (Unix format) for the cookie.")
 Public Property Get ExpiryUnix() As Long
+Attribute ExpiryUnix.VB_Description = "Gets or sets the expiration date and time (Unix format) for the cookie."
     ExpiryUnix = mExpiry
 End Property
 Public Property Let ExpiryUnix(ByVal val As Long)
     mExpiry = val
 End Property
 
+'@Description("Gets or sets the expiration date and time (Date format) for the cookie.")
 Public Property Get ExpiryDate() As Date
+Attribute ExpiryDate.VB_Description = "Gets or sets the expiration date and time (Date format) for the cookie."
     ExpiryDate = DateAdd("s", mExpiry, "1/1/1970 00:00:00")
 End Property
 Public Property Let ExpiryDate(ByVal val As Date)
     mExpiry = DateDiff("s", "1/1/1970 00:00:00", val)
 End Property
 
-'this field indicates whether the cookie has to be used only over HTTP or not.
-'true if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false.
+'@Description("Indicates whether the cookie has to be used only over HTTP or not. True if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false.")
 Public Property Get HttpOnly() As Boolean
+Attribute HttpOnly.VB_Description = "Indicates whether the cookie has to be used only over HTTP or not. True if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false."
     HttpOnly = mHttpOnly
 End Property
 Public Property Let HttpOnly(ByVal val As Boolean)
     mHttpOnly = val
 End Property
 
+'@Description("Gets or sets the name of the cookie.")
 Public Property Get Name() As String
+Attribute Name.VB_Description = "Gets or sets the name of the cookie."
     Name = mName
 End Property
 Public Property Let Name(ByVal val As String)
     mName = val
 End Property
 
-'This field indicates that the cookie can only be sent to the server over a secure HTTPS connection (set as true).
-'Gets or sets a value indicating whether to transmit the cookie using Secure Sockets Layer (SSL)--that is, over HTTPS only.
-'true to transmit the cookie over an SSL connection (HTTPS); otherwise, false. The default value is false
+'@Description("Indicates whether the cookie can only be sent to the server over a secure HTTPS connection. The default value is false.")
 Public Property Get Secure() As Boolean
+Attribute Secure.VB_Description = "Indicates whether the cookie can only be sent to the server over a secure HTTPS connection. The default value is false."
     Secure = mSecure
 End Property
 Public Property Let Secure(ByVal val As Boolean)
     mSecure = val
 End Property
 
+'@Description("Gets or sets the value of the cookie.")
 Public Property Get Value() As String
+Attribute Value.VB_Description = "Gets or sets the value of the cookie."
     Value = mValue
 End Property
 Public Property Let Value(ByVal val As String)
     mValue = val
 End Property
 
-'The virtual path to transmit with the cookie. The default is /, which is the server root.
+'@Description("Gets/sets the virtual path to transmit with the cookie. The default is /, which is the server root.")
 Public Property Get Path() As String
+Attribute Path.VB_Description = "Gets/sets the virtual path to transmit with the cookie. The default is /, which is the server root."
     Path = mPath
 End Property
 Public Property Let Path(ByVal val As String)
     mPath = val
 End Property
 
+'@Description("Returns the cookie as a Dictionary object.")
 Public Function ToDictionary() As Dictionary
+Attribute ToDictionary.VB_Description = "Returns the cookie as a Dictionary object."
     Dim ck As New Dictionary
     ck.Add "name", mName
     ck.Add "value", mValue
-    If mDomain <> "" Then ck.Add "domain", mDomain
+    If mDomain <> vbNullString Then ck.Add "domain", mDomain
     ck.Add "path", mPath
     ck.Add "secure", mSecure
     ck.Add "httpOnly", mHttpOnly
