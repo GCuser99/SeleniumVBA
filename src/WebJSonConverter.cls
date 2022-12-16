@@ -10,8 +10,8 @@ Attribute VB_Exposed = True
 '@Exposed
 '@PredeclaredId
 ' ==========================================================================
-' SeleniumVBA v2.7
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v2.8
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
 '

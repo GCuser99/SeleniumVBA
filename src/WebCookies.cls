@@ -7,10 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+Attribute VB_Description = "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
+'@ModuleDescription "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.7
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v2.8
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
 '
@@ -57,28 +59,28 @@ Option Explicit
 Private colCookie As Collection
 Private driver_ As WebDriver
 
-'@Description("Adds a cookie to the collection.")
-Public Function Add(cke As WebCookie) As WebCookie
-Attribute Add.VB_Description = "Adds a cookie to the collection."
-    colCookie.Add cke, cke.Name
-    Set Add = cke
+'@Description("Adds a cookie to the collection")
+Public Function Add(cookie As WebCookie) As WebCookie
+Attribute Add.VB_Description = "Adds a cookie to the collection"
+    colCookie.Add cookie, cookie.Name
+    Set Add = cookie
 End Function
 
-'@Description("Returns the number of cookies in the collection.")
+'@Description("Returns the number of cookies in the collection")
 Public Property Get Count() As Integer
-Attribute Count.VB_Description = "Returns the number of cookies in the collection."
+Attribute Count.VB_Description = "Returns the number of cookies in the collection"
    Count = colCookie.Count
 End Property
 
-'@Description("Returns the number of cookies in the collection.")
+'@Description("Returns the number of cookies in the collection")
 Public Property Get Size() As Integer
-Attribute Size.VB_Description = "Returns the number of cookies in the collection."
+Attribute Size.VB_Description = "Returns the number of cookies in the collection"
    Size = colCookie.Count
 End Property
 
-'@Description("Removes a cookie corresponding to the given index or cookie object.")
+'@Description("Removes a cookie corresponding to the given index or cookie object")
 Public Sub Remove(indexOrCookie As Variant)
-Attribute Remove.VB_Description = "Removes a cookie corresponding to the given index or cookie object."
+Attribute Remove.VB_Description = "Removes a cookie corresponding to the given index or cookie object"
     If TypeName(indexOrCookie) = "Cookie" Then
         colCookie.Remove indexOrCookie.Name
     Else
@@ -86,34 +88,30 @@ Attribute Remove.VB_Description = "Removes a cookie corresponding to the given i
     End If
 End Sub
 
-'@Description("Returns the cookie of the provided name.")
 '@DefaultMember
+'@Description("Returns the cookie of the provided name")
 Public Property Get Item(ByVal cookieName As Variant) As WebCookie
-Attribute Item.VB_Description = "Returns the cookie of the provided name."
+Attribute Item.VB_Description = "Returns the cookie of the provided name"
 Attribute Item.VB_UserMemId = 0
     'Attribute Dictionary.VB_UserMemId = 0
     'uncomment line above in text editor to make this the default property
     Set Item = colCookie.Item(cookieName)
 End Property
 
-'@Description("Returns true if cookie object is already in the collection, false otherwise.")
-Public Function IsMember(ByVal cke As WebCookie) As Boolean
-Attribute IsMember.VB_Description = "Returns true if cookie object is already in the collection, false otherwise."
-    Dim i As Long
-    Dim ckeName As String
-    ckeName = cke.Name
-    IsMember = False
-    For i = 1 To Me.Count
-        If Me.Item(i).Name = ckeName Then
-            IsMember = True
-            Exit For
-        End If
-    Next i
+'@Description("Returns True if cookie object is already in the collection, False otherwise")
+Public Function Exists(ByRef cookie As WebCookie) As Boolean
+Attribute Exists.VB_Description = "Returns True if cookie object is already in the collection, False otherwise"
+    On Error GoTo Err
+    Exists = True
+    colCookie.Item cookie.Name
+    Exit Function
+Err:
+    Exists = False
 End Function
 
-'@Description("Saves the cookie collection to a file path.")
+'@Description("Saves the cookie collection to a file path")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
-Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file path."
+Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file path"
     Dim fs As New FileSystemObject
     Dim ts As TextStream
     Dim darray() As Dictionary
@@ -129,9 +127,9 @@ Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file pat
     ts.Close
 End Sub
 
-'@Description("Loads the cookie collection from a file path.")
+'@Description("Loads the cookie collection from a file path")
 Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt") As WebCookies
-Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file path."
+Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file path"
     Dim fs As New FileSystemObject
     Dim ts As TextStream
     Dim str As String
@@ -176,7 +174,7 @@ Friend Sub RemoveAll()
     Loop
 End Sub
 
-Friend Property Set WebDriver(ByRef obj As WebDriver)
+Friend Property Set WebDriver(obj As WebDriver)
     Set driver_ = obj
 End Property
 

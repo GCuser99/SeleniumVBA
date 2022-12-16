@@ -7,10 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+Attribute VB_Description = "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
 '@Exposed
+'@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
 ' ==========================================================================
-' SeleniumVBA v2.7
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v2.8
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
 '
@@ -51,18 +53,22 @@ Friend Property Set driver(objWebDriver As WebDriver)
     Set driver_ = objWebDriver
 End Property
 
-Friend Property Let shadowRootId(ByVal val)
+Friend Property Let shadowRootId(ByVal val As String)
     shadowRootId_ = val
 End Property
 
-Friend Property Get shadowRootId()
+Friend Property Get shadowRootId() As String
     shadowRootId = shadowRootId_
 End Property
 
+'@Description("Finds the first element for a given selector and value")
 Public Function FindElement(by_ As By, ByVal val As String) As WebElement
+Attribute FindElement.VB_Description = "Finds the first element for a given selector and value"
     Set FindElement = driver_.FindElementFromShadowRoot(by_, val, Me)
 End Function
 
+'@Description("Finds all elements that satisfy the specified selector and value")
 Public Function FindElements(by_ As By, ByVal val As String) As WebElements
+Attribute FindElements.VB_Description = "Finds all elements that satisfy the specified selector and value"
     Set FindElements = driver_.FindElementsFromShadowRoot(by_, val, Me)
 End Function

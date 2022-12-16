@@ -33,7 +33,7 @@ Sub test_select()
     fruits.DeSelectByValue "orange"
     driver.Wait
     
-    Debug.Print fruits.GetAllSelectedOptionsText()(1) 'Grape
+    Debug.Print fruits.GetSelectedOption.GetText 'Grape
 
     driver.CloseBrowser
     driver.Shutdown

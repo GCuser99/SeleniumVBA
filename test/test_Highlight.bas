@@ -50,7 +50,7 @@ Sub test_highlight()
     'highlight specified elements (all arguments optional):
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table").Highlight borderColor:=Magenta
     driver.Wait 1500
-    driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").Highlight borderColor:=Blue, UnHighlightLast:=False
+    driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").Highlight borderColor:=Blue, unHighlightLast:=False
     driver.Wait 1500
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").Highlight borderColor:=Cyan
     driver.Wait 1500

@@ -1,4 +1,6 @@
 Attribute VB_Name = "ClassFactory"
+Attribute VB_Description = "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
+'@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 ' These methods are used to instantiate the objects in other projects that reference this Add-in project
 ' See https://docs.microsoft.com/en-us/previous-versions/office/troubleshoot/office-developer/set-up-vb-project-using-class
 '
@@ -13,19 +15,27 @@ Attribute VB_Name = "ClassFactory"
 
 Option Explicit
 
+'@Description("Instantiates a WebDriver object")
 Public Function New_WebDriver() As WebDriver
+Attribute New_WebDriver.VB_Description = "Instantiates a WebDriver object"
     Set New_WebDriver = New WebDriver
 End Function
 
+'@Description("Instantiates a WebDriverManager object")
 Public Function New_WebDriverManager() As WebDriverManager
+Attribute New_WebDriverManager.VB_Description = "Instantiates a WebDriverManager object"
     Set New_WebDriverManager = New WebDriverManager
 End Function
 
+'@Description("Instantiates a WebElement object")
 Public Function New_WebElement() As WebElement
+Attribute New_WebElement.VB_Description = "Instantiates a WebElement object"
     Set New_WebElement = New WebElement
 End Function
 
+'@Description("Instantiates a WebElements object")
 Public Function New_WebElements() As WebElements
+Attribute New_WebElements.VB_Description = "Instantiates a WebElements object"
     Set New_WebElements = New WebElements
 End Function
 
@@ -34,7 +44,9 @@ End Function
 '    Set New_WebActionChain = New WebActionChain
 'End Function
 
+'@Description("Instantiates a WebCookie object")
 Public Function New_WebCookie() As WebCookie
+Attribute New_WebCookie.VB_Description = "Instantiates a WebCookie object"
     Set New_WebCookie = New WebCookie
 End Function
 
@@ -43,11 +55,15 @@ End Function
 '    Set New_WebCookies = New WebCookies
 'End Function
 
+'@Description("Instantiates a WebJsonConverter object - this is optional as this object is predeclared")
 Public Function New_WebJSonConverter() As WebJsonConverter
+Attribute New_WebJSonConverter.VB_Description = "Instantiates a WebJsonConverter object - this is optional as this object is predeclared"
     Set New_WebJSonConverter = New WebJsonConverter
 End Function
 
+'@Description("Instantiates a WebKeyboard object - this is optional as this object is predeclared")
 Public Function New_WebKeyboard() As WebKeyboard
+Attribute New_WebKeyboard.VB_Description = "Instantiates a WebKeyboard object - this is optional as this object is predeclared"
     Set New_WebKeyboard = New WebKeyboard
 End Function
 
@@ -56,10 +72,14 @@ End Function
 '    Set New_WebCapabilities = New WebCapabilities
 'End Function
 
+'@Description("Instantiates a WebPrintSettings object")
 Public Function New_WebPrintSettings() As WebPrintSettings
+Attribute New_WebPrintSettings.VB_Description = "Instantiates a WebPrintSettings object"
     Set New_WebPrintSettings = New WebPrintSettings
 End Function
 
+'@Description("Instantiates a WebShadowRoot object")
 Public Function New_WebShadowRoot() As WebShadowRoot
+Attribute New_WebShadowRoot.VB_Description = "Instantiates a WebShadowRoot object"
     Set New_WebShadowRoot = New WebShadowRoot
 End Function

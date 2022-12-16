@@ -38,7 +38,7 @@ Sub test_logging()
         driver.Wait
         fruits.DeSelectByValue "orange"
         driver.Wait
-        Debug.Print fruits.GetSelectedOptionText
+        Debug.Print fruits.GetSelectedOption.GetText
     End If
     
     driver.CloseBrowser

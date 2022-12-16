@@ -55,7 +55,7 @@ Sub test_logging()
         driver.Wait
         fruits.DeSelectByValue "orange"
         driver.Wait
-        Debug.Print fruits.GetSelectedOptionText
+        Debug.Print fruits.GetSelectedOption.GetText
     End If
     
     driver.CloseBrowser
@@ -77,7 +77,7 @@ Sub test_file_download()
     
     caps.SetDownloadPrefs
     
-    Debug.Print caps.ToJSON
+    Debug.Print caps.ToJson
 
     driver.OpenBrowser caps
     

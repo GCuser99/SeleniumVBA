@@ -7,10 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+Attribute VB_Description = "This class is used for managing a collection of WebElement objects"
+'@ModuleDescription "This class is used for managing a collection of WebElement objects"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.7
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v2.8
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
 '
@@ -54,20 +56,28 @@ Friend Property Set WebDriver(ByRef obj As WebDriver)
     Set driver_ = obj
 End Property
 
+'@Description("Adds an element to the collection")
 Public Function Add(element As WebElement) As WebElement
+Attribute Add.VB_Description = "Adds an element to the collection"
     colWebElement.Add element, element.elementId
     Set Add = element
 End Function
 
+'@Description("Returns the number of elements in the collection")
 Public Property Get Count() As Integer
+Attribute Count.VB_Description = "Returns the number of elements in the collection"
    Count = colWebElement.Count
 End Property
 
+'@Description("Returns the number of elements in the collection")
 Public Property Get Size() As Integer
+Attribute Size.VB_Description = "Returns the number of elements in the collection"
    Size = colWebElement.Count
 End Property
 
+'@Description("Removes an element corresponding to the given index or element object")
 Public Sub Remove(indexOrWebElement As Variant)
+Attribute Remove.VB_Description = "Removes an element corresponding to the given index or element object"
     If TypeName(indexOrWebElement) = "WebElement" Then
         Dim welem As WebElement
         Set welem = indexOrWebElement 'Friend property ElementID can not be invoked with late binding
@@ -77,13 +87,24 @@ Public Sub Remove(indexOrWebElement As Variant)
     End If
 End Sub
 
+'@Description("Returns the element corresponding to the given index")
 '@DefaultMember
 Public Property Get Item(ByVal index As Variant) As WebElement
+Attribute Item.VB_Description = "Returns the element corresponding to the given index"
 Attribute Item.VB_UserMemId = 0
-    'Attribute Dictionary.VB_UserMemId = 0
-    'uncomment line above in text editor to make this the default property
     Set Item = colWebElement.Item(index)
 End Property
+
+'@Description("Returns True if element object is already in the collection, False otherwise")
+Public Function Exists(element As WebElement) As Boolean
+Attribute Exists.VB_Description = "Returns True if element object is already in the collection, False otherwise"
+    On Error GoTo notFound
+    Exists = True
+    colWebElement.Item element.elementId
+    Exit Function
+notFound:
+    Exists = False
+End Function
 
 Friend Sub RemoveAll()
     Do While colWebElement.Count > 0
@@ -91,35 +112,25 @@ Friend Sub RemoveAll()
     Loop
 End Sub
 
-Public Function IsMember(element As WebElement) As Boolean
-    Dim i As Long, elemId As String
-    elemId = element.elementId
-    IsMember = False
-    For i = 1 To Me.Count
-        If Me.Item(i).elementId = elemId Then
-            IsMember = True
-            Exit For
-        End If
-    Next i
-End Function
-
-Public Function Highlight(Optional borderSizePx As Byte = 4, Optional borderColor As VBAcolors = Cyan, _
-                     Optional backgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                     Optional ScrollIntoView As Boolean = True, Optional UnHighlightLast As Boolean = True) _
+'@Description("Highlights with color this element collection")
+Public Function Highlight(Optional ByVal borderSizePx As Byte = 4, Optional ByVal borderColor As VBAcolors = Cyan, _
+                     Optional ByVal backgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                     Optional ByVal ScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True) _
                      As WebElements
-    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, UnHighlightLast
+Attribute Highlight.VB_Description = "Highlights with color this element collection"
+    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, unHighlightLast
     Set Highlight = Me
 End Function
 
+'@Description("Unhighlights this element collection")
 Public Sub UnHighlight()
+Attribute UnHighlight.VB_Description = "Unhighlights this element collection"
     driver_.SetHighlight False, Me
 End Sub
 
 '@Enumerator
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
-    'Attribute NewEnum.VB_UserMemID = -4
-    'uncomment line above in text editor to enable For Each iteration in for loop
     Set NewEnum = colWebElement.[_NewEnum]
 End Function
 

@@ -7,10 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+Attribute VB_Description = "This class is used to manage/modify a cookie object"
+'@ModuleDescription "This class is used to manage/modify a cookie object"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.7
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v2.8
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
 '
@@ -66,81 +68,81 @@ Public Property Let SameSite(ByVal val As String)
     mSameSite = val
 End Property
 
-'@Description("Specifies name of the domain to associate the cookie with. The default value is the current domain.")
+'@Description("Specifies name of the domain to associate the cookie with. The default value is the current domain")
 Public Property Get Domain() As String
-Attribute Domain.VB_Description = "Specifies name of the domain to associate the cookie with. The default value is the current domain."
+Attribute Domain.VB_Description = "Specifies name of the domain to associate the cookie with. The default value is the current domain"
     Domain = mDomain
 End Property
 Public Property Let Domain(ByVal val As String)
     mDomain = val
 End Property
 
-'@Description("Gets or sets the expiration date and time (Unix format) for the cookie.")
+'@Description("Gets or sets the expiration date and time (Unix format) for the cookie")
 Public Property Get ExpiryUnix() As Long
-Attribute ExpiryUnix.VB_Description = "Gets or sets the expiration date and time (Unix format) for the cookie."
+Attribute ExpiryUnix.VB_Description = "Gets or sets the expiration date and time (Unix format) for the cookie"
     ExpiryUnix = mExpiry
 End Property
 Public Property Let ExpiryUnix(ByVal val As Long)
     mExpiry = val
 End Property
 
-'@Description("Gets or sets the expiration date and time (Date format) for the cookie.")
+'@Description("Gets or sets the expiration date and time (Date format) for the cookie")
 Public Property Get ExpiryDate() As Date
-Attribute ExpiryDate.VB_Description = "Gets or sets the expiration date and time (Date format) for the cookie."
+Attribute ExpiryDate.VB_Description = "Gets or sets the expiration date and time (Date format) for the cookie"
     ExpiryDate = DateAdd("s", mExpiry, "1/1/1970 00:00:00")
 End Property
 Public Property Let ExpiryDate(ByVal val As Date)
     mExpiry = DateDiff("s", "1/1/1970 00:00:00", val)
 End Property
 
-'@Description("Indicates whether the cookie has to be used only over HTTP or not. True if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false.")
+'@Description("Indicates whether the cookie has to be used only over HTTP or not. True if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false")
 Public Property Get HttpOnly() As Boolean
-Attribute HttpOnly.VB_Description = "Indicates whether the cookie has to be used only over HTTP or not. True if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false."
+Attribute HttpOnly.VB_Description = "Indicates whether the cookie has to be used only over HTTP or not. True if the cookie has the HttpOnly attribute and cannot be accessed through a client-side script; otherwise, false. The default is false"
     HttpOnly = mHttpOnly
 End Property
 Public Property Let HttpOnly(ByVal val As Boolean)
     mHttpOnly = val
 End Property
 
-'@Description("Gets or sets the name of the cookie.")
+'@Description("Gets or sets the name of the cookie")
 Public Property Get Name() As String
-Attribute Name.VB_Description = "Gets or sets the name of the cookie."
+Attribute Name.VB_Description = "Gets or sets the name of the cookie"
     Name = mName
 End Property
 Public Property Let Name(ByVal val As String)
     mName = val
 End Property
 
-'@Description("Indicates whether the cookie can only be sent to the server over a secure HTTPS connection. The default value is false.")
+'@Description("Indicates whether the cookie can only be sent to the server over a secure HTTPS connection. The default value is false")
 Public Property Get Secure() As Boolean
-Attribute Secure.VB_Description = "Indicates whether the cookie can only be sent to the server over a secure HTTPS connection. The default value is false."
+Attribute Secure.VB_Description = "Indicates whether the cookie can only be sent to the server over a secure HTTPS connection. The default value is false"
     Secure = mSecure
 End Property
 Public Property Let Secure(ByVal val As Boolean)
     mSecure = val
 End Property
 
-'@Description("Gets or sets the value of the cookie.")
+'@Description("Gets or sets the value of the cookie")
 Public Property Get Value() As String
-Attribute Value.VB_Description = "Gets or sets the value of the cookie."
+Attribute Value.VB_Description = "Gets or sets the value of the cookie"
     Value = mValue
 End Property
 Public Property Let Value(ByVal val As String)
     mValue = val
 End Property
 
-'@Description("Gets/sets the virtual path to transmit with the cookie. The default is /, which is the server root.")
+'@Description("Gets or sets the virtual path to transmit with the cookie. The default is /, which is the server root")
 Public Property Get Path() As String
-Attribute Path.VB_Description = "Gets/sets the virtual path to transmit with the cookie. The default is /, which is the server root."
+Attribute Path.VB_Description = "Gets or sets the virtual path to transmit with the cookie. The default is /, which is the server root"
     Path = mPath
 End Property
 Public Property Let Path(ByVal val As String)
     mPath = val
 End Property
 
-'@Description("Returns the cookie as a Dictionary object.")
+'@Description("Returns the cookie as a Dictionary object")
 Public Function ToDictionary() As Dictionary
-Attribute ToDictionary.VB_Description = "Returns the cookie as a Dictionary object."
+Attribute ToDictionary.VB_Description = "Returns the cookie as a Dictionary object"
     Dim ck As New Dictionary
     ck.Add "name", mName
     ck.Add "value", mValue

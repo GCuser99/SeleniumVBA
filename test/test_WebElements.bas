@@ -26,7 +26,7 @@ Sub test_WebElements()
     Debug.Print "Number of rows in table: " & rowsTable.Count
     Debug.Print "Item 1 of first row: " & rowsTable.Item(1).GetText
     Debug.Print "Item 1 of first row: " & rowsTable(1).GetText 'Item is the default property of WebElements class
-    Debug.Print "Is member: " & rowsTable.IsMember(rowsTable(1))
+    Debug.Print "Is member: " & rowsTable.Exists(rowsTable(1))
         
     'can use the default Item property to iterate through the WebElements object
     For row = 1 To rowsTable.Count
@@ -46,7 +46,7 @@ Sub test_WebElements()
         Next colElem
     Next rowElem
     
-    Debug.Print "Is member: " & rowsTable.IsMember(rowsTable(1))
+    Debug.Print "Is member: " & rowsTable.Exists(rowsTable(1))
     
     'can remove a WebElement from collection by index or WebElement object
     rowsTable.Remove 1 'remove first object in collection

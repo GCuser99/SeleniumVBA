@@ -1,4 +1,4 @@
-## SeleniumVBA v2.7
+## SeleniumVBA v2.8
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Office VBA
 
@@ -12,6 +12,7 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Relative paths and OneDrive support
 - This wrapper is an HTTP client of the Selenium WebDriver server, conforming closely to [W3C standards](https://www.w3.org/TR/webdriver/).
+- Help is available now - for more info, see the [Object Model Overview](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview) in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
 
 ## Setup
 
@@ -103,3 +104,5 @@ End Sub
 [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/) by Uezo and other contributors to that project
 
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA
+
+[RubberDuck](https://rubberduckvba.com/)

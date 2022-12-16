@@ -6,13 +6,9 @@ Attribute VB_Name = "WebShared"
 ' https://stackoverflow.com/a/72736800/11738627 (handling of OneDrive/SharePoint cloud urls)
 
 'Several points of clarification:
-'If the basePath is not specified or vbNullString, then the basePath is set to the path of the Add-in,
-'which is not necessarily the path to the active code project, which may be referecing the add-in
-'When the WebDriver class is initialized, the default IO folder path (DefaultIOFolder) is set to
-'the active VBA project folder path, which is not necessarily equal to the path of the Add-in
-'The user then has the ability to change the default basePath through DefaultIOFolder
-
-'Note - the only times in the code base where the default basePath is not specified is in DefaultIOFolder & DefaultDriverFolder
+'If the basePath is not specified or vbNullString, then the basePath is set to the path of active code project's
+'parent document. The user has the ability to change the default basePath through DefaultIOFolder
+'The only times in the code base where the default basePath is not specified is in DefaultIOFolder & DefaultDriverFolder
 
 Option Explicit
 Option Private Module
@@ -69,8 +65,8 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
 End Function
 
 Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
-    ' thanks to @6DiegoDiego9 for doing research on this (see https://stackoverflow.com/a/72736800/11738627)
-    ' this function returns the original/local disk path associated with a synched OneDrive or SharePoint cloud url
+    'thanks to @6DiegoDiego9 for doing research on this (see https://stackoverflow.com/a/72736800/11738627)
+    'this function returns the original/local disk path associated with a synched OneDrive or SharePoint cloud url
     
     If IsPathHTTPS(strPath) Then
         Const HKEY_CURRENT_USER = &H80000001
@@ -84,7 +80,7 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
 
         Static pathSep As String
 
-        If pathSep = "" Then pathSep = "\"
+        If pathSep = vbNullString Then pathSep = "\"
     
         Set objReg = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\default:StdRegProv")
 
@@ -99,7 +95,7 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
                     strSecPart = Replace(Mid(strPath, Len(strValue)), "/", pathSep)
                     GetLocalOneDrivePath = strMountpoint & strSecPart
         
-                    Do Until Dir(GetLocalOneDrivePath, vbDirectory) <> "" Or InStr(2, strSecPart, pathSep) = 0
+                    Do Until Dir(GetLocalOneDrivePath, vbDirectory) <> vbNullString Or InStr(2, strSecPart, pathSep) = 0
                         strSecPart = Mid(strSecPart, InStr(2, strSecPart, pathSep))
                         GetLocalOneDrivePath = strMountpoint & strSecPart
                     Loop

@@ -7,9 +7,11 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+Attribute VB_Description = "This class is used to maintain Selenium driver/browser version alignment"
+'@ModuleDescription "This class is used to maintain Selenium driver/browser version alignment"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.7
+' SeleniumVBA v2.8
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -88,7 +90,6 @@ Attribute VB_Exposed = True
 '   Microsoft XML, V6.0
 '   Microsoft WMI Scripting V1.2 Library
 '
-
 Option Explicit
 
 Private Declare PtrSafe Function URLDownloadToFile Lib "urlmon" _
@@ -114,13 +115,13 @@ Public Enum svbaBrowser
 End Enum
 
 Private Sub Class_Initialize()
-    Dim oShell As New Shell32.Shell 'Microsoft Shell Controls and Automation (Shell32) 'CreateObject("Shell.Application")
-    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
+    Dim oShell As New Shell32.Shell
+    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path
 End Sub
 
-'@Description("Sets the default driver folder path.")
+'@Description("Sets the default driver folder path")
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
-Attribute DefaultDriverFolder.VB_Description = "Sets the default driver folder path."
+Attribute DefaultDriverFolder.VB_Description = "Sets the default driver folder path"
     mDefaultDriverFolder = WebShared.GetFullLocalPath(folderPath)
 End Property
 
@@ -232,21 +233,21 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     AlignDriverWithBrowser = respStr
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver")
+'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed")
 Public Function AlignEdgeDriverWithBrowser(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False) As String
-Attribute AlignEdgeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver"
+Attribute AlignEdgeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed"
     AlignEdgeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Edge, driverPath, minCompatibilityLevel, runSilent)
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver")
+'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed")
 Public Function AlignChromeDriverWithBrowser(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False) As String
-Attribute AlignChromeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver"
+Attribute AlignChromeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed"
     AlignChromeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Chrome, driverPath, minCompatibilityLevel, runSilent)
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver")
+'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed")
 Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False) As String
-Attribute AlignFirefoxDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver"
+Attribute AlignFirefoxDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed"
     AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath, minCompatibilityLevel, runSilent)
 End Function
 
@@ -256,9 +257,9 @@ Attribute AlignIEDriverWithBrowser.VB_Description = "Checks if driver is install
     AlignIEDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.IE, driverPath, minCompatibilityLevel, runSilent)
 End Function
 
-'@Description("Returns the installed Driver version.")
+'@Description("Returns the installed Driver version")
 Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional ByVal driverPath As Variant) As String
-Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driver version."
+Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driver version"
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
     Dim resp As Variant
@@ -300,9 +301,9 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     GetInstalledDriverVersion = ver
 End Function
 
-'@Description("Returns the compatibility level between a pair of version strings.")
+'@Description("Returns the compatibility level between a pair of version strings")
 Public Function CheckCompatibilityLevel(ByVal versionString1 As String, ByVal versionString2 As String) As svbaCompatibility
-Attribute CheckCompatibilityLevel.VB_Description = "Returns the compatibility level between a pair of version strings."
+Attribute CheckCompatibilityLevel.VB_Description = "Returns the compatibility level between a pair of version strings"
     Dim vermajor1 As Variant, verminor1 As Variant, verbuildmajor1 As Variant, verbuildminor1 As Variant
     Dim vermajor2 As Variant, verminor2 As Variant, verbuildmajor2 As Variant, verbuildminor2 As Variant
     
@@ -340,9 +341,9 @@ Attribute CheckCompatibilityLevel.VB_Description = "Returns the compatibility le
     CheckCompatibilityLevel = svbaExactMatch
 End Function
 
-'@Description("Returns the latest Driver version.")
+'@Description("Returns the latest Driver version")
 Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
-Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver version."
+Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver version"
     'this function is here for completeness, although not used
     Dim jc As New WebJsonConverter
     Dim resp As New Dictionary
@@ -390,11 +391,11 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
     End Select
 End Function
 
-'@Description("Returns the most recent compatible Driver version.")
+'@Description("Returns the most recent compatible Driver version")
 Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal browserVersion As String) As String
-Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent compatible Driver version."
+Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent compatible Driver version"
     Dim htmlDoc As New HTMLDocument
-    Dim table As HTMLTable
+    Dim table As htmlTable
     Dim row As HTMLTableRow
     Dim verMajor As String
     Dim verMajorSearch As String
@@ -515,9 +516,9 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
     End Select
 End Function
 
-'@Description("Returns the installed Browser version.")
+'@Description("Returns the installed Browser version")
 Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser) As String
-Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Browser version."
+Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Browser version"
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim regkey As String
     Dim resp As String
@@ -543,9 +544,9 @@ Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Bro
     GetInstalledBrowserVersion = resp
 End Function
 
-'@Description("Downloads and installs the specified Driver version.")
+'@Description("Downloads and installs the specified Driver version")
 Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVersion As String, Optional ByVal driverPath As Variant)
-Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the specified Driver version."
+Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the specified Driver version"
     Dim url As String
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
     Dim shll As New Shell32.Shell
@@ -724,8 +725,8 @@ Private Function RequestData(ByVal url As String, Optional maxTries As Integer =
             'Don't exit loop - make another try to see if we can connect
             'RequestData = "Error: Cannot Connect to Server"
         Case Else 'an unexpected error
-            RequestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
             Debug.Print "Please report this error to developers: RequestData Status= " & client.status & ", " & "Response= " & client.responseText
+            RequestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
             Exit Function
         End Select
         

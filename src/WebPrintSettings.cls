@@ -7,10 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
+Attribute VB_Description = "This class is used to manage print settings for generating pdf files using PrintToPDF method of the WebDriver class"
+'@ModuleDescription "This class is used to manage print settings for generating pdf files using PrintToPDF method of the WebDriver class"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.7
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v2.8
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
 '
@@ -65,88 +67,114 @@ Public Enum svbaUnits
     svbaInches = 1
 End Enum
 
+'@Description("Sets or gets the measurement units in centimeters or inches")
 Public Property Get Units() As svbaUnits
+Attribute Units.VB_Description = "Sets or gets the measurement units in centimeters or inches"
     Units = mUnits
 End Property
 Public Property Let Units(ByVal val As svbaUnits)
     mUnits = val
 End Property
 
+'@Description("Sets or gets the bottom margin")
 Public Property Get MarginBottom() As Single
+Attribute MarginBottom.VB_Description = "Sets or gets the bottom margin"
     MarginBottom = mMarginBottom
 End Property
 Public Property Let MarginBottom(ByVal val As Single)
     mMarginBottom = val
 End Property
 
+'@Description("Sets or gets the top margin")
 Public Property Get MarginTop() As Single
+Attribute MarginTop.VB_Description = "Sets or gets the top margin"
     MarginTop = mMarginTop
 End Property
 Public Property Let MarginTop(ByVal val As Single)
     mMarginTop = val
 End Property
 
+'@Description("Sets or gets the left margin")
 Public Property Get MarginLeft() As Single
+Attribute MarginLeft.VB_Description = "Sets or gets the left margin"
     MarginLeft = mMarginLeft
 End Property
 Public Property Let MarginLeft(ByVal val As Single)
     mMarginLeft = val
 End Property
 
+'@Description("Sets or gets the right margin")
 Public Property Get MarginRight() As Single
+Attribute MarginRight.VB_Description = "Sets or gets the right margin"
     MarginRight = mMarginRight
 End Property
 Public Property Let MarginRight(ByVal val As Single)
     mMarginRight = val
 End Property
 
+'@Description("Sets all margins to same value")
 Public Property Let MarginsAll(ByVal val As Single)
+Attribute MarginsAll.VB_Description = "Sets all margins to same value"
     mMarginBottom = val
     mMarginTop = val
     mMarginLeft = val
     mMarginRight = val
 End Property
 
+'@Description("Sets or gets the page height")
 Public Property Get PageHeight() As Single
+Attribute PageHeight.VB_Description = "Sets or gets the page height"
     PageHeight = mPageHeight
 End Property
 Public Property Let PageHeight(ByVal val As Single)
     mPageHeight = val
 End Property
 
+'@Description("Sets or gets the page width")
 Public Property Get PageWidth() As Single
+Attribute PageWidth.VB_Description = "Sets or gets the page width"
     PageWidth = mPageWidth
 End Property
 Public Property Let PageWidth(ByVal val As Single)
     mPageWidth = val
 End Property
 
+'@Description("Sets or gets the background property")
 Public Property Get Background() As Boolean
+Attribute Background.VB_Description = "Sets or gets the background property"
     Background = mBackground
 End Property
 Public Property Let Background(ByVal val As Boolean)
     mBackground = val
 End Property
 
+'@Description("Sets or gets the page orientation")
 Public Property Get Orientation() As svbaOrientation
+Attribute Orientation.VB_Description = "Sets or gets the page orientation"
     Orientation = mOrientation
 End Property
 Public Property Let Orientation(ByVal val As svbaOrientation)
     mOrientation = val
 End Property
 
-Public Function PageRanges(ParamArray pages() As Variant)
+'@Description("Sets a list of pages and page ranges to print")
+Public Sub PageRanges(ParamArray pages() As Variant)
+Attribute PageRanges.VB_Description = "Sets a list of pages and page ranges to print"
     mPageRanges = pages
-End Function
+End Sub
 
+'@Description("Sets or gets the print scale (fractional)")
 Public Property Get PrintScale() As Single
+Attribute PrintScale.VB_Description = "Sets or gets the print scale (fractional)"
     PrintScale = mPrintScale
 End Property
 Public Property Let PrintScale(ByVal val As Single)
     mPrintScale = val
 End Property
 
+'@Description("Sets or gets the shrink-to-fit property")
 Public Property Get ShrinkToFit() As Boolean
+Attribute ShrinkToFit.VB_Description = "Sets or gets the shrink-to-fit property"
     ShrinkToFit = mShrinkToFit
 End Property
 Public Property Let ShrinkToFit(ByVal val As Boolean)
@@ -205,4 +233,3 @@ Private Sub Class_Initialize()
     mPrintScale = 1#
     mShrinkToFit = True
 End Sub
-
