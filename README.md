@@ -105,4 +105,4 @@ End Sub
 
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA
 
-[RubberDuck](https://rubberduckvba.com/)
+[RubberDuck](https://rubberduckvba.com/) by Mathieu Guindon
