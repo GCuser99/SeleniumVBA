@@ -10,7 +10,7 @@ Attribute VB_Exposed = True
 '@Exposed
 '@PredeclaredId
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -712,7 +712,6 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
         'Case 92
         '    ' \ -> 92 -> \\
         '    json_Char = "\\"
-        
         Case 92
             ' \ -> 92 -> \\
             json_Char = "\\"
@@ -722,7 +721,6 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
                 End If
             End If
         Case 47
-        
             ' / -> 47 -> \/ (optional)
             If JsonOptions.EscapeSolidus Then
                 json_Char = "\/"

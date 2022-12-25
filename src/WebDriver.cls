@@ -11,7 +11,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@ModuleDescription "This class provides the main mechanism to control/automate a browser application"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -74,7 +74,7 @@ Private Const baseArrayIdx As Integer = 1
 'change baseDomIdx to 0 if zero-based Dom (de)selection is desired
 'with baseDomIdx=1: SelectByIndex 1 gets first element
 'with baseDomIdx=0: SelectByIndex 0 gets first element
-Private Const baseDomIdx = 1
+Private Const baseDomIdx As Integer = 1
 
 Private sessionId_ As String
 Private driverUrl_ As String
@@ -105,7 +105,7 @@ Private driverFilename As String
 Private processID As String
 
 Private Const ELEMENT_KEY As String = "element-6066-11e4-a52e-4f735466cecf"
-Private Const SHADOW_KEY As String = "shadow-6066-11e4-a52e-4f735466cecf"
+Private Const SHADOWROOT_KEY As String = "shadow-6066-11e4-a52e-4f735466cecf"
 
 Private Type typCMD
     CMD_STATUS As Variant
@@ -1149,178 +1149,60 @@ Attribute DeSelectByIndex.VB_Description = "Deselects a dropdown option element 
     End If
 End Sub
 
-'@Description("Executes a java script asynchronously")
-Public Function ExecuteScriptAsync(ByVal script As String, ParamArray scriptArgs() As Variant) As Variant
-Attribute ExecuteScriptAsync.VB_Description = "Executes a java script asynchronously"
-    Dim data As New Dictionary
-    Dim resp As Dictionary
-    Dim args() As Variant
-    
-    data.Add "script", script
-    
-    If UBound(scriptArgs) >= 0 Then
-        ReDim args(0 To UBound(scriptArgs))
-        Dim i As Long
-        For i = 0 To UBound(scriptArgs)
-            If TypeName(scriptArgs(i)) = "WebElement" Then
-                'Convert WebElement to Dictionary that can be handled by WebDriver
-                Dim elem As New Dictionary, welem As WebElement
-                Set welem = scriptArgs(i)
-                elem.Add ELEMENT_KEY, welem.elementId
-                Set args(i) = elem
-            Else
-                args(i) = scriptArgs(i)
-            End If
-        Next i
-    End If
-    data.Add "args", args
-    
-    Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT_ASYNC, data)
-    
-    Select Case TypeName(resp("value"))
-    Case "Collection"
-        Dim arry() As Variant
-        arry = ScriptCollectionToConvertedArray(resp("value"))
-        Dim allWebElements As Boolean
-        allWebElements = True
-        For i = LBound(arry) To UBound(arry)
-            If TypeName(arry(i)) <> "WebElement" Then
-                allWebElements = False
-                Exit For
-            End If
-        Next i
-        If allWebElements Then 'load into WebElements object
-            Dim webElems As New WebElements, webElem As WebElement
-            For i = LBound(arry) To UBound(arry)
-                Set webElem = arry(i)
-                webElems.Add webElem
-            Next i
-            Set ExecuteScriptAsync = webElems
-        Else
-            ExecuteScriptAsync = arry
-        End If
-    Case "Dictionary"
-        Set ExecuteScriptAsync = ScriptDictToConvertedDict(resp("value"))
-    Case Else 'other returns here
-        If IsObject(resp("value")) Then
-            Set ExecuteScriptAsync = resp("value")
-        Else
-            ExecuteScriptAsync = resp("value")
-        End If
-    End Select
-End Function
-
 '@Description("Executes a java script synchronously")
-Public Function ExecuteScript(ByVal script As String, ParamArray scriptArgs() As Variant) As Variant
+Public Function ExecuteScript(ByVal script As String, ParamArray argumentList() As Variant) As Variant
 Attribute ExecuteScript.VB_Description = "Executes a java script synchronously"
     Dim data As New Dictionary
     Dim resp As Dictionary
     Dim args() As Variant
-    
+
     data.Add "script", script
     
-    If UBound(scriptArgs) >= 0 Then
-        ReDim args(0 To UBound(scriptArgs))
-        Dim i As Long
-        For i = 0 To UBound(scriptArgs)
-            If TypeName(scriptArgs(i)) = "WebElement" Then
-                'Convert WebElement to Dictionary that can be handled by WebDriver
-                Dim elem As New Dictionary, welem As WebElement
-                Set welem = scriptArgs(i)
-                elem.Add ELEMENT_KEY, welem.elementId
-                Set args(i) = elem
-            Else
-                args(i) = scriptArgs(i)
-            End If
-        Next i
+    'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
+    If UBound(argumentList) >= 0 Then
+        args = argumentList
+        args = DeObjectifyInputArgs(args)
     End If
+    
     data.Add "args", args
     
     Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT, data)
     
-    Select Case TypeName(resp("value"))
-    Case "Collection"
-        Dim arry() As Variant
-        arry = ScriptCollectionToConvertedArray(resp("value"))
-        If (Not arry) = -1 Then
-            'Dim jc As New WebJSonConverter
-            'Debug.Print jc.ConvertToJson(resp, 4)
-            'is it ok to assume that this empty collection is of type WebElements?
-            Set ExecuteScript = New WebElements
-            Exit Function
-        End If
-        Dim allWebElements As Boolean
-        allWebElements = True
-        For i = LBound(arry) To UBound(arry)
-            If TypeName(arry(i)) <> "WebElement" Then
-                allWebElements = False
-                Exit For
-            End If
-        Next i
-        If allWebElements Then 'load into WebElements object
-            Dim webElems As New WebElements, webElem As WebElement
-            For i = LBound(arry) To UBound(arry)
-                Set webElem = arry(i)
-                webElems.Add webElem
-            Next i
-            Set ExecuteScript = webElems
-        Else
-            ExecuteScript = arry
-        End If
-    Case "Dictionary"
-        Set ExecuteScript = ScriptDictToConvertedDict(resp("value"))
-    Case Else 'other returns here
-        If IsObject(resp("value")) Then
-            Set ExecuteScript = resp("value")
-        Else
-            ExecuteScript = resp("value")
-        End If
-    End Select
+    'replace the response representation of an element, a collection of elements, and a shadow root
+    'with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
+    If IsObject(resp("value")) Then
+        Set ExecuteScript = ObjectifyScriptResponse(resp("value"))
+    Else
+        ExecuteScript = resp("value")
+    End If
 End Function
 
-'Convert dictionary from script to dictionary (converted to web element)
-Private Function ScriptDictToConvertedDict(dict As Variant) As Object
-    If dict.Exists(ELEMENT_KEY) Then
-        ' Convert to WebElement
-        Set ScriptDictToConvertedDict = ToWebElement(dict(ELEMENT_KEY))
-        ' Return immediately (ignore other items if they exist)
-        Exit Function
-    End If
-    Dim ret As New Dictionary
-    Dim key As Variant
-    For Each key In dict.keys
-        If TypeName(dict(key)) = "Collection" Then
-            ret(key) = ScriptCollectionToConvertedArray(dict(key))
-        ElseIf TypeName(dict(key)) = "Dictionary" Then
-            Set ret(key) = ScriptDictToConvertedDict(dict(key))
-        ElseIf IsObject(dict(key)) Then
-            Set ret(key) = dict(key)
-        Else
-            ret(key) = dict(key)
-        End If
-    Next key
-    Set ScriptDictToConvertedDict = ret
-End Function
+'@Description("Executes a java script asynchronously")
+Public Function ExecuteScriptAsync(ByVal script As String, ParamArray argumentList() As Variant) As Variant
+Attribute ExecuteScriptAsync.VB_Description = "Executes a java script asynchronously"
+    Dim data As New Dictionary
+    Dim resp As Dictionary
+    Dim args() As Variant
 
-'Convert collection from script to array
-Private Function ScriptCollectionToConvertedArray(col As Variant) As Variant()
-    Dim arry() As Variant
-    If col.Count > 0 Then
-    ReDim arry(baseArrayIdx To col.Count - 1 + baseArrayIdx)
-    Dim i As Integer
-    For i = 1 To col.Count
-        If TypeName(col(i)) = "Collection" Then
-            arry(i - 1 + baseArrayIdx) = ScriptCollectionToConvertedArray(col(i))
-        ElseIf TypeName(col(i)) = "Dictionary" Then
-            Set arry(i - 1 + baseArrayIdx) = ScriptDictToConvertedDict(col(i))
-        ElseIf IsObject(col(i)) Then
-            Set arry(i - 1 + baseArrayIdx) = col(i)
-        Else
-            arry(i - 1 + baseArrayIdx) = col(i)
-        End If
-    Next
+    data.Add "script", script
+    
+    'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
+    If UBound(argumentList) >= 0 Then
+        args = argumentList
+        args = DeObjectifyInputArgs(args)
     End If
-    ScriptCollectionToConvertedArray = arry
+    
+    data.Add "args", args
+    
+    Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT_ASYNC, data)
+    
+    'replace the response representation of an element, a collection of elements, and a shadow root
+    'with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
+    If IsObject(resp("value")) Then
+        Set ExecuteScriptAsync = ObjectifyScriptResponse(resp("value"))
+    Else
+        ExecuteScriptAsync = resp("value")
+    End If
 End Function
 
 '@Description("Saves a screenshot of the active browser window to a file")
@@ -1719,7 +1601,7 @@ Attribute GetShadowRoot.VB_Description = "Gets the shadow root hosted by the ele
     Dim resp As Dictionary
     data.Add "id", element.elementId
     Set resp = Execute(tCMD.CMD_GET_ELEMENT_SHADOW_ROOT, data)
-    Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOW_KEY))
+    Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOWROOT_KEY))
 End Function
 
 '@Description("Gets the specified CSS property of the element")
@@ -2268,6 +2150,8 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     Dim cmdArgs As New Dictionary
     Dim parmKey As Variant
     Dim response As Dictionary
+    Dim client As New MSXML2.ServerXMLHTTP60
+    Dim jc As New WebJsonConverter
     
     cmdMethod = driverCommand(0)
     cmdPath = driverCommand(1)
@@ -2293,26 +2177,32 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
     
     'Send request to selenium server
-    Set response = SendRequest(cmdMethod, driverUrl_ & cmdPath, cmdArgs)
+
+    client.Open cmdMethod, driverUrl_ & cmdPath
+    
+    'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
+    client.setTimeouts 0, 60000, 30000, 0
+    
+    If cmdMethod = "POST" Or cmdMethod = "PUT" Then
+        client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
+        client.setRequestHeader "Cache-Control", "no-cache"
+        client.send jc.ConvertToJson(cmdArgs)  '
+    Else
+        client.send
+    End If
+
+    Do While client.readyState < 4
+        DoEvents
+    Loop
+
+    Set response = jc.ParseJson(client.responseText)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
-        Dim lHttpStatus As Long
-        Select Case response.Item("value").Item("error")
-            'Complete list of error codes & numbers taken from here https://www.w3.org/TR/webdriver/#dfn-error-code as of 18-oct-2022
-            Case "element click intercepted", "element not interactable", "insecure certificate", "invalid argument", "invalid cookie domain", "invalid element state", "invalid selector"
-                lHttpStatus = 400 'Bad Request
-            Case "invalid session id", "no such alert", "no such cookie", "no such element", "no such frame", "no such window", "no such shadow root", "stale element reference", "detached shadow root", "unknown command"
-                lHttpStatus = 404 'Not Found
-            Case "javascript Error", "move target out of bounds", "script timeout error", "session not created", "timeout", "unable to set cookie", "unable to capture screen", "unexpected alert open", "unknown error", "unsupported operation"
-                lHttpStatus = 500 'Internal Server Error
-            Case "unknown method"
-                lHttpStatus = 405 'Method Not Allowed
-        End Select
-        Err.raise lHttpStatus, "WebDriver", GetResponseErrorMessage(response)
+        Err.raise client.status, "WebDriver", GetResponseErrorMessage(response)
     End If
 
-    Set Execute = response 'always pass a dictionary object - let caller parse info based on context, including error
+    Set Execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
 End Function
 
 Private Function ToWebElement(ByVal elementId As String) As WebElement
@@ -2334,7 +2224,8 @@ Private Function GetResponseErrorMessage(resp As Dictionary) As String
     GetResponseErrorMessage = vbNullString
     If TypeName(resp("value")) = "Dictionary" Then
         If resp("value").Exists("error") Then
-            GetResponseErrorMessage = jc.ConvertToJson(resp("value")("message"), 4)
+            'GetResponseErrorMessage = jc.ConvertToJson(resp("value")("message"), 4)
+            GetResponseErrorMessage = resp("value")("message")
         End If
     End If
 End Function
@@ -2346,32 +2237,6 @@ Private Function IsResponseError(resp As Dictionary) As Boolean
             IsResponseError = True
         End If
     End If
-End Function
-
-Private Function SendRequest(ByVal Method As String, ByVal url As String, Optional data As Dictionary = Nothing) As Dictionary
-    Dim client As MSXML2.ServerXMLHTTP60
-    Dim jc As New WebJsonConverter
-    
-    Set client = New MSXML2.ServerXMLHTTP60
-
-    client.Open Method, url
-    
-    'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
-    client.setTimeouts 0, 60000, 30000, 0
-    
-    If Method = "POST" Or Method = "PUT" Then
-        client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
-        client.setRequestHeader "Cache-Control", "no-cache"
-        client.send jc.ConvertToJson(data)  '
-    Else
-        client.send
-    End If
-
-    Do While client.readyState < 4
-        DoEvents
-    Loop
-
-    Set SendRequest = jc.ParseJson(client.responseText)
 End Function
 
 Private Function params(ParamArray keysAndValues()) As Dictionary
@@ -2639,7 +2504,6 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Dim scriptNode As IHTMLDOMNode
     Dim styleNode As IHTMLDOMNode
     Dim newStyleNode As IHTMLDOMNode
-    
     Dim tempDoc As HTMLDocument
     
     'This function renders html source "offline" by disabling dynamic content, while leaving the DOM tree intact.
@@ -2878,4 +2742,108 @@ Private Function fixFirefoxBug1797871(ByVal str As String) As String
     Else
         fixFirefoxBug1797871 = str
     End If
+End Function
+
+Private Function DeObjectifyInputArgs(argumentList() As Variant) As Variant()
+    'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
+    Dim i As Long, j As Long
+    Dim elemCol As Collection
+    Dim elemDict As Dictionary
+    Dim shadowRootDict As Dictionary
+    Dim shadowRoot As WebShadowRoot
+    Dim elements As WebElements
+    Dim element As WebElement
+    Dim args() As Variant
+        
+    ReDim args(0 To UBound(argumentList))
+    For i = 0 To UBound(argumentList)
+        Select Case TypeName(argumentList(i))
+        Case "WebElement"
+            'convert WebElement object to Dictionary that can be handled by WebDriver
+            Set element = argumentList(i)
+            Set elemDict = New Dictionary
+            elemDict.Add ELEMENT_KEY, element.elementId
+            Set args(i) = elemDict
+        Case "WebShadowRoot"
+            'convert WebShadowRoot object to Dictionary that can be handled by WebDriver
+            Set shadowRoot = argumentList(i)
+            Set shadowRootDict = New Dictionary
+            shadowRootDict.Add SHADOWROOT_KEY, shadowRoot.shadowRootId
+            Set args(i) = shadowRootDict
+        Case "WebElements"
+            'convert WebElements object to Dictionary that can be handled by WebDriver
+            Set elements = argumentList(i)
+            Set elemCol = New Collection
+            For j = 1 To elements.Count
+                Set elemDict = New Dictionary
+                elemDict.Add ELEMENT_KEY, elements(j).elementId
+                elemCol.Add elemDict
+            Next j
+            Set args(i) = elemCol
+        Case Else
+            args(i) = argumentList(i)
+        End Select
+    Next i
+    
+    DeObjectifyInputArgs = args
+End Function
+
+Private Function ObjectifyScriptResponse(responseValue As Object) As Object
+    'this function replaces the ExecuteScript response representation of an element, a collection of elements,
+    'and a shadow root with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
+    'its recursive designed allows to search and replace a nested response structure
+    Dim i As Long
+    Dim vkey As Variant
+    Dim obj As Object
+    Dim numItems As Long
+    Dim isElementCollection As Boolean
+    Dim elems As WebElements
+    
+    Select Case TypeName(responseValue)
+    Case "Collection"
+        isElementCollection = True
+        numItems = responseValue.Count
+        
+        'loop through all items of the collection, looking for objects
+        For i = 1 To numItems
+            If IsObject(responseValue.Item(i)) Then
+                Set obj = ObjectifyScriptResponse(responseValue.Item(i))
+                
+                If TypeName(obj) <> "WebElement" Then isElementCollection = False
+                
+                responseValue.Remove i
+                If i = numItems Then
+                    responseValue.Add obj
+                Else
+                    responseValue.Add obj, , i
+                End If
+            Else
+                isElementCollection = False
+            End If
+        Next i
+        
+        If isElementCollection Then
+            'replace the collection with a WebElements object
+            Set elems = New WebElements
+            For i = 1 To responseValue.Count
+                elems.Add responseValue.Item(i)
+            Next i
+            Set responseValue = elems
+        End If
+    Case "Dictionary"
+        'check if its an element or shadow root representation and if so, replace with WebElement or WebShadowRoot object
+        If responseValue.Exists(ELEMENT_KEY) Then 'replace with a WebElement object
+            Set responseValue = ToWebElement(responseValue(ELEMENT_KEY))
+        ElseIf responseValue.Exists(SHADOWROOT_KEY) Then
+            Set responseValue = ToShadowRoot(responseValue(SHADOWROOT_KEY))
+        Else 'check each key value for collection or dictionary
+            For Each vkey In responseValue.keys
+                If IsObject(responseValue.Item(vkey)) Then
+                    Set responseValue.Item(vkey) = ObjectifyScriptResponse(responseValue.Item(vkey))
+                End If
+            Next vkey
+        End If
+    End Select
+        
+    Set ObjectifyScriptResponse = responseValue
 End Function

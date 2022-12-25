@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@Exposed
 '@PredeclaredId
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -25,7 +25,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 ' Copyright (c) 2022 GCUser99
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
-' of this software and associated documentation files (the("Software"), to deal
+' of this software and associated documentation files (the "Software"), to deal
 ' in the Software without restriction, including without limitation the rights
 ' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 ' copies of the Software, and to permit persons to whom the Software is
@@ -34,7 +34,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 ' The above copyright notice and this permission notice shall be included in all
 ' copies or substantial portions of the Software.
 '
-' THE SOFTWARE IS PROVIDED("AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 ' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 ' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 ' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -104,284 +104,284 @@ Private mF12Key As String
 Private mMetaKey As String
 Private mCommandKey As String
 
-'@Description("Returns the Null (ue000) key")
+'@Description("Returns the Null (\\ue000) key")
 Public Property Get NullKey() As String
-Attribute NullKey.VB_Description = "Returns the Null (ue000) key"
+Attribute NullKey.VB_Description = "Returns the Null (\\ue000) key"
     NullKey = mNullKey
 End Property
-'@Description("Returns the Cancel (ue001) key")
+'@Description("Returns the Cancel (\\ue001) key")
 Public Property Get CancelKey() As String
-Attribute CancelKey.VB_Description = "Returns the Cancel (ue001) key"
+Attribute CancelKey.VB_Description = "Returns the Cancel (\\ue001) key"
     CancelKey = mCancelKey
 End Property
-'@Description("Returns the Help (ue002) key")
+'@Description("Returns the Help (\\ue002) key")
 Public Property Get HelpKey() As String
-Attribute HelpKey.VB_Description = "Returns the Help (ue002) key"
+Attribute HelpKey.VB_Description = "Returns the Help (\\ue002) key"
     HelpKey = mHelpKey
 End Property
-'@Description("Returns the Backspace (ue003) key")
+'@Description("Returns the Backspace (\\ue003) key")
 Public Property Get BackspaceKey() As String
-Attribute BackspaceKey.VB_Description = "Returns the Backspace (ue003) key"
+Attribute BackspaceKey.VB_Description = "Returns the Backspace (\\ue003) key"
     BackspaceKey = mBackspaceKey
 End Property
-'@Description("Returns the Tab (ue004) key")
+'@Description("Returns the Tab (\\ue004) key")
 Public Property Get TabKey() As String
-Attribute TabKey.VB_Description = "Returns the Tab (ue004) key"
+Attribute TabKey.VB_Description = "Returns the Tab (\\ue004) key"
     TabKey = mTabKey
 End Property
-'@Description("Returns the Clear (ue005) key")
+'@Description("Returns the Clear (\\ue005) key")
 Public Property Get ClearKey() As String
-Attribute ClearKey.VB_Description = "Returns the Clear (ue005) key"
+Attribute ClearKey.VB_Description = "Returns the Clear (\\ue005) key"
     ClearKey = mClearKey
 End Property
-'@Description("Returns the Return (ue006) key")
+'@Description("Returns the Return (\\ue006) key")
 Public Property Get ReturnKey() As String
-Attribute ReturnKey.VB_Description = "Returns the Return (ue006) key"
+Attribute ReturnKey.VB_Description = "Returns the Return (\\ue006) key"
     ReturnKey = mReturnKey
 End Property
-'@Description("Returns the Enter (ue007) key")
+'@Description("Returns the Enter (\\ue007) key")
 Public Property Get EnterKey() As String
-Attribute EnterKey.VB_Description = "Returns the Enter (ue007) key"
+Attribute EnterKey.VB_Description = "Returns the Enter (\\ue007) key"
     EnterKey = mEnterKey
 End Property
-'@Description("Returns the Shift (ue008) key")
+'@Description("Returns the Shift (\\ue008) key")
 Public Property Get ShiftKey() As String
-Attribute ShiftKey.VB_Description = "Returns the Shift (ue008) key"
+Attribute ShiftKey.VB_Description = "Returns the Shift (\\ue008) key"
     ShiftKey = mShiftKey
 End Property
-'@Description("Returns the Control (ue009) key")
+'@Description("Returns the Control (\\ue009) key")
 Public Property Get ControlKey() As String
-Attribute ControlKey.VB_Description = "Returns the Control (ue009) key"
+Attribute ControlKey.VB_Description = "Returns the Control (\\ue009) key"
     ControlKey = mControlKey
 End Property
-'@Description("Returns the Alt (ue00a) key")
+'@Description("Returns the Alt (\\ue00a) key")
 Public Property Get AltKey() As String
-Attribute AltKey.VB_Description = "Returns the Alt (ue00a) key"
+Attribute AltKey.VB_Description = "Returns the Alt (\\ue00a) key"
     AltKey = mAltKey
 End Property
-'@Description("Returns the Pause (ue00b) key")
+'@Description("Returns the Pause (\\ue00b) key")
 Public Property Get PauseKey() As String
-Attribute PauseKey.VB_Description = "Returns the Pause (ue00b) key"
+Attribute PauseKey.VB_Description = "Returns the Pause (\\ue00b) key"
     PauseKey = mPauseKey
 End Property
-'@Description("Returns the Escape (ue00c) key")
+'@Description("Returns the Escape (\\ue00c) key")
 Public Property Get EscapeKey() As String
-Attribute EscapeKey.VB_Description = "Returns the Escape (ue00c) key"
+Attribute EscapeKey.VB_Description = "Returns the Escape (\\ue00c) key"
     EscapeKey = mEscapeKey
 End Property
-'@Description("Returns the Space (ue00d) key")
+'@Description("Returns the Space (\\ue00d) key")
 Public Property Get SpaceKey() As String
-Attribute SpaceKey.VB_Description = "Returns the Space (ue00d) key"
+Attribute SpaceKey.VB_Description = "Returns the Space (\\ue00d) key"
     SpaceKey = mSpaceKey
 End Property
-'@Description("Returns the PageUp (ue00e) key")
+'@Description("Returns the PageUp (\\ue00e) key")
 Public Property Get PageUpKey() As String
-Attribute PageUpKey.VB_Description = "Returns the PageUp (ue00e) key"
+Attribute PageUpKey.VB_Description = "Returns the PageUp (\\ue00e) key"
     PageUpKey = mPageUpKey
 End Property
-'@Description("Returns the PageDown (ue00f) key")
+'@Description("Returns the PageDown (\\ue00f) key")
 Public Property Get PageDownKey() As String
-Attribute PageDownKey.VB_Description = "Returns the PageDown (ue00f) key"
+Attribute PageDownKey.VB_Description = "Returns the PageDown (\\ue00f) key"
     PageDownKey = mPageDownKey
 End Property
-'@Description("Returns the End (ue010) key")
+'@Description("Returns the End (\\ue010) key")
 Public Property Get EndKey() As String
-Attribute EndKey.VB_Description = "Returns the End (ue010) key"
+Attribute EndKey.VB_Description = "Returns the End (\\ue010) key"
     EndKey = mEndKey
 End Property
-'@Description("Returns the Home (ue011) key")
+'@Description("Returns the Home (\\ue011) key")
 Public Property Get HomeKey() As String
-Attribute HomeKey.VB_Description = "Returns the Home (ue011) key"
+Attribute HomeKey.VB_Description = "Returns the Home (\\ue011) key"
     HomeKey = mHomeKey
 End Property
-'@Description("Returns the Left (ue012) key")
+'@Description("Returns the Left (\\ue012) key")
 Public Property Get LeftKey() As String
-Attribute LeftKey.VB_Description = "Returns the Left (ue012) key"
+Attribute LeftKey.VB_Description = "Returns the Left (\\ue012) key"
     LeftKey = mLeftKey
 End Property
-'@Description("Returns the Up (ue013) key")
+'@Description("Returns the Up (\\ue013) key")
 Public Property Get UpKey() As String
-Attribute UpKey.VB_Description = "Returns the Up (ue013) key"
+Attribute UpKey.VB_Description = "Returns the Up (\\ue013) key"
     UpKey = mUpKey
 End Property
-'@Description("Returns the Right (ue014) key")
+'@Description("Returns the Right (\\ue014) key")
 Public Property Get RightKey() As String
-Attribute RightKey.VB_Description = "Returns the Right (ue014) key"
+Attribute RightKey.VB_Description = "Returns the Right (\\ue014) key"
     RightKey = mRightKey
 End Property
-'@Description("Returns the Down (ue015) key")
+'@Description("Returns the Down (\\ue015) key")
 Public Property Get DownKey() As String
-Attribute DownKey.VB_Description = "Returns the Down (ue015) key"
+Attribute DownKey.VB_Description = "Returns the Down (\\ue015) key"
     DownKey = mDownKey
 End Property
-'@Description("Returns the Insert (ue016) key")
+'@Description("Returns the Insert (\\ue016) key")
 Public Property Get InsertKey() As String
-Attribute InsertKey.VB_Description = "Returns the Insert (ue016) key"
+Attribute InsertKey.VB_Description = "Returns the Insert (\\ue016) key"
     InsertKey = mInsertKey
 End Property
-'@Description("Returns the Delete (ue017) key")
+'@Description("Returns the Delete (\\ue017) key")
 Public Property Get DeleteKey() As String
-Attribute DeleteKey.VB_Description = "Returns the Delete (ue017) key"
+Attribute DeleteKey.VB_Description = "Returns the Delete (\\ue017) key"
     DeleteKey = mDeleteKey
 End Property
-'@Description("Returns the Semicolon (ue018) key")
+'@Description("Returns the Semicolon (\\ue018) key")
 Public Property Get SemicolonKey() As String
-Attribute SemicolonKey.VB_Description = "Returns the Semicolon (ue018) key"
+Attribute SemicolonKey.VB_Description = "Returns the Semicolon (\\ue018) key"
     SemicolonKey = mSemicolonKey
 End Property
-'@Description("Returns the Equals (ue019) key")
+'@Description("Returns the Equals (\\ue019) key")
 Public Property Get EqualsKey() As String
-Attribute EqualsKey.VB_Description = "Returns the Equals (ue019) key"
+Attribute EqualsKey.VB_Description = "Returns the Equals (\\ue019) key"
     EqualsKey = mEqualsKey
 End Property
-'@Description("Returns the Numpad 0 (ue01a) key")
+'@Description("Returns the Numpad 0 (\\ue01a) key")
 Public Property Get Numpad0Key() As String
-Attribute Numpad0Key.VB_Description = "Returns the Numpad 0 (ue01a) key"
+Attribute Numpad0Key.VB_Description = "Returns the Numpad 0 (\\ue01a) key"
     Numpad0Key = mNumpad0Key
 End Property
-'@Description("Returns the Numpad 1 (ue01b) key")
+'@Description("Returns the Numpad 1 (\\ue01b) key")
 Public Property Get Numpad1Key() As String
-Attribute Numpad1Key.VB_Description = "Returns the Numpad 1 (ue01b) key"
+Attribute Numpad1Key.VB_Description = "Returns the Numpad 1 (\\ue01b) key"
     Numpad1Key = mNumpad1Key
 End Property
-'@Description("Returns the Numpad 2 (ue01c) key")
+'@Description("Returns the Numpad 2 (\\ue01c) key")
 Public Property Get Numpad2Key() As String
-Attribute Numpad2Key.VB_Description = "Returns the Numpad 2 (ue01c) key"
+Attribute Numpad2Key.VB_Description = "Returns the Numpad 2 (\\ue01c) key"
     Numpad2Key = mNumpad2Key
 End Property
-'@Description("Returns the Numpad 3 (ue01d) key")
+'@Description("Returns the Numpad 3 (\\ue01d) key")
 Public Property Get Numpad3Key() As String
-Attribute Numpad3Key.VB_Description = "Returns the Numpad 3 (ue01d) key"
+Attribute Numpad3Key.VB_Description = "Returns the Numpad 3 (\\ue01d) key"
     Numpad3Key = mNumpad3Key
 End Property
-'@Description("Returns the Numpad 4 (ue01e) key")
+'@Description("Returns the Numpad 4 (\\ue01e) key")
 Public Property Get Numpad4Key() As String
-Attribute Numpad4Key.VB_Description = "Returns the Numpad 4 (ue01e) key"
+Attribute Numpad4Key.VB_Description = "Returns the Numpad 4 (\\ue01e) key"
     Numpad4Key = mNumpad4Key
 End Property
-'@Description("Returns the Numpad 5 (ue01f) key")
+'@Description("Returns the Numpad 5 (\\ue01f) key")
 Public Property Get Numpad5Key() As String
-Attribute Numpad5Key.VB_Description = "Returns the Numpad 5 (ue01f) key"
+Attribute Numpad5Key.VB_Description = "Returns the Numpad 5 (\\ue01f) key"
     Numpad5Key = mNumpad5Key
 End Property
-'@Description("Returns the Numpad 6 (ue020) key")
+'@Description("Returns the Numpad 6 (\\ue020) key")
 Public Property Get Numpad6Key() As String
-Attribute Numpad6Key.VB_Description = "Returns the Numpad 6 (ue020) key"
+Attribute Numpad6Key.VB_Description = "Returns the Numpad 6 (\\ue020) key"
     Numpad6Key = mNumpad6Key
 End Property
-'@Description("Returns the Numpad 7 (ue021) key")
+'@Description("Returns the Numpad 7 (\\ue021) key")
 Public Property Get Numpad7Key() As String
-Attribute Numpad7Key.VB_Description = "Returns the Numpad 7 (ue021) key"
+Attribute Numpad7Key.VB_Description = "Returns the Numpad 7 (\\ue021) key"
     Numpad7Key = mNumpad7Key
 End Property
-'@Description("Returns the Numpad 8 (ue022) key")
+'@Description("Returns the Numpad 8 (\\ue022) key")
 Public Property Get Numpad8Key() As String
-Attribute Numpad8Key.VB_Description = "Returns the Numpad 8 (ue022) key"
+Attribute Numpad8Key.VB_Description = "Returns the Numpad 8 (\\ue022) key"
     Numpad8Key = mNumpad8Key
 End Property
-'@Description("Returns the Numpad 9 (ue023) key")
+'@Description("Returns the Numpad 9 (\\ue023) key")
 Public Property Get Numpad9Key() As String
-Attribute Numpad9Key.VB_Description = "Returns the Numpad 9 (ue023) key"
+Attribute Numpad9Key.VB_Description = "Returns the Numpad 9 (\\ue023) key"
     Numpad9Key = mNumpad9Key
 End Property
-'@Description("Returns the Multiply (ue024) key")
+'@Description("Returns the Multiply (\\ue024) key")
 Public Property Get MultiplyKey() As String
-Attribute MultiplyKey.VB_Description = "Returns the Multiply (ue024) key"
+Attribute MultiplyKey.VB_Description = "Returns the Multiply (\\ue024) key"
     MultiplyKey = mMultiplyKey
 End Property
-'@Description("Returns the Add (ue025) key")
+'@Description("Returns the Add (\\ue025) key")
 Public Property Get AddKey() As String
-Attribute AddKey.VB_Description = "Returns the Add (ue025) key"
+Attribute AddKey.VB_Description = "Returns the Add (\\ue025) key"
     AddKey = mAddKey
 End Property
-'@Description("Returns the Separator (ue026) key")
+'@Description("Returns the Separator (\\ue026) key")
 Public Property Get SeparatorKey() As String
-Attribute SeparatorKey.VB_Description = "Returns the Separator (ue026) key"
+Attribute SeparatorKey.VB_Description = "Returns the Separator (\\ue026) key"
     SeparatorKey = mSeparatorKey
 End Property
-'@Description("Returns the Subtract (ue027) key")
+'@Description("Returns the Subtract (\\ue027) key")
 Public Property Get SubtractKey() As String
-Attribute SubtractKey.VB_Description = "Returns the Subtract (ue027) key"
+Attribute SubtractKey.VB_Description = "Returns the Subtract (\\ue027) key"
     SubtractKey = mSubtractKey
 End Property
-'@Description("Returns the Decimal (ue028) key")
+'@Description("Returns the Decimal (\\ue028) key")
 Public Property Get DecimalKey() As String
-Attribute DecimalKey.VB_Description = "Returns the Decimal (ue028) key"
+Attribute DecimalKey.VB_Description = "Returns the Decimal (\\ue028) key"
     DecimalKey = mDecimalKey
 End Property
-'@Description("Returns the Divide (ue029) key")
+'@Description("Returns the Divide (\\ue029) key")
 Public Property Get DivideKey() As String
-Attribute DivideKey.VB_Description = "Returns the Divide (ue029) key"
+Attribute DivideKey.VB_Description = "Returns the Divide (\\ue029) key"
     DivideKey = mDivideKey
 End Property
-'@Description("Returns the F1 (ue031) key")
+'@Description("Returns the F1 (\\ue031) key")
 Public Property Get F1Key() As String
-Attribute F1Key.VB_Description = "Returns the F1 (ue031) key"
+Attribute F1Key.VB_Description = "Returns the F1 (\\ue031) key"
     F1Key = mF1Key
 End Property
-'@Description("Returns the F2 (ue032) key")
+'@Description("Returns the F2 (\\ue032) key")
 Public Property Get F2Key() As String
-Attribute F2Key.VB_Description = "Returns the F2 (ue032) key"
+Attribute F2Key.VB_Description = "Returns the F2 (\\ue032) key"
     F2Key = mF2Key
 End Property
-'@Description("Returns the F3 (ue033) key")
+'@Description("Returns the F3 (\\ue033) key")
 Public Property Get F3Key() As String
-Attribute F3Key.VB_Description = "Returns the F3 (ue033) key"
+Attribute F3Key.VB_Description = "Returns the F3 (\\ue033) key"
     F3Key = mF3Key
 End Property
-'@Description("Returns the F4 (ue034) key")
+'@Description("Returns the F4 (\\ue034) key")
 Public Property Get F4Key() As String
-Attribute F4Key.VB_Description = "Returns the F4 (ue034) key"
+Attribute F4Key.VB_Description = "Returns the F4 (\\ue034) key"
     F4Key = mF4Key
 End Property
-'@Description("Returns the F5 (ue035) key")
+'@Description("Returns the F5 (\\ue035) key")
 Public Property Get F5Key() As String
-Attribute F5Key.VB_Description = "Returns the F5 (ue035) key"
+Attribute F5Key.VB_Description = "Returns the F5 (\\ue035) key"
     F5Key = mF5Key
 End Property
-'@Description("Returns the F6 (ue036) key")
+'@Description("Returns the F6 (\\ue036) key")
 Public Property Get F6Key() As String
-Attribute F6Key.VB_Description = "Returns the F6 (ue036) key"
+Attribute F6Key.VB_Description = "Returns the F6 (\\ue036) key"
     F6Key = mF6Key
 End Property
-'@Description("Returns the F7 (ue037) key")
+'@Description("Returns the F7 (\\ue037) key")
 Public Property Get F7Key() As String
-Attribute F7Key.VB_Description = "Returns the F7 (ue037) key"
+Attribute F7Key.VB_Description = "Returns the F7 (\\ue037) key"
     F7Key = mF7Key
 End Property
-'@Description("Returns the F8 (ue038) key")
+'@Description("Returns the F8 (\\ue038) key")
 Public Property Get F8Key() As String
-Attribute F8Key.VB_Description = "Returns the F8 (ue038) key"
+Attribute F8Key.VB_Description = "Returns the F8 (\\ue038) key"
     F8Key = mF8Key
 End Property
-'@Description("Returns the F9 (ue039) key")
+'@Description("Returns the F9 (\\ue039) key")
 Public Property Get F9Key() As String
-Attribute F9Key.VB_Description = "Returns the F9 (ue039) key"
+Attribute F9Key.VB_Description = "Returns the F9 (\\ue039) key"
     F9Key = mF9Key
 End Property
-'@Description("Returns the F10 (ue03a) key")
+'@Description("Returns the F10 (\\ue03a) key")
 Public Property Get F10Key() As String
-Attribute F10Key.VB_Description = "Returns the F10 (ue03a) key"
+Attribute F10Key.VB_Description = "Returns the F10 (\\ue03a) key"
     F10Key = mF10Key
 End Property
-'@Description("Returns the F11 (ue03b) key")
+'@Description("Returns the F11 (\\ue03b) key")
 Public Property Get F11Key() As String
-Attribute F11Key.VB_Description = "Returns the F11 (ue03b) key"
+Attribute F11Key.VB_Description = "Returns the F11 (\\ue03b) key"
     F11Key = mF11Key
 End Property
-'@Description("Returns the F12 (ue03c) key")
+'@Description("Returns the F12 (\\ue03c) key")
 Public Property Get F12Key() As String
-Attribute F12Key.VB_Description = "Returns the F12 (ue03c) key"
+Attribute F12Key.VB_Description = "Returns the F12 (\\ue03c) key"
     F12Key = mF12Key
 End Property
-'@Description("Returns the Meta (ue03d) key")
+'@Description("Returns the Meta (\\ue03d) key")
 Public Property Get MetaKey() As String
-Attribute MetaKey.VB_Description = "Returns the Meta (ue03d) key"
+Attribute MetaKey.VB_Description = "Returns the Meta (\\ue03d) key"
     MetaKey = mMetaKey
 End Property
-'@Description("Returns the Command (ue03d) key")
+'@Description("Returns the Command (\\ue03d) key")
 Public Property Get CommandKey() As String
-Attribute CommandKey.VB_Description = "Returns the Command (ue03d) key"
+Attribute CommandKey.VB_Description = "Returns the Command (\\ue03d) key"
     CommandKey = mCommandKey
 End Property
 

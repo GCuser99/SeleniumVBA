@@ -11,7 +11,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 '@ModuleDescription "This class is used for managing a collection of WebElement objects"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -112,12 +112,12 @@ Friend Sub RemoveAll()
     Loop
 End Sub
 
-'@Description("Highlights with color this element collection")
+'@Description("Highlights this element collection with color")
 Public Function Highlight(Optional ByVal borderSizePx As Byte = 4, Optional ByVal borderColor As VBAcolors = Cyan, _
                      Optional ByVal backgroundColor As VBAcolors = VBAcolors.Unchanged, _
                      Optional ByVal ScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True) _
                      As WebElements
-Attribute Highlight.VB_Description = "Highlights with color this element collection"
+Attribute Highlight.VB_Description = "Highlights this element collection with color"
     driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, unHighlightLast
     Set Highlight = Me
 End Function

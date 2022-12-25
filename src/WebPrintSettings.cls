@@ -11,7 +11,7 @@ Attribute VB_Description = "This class is used to manage print settings for gene
 '@ModuleDescription "This class is used to manage print settings for generating pdf files using PrintToPDF method of the WebDriver class"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99

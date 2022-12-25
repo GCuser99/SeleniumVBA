@@ -11,7 +11,7 @@ Attribute VB_Description = "This class is used for exposing a shadow root DOM su
 '@Exposed
 '@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -72,3 +72,4 @@ Public Function FindElements(by_ As By, ByVal val As String) As WebElements
 Attribute FindElements.VB_Description = "Finds all elements that satisfy the specified selector and value"
     Set FindElements = driver_.FindElementsFromShadowRoot(by_, val, Me)
 End Function
+

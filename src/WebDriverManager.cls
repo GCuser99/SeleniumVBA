@@ -11,7 +11,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@ModuleDescription "This class is used to maintain Selenium driver/browser version alignment"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -658,16 +658,16 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
 
 End Sub
 
-'@Description("Returns the folder path to Florent Breheret's SeleniumBasic application, assuming that it is installed")
+'@Description("Returns the folder path to Florent Breheret's SeleniumBasic application in local AppData, assuming that it is installed")
 Public Function GetSeleniumBasicFolderPath() As String
-Attribute GetSeleniumBasicFolderPath.VB_Description = "Returns the folder path to Florent Breheret's SeleniumBasic application, assuming that it is installed"
+Attribute GetSeleniumBasicFolderPath.VB_Description = "Returns the folder path to Florent Breheret's SeleniumBasic application in local AppData, assuming that it is installed"
     'this may be of use for updating drivers for SeleniumBasic
     GetSeleniumBasicFolderPath = Environ$("LocalAppData") & "\SeleniumBasic\"
 End Function
 
-'@Description("Returns the folder path to the Temp folder path in local AppData")
+'@Description("Returns the folder path to the Temp folder in local AppData")
 Public Function GetUserTempFolderPath() As String
-Attribute GetUserTempFolderPath.VB_Description = "Returns the folder path to the Temp folder path in local AppData"
+Attribute GetUserTempFolderPath.VB_Description = "Returns the folder path to the Temp folder in local AppData"
     GetUserTempFolderPath = Environ$("LocalAppData") & "\Temp\"
 End Function
 

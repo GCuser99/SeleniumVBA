@@ -21,7 +21,7 @@ Sub test_WaitUntilReady()
     Debug.Print "Is search button interactable yet? " & searchButton.IsDisplayed
     
     driver.FindElement(By.Name, "q").SendKeys "Interactable"
-    
+
     'searchButton.Click 'will often throw an error here because it takes some time
     'for search button to get ready after typing search phrase
     Debug.Print "Is search button interactable yet? " & searchButton.IsDisplayed

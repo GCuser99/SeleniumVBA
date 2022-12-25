@@ -11,7 +11,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@ModuleDescription "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements"
 '@Exposed
 ' ==========================================================================
-' SeleniumVBA v2.8
+' SeleniumVBA v2.9
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
