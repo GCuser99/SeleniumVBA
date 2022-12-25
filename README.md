@@ -12,7 +12,11 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Relative paths and OneDrive support
 - This wrapper is an HTTP client of the Selenium WebDriver server, conforming closely to [W3C standards](https://www.w3.org/TR/webdriver/).
+<<<<<<< HEAD
 - Help documentation is available - see the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
+=======
+- Help is available now - see the [Object Model Overview](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview) in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
+>>>>>>> d410ec768b0d471a0be728cf605c38d3ebeff9e0
 
 ## Setup
 
@@ -105,4 +109,4 @@ End Sub
 
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA
 
-[RubberDuck](https://rubberduckvba.com/)
+[RubberDuck](https://rubberduckvba.com/) by Mathieu Guindon
