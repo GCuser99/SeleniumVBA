@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_WebElements"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_WebElements()
     Dim driver As SeleniumVBA.WebDriver

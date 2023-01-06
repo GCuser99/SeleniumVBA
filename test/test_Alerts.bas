@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Alerts"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_Alerts()
     'see https://www.guru99.com/alert-popup-handling-selenium.html

@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Shadowroots"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_shadowroot()
     Dim driver As SeleniumVBA.WebDriver, shadowHost As SeleniumVBA.WebElement

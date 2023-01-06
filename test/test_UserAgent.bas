@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_UserAgent"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_hide_headless()
     'some servers detect headless mode in the sent User Agent and then deny access, so

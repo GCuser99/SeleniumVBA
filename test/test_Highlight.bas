@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Highlight"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_highlight()
     Dim driver As SeleniumVBA.WebDriver

@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_FileUpDownload"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_file_upload()
     'see https://www.guru99.com/upload-download-file-selenium-webdriver.html

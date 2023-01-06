@@ -1,4 +1,14 @@
 Attribute VB_Name = "WebShared"
+'@folder("SeleniumVBA.Source")
+' ==========================================================================
+' SeleniumVBA v3.0
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
+'
+' (c) GCUser99
+'
+' https://github.com/GCuser99/SeleniumVBA/tree/main
+'
+' ==========================================================================
 ' For more info:
 ' https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
 ' http://vbnet.mvps.org/index.html?code/fileapi/pathisrelative.htm
@@ -17,6 +27,8 @@ Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCu
 Private Declare PtrSafe Function PathIsRelative Lib "shlwapi" Alias "PathIsRelativeA" (ByVal pszPath As String) As Long
 Private Declare PtrSafe Function PathIsURL Lib "shlwapi" Alias "PathIsURLA" (ByVal pszPath As String) As Long
 
+Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFilename As String) As Long
+
 Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
     'basePath defaults to the folder path of the document that holds the Active VBA Project
@@ -24,8 +36,8 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
 
     Dim fso As New Scripting.FileSystemObject, savePath As String
 
-    'make sure no rogue beginning or ending spaces
-    inputPath = VBA.Trim(inputPath)
+    'make sure no rogue beginning or ending spaces and expand "%[Environ Variable]%" if in the path
+    inputPath = ExpandEnvironVariable(VBA.Trim(inputPath))
 
     If Not IsPathRelative(inputPath) Then 'its an absolute path
         'just in case OneDrive/SharePoint user has specified a path built with ThisWorkbook.Path...
@@ -38,7 +50,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         GetFullLocalPath = inputPath
     Else 'ok then convert relative path to absolute
         'make sure no unintended beginning or ending spaces
-        basePath = VBA.Trim(basePath)
+        basePath = ExpandEnvironVariable(VBA.Trim(basePath))
         
         If basePath = vbNullString Then
             basePath = ActiveVBAProjectFolderPath
@@ -147,15 +159,127 @@ Private Function ActiveVBAProjectFolderPath() As String
     Dim strPath As String
     
     strPath = vbNullString
+    
     'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
     'will throw an error so trap and report below...
+    
     On Error Resume Next
-    strPath = Application.VBE.ActiveVBProject.Filename
+    strPath = Application.VBE.ActiveVBProject.FileName
     On Error GoTo 0
+    
     If strPath <> vbNullString Then
         strPath = fso.GetParentFolderName(strPath)
         ActiveVBAProjectFolderPath = strPath
     Else
         Err.raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
     End If
+End Function
+
+Public Function ThisLibFolderPath() As String
+    'returns the path of this library - not the path of the active vba project, which may be referencing this library
+    Dim app As Object
+    Set app = Application
+    Select Case app.Name
+    Case "Microsoft Excel"
+        ThisLibFolderPath = app.ThisWorkbook.Path
+    Case "Microsoft Access"
+        ThisLibFolderPath = app.CodeProject.Path
+    Case Else
+        Err.raise 1, "WebShared", "Error: Only Microsoft Excel and Access are supported."
+    End Select
+End Function
+
+Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
+    'this searches input path for %[Environ Variable]% pattern and if found, then replaces with the path equivalent
+    Dim ipos1 As Long
+    Dim ipos2 As Long
+    Dim environString As String
+    Dim expandedPath As String
+    'search for leading % delimeter - if not found, then return the input unchanged
+    ipos1 = InStr(inputPath, "%") + 1
+    If ipos1 > 1 Then
+        ipos2 = InStr(ipos1, inputPath, "%") - 1
+        
+        'check if trailing delimeter exists - raise error if not
+        If ipos2 = -1 Then
+            Err.raise 1, "WebShared", "Environment variable not formed properly - use ""%UserProfile%\Documents"" for example"
+        End If
+        
+        'now make the substitution and return modified string
+        environString = Mid(inputPath, ipos1, ipos2 - ipos1 + 1)
+        expandedPath = Environ(environString)
+        If expandedPath = "" Then
+            Err.raise 1, "WebShared", "Environment variable """ & environString & """ used in path not recognized"
+        End If
+        
+        ExpandEnvironVariable = Replace(inputPath, "%" & environString & "%", expandedPath)
+    Else
+        ExpandEnvironVariable = inputPath
+    End If
+End Function
+
+Public Function ReadIniFileEntry(ByVal filePath As String, ByVal section As String, ByVal keyName As String, Optional ByVal defaultValue As Variant = vbNullString) As String
+    'reads a single settings file entry
+    Const lenStr = 255
+    Dim outputLen As Long
+    Dim retStr As String * lenStr
+    Dim fso As New FileSystemObject
+    
+    'check if optional settinsg file exists - if not then use default and exit
+    If Not fso.FileExists(filePath) Then
+        ReadIniFileEntry = defaultValue
+        Exit Function
+    End If
+    
+    'try to read and return the section/keyName value - if not then use default and exit
+    retStr = Space(lenStr)
+    outputLen = GetPrivateProfileString(section, keyName, vbNullString, retStr, lenStr, filePath)
+    If outputLen Then
+        ReadIniFileEntry = Left$(retStr, outputLen)
+    Else
+        ReadIniFileEntry = defaultValue
+    End If
+End Function
+
+Public Function EnumTextToValue(ByVal enumText As String) As Long
+    'this function converts an enum string read from the settings file to it's corresponding enum value
+    enumText = Trim(enumText)
+    If IsNumeric(enumText) Then
+        EnumTextToValue = VBA.val(enumText)
+        Exit Function
+    End If
+    Select Case LCase(enumText)
+    Case LCase("svbaNotCompatible")
+        EnumTextToValue = svbaCompatibility.svbaNotCompatible
+    Case LCase("svbaMajor")
+        EnumTextToValue = svbaCompatibility.svbaMajor
+    Case LCase("svbaMinor")
+        EnumTextToValue = svbaCompatibility.svbaMinor
+    Case LCase("svbaBuildMajor")
+        EnumTextToValue = svbaCompatibility.svbaBuildMajor
+    Case LCase("svbaExactMatch")
+        EnumTextToValue = svbaCompatibility.svbaExactMatch
+    Case LCase("vbHide")
+        EnumTextToValue = VbAppWinStyle.vbHide
+    Case LCase("vbMaximizedFocus")
+        EnumTextToValue = VbAppWinStyle.vbMaximizedFocus
+    Case LCase("vbMinimizedFocus")
+        EnumTextToValue = VbAppWinStyle.vbMinimizedFocus
+    Case LCase("vbMinimizedNoFocus")
+        EnumTextToValue = VbAppWinStyle.vbMinimizedNoFocus
+    Case LCase("vbNormalFocus")
+        EnumTextToValue = VbAppWinStyle.vbNormalFocus
+    Case LCase("vbNormalNoFocus")
+        EnumTextToValue = VbAppWinStyle.vbNormalNoFocus
+    Case LCase("svbaLandscape")
+        EnumTextToValue = svbaOrientation.svbaLandscape
+    Case LCase("svbaPortrait")
+        EnumTextToValue = svbaOrientation.svbaPortrait
+    Case LCase("svbaCentimeters")
+        EnumTextToValue = svbaUnits.svbaCentimeters
+    Case LCase("svbaInches")
+        EnumTextToValue = svbaUnits.svbaInches
+    Case Else
+        Err.raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
+    End Select
 End Function

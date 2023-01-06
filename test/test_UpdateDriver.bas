@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_UpdateDriver"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 'IMPORTANT!!!!
 '---------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_IEMode"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 'this test module contains tests that fail in IE Mode
 'see following discussion link for limitations:
@@ -153,7 +154,7 @@ Sub test_cookies()
     driver.Shutdown
 End Sub
 
-Sub test_windows()
+Sub test_Windows()
     'SwitchToWindow does not switch in IE mode
     'see https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/ie-mode?tabs=c-sharp
     'https://titusfortner.com/2022/09/28/edge-ie-mode.html

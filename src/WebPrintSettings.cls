@@ -10,8 +10,9 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to manage print settings for generating pdf files using PrintToPDF method of the WebDriver class"
 '@ModuleDescription "This class is used to manage print settings for generating pdf files using PrintToPDF method of the WebDriver class"
 '@Exposed
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -51,7 +52,7 @@ Private mMarginRight As Single
 Private mPageHeight  As Single
 Private mPageWidth  As Single
 Private mBackground As Boolean
-Private mOrientation  As String
+Private mOrientation  As svbaOrientation
 Private mPageRanges() As Variant
 Private mPrintScale  As Single
 Private mShrinkToFit As Boolean
@@ -220,16 +221,23 @@ Friend Function ToDictionary() As Dictionary
 End Function
 
 Private Sub Class_Initialize()
-    mUnits = svbaInches
-    mMarginBottom = 1 / 2.54
-    mMarginTop = 1 / 2.54
-    mMarginLeft = 1 / 2.54
-    mMarginRight = 1 / 2.54
-    mPageHeight = 11
-    mPageWidth = 8.5
-    mBackground = False
-    mOrientation = svbaPortrait
+    Dim iniFilePath As String
+    
+    'attempt to read global variable values from optional settings file - if not successful,
+    'then assign a system default value (last input parameter of ReadIniFileEntry)
+    
+    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    
+    mUnits = EnumTextToValue(ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "units", svbaInches))
+    mMarginBottom = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_bottom", 1 / 2.54)
+    mMarginTop = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_top", 1 / 2.54)
+    mMarginLeft = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_left", 1 / 2.54)
+    mMarginRight = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_right", 1 / 2.54)
+    mPageHeight = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_height", 11)
+    mPageWidth = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_width", 8.5)
+    mBackground = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "background", False)
+    mOrientation = EnumTextToValue(ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", svbaPortrait))
     mPageRanges = Array()
-    mPrintScale = 1#
-    mShrinkToFit = True
+    mPrintScale = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1)
+    mShrinkToFit = ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True)
 End Sub

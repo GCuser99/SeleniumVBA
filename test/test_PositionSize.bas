@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_PositionSize"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_position_size()
     Dim driver As SeleniumVBA.WebDriver, webElem As SeleniumVBA.WebElement, rect As Dictionary

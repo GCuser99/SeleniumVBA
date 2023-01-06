@@ -10,8 +10,9 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements"
 '@ModuleDescription "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements"
 '@Exposed
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -437,7 +438,7 @@ Attribute UploadFile.VB_Description = "Uploads the contents of a file to this el
 End Sub
 
 '@Description("Waits until this element is interactable")
-Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS = 30000) As WebElement
+Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS As Long = 30000) As WebElement
 Attribute WaitUntilReady.VB_Description = "Waits until this element is interactable"
     Set WaitUntilReady = driver_.WaitUntilReady(Me, maxWaitTimeMS)
 End Function

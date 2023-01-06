@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_WaitUntilReady"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_WaitUntilReady()
     Dim driver As SeleniumVBA.WebDriver

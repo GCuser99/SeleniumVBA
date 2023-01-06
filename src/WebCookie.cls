@@ -10,8 +10,9 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to manage/modify a cookie object"
 '@ModuleDescription "This class is used to manage/modify a cookie object"
 '@Exposed
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99

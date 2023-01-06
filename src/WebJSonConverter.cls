@@ -10,7 +10,7 @@ Attribute VB_Exposed = True
 '@Exposed
 '@PredeclaredId
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -792,7 +792,7 @@ Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
     End If
 End Function
 
-Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String)
+Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String) As Variant
     ' Provide detailed parse error message, including details of where and what occurred
     '
     ' Example:
@@ -1067,3 +1067,4 @@ Private Sub Class_Initialize()
     'added by GCUser99
     Me.OptionsUseDoubleForLargeNumbers = True 'this is needed for large number strings that can occur with cookie values
 End Sub
+

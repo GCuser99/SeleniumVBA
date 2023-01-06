@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Tables"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_table()
     Dim driver As SeleniumVBA.WebDriver

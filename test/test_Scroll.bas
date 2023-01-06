@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Scroll"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_scroll_ops()
     'see https://www.guru99.com/scroll-up-down-selenium-webdriver.html

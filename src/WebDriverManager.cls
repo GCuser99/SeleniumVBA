@@ -10,8 +10,9 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to maintain Selenium driver/browser version alignment"
 '@ModuleDescription "This class is used to maintain Selenium driver/browser version alignment"
 '@Exposed
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -116,7 +117,12 @@ End Enum
 
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell
-    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path
+    Dim iniFilePath As String
+    
+    'attempt to read global variable values from optional settings file - if not successful,
+    'then assign a system default value (last input parameter of ReadIniFileEntry)
+    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
 End Sub
 
 '@Description("Sets the default driver folder path")

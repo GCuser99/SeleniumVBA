@@ -10,8 +10,9 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
 '@ModuleDescription "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
 '@Exposed
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99

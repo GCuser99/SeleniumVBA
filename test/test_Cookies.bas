@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Cookies"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_cookies()
     'https://www.guru99.com/handling-cookies-selenium-webdriver.html

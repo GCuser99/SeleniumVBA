@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_PageToMethods"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_PageToHTMLMethods()
     Dim driver As SeleniumVBA.WebDriver

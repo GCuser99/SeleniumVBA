@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Sendkeys"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_sendkeys()
     Dim driver As SeleniumVBA.WebDriver

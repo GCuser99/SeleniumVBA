@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Frames"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_frames_with_frameset()
     Dim driver As SeleniumVBA.WebDriver

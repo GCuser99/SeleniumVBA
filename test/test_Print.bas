@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Print"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_print()
     Dim driver As SeleniumVBA.WebDriver

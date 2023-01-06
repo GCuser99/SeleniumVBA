@@ -1,6 +1,16 @@
 Attribute VB_Name = "ClassFactory"
 Attribute VB_Description = "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 '@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
+'@folder("SeleniumVBA.Source")
+' ==========================================================================
+' SeleniumVBA v3.0
+' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
+'
+' (c) GCUser99
+'
+' https://github.com/GCuser99/SeleniumVBA/tree/main
+'
+' ==========================================================================
 ' These methods are used to instantiate the objects in other projects that reference this Add-in project
 ' See https://docs.microsoft.com/en-us/previous-versions/office/troubleshoot/office-developer/set-up-vb-project-using-class
 '

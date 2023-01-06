@@ -10,8 +10,9 @@ Attribute VB_Exposed = True
 Attribute VB_Description = "This class provides the main mechanism to control/automate a browser application"
 '@ModuleDescription "This class provides the main mechanism to control/automate a browser application"
 '@Exposed
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -62,11 +63,9 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 
 Option Explicit
 
-'set to True if auto-check-and-update desired
-Private Const checkDriverBrowserVersionAlignment As Boolean = True
+Private checkDriverBrowserVersionAlignment As Boolean
 
-'set version compatibility threshold for triggering a driver update
-Private Const minDriverBrowserCompatibilityLevel As Integer = svbaBuildMajor
+Private minDriverBrowserCompatibilityLevel As Long
 
 'desired lower bound of returned arrays
 Private Const baseArrayIdx As Integer = 1
@@ -82,6 +81,11 @@ Private browser_ As svbaBrowser
 Private appWinStyle As VbAppWinStyle
 Private defaultIOFolder_ As String
 Private defaultDriverFolder_ As String
+
+Private preloadChromeCapabilitiesFilePath As String
+Private preloadEdgeCapabilitiesFilePath As String
+Private preloadFirefoxCapabilitiesFilePath As String
+Private preloadIECapabilitiesFilePath As String
 
 Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original style of Highlighted elements to be able to UnHighlight them at a future time
 
@@ -208,9 +212,24 @@ End Enum
 
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell
+    Dim iniFilePath As String
     InitCommands
-    Me.CommandWindowStyle = vbHide
-    Me.DefaultDriverFolder = oShell.Namespace("shell:Downloads").Self.Path 'ThisWorkbook.Path
+
+    'attempt to read global variable values from optional settings file - if not successful,
+    'then assign a system default value (last input parameter of ReadIniFileEntry)
+    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    
+    Me.CommandWindowStyle = EnumTextToValue(ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
+    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
+    Me.DefaultIOFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
+    
+    checkDriverBrowserVersionAlignment = ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True)
+    minDriverBrowserCompatibilityLevel = EnumTextToValue(ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", svbaBuildMajor))
+
+    preloadChromeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString)
+    preloadEdgeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
+    preloadFirefoxCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
+    preloadIECapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString)
 End Sub
 
 Private Sub InitCommands()
@@ -414,8 +433,15 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     End If
     
     If caps Is Nothing Then
-        Set caps = CreateCapabilities
-        If capabilitiesFilePath <> vbNullString Then caps.LoadFromFile capabilitiesFilePath
+        'need to initialize one
+        If capabilitiesFilePath <> vbNullString Then
+            'user created capabilities from file
+            Set caps = CreateCapabilities(initializeFromSettingsFile:=False)
+            caps.LoadFromFile capabilitiesFilePath
+        Else
+            'create from scratch, but then initialize from settings file if applicable
+            Set caps = CreateCapabilities(initializeFromSettingsFile:=True)
+        End If
     End If
     
     If invisible Then
@@ -1640,7 +1666,7 @@ Attribute GetOuterHTML.VB_Description = "Gets the outer HTML of the element"
 End Function
 
 '@Description("Creates a capabilities object - must be performed after initializing the driver using one of the Start* methods")
-Public Function CreateCapabilities() As WebCapabilities
+Public Function CreateCapabilities(Optional ByVal initializeFromSettingsFile As Boolean = True) As WebCapabilities
 Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - must be performed after initializing the driver using one of the Start* methods"
     Dim caps As New WebCapabilities
     
@@ -1653,6 +1679,19 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     caps.InitializeFor browser_
     
     Set caps.WebDriver = Me
+    
+    If initializeFromSettingsFile Then
+        Select Case browser_
+        Case svbaBrowser.Chrome
+            If preloadChromeCapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadChromeCapabilitiesFilePath
+        Case svbaBrowser.Edge
+            If preloadEdgeCapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadEdgeCapabilitiesFilePath
+        Case svbaBrowser.Firefox
+            If preloadFirefoxCapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadFirefoxCapabilitiesFilePath
+        Case svbaBrowser.IE
+            If preloadIECapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadIECapabilitiesFilePath
+        End Select
+    End If
 
     Set CreateCapabilities = caps
 End Function
@@ -1891,7 +1930,7 @@ Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the
     Set data = ToSelector(by_, val)
     data.Add "sid", shadowRoot.shadowRootId
     
-    Set elements = Execute(tCMD.CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, data)("value")
+    Set elements = Execute(tCMD.CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT, data)("value")
     
     For i = 1 To elements.Count
         elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
@@ -1936,7 +1975,7 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
         If element.IsDisplayed Then Exit Do
         nowTime = VBA.Timer()
         Dim elapsedTime As Single
-        If nowTime < startTime Then 'oops - someone is burning the midnight oil!
+        If nowTime < startTime Then
             endTime = endTime - elapsedTime
             startTime = 0
         End If
@@ -2073,7 +2112,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
 End Function
 
 '@Description("Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact")
-Public Function PageToHTMLDoc(Optional sanitize As Boolean = False) As MSHTML.HTMLDocument
+Public Function PageToHTMLDoc(Optional ByVal sanitize As Boolean = False) As MSHTML.HTMLDocument
 Attribute PageToHTMLDoc.VB_Description = "Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact"
     'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
     Dim htmlDoc As New MSHTML.HTMLDocument
@@ -2220,11 +2259,9 @@ Private Function ToShadowRoot(ByVal shadowRootId As String) As WebShadowRoot
 End Function
 
 Private Function GetResponseErrorMessage(resp As Dictionary) As String
-    Dim jc As New WebJsonConverter
     GetResponseErrorMessage = vbNullString
     If TypeName(resp("value")) = "Dictionary" Then
         If resp("value").Exists("error") Then
-            'GetResponseErrorMessage = jc.ConvertToJson(resp("value")("message"), 4)
             GetResponseErrorMessage = resp("value")("message")
         End If
     End If
@@ -2239,7 +2276,7 @@ Private Function IsResponseError(resp As Dictionary) As Boolean
     End If
 End Function
 
-Private Function params(ParamArray keysAndValues()) As Dictionary
+Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
     Dim dict As New Dictionary
     Dim i As Integer
     For i = 0 To UBound(keysAndValues) - 1 Step 2
@@ -2248,7 +2285,7 @@ Private Function params(ParamArray keysAndValues()) As Dictionary
     Set params = dict
 End Function
 
-Private Function rgbLongToString(rgbColor As Long) As String
+Private Function rgbLongToString(ByVal rgbColor As Long) As String
     If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
     Dim r As Long
     Dim g As Long
@@ -2614,9 +2651,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
                 DoEvents
             Loop
             If foundOne Then
-                On Error Resume Next
                 elem.innerHTML = subStr
-                On Error GoTo 0
             End If
         Next i
     End If
@@ -2834,7 +2869,7 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
         'check if its an element or shadow root representation and if so, replace with WebElement or WebShadowRoot object
         If responseValue.Exists(ELEMENT_KEY) Then 'replace with a WebElement object
             Set responseValue = ToWebElement(responseValue(ELEMENT_KEY))
-        ElseIf responseValue.Exists(SHADOWROOT_KEY) Then
+        ElseIf responseValue.Exists(SHADOWROOT_KEY) Then 'replace with a WebShadowRoot object
             Set responseValue = ToShadowRoot(responseValue(SHADOWROOT_KEY))
         Else 'check each key value for collection or dictionary
             For Each vkey In responseValue.keys
@@ -2847,3 +2882,117 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
         
     Set ObjectifyScriptResponse = responseValue
 End Function
+
+'@Description("Creates a (optional) settings file with default settings")
+Public Sub CreateSettingsFile()
+Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file with default settings"
+    Dim iniFilePath As String
+    Dim fso As New FileSystemObject
+    Dim ts As TextStream
+    Dim overWriteFile As Long
+    Dim i As Long
+    
+    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    
+    'if settings file already exists, then warn user
+    If fso.FileExists(iniFilePath) Then
+        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbCrLf & vbCrLf & iniFilePath & vbCrLf & vbCrLf & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
+        If overWriteFile = vbNo Then Exit Sub
+    End If
+    
+    Dim entryCol As New Collection
+    
+    entryCol.Add "# This settings file is completely optional. For it to have effect,"
+    entryCol.Add "# it must be located in the same folder as the SeleniumVBA code library."
+    entryCol.Add " "
+    entryCol.Add "# If a value for an entry is not specified, then the system"
+    entryCol.Add "# default value will be used."
+    entryCol.Add " "
+    entryCol.Add "# Note that all path-type entry values recognize the %[Environ]% syntax."
+    entryCol.Add " "
+    
+    entryCol.Add "[GENERAL]"
+    entryCol.Add " "
+    entryCol.Add "# The driver_location_folder system defaults to Downloads folder."
+    entryCol.Add "# The default_io_folder system defaults to the active vba project's"
+    entryCol.Add "# document location - leave this blank to use default."
+    entryCol.Add "# Valid values for command_window_style are vbHide (default), "
+    entryCol.Add "# vbNormalFocus, vbMinimizedFocus, vbMaximizedFocus, vbNormalNoFocus,"
+    entryCol.Add "# and vbMinimizedNoFocus."
+    entryCol.Add " "
+    entryCol.Add "driver_location_folder=%USERPROFILE%\Downloads"
+    entryCol.Add "default_io_folder="
+    entryCol.Add "command_window_style=vbHide"
+    entryCol.Add " "
+    
+    entryCol.Add "[AUTO-DRIVER-UPDATE]"
+    entryCol.Add " "
+    entryCol.Add "# If auto_detect_and_update=True (system default) then everytime"
+    entryCol.Add "# the WebDriver's Start* method is called, the Selenium driver's"
+    entryCol.Add "# version is checked against the corresponding browser version."
+    entryCol.Add "# If the driver is not compatible with browser, it will be updated."
+    entryCol.Add "# min_compatibility_level determines trigger for updating an"
+    entryCol.Add "# an out-of-date driver. System default is svbaBuildMajor."
+    entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
+    entryCol.Add "# for more frequent updating."
+    entryCol.Add " "
+    entryCol.Add "auto_detect_and_update=True"
+    entryCol.Add "min_compatibility_level=svbaBuildMajor"
+    entryCol.Add " "
+    
+    entryCol.Add "# Below are browser-specific initializations."
+    entryCol.Add "# To automatically initialize a set of capabilities each time the"
+    entryCol.Add "# OpenBrowser method of WebDriver class is invoked, set the"
+    entryCol.Add "# preload_capabilities_file_path entry to the path of a valid json"
+    entryCol.Add "# capabilities file. Note that if preload_capabilities_file_path is"
+    entryCol.Add "# set to a blank value, or the entry is missing or commented out,"
+    entryCol.Add "# then this option is ignored. Use the SaveToFile method of the"
+    entryCol.Add "# WebCapabilities class to save a default set of capabilities"
+    entryCol.Add "# for pre-loading."
+    entryCol.Add " "
+    
+    entryCol.Add "[CHROME]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+
+    entryCol.Add "[EDGE]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[FIREFOX]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[INTERNET EXPLORER]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
+    entryCol.Add " "
+    entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
+    entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
+    entryCol.Add " "
+    entryCol.Add "units=svbaInches"
+    entryCol.Add "page_height=11"
+    entryCol.Add "page_width=8.5"
+    entryCol.Add "margin_bottom=.393701"
+    entryCol.Add "margin_top=.393701"
+    entryCol.Add "margin_right=.393701"
+    entryCol.Add "margin_left=.393701"
+    entryCol.Add "background=False"
+    entryCol.Add "orientation=svbaPortrait"
+    entryCol.Add "print_scale=1.0"
+    entryCol.Add "shrink_to_fit=True"
+    
+    Set ts = fso.CreateTextFile(iniFilePath, True)
+    
+    For i = 1 To entryCol.Count
+        ts.WriteLine entryCol.Item(i)
+    Next i
+    
+    ts.Close
+End Sub

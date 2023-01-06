@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_MultiSession"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 'Chrome and Edge have multi-session support. Firefox does not.
 '

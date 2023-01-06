@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_ActionChains"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_action_chain()
     Dim driver As SeleniumVBA.WebDriver, actions As SeleniumVBA.WebActionChain

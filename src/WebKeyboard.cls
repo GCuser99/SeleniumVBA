@@ -11,8 +11,9 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@ModuleDescription "This class is used to automate keyboard actions"
 '@Exposed
 '@PredeclaredId
+'@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v2.9
+' SeleniumVBA v3.0
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99

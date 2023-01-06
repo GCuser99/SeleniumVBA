@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Capabilities"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 'see also test_FileUpDownload for another example using Capabilities
 Sub test_invisible()
@@ -15,7 +16,7 @@ Sub test_invisible()
     Set caps = driver.CreateCapabilities
     
     caps.RunInvisible 'makes browser run in invisible mode
-    
+
     driver.OpenBrowser caps 'here is where caps is passed to driver
     
     driver.NavigateTo "https://www.wikipedia.org/"

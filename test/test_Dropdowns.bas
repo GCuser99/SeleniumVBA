@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Dropdowns"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_select()
     'https://www.guru99.com/select-option-dropdown-selenium-webdriver.html

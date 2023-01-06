@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Attributes"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 'https://stackoverflow.com/questions/6003819/what-is-the-difference-between-properties-and-attributes-in-html
 
@@ -88,7 +89,7 @@ Sub test_element_aria()
 
     Set driver = SeleniumVBA.New_WebDriver
     
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    'driver.DefaultIOFolder = ThisWorkbook.Path '(this is the default)
     
     str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
     

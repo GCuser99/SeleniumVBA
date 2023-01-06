@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_ExecuteScript"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_executeScript()
     Dim driver As SeleniumVBA.WebDriver

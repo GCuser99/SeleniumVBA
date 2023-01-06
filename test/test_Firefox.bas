@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Firefox"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 'To run in Geckodriver, you must have the Firefox browser installed, and then download the
 'appropriate version of geckodriver.exe from the following link:

@@ -1,6 +1,7 @@
 Attribute VB_Name = "test_Logging"
 Option Explicit
 Option Private Module
+'@folder("SeleniumVBA.Testing")
 
 Sub test_logging()
     Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
