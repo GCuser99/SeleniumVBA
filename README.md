@@ -6,7 +6,8 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 
 ## Features
 
-- Edge, Chrome, Firefox, and IE Mode browser support
+- Edge, Chrome, Firefox, and IE Mode browser automation support
+- MS Excel Add-in, MS Access DB, and experimental [twinBasic](https://twinbasic.com/preview.html) ActiveX Dll solutions available
 - A superset of Selenium's JSon Wire Protocol commands - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
@@ -106,3 +107,5 @@ End Sub
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA
 
 [RubberDuck](https://rubberduckvba.com/) by Mathieu Guindon
+
+[twinBasic](https://twinbasic.com/preview.html) by Wayne Phillips
