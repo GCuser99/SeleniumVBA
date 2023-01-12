@@ -65,7 +65,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         
         'check that reference path exists and notify user if not
         If Not fso.FolderExists(basePath) Then
-            Err.raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+            Err.Raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
         End If
         
         'employ fso to make the conversion of relative path to absolute
@@ -150,49 +150,6 @@ Public Function GetBrowserName(ByVal browser As svbaBrowser) As String
     End Select
 End Function
 
-Private Function ActiveVBAProjectFolderPath() As String
-    'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
-    'then this returns the path to the caller, not the Add-in (unless they are the same).
-    'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
-    'may not be the caller's intended target if it resides in a different project.
-    Dim fso As New FileSystemObject
-    Dim strPath As String
-    
-    strPath = vbNullString
-    
-    'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
-    'will throw an error so trap and report below...
-    
-    If Not VBAIsTrusted Then
-        Err.raise 1, "WebShared", "Error: No Access to VB Project" & vbLf & vbLf & "File > Options > Trust Center > Trust Center Settings > Macro Settings > Trust Access to VBA project object model"
-    End If
-    
-    On Error Resume Next
-    strPath = Application.VBE.ActiveVBProject.FileName
-    On Error GoTo 0
-    
-    If strPath <> vbNullString Then
-        strPath = fso.GetParentFolderName(strPath)
-        ActiveVBAProjectFolderPath = strPath
-    Else
-        Err.raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
-    End If
-End Function
-
-Public Function ThisLibFolderPath() As String
-    'returns the path of this library - not the path of the active vba project, which may be referencing this library
-    Dim app As Object
-    Set app = Application
-    Select Case app.Name
-    Case "Microsoft Excel"
-        ThisLibFolderPath = app.ThisWorkbook.Path
-    Case "Microsoft Access"
-        ThisLibFolderPath = app.CodeProject.Path
-    Case Else
-        Err.raise 1, "WebShared", "Error: Only Microsoft Excel and Access are supported."
-    End Select
-End Function
-
 Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
     'this searches input path for %[Environ Variable]% pattern and if found, then replaces with the path equivalent
     Dim ipos1 As Long
@@ -206,14 +163,14 @@ Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
         
         'check if trailing delimeter exists - raise error if not
         If ipos2 = -1 Then
-            Err.raise 1, "WebShared", "Environment variable not formed properly - use ""%UserProfile%\Documents"" for example"
+            Err.Raise 1, "WebShared", "Environment variable not formed properly - use ""%UserProfile%\Documents"" for example"
         End If
         
         'now make the substitution and return modified string
         environString = Mid(inputPath, ipos1, ipos2 - ipos1 + 1)
         expandedPath = Environ(environString)
         If expandedPath = "" Then
-            Err.raise 1, "WebShared", "Environment variable """ & environString & """ used in path not recognized"
+            Err.Raise 1, "WebShared", "Environment variable """ & environString & """ used in path not recognized"
         End If
         
         ExpandEnvironVariable = Replace(inputPath, "%" & environString & "%", expandedPath)
@@ -249,7 +206,7 @@ Public Function EnumTextToValue(ByVal enumText As String) As Long
     'this function converts an enum string read from the settings file to it's corresponding enum value
     enumText = Trim(enumText)
     If IsNumeric(enumText) Then
-        EnumTextToValue = VBA.val(enumText)
+        EnumTextToValue = VBA.Val(enumText)
         Exit Function
     End If
     Select Case LCase(enumText)
@@ -283,14 +240,5 @@ Public Function EnumTextToValue(ByVal enumText As String) As Long
         EnumTextToValue = svbaUnits.svbaCentimeters
     Case LCase("svbaInches")
         EnumTextToValue = svbaUnits.svbaInches
-    Case Else
-        Err.raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
     End Select
-End Function
-
-Private Function VBAIsTrusted() As Boolean
-    VBAIsTrusted = False
-    On Error Resume Next
-    VBAIsTrusted = (Application.VBE.VBProjects.Count) > 0
-    On Error GoTo 0
 End Function

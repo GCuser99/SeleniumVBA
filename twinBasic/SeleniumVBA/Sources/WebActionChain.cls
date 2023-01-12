@@ -4,11 +4,11 @@ BEGIN
 END
 Attribute VB_Name = "WebActionChain"
 Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
+Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to emulate a human interaction sequence with the webpage - must be instantiated using WebDriver's ActionChain method"
-'@ModuleDescription "This class is used to emulate a human interaction sequence with the webpage - must be instantiated using WebDriver's ActionChain method"
+'%ModuleDescription "This class is used to emulate a human interaction sequence with the webpage - must be instantiated using WebDriver's ActionChain method"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
@@ -125,7 +125,7 @@ End Property
 
 'Action Chain Methods:
 
-'@Description("Moves the mouse to the middle of an element")
+'%Description("Moves the mouse to the middle of an element")
 Public Function MoveToElement(element As WebElement, Optional ByVal SetFocus As Boolean = False) As WebActionChain
 Attribute MoveToElement.VB_Description = "Moves the mouse to the middle of an element"
     Dim inputChan As New Dictionary
@@ -165,7 +165,7 @@ Attribute MoveToElement.VB_Description = "Moves the mouse to the middle of an el
     Set MoveToElement.DataDictionary = data_
 End Function
 
-'@Description("Clicks an element")
+'%Description("Clicks an element")
 Public Function Click(Optional element As WebElement) As WebActionChain
 Attribute Click.VB_Description = "Clicks an element"
     Dim inputChan As New Dictionary
@@ -208,7 +208,7 @@ Attribute Click.VB_Description = "Clicks an element"
     Set Click.DataDictionary = data_
 End Function
 
-'@Description("Holds down the left mouse button on an element")
+'%Description("Holds down the left mouse button on an element")
 Public Function ClickAndHold(Optional element As WebElement) As WebActionChain
 Attribute ClickAndHold.VB_Description = "Holds down the left mouse button on an element"
     Dim inputChan As New Dictionary
@@ -247,7 +247,7 @@ Attribute ClickAndHold.VB_Description = "Holds down the left mouse button on an 
     Set ClickAndHold.DataDictionary = data_
 End Function
 
-'@Description("Performs a context-click (right click) on an element")
+'%Description("Performs a context-click (right click) on an element")
 Public Function ClickContext(Optional element As WebElement) As WebActionChain
 Attribute ClickContext.VB_Description = "Performs a context-click (right click) on an element"
     Dim inputChan As New Dictionary
@@ -290,7 +290,7 @@ Attribute ClickContext.VB_Description = "Performs a context-click (right click) 
     Set ClickContext.DataDictionary = data_
 End Function
 
-'@Description("Double-clicks an element")
+'%Description("Double-clicks an element")
 Public Function DoubleClick(Optional element As WebElement) As WebActionChain
 Attribute DoubleClick.VB_Description = "Double-clicks an element"
     Dim inputChan As New Dictionary
@@ -337,7 +337,7 @@ Attribute DoubleClick.VB_Description = "Double-clicks an element"
     Set DoubleClick.DataDictionary = data_
 End Function
 
-'@Description("Releases a held mouse button on an element")
+'%Description("Releases a held mouse button on an element")
 Public Function ReleaseButton(Optional element As WebElement) As WebActionChain
 Attribute ReleaseButton.VB_Description = "Releases a held mouse button on an element"
     Dim inputChan As New Dictionary
@@ -376,7 +376,7 @@ Attribute ReleaseButton.VB_Description = "Releases a held mouse button on an ele
     Set ReleaseButton.DataDictionary = data_
 End Function
 
-'@Description("Holds down the left mouse button on the source element, then moves to the target element and releases the mouse button")
+'%Description("Holds down the left mouse button on the source element, then moves to the target element and releases the mouse button")
 Public Function DragAndDrop(sourceElement As WebElement, targetElement As WebElement) As WebActionChain
 Attribute DragAndDrop.VB_Description = "Holds down the left mouse button on the source element, then moves to the target element and releases the mouse button"
     Dim inputChan As New Dictionary
@@ -411,7 +411,7 @@ Attribute DragAndDrop.VB_Description = "Holds down the left mouse button on the 
     Set DragAndDrop.DataDictionary = data_
 End Function
 
-'@Description("Holds down the left mouse button on the source element, then moves to the target offset and releases the mouse button")
+'%Description("Holds down the left mouse button on the source element, then moves to the target offset and releases the mouse button")
 Public Function DragAndDropByOffset(element As WebElement, ByVal xOffset As Long, ByVal yOffset As Long) As WebActionChain
 Attribute DragAndDropByOffset.VB_Description = "Holds down the left mouse button on the source element, then moves to the target offset and releases the mouse button"
     Dim inputChan As New Dictionary
@@ -446,7 +446,7 @@ Attribute DragAndDropByOffset.VB_Description = "Holds down the left mouse button
     Set DragAndDropByOffset.DataDictionary = data_
 End Function
 
-'@Description("Holds down the left mouse button on the source element, then moves to the x and y offsets")
+'%Description("Holds down the left mouse button on the source element, then moves to the x and y offsets")
 Public Function DragAndDropToPosition(element As WebElement, ByVal x As Long, ByVal y As Long) As WebActionChain
 Attribute DragAndDropToPosition.VB_Description = "Holds down the left mouse button on the source element, then moves to the x and y offsets"
     Dim inputChan As New Dictionary
@@ -481,7 +481,7 @@ Attribute DragAndDropToPosition.VB_Description = "Holds down the left mouse butt
     Set DragAndDropToPosition.DataDictionary = data_
 End Function
 
-'@Description("Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt, and Shift)")
+'%Description("Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt, and Shift)")
 Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
 Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt, and Shift)"
     Dim inputChan As New Dictionary
@@ -513,7 +513,7 @@ Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it
     Set KeyDown.DataDictionary = data_
 End Function
 
-'@Description("Releases a modifier key")
+'%Description("Releases a modifier key")
 Public Function KeyUp(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
 Attribute KeyUp.VB_Description = "Releases a modifier key"
     Dim inputChan As New Dictionary
@@ -545,7 +545,7 @@ Attribute KeyUp.VB_Description = "Releases a modifier key"
     Set KeyUp.DataDictionary = data_
 End Function
 
-'@Description("Pauses execution for time in milliseconds")
+'%Description("Pauses execution for time in milliseconds")
 Public Function Wait(Optional ByVal durationMS As Long = DEFAULT_PAUSE_DURATION) As WebActionChain
 Attribute Wait.VB_Description = "Pauses execution for time in milliseconds"
     Dim inputChan As New Dictionary
@@ -576,7 +576,7 @@ Attribute Wait.VB_Description = "Pauses execution for time in milliseconds"
     Set Wait.DataDictionary = data_
 End Function
 
-'@Description("Moves the mouse to an offset from current mouse position - if element is specified, then moves the mouse by an offset relative to the top-left corner of the element")
+'%Description("Moves the mouse to an offset from current mouse position - if element is specified, then moves the mouse by an offset relative to the top-left corner of the element")
 Public Function MoveByOffset(ByVal xOffset As Long, ByVal yOffset As Long, Optional element As WebElement) As WebActionChain
 Attribute MoveByOffset.VB_Description = "Moves the mouse to an offset from current mouse position - if element is specified, then moves the mouse by an offset relative to the top-left corner of the element"
     'Note that the mouse pointer gets (re)set to (0,0) at the start of each action chain. If element is not provided,
@@ -623,7 +623,7 @@ Attribute MoveByOffset.VB_Description = "Moves the mouse to an offset from curre
     Set MoveByOffset.DataDictionary = data_
 End Function
 
-'@Description("Moves the mouse pointer to (x,y) relative to viewport origin (top-left)")
+'%Description("Moves the mouse pointer to (x,y) relative to viewport origin (top-left)")
 Public Function MoveToXY(ByVal x As Long, ByVal y As Long) As WebActionChain
 Attribute MoveToXY.VB_Description = "Moves the mouse pointer to (x,y) relative to viewport origin (top-left)"
     Dim inputChan As New Dictionary
@@ -654,7 +654,7 @@ Attribute MoveToXY.VB_Description = "Moves the mouse pointer to (x,y) relative t
     Set MoveToXY.DataDictionary = data_
 End Function
 
-'@Description("Sends key sequence to current focused element (see Keyboard class for special keys support)")
+'%Description("Sends key sequence to current focused element (see Keyboard class for special keys support)")
 Public Function SendKeys(ByVal keys As String, Optional element As WebElement) As WebActionChain
 Attribute SendKeys.VB_Description = "Sends key sequence to current focused element (see Keyboard class for special keys support)"
     Dim inputChan As New Dictionary
@@ -709,7 +709,7 @@ Attribute SendKeys.VB_Description = "Sends key sequence to current focused eleme
     Set SendKeys.DataDictionary = data_
 End Function
 
-'@Description("Clears the focused element's text field")
+'%Description("Clears the focused element's text field")
 Public Function Clear(Optional element As WebElement) As WebActionChain
 Attribute Clear.VB_Description = "Clears the focused element's text field"
     Dim inputChan As New Dictionary
@@ -746,7 +746,7 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
     Set Clear.DataDictionary = data_
 End Function
 
-'@Description("Sends a Control-[Key] sequence to focused element")
+'%Description("Sends a Control-[Key] sequence to focused element")
 Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As WebActionChain
 Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused element"
     Dim inputChan As New Dictionary
@@ -781,7 +781,7 @@ Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused el
     Set CtrlKey.DataDictionary = data_
 End Function
 
-'@Description("Sends a Shift-[Key] sequence to focused element")
+'%Description("Sends a Shift-[Key] sequence to focused element")
 Public Function ShiftKey(ByVal key As String, Optional element As WebElement) As WebActionChain
 Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused element"
     Dim inputChan As New Dictionary
@@ -816,7 +816,7 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     Set ShiftKey.DataDictionary = data_
 End Function
 
-'@Description("Scrolls to element position with optional x and y offsets")
+'%Description("Scrolls to element position with optional x and y offsets")
 Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
 Attribute ScrollToElement.VB_Description = "Scrolls to element position with optional x and y offsets"
     Dim inputChan As New Dictionary
@@ -843,7 +843,7 @@ Attribute ScrollToElement.VB_Description = "Scrolls to element position with opt
     Set ScrollToElement.DataDictionary = data_
 End Function
 
-'@Description("Scrolls window by x and y offsets")
+'%Description("Scrolls window by x and y offsets")
 Public Function ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebActionChain
 Attribute ScrollBy.VB_Description = "Scrolls window by x and y offsets"
     Dim inputChan As New Dictionary
@@ -870,7 +870,7 @@ Attribute ScrollBy.VB_Description = "Scrolls window by x and y offsets"
     Set ScrollBy.DataDictionary = data_
 End Function
 
-'@Description("Executes the action chain and then resets the action queue on both the local and remote ends")
+'%Description("Executes the action chain and then resets the action queue on both the local and remote ends")
 Public Sub Perform()
 Attribute Perform.VB_Description = "Executes the action chain and then resets the action queue on both the local and remote ends"
     Dim inputChans() As Variant

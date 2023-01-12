@@ -1,4 +1,4 @@
-## SeleniumVBA v3.0
+## SeleniumVBA v3.1
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Office VBA
 
@@ -20,6 +20,8 @@ Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA
 **SeleniumVBA will function right out-of-the-box**. Just download the [SeleniumVBA.xlam](https://github.com/GCuser99/SeleniumVBA/tree/main/dist) Excel Addin, open it, and run any one of the subs in the "test" Standard modules. If the Selenium WebDriver does not exist, or is out-of-date, SeleniumVBA will detect this automatically and download the appropriate driver to a desired location (currently defaults to user's download folder but that is easily configurable).
 
 Driver updates can also be programmatically invoked via the WebDriverManager class.
+
+To use the experimental SeleniumVBA twinBasic Dll, see instructions in the [twinBasic folder](https://github.com/GCuser99/SeleniumVBA/tree/main/twinBasic).
 
 ## SendKeys Example
 

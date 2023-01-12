@@ -4,12 +4,12 @@ BEGIN
 END
 Attribute VB_Name = "WebShadowRoot"
 Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
+Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
 '@Exposed
-'@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
+'%ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
 ' SeleniumVBA v3.1
@@ -62,13 +62,13 @@ Friend Property Get shadowRootId() As String
     shadowRootId = shadowRootId_
 End Property
 
-'@Description("Finds the first element for a given selector and value")
+'%Description("Finds the first element for a given selector and value")
 Public Function FindElement(by_ As By, ByVal val As String) As WebElement
 Attribute FindElement.VB_Description = "Finds the first element for a given selector and value"
     Set FindElement = driver_.FindElementFromShadowRoot(by_, val, Me)
 End Function
 
-'@Description("Finds all elements that satisfy the specified selector and value")
+'%Description("Finds all elements that satisfy the specified selector and value")
 Public Function FindElements(by_ As By, ByVal val As String) As WebElements
 Attribute FindElements.VB_Description = "Finds all elements that satisfy the specified selector and value"
     Set FindElements = driver_.FindElementsFromShadowRoot(by_, val, Me)

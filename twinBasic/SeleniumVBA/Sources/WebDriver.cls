@@ -4,11 +4,11 @@ BEGIN
 END
 Attribute VB_Name = "WebDriver"
 Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
+Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Attribute VB_Description = "This class provides the main mechanism to control/automate a browser application"
-'@ModuleDescription "This class provides the main mechanism to control/automate a browser application"
+'%ModuleDescription "This class provides the main mechanism to control/automate a browser application"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
@@ -63,8 +63,12 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 
 Option Explicit
 
+'set to True if auto-check-and-update desired
+'Private Const checkDriverBrowserVersionAlignment As Boolean = True
 Private checkDriverBrowserVersionAlignment As Boolean
 
+'set version compatibility threshold for triggering a driver update
+'Private Const minDriverBrowserCompatibilityLevel As Integer = svbaBuildMajor
 Private minDriverBrowserCompatibilityLevel As Long
 
 'desired lower bound of returned arrays
@@ -82,6 +86,7 @@ Private appWinStyle As VbAppWinStyle
 Private defaultIOFolder_ As String
 Private defaultDriverFolder_ As String
 
+
 Private preloadChromeCapabilitiesFilePath As String
 Private preloadEdgeCapabilitiesFilePath As String
 Private preloadFirefoxCapabilitiesFilePath As String
@@ -91,13 +96,13 @@ Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original styl
 
 Public Enum VBAcolors
     Unchanged = -1
-    Black = VBA.ColorConstants.vbBlack
-    Blue = VBA.ColorConstants.vbBlue
-    Cyan = VBA.ColorConstants.vbCyan
-    Green = VBA.ColorConstants.vbGreen
-    Magenta = VBA.ColorConstants.vbMagenta
-    Red = VBA.ColorConstants.vbRed
-    Yellow = VBA.ColorConstants.vbYellow
+    Black = ColorConstants.vbBlack
+    Blue = ColorConstants.vbBlue
+    Cyan = ColorConstants.vbCyan
+    Green = ColorConstants.vbGreen
+    Magenta = ColorConstants.vbMagenta
+    Red = ColorConstants.vbRed
+    Yellow = ColorConstants.vbYellow
     'other custom fine-tuned colors can be added, for example: "Brown = VBA.RGB(128, 0, 0)"
 End Enum
 
@@ -208,7 +213,7 @@ Public Enum svbaWindowType
     svbaTab = 1
 End Enum
 
-'Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell
@@ -220,12 +225,12 @@ Private Sub Class_Initialize()
     iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
     
     Me.CommandWindowStyle = EnumTextToValue(ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
-    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
+    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.NameSpace("shell:Downloads").Self.Path)
     Me.DefaultIOFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
     
     checkDriverBrowserVersionAlignment = ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True)
     minDriverBrowserCompatibilityLevel = EnumTextToValue(ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", svbaBuildMajor))
-
+    
     preloadChromeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString)
     preloadEdgeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
     preloadFirefoxCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
@@ -313,31 +318,31 @@ Private Sub InitCommands()
     End With
 End Sub
 
-'@Description("Set the driver command window display mode - defaults to vbHide")
+'%Description("Set the driver command window display mode - defaults to vbHide")
 Public Property Let CommandWindowStyle(ByVal style As VbAppWinStyle)
 Attribute CommandWindowStyle.VB_Description = "Set the driver command window display mode - defaults to vbHide"
     appWinStyle = style
 End Property
 
-'@Description("Start an Edge driver")
+'%Description("Start an Edge driver")
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
 Attribute StartEdge.VB_Description = "Start an Edge driver"
     Start svbaBrowser.Edge, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-'@Description("Start a Chrome driver")
+'%Description("Start a Chrome driver")
 Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome.log")
 Attribute StartChrome.VB_Description = "Start a Chrome driver"
     Start svbaBrowser.Chrome, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-'@Description("Start a Firefox driver")
+'%Description("Start a Firefox driver")
 Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox.log")
 Attribute StartFirefox.VB_Description = "Start a Firefox driver"
     Start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-'@Description("Start an IE mode driver")
+'%Description("Start an IE mode driver")
 Public Sub StartIE(Optional ByVal driverPath As String = "IEDriverServer.exe", Optional ByVal localHostPort As Long = 5555, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\ie.log")
 Attribute StartIE.VB_Description = "Start an IE mode driver"
     Start svbaBrowser.IE, driverPath, localHostPort, enableLogging, logFilePath
@@ -365,7 +370,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     End If
     
     If Not fso.FileExists(driverPath) Then
-        Err.raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
+        Err.Raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
     End If
     
     commandStr = vbNullString: serviceArgs = vbNullString
@@ -391,7 +396,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        Err.raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+        Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     End If
     
     'if we've got this far, then store some global variable values for later use
@@ -399,7 +404,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     driverFilename = fso.GetFileName(driverPath)
 End Sub
 
-'@Description("Shuts down all driver instances attached to this driver's port")
+'%Description("Shuts down all driver instances attached to this driver's port")
 Public Sub Shutdown()
 Attribute Shutdown.VB_Description = "Shuts down all driver instances attached to this driver's port"
     'this will shut down all WebDriver instances using this driver's assigned port
@@ -423,13 +428,13 @@ Attribute Shutdown.VB_Description = "Shuts down all driver instances attached to
     End Select
 End Sub
 
-'@Description("Opens browser instance with specified capabilities")
+'%Description("Opens browser instance with specified capabilities")
 Public Sub OpenBrowser(Optional caps As WebCapabilities, Optional ByVal invisible As Boolean = False, Optional ByVal incognito As Boolean = False, Optional capabilitiesFilePath As String = vbNullString)
 Attribute OpenBrowser.VB_Description = "Opens browser instance with specified capabilities"
     Dim resp As Dictionary
     
     If sessionId_ <> vbNullString Then
-        Err.raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
+        Err.Raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
     End If
     
     If caps Is Nothing Then
@@ -452,6 +457,9 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
         caps.RunIncognito
     End If
     
+    'needed for some reason to prevent error if command window is not hidden or minimized
+    DoEvents
+    
     Set resp = Execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
     
     sessionId_ = resp("sessionId")
@@ -468,7 +476,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     'Debug.Print resp("capabilities")(GetBrowserName())("userDataDir")
 End Sub
 
-'@Description("Closes browser without terminating driver instance")
+'%Description("Closes browser without terminating driver instance")
 Public Sub CloseBrowser()
 Attribute CloseBrowser.VB_Description = "Closes browser without terminating driver instance"
     Dim data As New Dictionary
@@ -476,7 +484,7 @@ Attribute CloseBrowser.VB_Description = "Closes browser without terminating driv
     sessionId_ = vbNullString
 End Sub
 
-'@Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
+'%Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
 Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Variant, Optional ByVal raise As Boolean = True) As Boolean
 Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage and returns true if no timeout or other error"
     Dim data As New Dictionary
@@ -497,13 +505,13 @@ Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage 
     
     If IsResponseError(resp) Then
         NavigateTo = False
-        Debug.Print GetResponseErrorMessage(resp)
+        'Debug.Print GetResponseErrorMessage(resp)
     Else
         NavigateTo = True
     End If
 End Function
 
-'@Description("Navigates browser to an html file of the specified file path")
+'%Description("Navigates browser to an html file of the specified file path")
 Public Sub NavigateToFile(ByVal htmlFilePath As String)
 Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of the specified file path"
     'input file must have html extension to be interpreted as a webpage
@@ -512,7 +520,7 @@ Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of 
     NavigateTo "file:///" & WebShared.GetFullLocalPath(htmlFilePath, defaultIOFolder_)
 End Sub
 
-'@Description("Finds the first element for a given selector and value")
+'%Description("Finds the first element for a given selector and value")
 Public Function FindElement(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElement.VB_Description = "Finds the first element for a given selector and value"
     Dim data As Dictionary
@@ -533,7 +541,7 @@ Attribute FindElement.VB_Description = "Finds the first element for a given sele
     Set FindElement = elem
 End Function
 
-'@Description("Finds all elements that satisfy the specified selector and value")
+'%Description("Finds all elements that satisfy the specified selector and value")
 Public Function FindElements(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElements.VB_Description = "Finds all elements that satisfy the specified selector and value"
     Dim data As Dictionary
@@ -611,103 +619,103 @@ Private Function ToSelector(by_ As By, ByVal val As String) As Dictionary
     Set ToSelector = data
 End Function
 
-'@Description("Finds the first element by the specified id value")
+'%Description("Finds the first element by the specified id value")
 Public Function FindElementByID(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByID.VB_Description = "Finds the first element by the specified id value"
     Set FindElementByID = FindElement(By.ID, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified tag name value")
+'%Description("Finds the first element by the specified tag name value")
 Public Function FindElementByTagName(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByTagName.VB_Description = "Finds the first element by the specified tag name value"
     Set FindElementByTagName = FindElement(By.tagName, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified class name value")
+'%Description("Finds the first element by the specified class name value")
 Public Function FindElementByClassName(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByClassName.VB_Description = "Finds the first element by the specified class name value"
     Set FindElementByClassName = FindElement(By.className, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified css selector value")
+'%Description("Finds the first element by the specified css selector value")
 Public Function FindElementByCssSelector(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByCssSelector.VB_Description = "Finds the first element by the specified css selector value"
     Set FindElementByCssSelector = FindElement(By.cssSelector, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified link text value")
+'%Description("Finds the first element by the specified link text value")
 Public Function FindElementByLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByLinkText.VB_Description = "Finds the first element by the specified link text value"
     Set FindElementByLinkText = FindElement(By.linkText, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified name value")
+'%Description("Finds the first element by the specified name value")
 Public Function FindElementByName(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByName.VB_Description = "Finds the first element by the specified name value"
     Set FindElementByName = FindElement(By.Name, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified partial link text value")
+'%Description("Finds the first element by the specified partial link text value")
 Public Function FindElementByPartialLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByPartialLinkText.VB_Description = "Finds the first element by the specified partial link text value"
     Set FindElementByPartialLinkText = FindElement(By.PartialLinkText, val, parentElement)
 End Function
 
-'@Description("Finds the first element by the specified xpath query value")
+'%Description("Finds the first element by the specified xpath query value")
 Public Function FindElementByXPath(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByXPath.VB_Description = "Finds the first element by the specified xpath query value"
     Set FindElementByXPath = FindElement(By.XPath, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified xpath query value")
+'%Description("Finds all elements that satisfy the specified xpath query value")
 Public Function FindElementsByXPath(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByXPath.VB_Description = "Finds all elements that satisfy the specified xpath query value"
     Set FindElementsByXPath = FindElements(By.XPath, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified id value")
+'%Description("Finds all elements that satisfy the specified id value")
 Public Function FindElementsByID(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByID.VB_Description = "Finds all elements that satisfy the specified id value"
     Set FindElementsByID = FindElements(By.ID, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified tag name value")
+'%Description("Finds all elements that satisfy the specified tag name value")
 Public Function FindElementsByTagName(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByTagName.VB_Description = "Finds all elements that satisfy the specified tag name value"
     Set FindElementsByTagName = FindElements(By.tagName, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified class name value")
+'%Description("Finds all elements that satisfy the specified class name value")
 Public Function FindElementsByClassName(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByClassName.VB_Description = "Finds all elements that satisfy the specified class name value"
     Set FindElementsByClassName = FindElements(By.className, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified css selector value")
+'%Description("Finds all elements that satisfy the specified css selector value")
 Public Function FindElementsByCssSelector(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByCssSelector.VB_Description = "Finds all elements that satisfy the specified css selector value"
     Set FindElementsByCssSelector = FindElements(By.cssSelector, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified link text value")
+'%Description("Finds all elements that satisfy the specified link text value")
 Public Function FindElementsByLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByLinkText.VB_Description = "Finds all elements that satisfy the specified link text value"
     Set FindElementsByLinkText = FindElements(By.linkText, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified name value")
+'%Description("Finds all elements that satisfy the specified name value")
 Public Function FindElementsByName(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByName.VB_Description = "Finds all elements that satisfy the specified name value"
     Set FindElementsByName = FindElements(By.Name, val, parentElement)
 End Function
 
-'@Description("Finds all elements that satisfy the specified partial link text value")
+'%Description("Finds all elements that satisfy the specified partial link text value")
 Public Function FindElementsByPartialLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements that satisfy the specified partial link text value"
     Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
 End Function
 
-'@Description("Sends a key sequence to the specified element - can include keyboard key values")
+'%Description("Sends a key sequence to the specified element - can include keyboard key values")
 Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = True)
 Attribute SendKeys.VB_Description = "Sends a key sequence to the specified element - can include keyboard key values"
     Dim data As New Dictionary
@@ -764,7 +772,7 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
     Next i
 End Sub
 
-'@Description("Clicks the element")
+'%Description("Clicks the element")
 Public Sub Click(Optional element As WebElement)
 Attribute Click.VB_Description = "Clicks the element"
     Dim data As New Dictionary
@@ -776,13 +784,13 @@ Attribute Click.VB_Description = "Clicks the element"
     End If
 End Sub
 
-'@Description("Submits a form element")
+'%Description("Submits a form element")
 Public Sub Submit(element As WebElement)
 Attribute Submit.VB_Description = "Submits a form element"
     Click element
 End Sub
 
-'@Description("Gets the text of the element")
+'%Description("Gets the text of the element")
 Public Function GetText(element As WebElement) As String
 Attribute GetText.VB_Description = "Gets the text of the element"
     Dim data As New Dictionary
@@ -790,28 +798,28 @@ Attribute GetText.VB_Description = "Gets the text of the element"
     GetText = Execute(tCMD.CMD_GET_ELEMENT_TEXT, data)("value")
 End Function
 
-'@Description("Simulates clicking the back arrow on the browser window")
+'%Description("Simulates clicking the back arrow on the browser window")
 Public Sub GoBack()
 Attribute GoBack.VB_Description = "Simulates clicking the back arrow on the browser window"
     Dim data As New Dictionary
     Execute tCMD.CMD_GO_BACK, data
 End Sub
 
-'@Description("Simulates clicking the forward arrow on the browser window")
+'%Description("Simulates clicking the forward arrow on the browser window")
 Public Sub GoForward()
 Attribute GoForward.VB_Description = "Simulates clicking the forward arrow on the browser window"
     Dim data As New Dictionary
     Execute tCMD.CMD_GO_FORWARD, data
 End Sub
 
-'@Description("Refreshes the current url")
+'%Description("Refreshes the current url")
 Public Sub Refresh()
 Attribute Refresh.VB_Description = "Refreshes the current url"
     Dim data As New Dictionary
     Execute tCMD.CMD_REFRESH, data
 End Sub
 
-'@Description("Returns the current url string")
+'%Description("Returns the current url string")
 Public Function GetCurrentURL() As String
 Attribute GetCurrentURL.VB_Description = "Returns the current url string"
     Dim data As New Dictionary
@@ -820,7 +828,7 @@ Attribute GetCurrentURL.VB_Description = "Returns the current url string"
     GetCurrentURL = ExecuteScript("return decodeURI('" & encodeURL & "')")
 End Function
 
-'@Description("Returns the active element")
+'%Description("Returns the active element")
 Public Function GetActiveElement() As WebElement
 Attribute GetActiveElement.VB_Description = "Returns the active element"
     Dim data As New Dictionary
@@ -833,7 +841,7 @@ Attribute GetActiveElement.VB_Description = "Returns the active element"
     Set GetActiveElement = elem
 End Function
 
-'@Description("Gets the property state of the element, such as the value of an input box - if the property does not exist, then it returns vbNullString")
+'%Description("Gets the property state of the element, such as the value of an input box - if the property does not exist, then it returns vbNullString")
 Public Function GetProperty(ByVal propName As String, element As WebElement) As String
 Attribute GetProperty.VB_Description = "Gets the property state of the element, such as the value of an input box - if the property does not exist, then it returns vbNullString"
     'This returns the current state of a DOM node object, such as the value of an input box.
@@ -851,7 +859,7 @@ Attribute GetProperty.VB_Description = "Gets the property state of the element, 
     End If
 End Function
 
-'@Description("Highlights/unhighlights specified element(s) with color")
+'%Description("Highlights/unhighlights specified element(s) with color")
 Public Sub SetHighlight(ByVal onOffSwitch As Boolean, elementOrElements As Object, _
                 Optional ByVal borderSizePx As Byte = 4, Optional ByVal borderColor As VBAcolors = Blue, _
                 Optional ByVal backgroundColor As VBAcolors = VBAcolors.Unchanged, _
@@ -881,7 +889,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         'Create the JS string for the highlighting SetAttribute
         Dim borderColorString As String, backgroundColorString As String
         If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            Err.raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+            Err.Raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
         End If
         If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
             borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
@@ -924,11 +932,12 @@ ErrHnd:
 If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
     Resume Next
 Else
-    With Err: Err.raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
+    'With Err: Err.Raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
+    Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
 End If
 End Sub
 
-'@Description("Highlights/unhighlights future found element(s) with color")
+'%Description("Highlights/unhighlights future found element(s) with color")
 Public Sub SetHightlightFoundElems(ByVal onOffSwitch As Boolean, Optional ByVal elemBorderSizePx As Byte = 4, _
                 Optional ByVal elemBorderColor As VBAcolors = Blue, Optional ByVal elemBackgroundColor As VBAcolors = VBAcolors.Unchanged, _
                 Optional ByVal elemsBorderSizePx As Byte = 4, _
@@ -954,19 +963,19 @@ Attribute SetHightlightFoundElems.VB_Description = "Highlights/unhighlights futu
     End If
 End Sub
 
-'@Description("Returns a boolean indicating if the current element has the specified property")
+'%Description("Returns a boolean indicating if the current element has the specified property")
 Public Function HasProperty(ByVal propName As String, element As WebElement) As Boolean
 Attribute HasProperty.VB_Description = "Returns a boolean indicating if the current element has the specified property"
     If GetProperty(propName, element) = vbNullString Then HasProperty = False Else HasProperty = True
 End Function
 
-'@Description("Returns a boolean indicating if the element has the specified attribute")
+'%Description("Returns a boolean indicating if the element has the specified attribute")
 Public Function HasAttribute(ByVal attrName As String, element As WebElement) As Boolean
 Attribute HasAttribute.VB_Description = "Returns a boolean indicating if the element has the specified attribute"
     If GetAttribute(attrName, element) = vbNullString Then HasAttribute = False Else HasAttribute = True
 End Function
 
-'@Description("Gets the specified attribute of the element")
+'%Description("Gets the specified attribute of the element")
 Public Function GetAttribute(ByVal attrName As String, element As WebElement) As String
 Attribute GetAttribute.VB_Description = "Gets the specified attribute of the element"
     'This returns pre-defined HTML element attributes. Once the browser parses the html code,
@@ -987,7 +996,7 @@ Attribute GetAttribute.VB_Description = "Gets the specified attribute of the ele
     End If
 End Function
 
-'@Description("Sets the attribute of the element")
+'%Description("Sets the attribute of the element")
 Public Sub SetAttribute(element As WebElement, ByVal attrName As String, ByVal val As String)
 Attribute SetAttribute.VB_Description = "Sets the attribute of the element"
     'this sets the value of an html element attribute. Consider SendKeys or Action Chain for more control of user input elements.
@@ -995,14 +1004,14 @@ Attribute SetAttribute.VB_Description = "Sets the attribute of the element"
     ExecuteScript "arguments[0].setAttribute('" & attrName & "', arguments[1])", element, val
 End Sub
 
-'@Description("Gets the Arial role of the element")
+'%Description("Gets the Arial role of the element")
 Public Function GetAriaRole(element As WebElement) As String
 Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     Dim data As New Dictionary
     Dim resp As Dictionary
     
     If browser_ = svbaBrowser.Firefox Then
-        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
+        Err.Raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     data.Add "id", element.elementId
@@ -1014,14 +1023,14 @@ Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     End If
 End Function
 
-'@Description("Gets the Arial label of the element")
+'%Description("Gets the Arial label of the element")
 Public Function GetAriaLabel(element As WebElement) As String
 Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
     Dim data As New Dictionary
     Dim resp As Dictionary
     
     If browser_ = svbaBrowser.Firefox Then
-        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
+        Err.Raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     data.Add "id", element.elementId
@@ -1034,7 +1043,7 @@ Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
 End Function
 
 
-'@Description("Gets the tag name of the element")
+'%Description("Gets the tag name of the element")
 Public Function GetTagName(element As WebElement) As String
 Attribute GetTagName.VB_Description = "Gets the tag name of the element"
     Dim data As New Dictionary
@@ -1042,7 +1051,7 @@ Attribute GetTagName.VB_Description = "Gets the tag name of the element"
     GetTagName = Execute(tCMD.CMD_GET_ELEMENT_TAG_NAME, data)("value")
 End Function
 
-'@Description("Selects a dropdown option element with the specified value attribute")
+'%Description("Selects a dropdown option element with the specified value attribute")
 Public Sub SelectByValue(ByVal val As String, element As WebElement)
 Attribute SelectByValue.VB_Description = "Selects a dropdown option element with the specified value attribute"
     Dim elem As WebElement
@@ -1053,7 +1062,7 @@ Attribute SelectByValue.VB_Description = "Selects a dropdown option element with
     End If
 End Sub
 
-'@Description("Selects a dropdown option element with the specified visible text")
+'%Description("Selects a dropdown option element with the specified visible text")
 Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
 Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option element with the specified visible text"
     Dim elem As WebElement
@@ -1064,7 +1073,7 @@ Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option elemen
     End If
 End Sub
 
-'@Description("Returns all selected option elements for the specified dropdown element")
+'%Description("Returns all selected option elements for the specified dropdown element")
 Public Function GetAllSelectedOptions(element As WebElement) As WebElements
 Attribute GetAllSelectedOptions.VB_Description = "Returns all selected option elements for the specified dropdown element"
     Dim elems As WebElements
@@ -1079,7 +1088,7 @@ Attribute GetAllSelectedOptions.VB_Description = "Returns all selected option el
     Set GetAllSelectedOptions = selectedElems
 End Function
 
-'@Description("Returns the first selected option element for the specified dropdown element")
+'%Description("Returns the first selected option element for the specified dropdown element")
 Public Function GetSelectedOption(element As WebElement) As WebElement
 Attribute GetSelectedOption.VB_Description = "Returns the first selected option element for the specified dropdown element"
     Dim elems As WebElements
@@ -1097,7 +1106,7 @@ Attribute GetSelectedOption.VB_Description = "Returns the first selected option 
     Set GetSelectedOption = selectedElem
 End Function
 
-'@Description("Deselects the dropdown option element having the specified value attribute")
+'%Description("Deselects the dropdown option element having the specified value attribute")
 Public Sub DeSelectByValue(ByVal val As String, element As WebElement)
 Attribute DeSelectByValue.VB_Description = "Deselects the dropdown option element having the specified value attribute"
     Dim elem As WebElement
@@ -1108,7 +1117,7 @@ Attribute DeSelectByValue.VB_Description = "Deselects the dropdown option elemen
     End If
 End Sub
 
-'@Description("Deselects the dropdown option element having the specified visible text")
+'%Description("Deselects the dropdown option element having the specified visible text")
 Public Sub DeSelectByVisibleText(ByVal text As String, element As WebElement)
 Attribute DeSelectByVisibleText.VB_Description = "Deselects the dropdown option element having the specified visible text"
     Dim elem As WebElement
@@ -1119,7 +1128,7 @@ Attribute DeSelectByVisibleText.VB_Description = "Deselects the dropdown option 
     End If
 End Sub
 
-'@Description("Returns a boolean indicating if the dropdown option element is selected")
+'%Description("Returns a boolean indicating if the dropdown option element is selected")
 Public Function IsSelected(element As WebElement) As Boolean
 Attribute IsSelected.VB_Description = "Returns a boolean indicating if the dropdown option element is selected"
     Dim data As New Dictionary
@@ -1127,20 +1136,20 @@ Attribute IsSelected.VB_Description = "Returns a boolean indicating if the dropd
     IsSelected = Execute(tCMD.CMD_IS_ELEMENT_SELECTED, data)("value")
 End Function
 
-'@Description("Returns a boolean indicating if the element is a multi-select dropdown")
+'%Description("Returns a boolean indicating if the element is a multi-select dropdown")
 Public Function IsMultiSelect(selectElement As WebElement) As Boolean
 Attribute IsMultiSelect.VB_Description = "Returns a boolean indicating if the element is a multi-select dropdown"
     IsMultiSelect = HasAttribute("multiple", selectElement)
 End Function
 
-'@Description("Selects a dropdown option element with the specified index")
+'%Description("Selects a dropdown option element with the specified index")
 Public Sub SelectByIndex(ByVal index As Integer, element As WebElement)
 Attribute SelectByIndex.VB_Description = "Selects a dropdown option element with the specified index"
     SetFocus element
     ExecuteScript "arguments[0].options[" & CStr(index - baseDomIdx) & "].selected = true;", element
 End Sub
 
-'@Description("Selects all multi-select dropdown option elements")
+'%Description("Selects all multi-select dropdown option elements")
 Public Sub SelectAll(element As WebElement)
 Attribute SelectAll.VB_Description = "Selects all multi-select dropdown option elements"
     Dim elems As WebElements
@@ -1152,7 +1161,7 @@ Attribute SelectAll.VB_Description = "Selects all multi-select dropdown option e
     Next i
 End Sub
 
-'@Description("Deselects all dropdown option elements")
+'%Description("Deselects all dropdown option elements")
 Public Sub DeSelectAll(element As WebElement)
 Attribute DeSelectAll.VB_Description = "Deselects all dropdown option elements"
     Dim elems As WebElements
@@ -1164,7 +1173,7 @@ Attribute DeSelectAll.VB_Description = "Deselects all dropdown option elements"
     Next i
 End Sub
 
-'@Description("Deselects a dropdown option element with the specified index")
+'%Description("Deselects a dropdown option element with the specified index")
 Public Sub DeSelectByIndex(ByVal index As Integer, element As WebElement)
 Attribute DeSelectByIndex.VB_Description = "Deselects a dropdown option element with the specified index"
     Dim elems As WebElements
@@ -1175,7 +1184,7 @@ Attribute DeSelectByIndex.VB_Description = "Deselects a dropdown option element 
     End If
 End Sub
 
-'@Description("Executes a java script synchronously")
+'%Description("Executes a java script synchronously")
 Public Function ExecuteScript(ByVal script As String, ParamArray argumentList() As Variant) As Variant
 Attribute ExecuteScript.VB_Description = "Executes a java script synchronously"
     Dim data As New Dictionary
@@ -1203,7 +1212,7 @@ Attribute ExecuteScript.VB_Description = "Executes a java script synchronously"
     End If
 End Function
 
-'@Description("Executes a java script asynchronously")
+'%Description("Executes a java script asynchronously")
 Public Function ExecuteScriptAsync(ByVal script As String, ParamArray argumentList() As Variant) As Variant
 Attribute ExecuteScriptAsync.VB_Description = "Executes a java script asynchronously"
     Dim data As New Dictionary
@@ -1231,7 +1240,7 @@ Attribute ExecuteScriptAsync.VB_Description = "Executes a java script asynchrono
     End If
 End Function
 
-'@Description("Saves a screenshot of the active browser window to a file")
+'%Description("Saves a screenshot of the active browser window to a file")
 Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png", Optional element As WebElement)
 Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active browser window to a file"
     Dim data As New Dictionary
@@ -1249,7 +1258,7 @@ Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active brow
     SaveByteArrayToFile DecodeBase64(pngstr), filePath
 End Sub
 
-'@Description("Prints the current webpage window to a specified pdf file path - browser must be in headless mode")
+'%Description("Prints the current webpage window to a specified pdf file path - browser must be in headless mode")
 Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As WebPrintSettings)
 Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a specified pdf file path - browser must be in headless mode"
     Dim data As New Dictionary
@@ -1266,7 +1275,7 @@ Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a sp
     SaveByteArrayToFile DecodeBase64(pdfstr), filePath
 End Sub
 
-'@Description("Returns a dictionary containing x, y, width, height of the element")
+'%Description("Returns a dictionary containing x, y, width, height of the element")
 Public Function GetRect(element As WebElement) As Dictionary
 Attribute GetRect.VB_Description = "Returns a dictionary containing x, y, width, height of the element"
     'returns dictionary with following keys x, y, width, height
@@ -1275,21 +1284,21 @@ Attribute GetRect.VB_Description = "Returns a dictionary containing x, y, width,
     Set GetRect = Execute(tCMD.CMD_GET_ELEMENT_RECT, data)("value")
 End Function
 
-'@Description("Returns the current webpage source as a string")
+'%Description("Returns the current webpage source as a string")
 Public Function GetPageSource() As String
 Attribute GetPageSource.VB_Description = "Returns the current webpage source as a string"
     Dim data As New Dictionary
     GetPageSource = Execute(tCMD.CMD_GET_PAGE_SOURCE, data)("value")
 End Function
 
-'@Description("Returns the active window's handle as a string")
+'%Description("Returns the active window's handle as a string")
 Public Function GetCurrentWindowHandle() As String
 Attribute GetCurrentWindowHandle.VB_Description = "Returns the active window's handle as a string"
     Dim data As New Dictionary
     GetCurrentWindowHandle = Execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, data)("value")
 End Function
 
-'@Description("Returns all windows' handles as a string array")
+'%Description("Returns all windows' handles as a string array")
 Public Function GetWindowHandles() As String()
 Attribute GetWindowHandles.VB_Description = "Returns all windows' handles as a string array"
     Dim data As New Dictionary
@@ -1308,7 +1317,7 @@ Attribute GetWindowHandles.VB_Description = "Returns all windows' handles as a s
     GetWindowHandles = ret
 End Function
 
-'@Description("Opens and activates a new window of the specified type")
+'%Description("Opens and activates a new window of the specified type")
 Public Function SwitchToNewWindow(Optional ByVal windowType As svbaWindowType = svbaTab) As String
 Attribute SwitchToNewWindow.VB_Description = "Opens and activates a new window of the specified type"
     Dim data As New Dictionary
@@ -1325,7 +1334,7 @@ Attribute SwitchToNewWindow.VB_Description = "Opens and activates a new window o
     SwitchToNewWindow = hndl
 End Function
 
-'@Description("Activates the window of the specified index or handle string")
+'%Description("Activates the window of the specified index or handle string")
 Public Function SwitchToWindow(ByVal handleOrIndex As Variant) As String
 Attribute SwitchToWindow.VB_Description = "Activates the window of the specified index or handle string"
     Dim data As New Dictionary
@@ -1343,7 +1352,7 @@ Attribute SwitchToWindow.VB_Description = "Activates the window of the specified
     SwitchToWindow = hndl
 End Function
 
-'@Description("Closes the window of the specified index or handle string - if no window is specified, then the active window is closed")
+'%Description("Closes the window of the specified index or handle string - if no window is specified, then the active window is closed")
 Public Sub CloseWindow(Optional ByVal handleOrIndex As Variant)
 Attribute CloseWindow.VB_Description = "Closes the window of the specified index or handle string - if no window is specified, then the active window is closed"
     Dim data As New Dictionary
@@ -1351,14 +1360,14 @@ Attribute CloseWindow.VB_Description = "Closes the window of the specified index
     Execute tCMD.CMD_CLOSE, data
 End Sub
 
-'@Description("Returns a dictionary containing x, y, width, and height in screen pixels of the active window")
+'%Description("Returns a dictionary containing x, y, width, and height in screen pixels of the active window")
 Public Function GetWindowRect() As Dictionary
 Attribute GetWindowRect.VB_Description = "Returns a dictionary containing x, y, width, and height in screen pixels of the active window"
     Dim data As New Dictionary
     Set GetWindowRect = Execute(tCMD.CMD_GET_WINDOW_RECT, data)("value")
 End Function
 
-'@Description("Sets the position and size in screen pixels for the active window")
+'%Description("Sets the position and size in screen pixels for the active window")
 Public Function SetWindowRect(Optional ByVal x As Variant, Optional ByVal y As Variant, Optional ByVal width As Variant, Optional ByVal height As Variant) As Dictionary
 Attribute SetWindowRect.VB_Description = "Sets the position and size in screen pixels for the active window"
     Dim data As New Dictionary
@@ -1370,22 +1379,22 @@ Attribute SetWindowRect.VB_Description = "Sets the position and size in screen p
     If IsMissing(y) Then y = rect("y")
     data.Add "x", x
     data.Add "y", y
-    data.Add "width", width
+    data.Add "width", Width
     data.Add "height", height
     Set SetWindowRect = Execute(tCMD.CMD_SET_WINDOW_RECT, data)("value")
 End Function
 
-'@Description("Sets the size in screen pixels for the active window")
+'%Description("Sets the size in screen pixels for the active window")
 Public Sub SetWindowSize(Optional ByVal width As Variant, Optional ByVal height As Variant)
 Attribute SetWindowSize.VB_Description = "Sets the size in screen pixels for the active window"
     Dim rect As Dictionary
     Set rect = GetWindowRect
     If IsMissing(width) Then width = rect("width")
     If IsMissing(height) Then height = rect("height")
-    SetWindowRect rect("x"), rect("y"), width, height
+    SetWindowRect rect("x"), rect("y"), Width, height
 End Sub
 
-'@Description("Sets the position in screen pixels for the active window")
+'%Description("Sets the position in screen pixels for the active window")
 Public Sub SetWindowPosition(Optional ByVal x As Variant, Optional ByVal y As Variant)
 Attribute SetWindowPosition.VB_Description = "Sets the position in screen pixels for the active window"
     'returns dictionary with following keys x, y, width, height
@@ -1396,28 +1405,28 @@ Attribute SetWindowPosition.VB_Description = "Sets the position in screen pixels
     SetWindowRect x, y, rect("width"), rect("height")
 End Sub
 
-'@Description("Maximize the active window")
+'%Description("Maximize the active window")
 Public Sub MaximizeWindow()
 Attribute MaximizeWindow.VB_Description = "Maximize the active window"
     Dim data As New Dictionary
     Execute tCMD.CMD_MAXIMIZE_WINDOW, data
 End Sub
 
-'@Description("Sets the current window to full screen mode")
+'%Description("Sets the current window to full screen mode")
 Public Sub FullScreenWindow()
 Attribute FullScreenWindow.VB_Description = "Sets the current window to full screen mode"
     Dim data As New Dictionary
     Execute tCMD.CMD_FULLSCREEN_WINDOW, data
 End Sub
 
-'@Description("Minimize the active window")
+'%Description("Minimize the active window")
 Public Sub MinimizeWindow()
 Attribute MinimizeWindow.VB_Description = "Minimize the active window"
     Dim data As New Dictionary
     Execute tCMD.CMD_MINIMIZE_WINDOW, data
 End Sub
 
-'@Description("Switches focus to the frame element")
+'%Description("Switches focus to the frame element")
 Public Sub SwitchToFrame(frameElement As WebElement)
 Attribute SwitchToFrame.VB_Description = "Switches focus to the frame element"
     Dim data As New Dictionary
@@ -1427,7 +1436,7 @@ Attribute SwitchToFrame.VB_Description = "Switches focus to the frame element"
     Execute tCMD.CMD_SWITCH_TO_FRAME, data
 End Sub
 
-'@Description("Switches focus to the frame indicated by the specified index")
+'%Description("Switches focus to the frame indicated by the specified index")
 Public Sub SwitchToFrameByIndex(ByVal index As Integer)
 Attribute SwitchToFrameByIndex.VB_Description = "Switches focus to the frame indicated by the specified index"
     Dim data As New Dictionary
@@ -1435,7 +1444,7 @@ Attribute SwitchToFrameByIndex.VB_Description = "Switches focus to the frame ind
     Execute tCMD.CMD_SWITCH_TO_FRAME, data
 End Sub
 
-'@Description("Switches focus to the frame of the main document")
+'%Description("Switches focus to the frame of the main document")
 Public Sub SwitchToDefaultContent()
 Attribute SwitchToDefaultContent.VB_Description = "Switches focus to the frame of the main document"
     Dim data As New Dictionary
@@ -1443,7 +1452,7 @@ Attribute SwitchToDefaultContent.VB_Description = "Switches focus to the frame o
     Execute tCMD.CMD_SWITCH_TO_FRAME, data
 End Sub
 
-'@Description("Switches focus to the active frame's parent")
+'%Description("Switches focus to the active frame's parent")
 Public Sub SwitchToParentFrame()
 Attribute SwitchToParentFrame.VB_Description = "Switches focus to the active frame's parent"
     'if top-level frame then this switches to main document
@@ -1451,13 +1460,13 @@ Attribute SwitchToParentFrame.VB_Description = "Switches focus to the active fra
     Execute tCMD.CMD_SWITCH_TO_PARENT_FRAME, data
 End Sub
 
-'@Description("Returns the name of the active frame")
+'%Description("Returns the name of the active frame")
 Public Function GetCurrentFrameName() As String
 Attribute GetCurrentFrameName.VB_Description = "Returns the name of the active frame"
     GetCurrentFrameName = ExecuteScript("return self.name")
 End Function
 
-'@Description("Sets how long to wait for the element location strategy to complete when locating an element(s)")
+'%Description("Sets how long to wait for the element location strategy to complete when locating an element(s)")
 Public Sub SetImplicitlyWait(Optional ByVal milliseconds As Long = 0)
 Attribute SetImplicitlyWait.VB_Description = "Sets how long to wait for the element location strategy to complete when locating an element(s)"
     Dim data As New Dictionary
@@ -1465,7 +1474,7 @@ Attribute SetImplicitlyWait.VB_Description = "Sets how long to wait for the elem
     Execute tCMD.CMD_SET_TIMEOUTS, data
 End Sub
 
-'@Description("Sets the timeout limit used to interrupt a navigation attempt")
+'%Description("Sets the timeout limit used to interrupt a navigation attempt")
 Public Sub SetPageLoadTimeout(Optional ByVal milliseconds As Long = 300000)
 Attribute SetPageLoadTimeout.VB_Description = "Sets the timeout limit used to interrupt a navigation attempt"
     Dim data As New Dictionary
@@ -1473,7 +1482,7 @@ Attribute SetPageLoadTimeout.VB_Description = "Sets the timeout limit used to in
     Execute tCMD.CMD_SET_TIMEOUTS, data
 End Sub
 
-'@Description("Sets how long to wait to interrupt a script that is being evaluated")
+'%Description("Sets how long to wait to interrupt a script that is being evaluated")
 Public Sub SetScriptTimeout(Optional ByVal milliseconds As Long = 30000)
 Attribute SetScriptTimeout.VB_Description = "Sets how long to wait to interrupt a script that is being evaluated"
     Dim data As New Dictionary
@@ -1481,34 +1490,34 @@ Attribute SetScriptTimeout.VB_Description = "Sets how long to wait to interrupt 
     Execute tCMD.CMD_SET_TIMEOUTS, data
 End Sub
 
-'@Description("Gets how long to wait for the element location strategy to complete when locating an element(s)")
+'%Description("Gets how long to wait for the element location strategy to complete when locating an element(s)")
 Public Function GetImplicitlyWait() As Long
 Attribute GetImplicitlyWait.VB_Description = "Gets how long to wait for the element location strategy to complete when locating an element(s)"
     Dim data As New Dictionary
     GetImplicitlyWait = Execute(tCMD.CMD_GET_TIMEOUTS, data)("value")("implicit")
 End Function
 
-'@Description("Gets the timeout limit used to interrupt an navigation attempt")
+'%Description("Gets the timeout limit used to interrupt an navigation attempt")
 Public Function GetPageLoadTimeout() As Long
 Attribute GetPageLoadTimeout.VB_Description = "Gets the timeout limit used to interrupt an navigation attempt"
     Dim data As New Dictionary
     GetPageLoadTimeout = Execute(tCMD.CMD_GET_TIMEOUTS, data)("value")("pageLoad")
 End Function
 
-'@Description("Gets how long to wait to interrupt a script that is being evaluated")
+'%Description("Gets how long to wait to interrupt a script that is being evaluated")
 Public Function GetScriptTimeout() As Long
 Attribute GetScriptTimeout.VB_Description = "Gets how long to wait to interrupt a script that is being evaluated"
     Dim data As New Dictionary
     GetScriptTimeout = Execute(tCMD.CMD_GET_TIMEOUTS, data)("value")("script")
 End Function
 
-'@Description("Pauses in-line execution for the specified number of milliseconds")
+'%Description("Pauses in-line execution for the specified number of milliseconds")
 Public Sub Wait(Optional ByVal milliseconds As Long = 300)
 Attribute Wait.VB_Description = "Pauses in-line execution for the specified number of milliseconds"
     'both of the system-level timers below work
     '
-    TimerWait milliseconds
-    'Sleep milliseconds 'this works great, but lets try to do without windows api if possible
+    'TimerWait milliseconds
+    Sleep milliseconds 'this works great, but lets try to do without windows api if possible
     '
     'these native methods below mysteriously interfere with/accept browser alerts -
     'maybe because they are browser-level, not system-level?
@@ -1519,7 +1528,7 @@ Attribute Wait.VB_Description = "Pauses in-line execution for the specified numb
     'ExecuteScriptAsync "window.setTimeout(arguments[arguments.length - 1], arguments[0]);", milliseconds
 End Sub
 
-'@Description("Returns a boolean indicating if the element is present")
+'%Description("Returns a boolean indicating if the element is present")
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal implicitWait As Long = 0) As Boolean
 Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present"
     Dim timeout As Long
@@ -1538,7 +1547,7 @@ Attribute IsPresent.VB_Description = "Returns a boolean indicating if the elemen
     If timeout <> implicitWait Then SetImplicitlyWait timeout
 End Function
 
-'@Description("Returns a boolean indicating if the element is enabled")
+'%Description("Returns a boolean indicating if the element is enabled")
 Public Function IsEnabled(element As WebElement) As Boolean
 Attribute IsEnabled.VB_Description = "Returns a boolean indicating if the element is enabled"
     Dim data As New Dictionary
@@ -1546,7 +1555,7 @@ Attribute IsEnabled.VB_Description = "Returns a boolean indicating if the elemen
     IsEnabled = Execute(tCMD.CMD_IS_ELEMENT_ENABLED, data)("value")
 End Function
 
-'@Description("Returns a boolean indicating if the element is displayed")
+'%Description("Returns a boolean indicating if the element is displayed")
 Public Function IsDisplayed(element As WebElement) As Boolean
 Attribute IsDisplayed.VB_Description = "Returns a boolean indicating if the element is displayed"
     Dim data As New Dictionary
@@ -1554,20 +1563,20 @@ Attribute IsDisplayed.VB_Description = "Returns a boolean indicating if the elem
     IsDisplayed = Execute(tCMD.CMD_IS_ELEMENT_DISPLAYED, data)("value")
 End Function
 
-'@Description("Gets the browser name")
+'%Description("Gets the browser name")
 Public Function GetBrowserName() As String
 Attribute GetBrowserName.VB_Description = "Gets the browser name"
     GetBrowserName = WebShared.GetBrowserName(browser_)
 End Function
 
-'@Description("Gets the text of the active alert")
+'%Description("Gets the text of the active alert")
 Public Function GetAlertText() As String
 Attribute GetAlertText.VB_Description = "Gets the text of the active alert"
     Dim data As New Dictionary
     GetAlertText = Execute(tCMD.CMD_GET_ALERT_TEXT, data)("value")
 End Function
 
-'@Description("Sends the specified text to the active alert")
+'%Description("Sends the specified text to the active alert")
 Public Sub SetAlertText(ByVal alertText As String)
 Attribute SetAlertText.VB_Description = "Sends the specified text to the active alert"
     Dim data As New Dictionary
@@ -1575,21 +1584,21 @@ Attribute SetAlertText.VB_Description = "Sends the specified text to the active 
     Execute tCMD.CMD_SET_ALERT_TEXT, data
 End Sub
 
-'@Description("Accepts the active alert")
+'%Description("Accepts the active alert")
 Public Sub AcceptAlert()
 Attribute AcceptAlert.VB_Description = "Accepts the active alert"
     Dim data As New Dictionary
     Execute tCMD.CMD_ACCEPT_ALERT, data
 End Sub
 
-'@Description("Dismisses the active alert")
+'%Description("Dismisses the active alert")
 Public Sub DismissAlert()
 Attribute DismissAlert.VB_Description = "Dismisses the active alert"
     Dim data As New Dictionary
     Execute tCMD.CMD_DISMISS_ALERT, data
 End Sub
 
-'@Description("Returns a boolean indicating whether an active alert is present")
+'%Description("Returns a boolean indicating whether an active alert is present")
 Public Function IsAlertPresent() As Boolean
 Attribute IsAlertPresent.VB_Description = "Returns a boolean indicating whether an active alert is present"
     Dim data As New Dictionary
@@ -1602,7 +1611,7 @@ Attribute IsAlertPresent.VB_Description = "Returns a boolean indicating whether 
     End If
 End Function
 
-'@Description("Clears the text field of the element")
+'%Description("Clears the text field of the element")
 Public Function Clear(element As WebElement) As WebElement
 Attribute Clear.VB_Description = "Clears the text field of the element"
     Dim data As New Dictionary
@@ -1613,14 +1622,14 @@ Attribute Clear.VB_Description = "Clears the text field of the element"
     Set Clear = element
 End Function
 
-'@Description("Gets the active browser window's title")
+'%Description("Gets the active browser window's title")
 Public Function GetTitle() As String
 Attribute GetTitle.VB_Description = "Gets the active browser window's title"
     Dim data As New Dictionary
     GetTitle = Execute(tCMD.CMD_GET_TITLE, data)("value")
 End Function
 
-'@Description("Gets the shadow root hosted by the element")
+'%Description("Gets the shadow root hosted by the element")
 Public Function GetShadowRoot(element As WebElement) As WebShadowRoot
 Attribute GetShadowRoot.VB_Description = "Gets the shadow root hosted by the element"
     Dim data As New Dictionary
@@ -1630,7 +1639,7 @@ Attribute GetShadowRoot.VB_Description = "Gets the shadow root hosted by the ele
     Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOWROOT_KEY))
 End Function
 
-'@Description("Gets the specified CSS property of the element")
+'%Description("Gets the specified CSS property of the element")
 Public Function GetCSSProperty(ByVal attrName As String, element As WebElement) As String
 Attribute GetCSSProperty.VB_Description = "Gets the specified CSS property of the element"
     Dim data As New Dictionary
@@ -1639,7 +1648,7 @@ Attribute GetCSSProperty.VB_Description = "Gets the specified CSS property of th
     GetCSSProperty = Execute(tCMD.CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, data)("value")
 End Function
 
-'@Description("Gets the inner HTML of the element")
+'%Description("Gets the inner HTML of the element")
 Public Function GetInnerHTML(Optional element As WebElement) As String
 Attribute GetInnerHTML.VB_Description = "Gets the inner HTML of the element"
     Dim script As String
@@ -1652,7 +1661,7 @@ Attribute GetInnerHTML.VB_Description = "Gets the inner HTML of the element"
     End If
 End Function
 
-'@Description("Gets the outer HTML of the element")
+'%Description("Gets the outer HTML of the element")
 Public Function GetOuterHTML(Optional element As WebElement) As String
 Attribute GetOuterHTML.VB_Description = "Gets the outer HTML of the element"
     Dim script As String
@@ -1665,14 +1674,14 @@ Attribute GetOuterHTML.VB_Description = "Gets the outer HTML of the element"
     End If
 End Function
 
-'@Description("Creates a capabilities object - must be performed after initializing the driver using one of the Start* methods")
+'%Description("Creates a capabilities object - must be performed after initializing the driver using one of the Start* methods")
 Public Function CreateCapabilities(Optional ByVal initializeFromSettingsFile As Boolean = True) As WebCapabilities
 Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - must be performed after initializing the driver using one of the Start* methods"
     Dim caps As New WebCapabilities
     
     'insure that this function is being called in the correct order
     If browser_ = 0 Or sessionId_ <> vbNullString Then
-        Err.raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        Err.Raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
     End If
     
     'now initialize Capabilities
@@ -1696,7 +1705,7 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     Set CreateCapabilities = caps
 End Function
 
-'@Description("Creates a cookies object - must be performed after initializing the driver using one of the Start* methods")
+'%Description("Creates a cookies object - must be performed after initializing the driver using one of the Start* methods")
 Public Function CreateCookies() As WebCookies
 Attribute CreateCookies.VB_Description = "Creates a cookies object - must be performed after initializing the driver using one of the Start* methods"
     Dim cookies As New WebCookies
@@ -1704,7 +1713,7 @@ Attribute CreateCookies.VB_Description = "Creates a cookies object - must be per
     Set CreateCookies = cookies
 End Function
 
-'@Description("Scrolls and set the focus to the element")
+'%Description("Scrolls and set the focus to the element")
 Public Function SetFocus(element As WebElement) As WebElement
 Attribute SetFocus.VB_Description = "Scrolls and set the focus to the element"
     Dim script As String
@@ -1713,7 +1722,7 @@ Attribute SetFocus.VB_Description = "Scrolls and set the focus to the element"
     Set SetFocus = element
 End Function
 
-'@Description("Sets the focus to the element without scrolling")
+'%Description("Sets the focus to the element without scrolling")
 Public Function SetFocusNoScroll(element As WebElement) As WebElement
 Attribute SetFocusNoScroll.VB_Description = "Sets the focus to the element without scrolling"
     Dim script As String
@@ -1722,7 +1731,7 @@ Attribute SetFocusNoScroll.VB_Description = "Sets the focus to the element witho
     Set SetFocusNoScroll = element
 End Function
 
-'@Description("Scrolls by an XY offset referenced to location of the element")
+'%Description("Scrolls by an XY offset referenced to location of the element")
 Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
 Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced to location of the element"
     ScrollIntoView element, True
@@ -1730,7 +1739,7 @@ Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced t
     Set ScrollToElement = element
 End Function
 
-'@Description("Scrolls to the element")
+'%Description("Scrolls to the element")
 Public Function ScrollIntoView(element As WebElement, Optional ByVal alignTop As Boolean = True) As WebElement
 Attribute ScrollIntoView.VB_Description = "Scrolls to the element"
     Dim script As String
@@ -1739,7 +1748,7 @@ Attribute ScrollIntoView.VB_Description = "Scrolls to the element"
     Set ScrollIntoView = element
 End Function
 
-'@Description("Scrolls to a x-y offset in pixels relative to the current window position")
+'%Description("Scrolls to a x-y offset in pixels relative to the current window position")
 Public Sub ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0)
 Attribute ScrollBy.VB_Description = "Scrolls to a x-y offset in pixels relative to the current window position"
     Dim script As String
@@ -1747,7 +1756,7 @@ Attribute ScrollBy.VB_Description = "Scrolls to a x-y offset in pixels relative 
     ExecuteScript script
 End Sub
 
-'@Description("Scrolls to a x-y coordinate position in pixels relative to the current window viewport origin")
+'%Description("Scrolls to a x-y coordinate position in pixels relative to the current window viewport origin")
 Public Sub ScrollTo(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0)
 Attribute ScrollTo.VB_Description = "Scrolls to a x-y coordinate position in pixels relative to the current window viewport origin"
     Dim script As String
@@ -1755,13 +1764,13 @@ Attribute ScrollTo.VB_Description = "Scrolls to a x-y coordinate position in pix
     ExecuteScript script
 End Sub
 
-'@Description("Scrolls to the current window viewport origin")
+'%Description("Scrolls to the current window viewport origin")
 Public Sub ScrollToTop()
 Attribute ScrollToTop.VB_Description = "Scrolls to the current window viewport origin"
     ScrollTo 0, 0
 End Sub
 
-'@Description("Scrolls to the bottom of current window viewport")
+'%Description("Scrolls to the bottom of current window viewport")
 Public Sub ScrollToBottom()
 Attribute ScrollToBottom.VB_Description = "Scrolls to the bottom of current window viewport"
     Dim script As String
@@ -1769,7 +1778,7 @@ Attribute ScrollToBottom.VB_Description = "Scrolls to the bottom of current wind
     ExecuteScript script
 End Sub
 
-'@Description("Gets the heigth of the current window viewport")
+'%Description("Gets the heigth of the current window viewport")
 Public Function GetScrollHeight() As Integer
 Attribute GetScrollHeight.VB_Description = "Gets the heigth of the current window viewport"
     Dim script As String
@@ -1777,7 +1786,7 @@ Attribute GetScrollHeight.VB_Description = "Gets the heigth of the current windo
     GetScrollHeight = ExecuteScript(script)
 End Function
 
-'@Description("Returns the collection of cookies for the current webpage")
+'%Description("Returns the collection of cookies for the current webpage")
 Public Function GetAllCookies() As WebCookies
 Attribute GetAllCookies.VB_Description = "Returns the collection of cookies for the current webpage"
     Dim data As New Dictionary
@@ -1804,7 +1813,7 @@ Attribute GetAllCookies.VB_Description = "Returns the collection of cookies for 
     Set GetAllCookies = cookies
 End Function
 
-'@Description("Returns a cookie having the specified name")
+'%Description("Returns a cookie having the specified name")
 Public Function GetCookie(ByVal cookieName As String) As WebCookie
 Attribute GetCookie.VB_Description = "Returns a cookie having the specified name"
     Dim data As New Dictionary
@@ -1823,7 +1832,7 @@ Attribute GetCookie.VB_Description = "Returns a cookie having the specified name
     Set GetCookie = cookie
 End Function
 
-'@Description("Deletes a cookie having the specified name")
+'%Description("Deletes a cookie having the specified name")
 Public Sub DeleteCookie(ByVal cookieName As String)
 Attribute DeleteCookie.VB_Description = "Deletes a cookie having the specified name"
     Dim data As New Dictionary
@@ -1831,7 +1840,7 @@ Attribute DeleteCookie.VB_Description = "Deletes a cookie having the specified n
     Execute tCMD.CMD_DELETE_COOKIE, data
 End Sub
 
-'@Description("Sets a cookie object")
+'%Description("Sets a cookie object")
 Public Sub SetCookie(cookie As WebCookie)
 Attribute SetCookie.VB_Description = "Sets a cookie object"
     Dim data As New Dictionary
@@ -1844,7 +1853,7 @@ Attribute SetCookie.VB_Description = "Sets a cookie object"
     End If
 End Sub
 
-'@Description("Sets a cookies collection object")
+'%Description("Sets a cookies collection object")
 Public Sub SetCookies(cookies As WebCookies)
 Attribute SetCookies.VB_Description = "Sets a cookies collection object"
     Dim i As Long
@@ -1853,14 +1862,14 @@ Attribute SetCookies.VB_Description = "Sets a cookies collection object"
     Next i
 End Sub
 
-'@Description("Deletes all cookies")
+'%Description("Deletes all cookies")
 Public Sub DeleteAllCookies()
 Attribute DeleteAllCookies.VB_Description = "Deletes all cookies"
     Dim data As New Dictionary
     Execute tCMD.CMD_DELETE_ALL_COOKIES, data
 End Sub
 
-'@Description("Checks if the current url is equal to the specified url")
+'%Description("Checks if the current url is equal to the specified url")
 Public Function IsPageFound(ByVal url As String) As Boolean
 Attribute IsPageFound.VB_Description = "Checks if the current url is equal to the specified url"
     If GetCurrentURL() = url Then
@@ -1870,18 +1879,18 @@ Attribute IsPageFound.VB_Description = "Checks if the current url is equal to th
     End If
 End Function
 
-'@Description("Returns a dictionary holding various info about the session")
+'%Description("Returns a dictionary holding various info about the session")
 Public Function GetSessionsInfo() As Dictionary
 Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various info about the session"
     'since only one browser per driver is allowed, this will return a collection of one
     'so lets return a more useful dictionary instead
     If browser_ = svbaBrowser.Firefox Then
-        Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
+        Err.Raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = Execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
 
-'@Description("Returns a dictionary holding various info about the driver")
+'%Description("Returns a dictionary holding various info about the driver")
 Public Function GetDriverStatus() As Dictionary
 Attribute GetDriverStatus.VB_Description = "Returns a dictionary holding various info about the driver"
     Set GetDriverStatus = Execute(tCMD.CMD_STATUS)("value")
@@ -1894,7 +1903,7 @@ Attribute GetDriverStatus.VB_Description = "Returns a dictionary holding various
     'resp("ready")'true or false
 End Function
 
-'@Description("Creates an initialized action chain object")
+'%Description("Creates an initialized action chain object")
 Public Function ActionChain() As WebActionChain
 Attribute ActionChain.VB_Description = "Creates an initialized action chain object"
     Dim data_ As New Dictionary
@@ -1904,7 +1913,7 @@ Attribute ActionChain.VB_Description = "Creates an initialized action chain obje
     Set ActionChain.DataDictionary = data_
 End Function
 
-'@Description("Finds the first element in the shadow root for a given selector and value")
+'%Description("Finds the first element in the shadow root for a given selector and value")
 Public Function FindElementFromShadowRoot(by_ As By, ByVal val As String, shadowRoot As WebShadowRoot) As WebElement
 Attribute FindElementFromShadowRoot.VB_Description = "Finds the first element in the shadow root for a given selector and value"
     Dim data As Dictionary
@@ -1919,7 +1928,7 @@ Attribute FindElementFromShadowRoot.VB_Description = "Finds the first element in
     Set FindElementFromShadowRoot = elem
 End Function
 
-'@Description("Finds all elements in the shadow root for a given selector and value")
+'%Description("Finds all elements in the shadow root for a given selector and value")
 Public Function FindElementsFromShadowRoot(by_ As By, ByVal val As String, shadowRoot As WebShadowRoot) As WebElements
 Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the shadow root for a given selector and value"
     Dim data As Dictionary
@@ -1943,7 +1952,7 @@ Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the
     Set FindElementsFromShadowRoot = elems
 End Function
 
-'@Description("Uploads the contents of a file to the element")
+'%Description("Uploads the contents of a file to the element")
 Public Sub UploadFile(element As WebElement, ByVal filePath As String)
 Attribute UploadFile.VB_Description = "Uploads the contents of a file to the element"
     'this is just a special wrapper for sendkeys (upload file mode)
@@ -1951,13 +1960,13 @@ Attribute UploadFile.VB_Description = "Uploads the contents of a file to the ele
     SendKeys element, filePath
 End Sub
 
-'@Description("Drags and drops the element to the specified target element")
+'%Description("Drags and drops the element to the specified target element")
 Public Sub DragAndDrop(sourceElement As WebElement, targetElement As WebElement)
 Attribute DragAndDrop.VB_Description = "Drags and drops the element to the specified target element"
     ActionChain.DragAndDrop(sourceElement, targetElement).Perform
 End Sub
 
-'@Description("Waits until element is interactable")
+'%Description("Waits until element is interactable")
 Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 30000) As WebElement
 Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
     'waits until element is interactable, returns the input element for further action
@@ -1975,7 +1984,7 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
         If element.IsDisplayed Then Exit Do
         nowTime = VBA.Timer()
         Dim elapsedTime As Single
-        If nowTime < startTime Then
+        If nowTime < startTime Then 'oops - someone is burning the midnight oil!
             endTime = endTime - elapsedTime
             startTime = 0
         End If
@@ -1986,17 +1995,17 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
     Set WaitUntilReady = element
 End Function
 
-'@Description("Returns the user agent string - must be called after OpenBrowser")
+'%Description("Returns the user agent string - must be called after OpenBrowser")
 Public Function GetUserAgent() As String
 Attribute GetUserAgent.VB_Description = "Returns the user agent string - must be called after OpenBrowser"
     If sessionId_ <> vbNullString Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        Err.raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
+        Err.Raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
     End If
 End Function
 
-'@Description("Sets the default input/output folder")
+'%Description("Sets the default input/output folder")
 Public Property Let DefaultIOFolder(ByVal folderPath As String)
 Attribute DefaultIOFolder.VB_Description = "Sets the default input/output folder"
     defaultIOFolder_ = WebShared.GetFullLocalPath(folderPath)
@@ -2006,7 +2015,7 @@ Public Property Get DefaultIOFolder() As String
     DefaultIOFolder = defaultIOFolder_
 End Property
 
-'@Description("Sets the default Selenium driver folder")
+'%Description("Sets the default Selenium driver folder")
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
 Attribute DefaultDriverFolder.VB_Description = "Sets the default Selenium driver folder"
 'Note: default folder is Downloads dir
@@ -2017,7 +2026,7 @@ Public Property Get DefaultDriverFolder() As String
     DefaultDriverFolder = defaultDriverFolder_
 End Property
 
-'@Description("Deletes a list of files")
+'%Description("Deletes a list of files")
 Public Sub DeleteFiles(ParamArray fileList() As Variant)
 Attribute DeleteFiles.VB_Description = "Deletes a list of files"
     Dim fso As New FileSystemObject
@@ -2046,7 +2055,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
     Next i
 End Sub
 
-'@Description("Saves a specified string to a file")
+'%Description("Saves a specified string to a file")
 Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filePath As String = ".\snippet.html")
 Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     'this is used to save test html snippets to file for subsequent browser navigation
@@ -2058,24 +2067,24 @@ Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     ts.Close
 End Sub
 
-'@Description("Returns the parent of element")
+'%Description("Returns the parent of element")
 Public Function GetParentElement(childElement As WebElement) As WebElement
 Attribute GetParentElement.VB_Description = "Returns the parent of element"
     Set GetParentElement = childElement.FindElement(By.XPath, "./parent::*")
 End Function
 
-'@Description("Returns the direct descendant child elements of the element")
+'%Description("Returns the direct descendant child elements of the element")
 Public Function GetChildElements(parentElement As WebElement) As WebElements
 Attribute GetChildElements.VB_Description = "Returns the direct descendant child elements of the element"
     'this gets the immediate descendant elements - note that this is not same as element.FindElements(by.tagName, "*")
     Set GetChildElements = parentElement.FindElements(By.XPath, "./child::*")
 End Function
 
-'@Description("Returns an array holding the text values from a table or tbody element")
+'%Description("Returns an array holding the text values from a table or tbody element")
 Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
 Attribute TableToArray.VB_Description = "Returns an array holding the text values from a table or tbody element"
     Dim htmlDoc As New HTMLDocument
-    Dim htmlTbl As htmlTable
+    Dim htmlTbl As HTMLTable
 
     'convert the WebElement table into an html dom table object
     'input WebElement can either be a table or a tbody element
@@ -2092,7 +2101,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlTbl.innerHTML = table.GetOuterHTML
         Case Else 'report error
-            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
     Else
         'this is the work-around...
@@ -2102,16 +2111,16 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
         Case Else 'report error
-            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
         
-        Set htmlTbl = htmlDoc.body.Children(0)
+        Set htmlTbl = htmlDoc.body.children(0)
     End If
 
     TableToArray = htmlTableToArray(htmlTbl, skipHeader, skipFooter, createSpanData)
 End Function
 
-'@Description("Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact")
+'%Description("Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact")
 Public Function PageToHTMLDoc(Optional ByVal sanitize As Boolean = False) As MSHTML.HTMLDocument
 Attribute PageToHTMLDoc.VB_Description = "Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact"
     'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
@@ -2123,7 +2132,7 @@ Attribute PageToHTMLDoc.VB_Description = "Converts webpage to an html document o
     If sanitize Then pageSource = sanitizeHTML(pageSource)
 
     If htmlDoc.documentMode >= 11 Then
-        htmlDoc.DocumentElement.innerHTML = pageSource
+        htmlDoc.documentElement.innerHTML = pageSource
         Set PageToHTMLDoc = htmlDoc
         Exit Function
     Else
@@ -2137,15 +2146,15 @@ Attribute PageToHTMLDoc.VB_Description = "Converts webpage to an html document o
     End If
 End Function
 
-'@Description("Converts webpage to an xml document object")
+'%Description("Converts webpage to an xml document object")
 Public Function PageToXMLDoc() As MSXML2.DOMDocument60
 Attribute PageToXMLDoc.VB_Description = "Converts webpage to an xml document object"
     Dim xmlDoc As New MSXML2.DOMDocument60
-    xmlDoc.LoadXML getXMLStringFromPage()
+    xmlDoc.loadXML getXMLStringFromPage()
     Set PageToXMLDoc = xmlDoc
 End Function
 
-'@Description("Converts webpage to a json dictionary or collection object")
+'%Description("Converts webpage to a json dictionary or collection object")
 Public Function PageToJSONObject() As Object
 Attribute PageToJSONObject.VB_Description = "Converts webpage to a json dictionary or collection object"
     'will return a dictionary or collection depending on json source
@@ -2153,7 +2162,7 @@ Attribute PageToJSONObject.VB_Description = "Converts webpage to a json dictiona
     Set PageToJSONObject = jc.ParseJson(getJSONStringFromPage())
 End Function
 
-'@Description("Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact")
+'%Description("Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact")
 Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False)
 Attribute PageToHTMLFile.VB_Description = "Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact"
     'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
@@ -2164,137 +2173,24 @@ Attribute PageToHTMLFile.VB_Description = "Converts webpage to an html file - us
     End If
 End Sub
 
-'@Description("Converts webpage to an xml file")
+'%Description("Converts webpage to an xml file")
 Public Sub PageToXMLFile(ByVal filePath As String, Optional ByVal prettyPrint As Boolean = False)
 Attribute PageToXMLFile.VB_Description = "Converts webpage to an xml file"
     Me.SaveStringToFile getXMLStringFromPage(prettyPrint), filePath
 End Sub
 
-'@Description("Converts webpage to a json file")
+'%Description("Converts webpage to a json file")
 Public Sub PageToJSONFile(ByVal filePath As String, Optional ByVal prettyPrint As Boolean = False)
 Attribute PageToJSONFile.VB_Description = "Converts webpage to a json file"
     Me.SaveStringToFile getJSONStringFromPage(prettyPrint), filePath
 End Sub
 
-'@Description("Returns the current webpage source as a string")
+'%Description("Returns the current webpage source as a string")
 Public Function PageToString() As String
 Attribute PageToString.VB_Description = "Returns the current webpage source as a string"
     'for consistency...
     PageToString = Me.GetPageSource()
 End Function
-
-'@Description("Creates a (optional) settings file that is initialized with system default settings")
-Public Sub CreateSettingsFile()
-    Dim iniFilePath As String
-    Dim fso As New FileSystemObject
-    Dim ts As TextStream
-    Dim overWriteFile As Long
-    Dim i As Long
-    
-    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
-    
-    'if settings file already exists, then warn user
-    If fso.FileExists(iniFilePath) Then
-        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbCrLf & vbCrLf & iniFilePath & vbCrLf & vbCrLf & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
-        If overWriteFile = vbNo Then Exit Sub
-    End If
-    
-    Dim entryCol As New Collection
-    
-    entryCol.Add "# This settings file is completely optional. For it to have effect,"
-    entryCol.Add "# it must be located in the same folder as the SeleniumVBA code library."
-    entryCol.Add " "
-    entryCol.Add "# If a value for an entry is not specified, then the system"
-    entryCol.Add "# default value will be used."
-    entryCol.Add " "
-    entryCol.Add "# Note that all path-type entry values recognize the %[Environ]% syntax."
-    entryCol.Add " "
-    
-    entryCol.Add "[GENERAL]"
-    entryCol.Add " "
-    entryCol.Add "# The driver_location_folder system defaults to Downloads folder."
-    entryCol.Add "# The default_io_folder system defaults to the active vba project's"
-    entryCol.Add "# document location - leave this blank to use default."
-    entryCol.Add "# Valid values for command_window_style are vbHide (default), "
-    entryCol.Add "# vbNormalFocus, vbMinimizedFocus, vbMaximizedFocus, vbNormalNoFocus,"
-    entryCol.Add "# and vbMinimizedNoFocus."
-    entryCol.Add " "
-    entryCol.Add "driver_location_folder=%USERPROFILE%\Downloads"
-    entryCol.Add "default_io_folder="
-    entryCol.Add "command_window_style=vbHide"
-    entryCol.Add " "
-    
-    entryCol.Add "[AUTO-DRIVER-UPDATE]"
-    entryCol.Add " "
-    entryCol.Add "# If auto_detect_and_update=True (system default) then everytime"
-    entryCol.Add "# the WebDriver's Start* method is called, the Selenium driver's"
-    entryCol.Add "# version is checked against the corresponding browser version."
-    entryCol.Add "# If the driver is not compatible with browser, it will be updated."
-    entryCol.Add "# min_compatibility_level determines trigger for updating an"
-    entryCol.Add "# an out-of-date driver. System default is svbaBuildMajor."
-    entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
-    entryCol.Add "# for more frequent updating."
-    entryCol.Add " "
-    entryCol.Add "auto_detect_and_update=True"
-    entryCol.Add "min_compatibility_level=svbaBuildMajor"
-    entryCol.Add " "
-    
-    entryCol.Add "# Below are browser-specific initializations."
-    entryCol.Add "# To automatically initialize a set of capabilities each time the"
-    entryCol.Add "# OpenBrowser method of WebDriver class is invoked, set the"
-    entryCol.Add "# preload_capabilities_file_path entry to the path of a valid json"
-    entryCol.Add "# capabilities file. Note that if preload_capabilities_file_path is"
-    entryCol.Add "# set to a blank value, or the entry is missing or commented out,"
-    entryCol.Add "# then this option is ignored. Use the SaveToFile method of the"
-    entryCol.Add "# WebCapabilities class to save a default set of capabilities"
-    entryCol.Add "# for pre-loading."
-    entryCol.Add " "
-    
-    entryCol.Add "[CHROME]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-
-    entryCol.Add "[EDGE]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-    
-    entryCol.Add "[FIREFOX]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-    
-    entryCol.Add "[INTERNET EXPLORER]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-    
-    entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
-    entryCol.Add " "
-    entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
-    entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
-    entryCol.Add " "
-    entryCol.Add "units=svbaInches"
-    entryCol.Add "page_height=11"
-    entryCol.Add "page_width=8.5"
-    entryCol.Add "margin_bottom=.393701"
-    entryCol.Add "margin_top=.393701"
-    entryCol.Add "margin_right=.393701"
-    entryCol.Add "margin_left=.393701"
-    entryCol.Add "background=False"
-    entryCol.Add "orientation=svbaPortrait"
-    entryCol.Add "print_scale=1.0"
-    entryCol.Add "shrink_to_fit=True"
-    
-    Set ts = fso.CreateTextFile(iniFilePath, True)
-    
-    For i = 1 To entryCol.Count
-        ts.WriteLine entryCol.Item(i)
-    Next i
-    
-    ts.Close
-End Sub
 
 Friend Function Execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
     Dim cmdMethod As String
@@ -2317,7 +2213,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
         parameters.Add "sessionId", sessionId_
     End If
     
-    For Each parmKey In parameters.keys
+    For Each parmKey In parameters.Keys
         If InStr(cmdPath, "$" & parmKey) > 0 Then 'path parameter
             cmdPath = Replace(cmdPath, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
@@ -2330,7 +2226,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     
     'Send request to selenium server
 
-    client.Open cmdMethod, driverUrl_ & cmdPath
+    client.open cmdMethod, driverUrl_ & cmdPath
     
     'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
     client.setTimeouts 0, 60000, 30000, 0
@@ -2350,8 +2246,8 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     Set response = jc.ParseJson(client.responseText)
     
     If raise And IsResponseError(response) Then 'raise error if occurs
-        Debug.Print GetResponseErrorMessage(response)
-        Err.raise client.status, "WebDriver", GetResponseErrorMessage(response)
+        'Debug.Print GetResponseErrorMessage(response)
+        Err.Raise client.status, "WebDriver", GetResponseErrorMessage(response)
     End If
 
     Set Execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
@@ -2399,7 +2295,7 @@ Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
 End Function
 
 Private Function rgbLongToString(ByVal rgbColor As Long) As String
-    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
+    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.Raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
     Dim r As Long
     Dim g As Long
     Dim b As Long
@@ -2413,7 +2309,7 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
     Select Case TypeName(elementOrElements)
         Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
         Case "WebElements": Set ObjToWebElements = elementOrElements
-        Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+        Case Else: Err.Raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
 
@@ -2443,7 +2339,7 @@ Private Function DecodeBase64(ByVal strData As String) As Byte()
     Dim domNode As MSXML2.IXMLDOMElement
     'create node with type of base 64 and decode
     Set domNode = domDoc.createElement("b64")
-    domNode.DataType = "bin.base64"
+    domNode.dataType = "bin.base64"
     domNode.text = strData
     DecodeBase64 = domNode.nodeTypedValue
 End Function
@@ -2512,7 +2408,7 @@ Private Function TaskKillByPid(ByVal pid As String) As Variant
     TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function
 
-Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+Private Function htmlTableToArray(table As HTMLTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
     Dim row As HTMLTableRow
     Dim cell As HTMLTableCell
     Dim cellChild As HTMLHtmlElement
@@ -2528,24 +2424,24 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     
     If createSpanData Then
         'first handle row spans
-        For Each row In table.Rows
+        For Each row In table.rows
             For Each cell In row.cells
                 rowSpan = cell.rowSpan
                 If rowSpan > 1 Then
-                    For i = row.RowIndex + 1 To row.RowIndex + rowSpan - 1
-                        table.Rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
+                    For i = row.rowIndex + 1 To row.rowIndex + rowSpan - 1
+                        table.rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
                     Next i
                 End If
             Next cell
         Next row
         
         'now process column spans
-        For Each row In table.Rows
+        For Each row In table.rows
             For Each cell In row.cells
                 colSpan = cell.colSpan
                 If colSpan > 1 Then
                     For i = 1 To colSpan - 1
-                        row.insertCell(row.cells.Length).innerText = cell.innerText
+                        row.insertCell(row.cells.length).innerText = cell.innerText
                     Next i
                 End If
             Next cell
@@ -2553,32 +2449,32 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     End If
     
     'calculate the number of array columns needed for output
-    For Each row In table.Rows
-        If row.cells.Length > maxCols Then maxCols = row.cells.Length
+    For Each row In table.rows
+        If row.cells.length > maxCols Then maxCols = row.cells.length
     Next row
     
     'dimension output array
-    ReDim v(baseArrayIdx To table.Rows.Length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
+    ReDim v(baseArrayIdx To table.rows.length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
     
     'extract cell data (td and th elements) from each row
-    For Each row In table.Rows
+    For Each row In table.rows
         For Each cell In row.cells
             'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
             'search to see if there is at least one table
             'if there are more than one in the cell then only process first!
-            If cell.Children.Length > 0 Then
+            If cell.children.Length > 0 Then
                 foundTable = False
-                For Each cellChild In cell.Children
+                For Each cellChild In cell.children
                     If cellChild.tagName = "TABLE" Then
                         'recursive call to TableToArray
-                        v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData)
+                        v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData)
                         foundTable = True
                         Exit For
                     End If
                 Next cellChild
-                If Not foundTable Then v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
+                If Not foundTable Then v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
             Else
-                v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
+                v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
             End If
         Next cell
     Next row
@@ -2597,7 +2493,7 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
         str = Me.GetPageSource
     End Select
     
-    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
+    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.Raise 1, "WebDriver", "Error: The page source is not XML format!"
     
     If prettyPrint Then str = formatXML(str)
     
@@ -2617,7 +2513,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
             If Me.IsPresent(By.ID, "rawdata-tab") Then
                 Me.FindElementByID("rawdata-tab").Click
             Else
-                Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+                Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
             End If
         End If
         
@@ -2630,7 +2526,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         If Me.IsPresent(By.tagName, "pre") Then
             str = Me.FindElementByTagName("pre").GetText
         Else
-            Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+            Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
         End If
     End If
     
@@ -2698,61 +2594,61 @@ Private Function sanitizeHTML(ByVal str As String) As String
     
     'disable scripts
     Set elems = parentElem.querySelectorAll("script")
-    For i = 0 To elems.Length - 1
+    For i = 0 To elems.length - 1
         If htmlDoc.documentMode >= 11 Then
             'these work in Office 365, but appear not to work on some 64-bit systems
-            Set elem = elems.Item(i)
+            Set elem = elems.item(i)
             elem.innerText = vbNullString
         Else
             'so we use the node replace method to empty script
-            Set scriptNode = elems.Item(i)
+            Set scriptNode = elems.item(i)
             Set emptyScript = htmlDoc.createElement("script")
-            scriptNode.ParentNode.replaceChild emptyScript, scriptNode
+            scriptNode.parentNode.replaceChild emptyScript, scriptNode
         End If
     Next i
     
     'disable redirect
     Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "content", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "content", vbNullString
     Next i
     
     'disable src attributes
     Set elems = parentElem.querySelectorAll("*[src]")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "src", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "src", vbNullString
     Next i
     
     'disable srcset attributes
     Set elems = parentElem.querySelectorAll("*[srcset]")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "srcset", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "srcset", vbNullString
     Next i
     
     'disable href attributes
     Set elems = parentElem.querySelectorAll("*[href]")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        If Not (elem.GetAttribute("href") Like "about:blank*") Then
-            elem.SetAttribute "href", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        If Not (elem.getAttribute("href") Like "about:blank*") Then
+            elem.setAttribute "href", vbNullString
         End If
     Next i
     
     'disable rel attributes
     Set elems = parentElem.querySelectorAll("*[rel]")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "rel", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "rel", vbNullString
     Next i
     
     'disable url() function in style elements
     If htmlDoc.documentMode >= 11 Then
         Set elems = parentElem.querySelectorAll("style")
-        For i = 0 To elems.Length - 1
-            Set elem = elems.Item(i)
+        For i = 0 To elems.length - 1
+            Set elem = elems.item(i)
             subStr = LCase(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
             foundOne = False
             ipos1 = InStr(1, subStr, "url(")
@@ -2771,9 +2667,9 @@ Private Function sanitizeHTML(ByVal str As String) As String
     
     'disable url() function in style attributes
     Set elems = parentElem.querySelectorAll("[style*='url(']")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        subStr = LCase(elem.GetAttribute("style"))
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        subStr = LCase(elem.getAttribute("style"))
         foundOne = False
         ipos1 = InStr(1, subStr, "url(")
         Do While ipos1
@@ -2783,28 +2679,28 @@ Private Function sanitizeHTML(ByVal str As String) As String
             ipos1 = InStr(ipos1 + 5, subStr, "url(")
             DoEvents
         Loop
-        If foundOne Then elem.SetAttribute "style", subStr
+        If foundOne Then elem.setAttribute "style", subStr
     Next i
     
     'disable action attributes in form elements
     Set elems = parentElem.querySelectorAll("form[action]")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "action", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "action", vbNullString
     Next i
     
     'disable as attributes equal to "script" in link elements
     Set elems = parentElem.querySelectorAll("link[as='script']")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "as", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "as", vbNullString
     Next i
     
     'disable data attributes in object elements
     Set elems = parentElem.querySelectorAll("object[data]")
-    For i = 0 To elems.Length - 1
-        Set elem = elems.Item(i)
-        elem.SetAttribute "data", vbNullString
+    For i = 0 To elems.length - 1
+        Set elem = elems.item(i)
+        elem.setAttribute "data", vbNullString
     Next i
     
     'disable on* event attributes
@@ -2812,12 +2708,12 @@ Private Function sanitizeHTML(ByVal str As String) As String
     For j = 0 To UBound(eventsArray)
         eventStr = eventsArray(j)
         Set elems = parentElem.querySelectorAll("*[" & eventStr & "]")
-        For i = 0 To elems.Length - 1
-            Set elem = elems.Item(i)
+        For i = 0 To elems.length - 1
+            Set elem = elems.item(i)
             'can't use SetAttribute for on* event attributes so let's remove it instead
             elem.removeAttribute eventStr
             'add a replacement attribute with dummy suffix - will remove suffix with replace after dom processing
-            elem.SetAttribute eventStr & "___xxx123", vbNullString
+            elem.setAttribute eventStr & "___xxx123", vbNullString
         Next i
     Next j
 
@@ -2844,9 +2740,9 @@ Private Function formatXML(ByVal val As String) As String
     Dim xmlDocFormatted As New MSXML2.DOMDocument60
     Dim xmlDoc As New MSXML2.DOMDocument60
     
-    xmlDoc.LoadXML val
+    xmlDoc.loadXML val
     
-    xslDoc.LoadXML "<?xml version=" & Chr(34) & "1.0" & Chr(34) & "?>" _
+    xslDoc.loadXML "<?xml version=" & Chr(34) & "1.0" & Chr(34) & "?>" _
             & "<xsl:stylesheet version=" & Chr(34) & "1.0" & Chr(34) _
             & "                xmlns:xsl=" & Chr(34) & "http://www.w3.org/1999/XSL/Transform" & Chr(34) & ">" _
             & "<xsl:strip-space elements=" & Chr(34) & "*" & Chr(34) & " />" _
@@ -2861,7 +2757,7 @@ Private Function formatXML(ByVal val As String) As String
     
     xslDoc.async = False
     xmlDoc.transformNodeToObject xslDoc, xmlDocFormatted
-    formatXML = xmlDocFormatted.XML
+    formatXML = xmlDocFormatted.xml
 End Function
 
 Private Function fixFirefoxBug1797871(ByVal str As String) As String
@@ -2996,3 +2892,107 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
     Set ObjectifyScriptResponse = responseValue
 End Function
 
+'%Description("Creates a (optional) settings file with default settings")
+Public Sub CreateSettingsFile()
+Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file with default settings"
+    Dim iniFilePath As String
+    Dim fso As New FileSystemObject
+    Dim ts As TextStream
+    Dim overWriteFile As Long
+    Dim i As Long
+    
+    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    
+    'if settings file already exists, then warn user
+    If fso.FileExists(iniFilePath) Then
+        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbCrLf & vbCrLf & iniFilePath & vbCrLf & vbCrLf & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
+        If overWriteFile = vbNo Then Exit Sub
+    End If
+    
+    Dim entryCol As New Collection
+    
+    entryCol.Add "# Note: if value for an entry is not specified, then system default"
+    entryCol.Add "# value will be used."
+    entryCol.Add " "
+    entryCol.Add "# Note: all path-type entries below recognize the %[Environ]% syntax."
+    entryCol.Add " "
+    
+    entryCol.Add "[GENERAL]"
+    entryCol.Add " "
+    entryCol.Add "# driver_location_folder system defaults to Downloads folder."
+    entryCol.Add "# default_io_folder system defaults to the active vba project's"
+    entryCol.Add "# document location - leave this blank to use default."
+    entryCol.Add " "
+    entryCol.Add "driver_location_folder=%USERPROFILE%\Downloads"
+    entryCol.Add "default_io_folder="
+    entryCol.Add "command_window_style=vbHide"
+    entryCol.Add " "
+    
+    entryCol.Add "[AUTO-DRIVER-UPDATE]"
+    entryCol.Add " "
+    entryCol.Add "# If auto_detect_and_update=True (system default) then everytime"
+    entryCol.Add "# the WebDriver's Start* method is called, the Selenium driver's"
+    entryCol.Add "# version is checked against the corresponding browser version."
+    entryCol.Add "# If the driver is not compatible with browser, it will be updated."
+    entryCol.Add "# min_compatibility_level determines trigger for updating an"
+    entryCol.Add "# an out-of-date driver. System default is svbaBuildMajor."
+    entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
+    entryCol.Add "# for more frequent updating."
+    entryCol.Add " "
+    entryCol.Add "auto_detect_and_update=True"
+    entryCol.Add "min_compatibility_level=svbaBuildMajor"
+    entryCol.Add " "
+    
+    entryCol.Add "# Below are browser-specific initializations."
+    entryCol.Add "# Set preload_capabilities_file_path to a json capabilities file path"
+    entryCol.Add "# to automatically initialize a set of capabilities each time that the"
+    entryCol.Add "# OpenBrowser method of WebDriver class is invoked. Note that if"
+    entryCol.Add "# preload_capabilities_file_path is set to a blank value, invalid,"
+    entryCol.Add "# or the entry is missing or commented out, then this option is ignored."
+    entryCol.Add " "
+    
+    entryCol.Add "[CHROME]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+
+    entryCol.Add "[EDGE]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[FIREFOX]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[INTERNET EXPLORER]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
+    entryCol.Add " "
+    entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
+    entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
+    entryCol.Add " "
+    entryCol.Add "units=svbaInches"
+    entryCol.Add "page_height=11"
+    entryCol.Add "page_width=8.5"
+    entryCol.Add "margin_bottom=.393701"
+    entryCol.Add "margin_top=.393701"
+    entryCol.Add "margin_right=.393701"
+    entryCol.Add "margin_left=.393701"
+    entryCol.Add "background=False"
+    entryCol.Add "orientation=svbaPortrait"
+    entryCol.Add "print_scale=1.0"
+    entryCol.Add "shrink_to_fit=True"
+    
+    Set ts = fso.CreateTextFile(iniFilePath, True)
+    
+    For i = 1 To entryCol.Count
+        ts.WriteLine entryCol.Item(i)
+    Next i
+    
+    ts.Close
+End Sub

@@ -4,11 +4,11 @@ BEGIN
 END
 Attribute VB_Name = "WebCapabilities"
 Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
+Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to manage/set Selenium optional Capabilities - must be instantiated using WebDriver's CreateCapabilities method"
-'@ModuleDescription "This class is used to manage/set Selenium optional Capabilities - must be instantiated using WebDriver's CreateCapabilities method"
+'%ModuleDescription "This class is used to manage/set Selenium optional Capabilities - must be instantiated using WebDriver's CreateCapabilities method"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
@@ -104,7 +104,7 @@ End Enum
 ' Capability Settings
 '-------------------------------------------------------------------------
 
-'@Description("Sets a generic capability")
+'%Description("Sets a generic capability")
 Public Sub SetCapability(ByVal key As String, val As Variant)
 Attribute SetCapability.VB_Description = "Sets a generic capability"
     If IsObject(val) Then
@@ -119,13 +119,13 @@ Attribute SetCapability.VB_Description = "Sets a generic capability"
     End If
 End Sub
 
-'@Description("Sets the acceptInsecureCerts capability")
+'%Description("Sets the acceptInsecureCerts capability")
 Public Sub SetAcceptInsecureCerts(ByVal val As Boolean)
 Attribute SetAcceptInsecureCerts.VB_Description = "Sets the acceptInsecureCerts capability"
     Me.SetCapability "acceptInsecureCerts", val
 End Sub
 
-'@Description("Sets the unhandledPromptBehavior capability")
+'%Description("Sets the unhandledPromptBehavior capability")
 Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
 Attribute SetUnhandledPromptBehavior.VB_Description = "Sets the unhandledPromptBehavior capability"
     Me.SetCapability "unhandledPromptBehavior", GetAlertHandlingString(val)
@@ -135,7 +135,7 @@ End Sub
 ' Option Settings
 '-------------------------------------------------------------------------
 
-'@Description("Sets an option key/value")
+'%Description("Sets an option key/value")
 Public Sub SetOption(ByVal key As String, val As Variant)
 Attribute SetOption.VB_Description = "Sets an option key/value"
     'input val can be a string, a json string, array, or an object (dictionary or collection)
@@ -155,7 +155,7 @@ Attribute SetOption.VB_Description = "Sets an option key/value"
     End If
 End Sub
 
-'@Description("Adds a list of option excludeSwitches")
+'%Description("Adds a list of option excludeSwitches")
 Public Sub AddExcludeSwitches(ParamArray addList() As Variant)
 Attribute AddExcludeSwitches.VB_Description = "Adds a list of option excludeSwitches"
     Dim varry() As Variant
@@ -163,7 +163,7 @@ Attribute AddExcludeSwitches.VB_Description = "Adds a list of option excludeSwit
     AddToOptionList "excludeSwitches", ParamListToStringArray(varry)
 End Sub
 
-'@Description("Adds a list of option windowTypes")
+'%Description("Adds a list of option windowTypes")
 Public Sub AddWindowTypes(ParamArray addList() As Variant)
 Attribute AddWindowTypes.VB_Description = "Adds a list of option windowTypes"
     Dim varry() As Variant
@@ -171,7 +171,7 @@ Attribute AddWindowTypes.VB_Description = "Adds a list of option windowTypes"
     AddToOptionList "windowTypes", ParamListToStringArray(varry)
 End Sub
 
-'@Description("Adds a list of option extensions")
+'%Description("Adds a list of option extensions")
 Public Sub AddExtensions(ParamArray addList() As Variant)
 Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     Dim varry() As Variant
@@ -179,14 +179,14 @@ Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     AddToOptionList "extensions", ParamListToStringArray(varry)
 End Sub
 
-'@Description("Sets the binary option")
+'%Description("Sets the binary option")
 Public Sub SetBrowserBinary(ByVal browserPath As String)
 Attribute SetBrowserBinary.VB_Description = "Sets the binary option"
     'set the path to the browser executable to use
     Me.SetOption "binary", browserPath
 End Sub
 
-'@Description("Removes control notification for Edge/Chrome")
+'%Description("Removes control notification for Edge/Chrome")
 Public Sub RemoveControlNotification()
 Attribute RemoveControlNotification.VB_Description = "Removes control notification for Edge/Chrome"
     'this removes the "Chrome/Edge is being controlled by automated test software" browser notification
@@ -204,7 +204,7 @@ Attribute RemoveControlNotification.VB_Description = "Removes control notificati
     End Select
 End Sub
 
-'@Description("Sets the detach option for Edge/Chrome")
+'%Description("Sets the detach option for Edge/Chrome")
 Public Sub SetDetachBrowser(ByVal val As Boolean)
 Attribute SetDetachBrowser.VB_Description = "Sets the detach option for Edge/Chrome"
     'this sets whether browser is closed (false) or left open (true) when the driver is sent the shutdown command
@@ -218,7 +218,7 @@ End Sub
 ' Option Argument Settings
 '-------------------------------------------------------------------------
 
-'@Description("Adds a list of option arguments")
+'%Description("Adds a list of option arguments")
 Public Sub AddArguments(ParamArray addList() As Variant)
 Attribute AddArguments.VB_Description = "Adds a list of option arguments"
     Dim varry() As Variant
@@ -226,13 +226,13 @@ Attribute AddArguments.VB_Description = "Adds a list of option arguments"
     AddToOptionList "args", ParamListToStringArray(varry)
 End Sub
 
-'@Description("Runs headless argument mode")
+'%Description("Runs headless argument mode")
 Public Sub RunInvisible()
 Attribute RunInvisible.VB_Description = "Runs headless argument mode"
     Me.AddArguments "--headless"
 End Sub
 
-'@Description("Runs incognito/private argument mode")
+'%Description("Runs incognito/private argument mode")
 Public Sub RunIncognito()
 Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode"
     Select Case browser_
@@ -247,7 +247,7 @@ Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode"
     End Select
 End Sub
 
-'@Description("Sets a user-defined profile path")
+'%Description("Sets a user-defined profile path")
 Public Sub SetProfile(ByVal profilePath As String)
 Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     'this sets a user-defined profile - it will create and populate the profile directory even if it does not exist
@@ -273,7 +273,7 @@ Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     End Select
 End Sub
 
-'@Description("Sets the user agent string")
+'%Description("Sets the user agent string")
 Public Sub SetUserAgent(ByVal val As String)
 Attribute SetUserAgent.VB_Description = "Sets the user agent string"
     Select Case browser_
@@ -288,7 +288,7 @@ End Sub
 ' Option Preference Settings
 '-------------------------------------------------------------------------
 
-'@Description("Sets an option preference key/value")
+'%Description("Sets an option preference key/value")
 Public Sub SetPreference(ByVal key As String, ByVal val As Variant)
 Attribute SetPreference.VB_Description = "Sets an option preference key/value"
     'input val can be a string, a json string, or an object (dictionary)
@@ -314,7 +314,7 @@ Attribute SetPreference.VB_Description = "Sets an option preference key/value"
     End If
 End Sub
 
-'@Description("Sets auto-download preferences and directory path")
+'%Description("Sets auto-download preferences and directory path")
 Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
 Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and directory path"
     downloadDirectoryPath = WebShared.GetFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
@@ -350,21 +350,21 @@ End Sub
 '-------------------------------------------------------------------------
 
 '@DefaultMember
-'@Description("Returns a capabilities Dictionary object")
+'%Description("Returns a capabilities Dictionary object")
 Public Function Dictionary() As Dictionary
 Attribute Dictionary.VB_Description = "Returns a capabilities Dictionary object"
 Attribute Dictionary.VB_UserMemId = 0
     Set Dictionary = data_
 End Function
 
-'@Description("Returns Json string for qc")
+'%Description("Returns Json string for qc")
 Public Function ToJson() As String
 Attribute ToJson.VB_Description = "Returns Json string for qc"
     Dim jc As New WebJsonConverter
     ToJson = jc.ConvertToJson(data_, 4)
 End Function
 
-'@Description("Saves the capabilities to file path")
+'%Description("Saves the capabilities to file path")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
 Attribute SaveToFile.VB_Description = "Saves the capabilities to file path"
     Dim fso As New FileSystemObject
@@ -375,7 +375,7 @@ Attribute SaveToFile.VB_Description = "Saves the capabilities to file path"
     ts.Close
 End Sub
 
-'@Description("Loads the capabilities from file path")
+'%Description("Loads the capabilities from file path")
 Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json")
 Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     Dim fso As New FileSystemObject
@@ -384,34 +384,34 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
         
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbCrLf & vbCrLf & filePath
+    If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbCrLf & vbCrLf & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     Set data_ = jc.ParseJson(ts.ReadAll)
     ts.Close
     
-    If data_.Item("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
+    If data_.Item("browserName") <> WebShared.GetBrowserName(browser_) Then Err.Raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
-'@Description("Initializes capabilities object for Chrome browser")
+'%Description("Initializes capabilities object for Chrome browser")
 Public Sub InitializeForChrome()
 Attribute InitializeForChrome.VB_Description = "Initializes capabilities object for Chrome browser"
     InitializeFor svbaBrowser.Chrome
 End Sub
 
-'@Description("Initializes capabilities object for Edge browser")
+'%Description("Initializes capabilities object for Edge browser")
 Public Sub InitializeForEdge()
 Attribute InitializeForEdge.VB_Description = "Initializes capabilities object for Edge browser"
     InitializeFor svbaBrowser.Edge
 End Sub
 
-'@Description("Initializes capabilities object for Firefox browser")
+'%Description("Initializes capabilities object for Firefox browser")
 Public Sub InitializeForFirefox()
 Attribute InitializeForFirefox.VB_Description = "Initializes capabilities object for Firefox browser"
     InitializeFor svbaBrowser.Firefox
 End Sub
 
-'@Description("Initializes capabilities object for Edge IE Mode browser")
+'%Description("Initializes capabilities object for Edge IE Mode browser")
 Public Sub InitializeForIE()
 Attribute InitializeForIE.VB_Description = "Initializes capabilities object for Edge IE Mode browser"
     InitializeFor svbaBrowser.IE

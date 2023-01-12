@@ -1,0 +1,99 @@
+{
+	"configuration.inherits": "Defaults",
+	"project.appTitle": "SeleniumVBA",
+	"project.buildPath": "${SourcePath}\\Build\\${ProjectName}_${Architecture}.${FileExtension}",
+	"project.buildType": "ActiveX DLL",
+	"project.description": "SeleniumVBA",
+	"project.exportPathIsV2": true,
+	"project.id": "{38ED0FFA-E3F3-41C4-B601-B8B2BC442ACD}",
+	"project.name": "SeleniumVBA",
+	"project.optionExplicit": true,
+	"project.references": [
+		{
+			"id": "{00020430-0000-0000-C000-000000000046}",
+			"lcid": 0,
+			"name": "OLE Automation",
+			"path32": "C:\\Windows\\SysWOW64\\stdole2.tlb",
+			"path64": "C:\\Windows\\System32\\stdole2.tlb",
+			"versionMajor": 2,
+			"versionMinor": 0
+		},
+		{
+			"id": "{F50B82D0-DCAB-43FE-9631-11959D4A4728}",
+			"isCompilerPackage": true,
+			"licence": "MIT",
+			"name": "[COMPILER PACKAGE] WinNativeForms Package",
+			"path32": "",
+			"path64": "",
+			"publisher": "TWINBASIC-COMPILER",
+			"symbolId": "WinFormsPackage",
+			"versionBuild": 0,
+			"versionMajor": 0,
+			"versionMinor": 0,
+			"versionRevision": 31
+		},
+		{
+			"id": "{420B2830-E718-11CF-893D-00A0C9054228}",
+			"lcid": 0,
+			"name": "Microsoft Scripting Runtime",
+			"path32": "C:\\Windows\\SysWOW64\\scrrun.dll",
+			"path64": "C:\\Windows\\System32\\scrrun.dll",
+			"versionMajor": 1,
+			"versionMinor": 0
+		},
+		{
+			"id": "{50A7E9B0-70EF-11D1-B75A-00A0C90564FE}",
+			"lcid": 0,
+			"name": "Microsoft Shell Controls And Automation",
+			"path32": "C:\\Windows\\SysWOW64\\shell32.dll",
+			"path64": "",
+			"versionMajor": 1,
+			"versionMinor": 0
+		},
+		{
+			"id": "{565783C6-CB41-11D1-8B02-00600806D9B6}",
+			"lcid": 0,
+			"name": "Microsoft WMI Scripting V1.2 Library",
+			"path32": "C:\\Windows\\SysWOW64\\wbem\\wbemdisp.TLB",
+			"path64": "C:\\Windows\\System32\\wbem\\wbemdisp.TLB",
+			"versionMajor": 1,
+			"versionMinor": 2
+		},
+		{
+			"id": "{F5078F18-C551-11D3-89B9-0000F81FE221}",
+			"lcid": 0,
+			"name": "Microsoft XML, v6.0",
+			"path32": "C:\\Windows\\SysWOW64\\msxml6.dll",
+			"path64": "C:\\Windows\\System32\\msxml6.dll",
+			"versionMajor": 6,
+			"versionMinor": 0
+		},
+		{
+			"id": "{3050F1C5-98B5-11CF-BB82-00AA00BDCE0B}",
+			"lcid": 0,
+			"name": "Microsoft HTML Object Library",
+			"path32": "C:\\Windows\\SysWOW64\\mshtml.tlb",
+			"path64": "C:\\Windows\\System32\\mshtml.tlb",
+			"versionMajor": 4,
+			"versionMinor": 0
+		},
+		{
+			"id": "{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}",
+			"lcid": 0,
+			"name": "Windows Script Host Object Model",
+			"path32": "C:\\Windows\\SysWOW64\\wshom.ocx",
+			"path64": "C:\\Windows\\System32\\wshom.ocx",
+			"versionMajor": 1,
+			"versionMinor": 0
+		}
+	],
+	"project.versionBuild": 0,
+	"project.versionMajor": 3,
+	"project.versionMinor": 1,
+	"project.versionProductName": "SeleniumVBA",
+	"project.warnings": {
+		"errors": [],
+		"ignored": []
+	},
+	"runtime.useUnicodeStandardLibrary": true
+}

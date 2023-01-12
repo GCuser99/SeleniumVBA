@@ -4,11 +4,11 @@ BEGIN
 END
 Attribute VB_Name = "WebCookies"
 Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
+Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Attribute VB_Description = "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
-'@ModuleDescription "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
+'%ModuleDescription "This class is used to manage a collection of cookie objects - must be instantiated using WebDriver's CreateCookies method"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
@@ -60,26 +60,26 @@ Option Explicit
 Private colCookie As Collection
 Private driver_ As WebDriver
 
-'@Description("Adds a cookie to the collection")
+'%Description("Adds a cookie to the collection")
 Public Function Add(cookie As WebCookie) As WebCookie
 Attribute Add.VB_Description = "Adds a cookie to the collection"
     colCookie.Add cookie, cookie.Name
     Set Add = cookie
 End Function
 
-'@Description("Returns the number of cookies in the collection")
+'%Description("Returns the number of cookies in the collection")
 Public Property Get Count() As Integer
 Attribute Count.VB_Description = "Returns the number of cookies in the collection"
    Count = colCookie.Count
 End Property
 
-'@Description("Returns the number of cookies in the collection")
+'%Description("Returns the number of cookies in the collection")
 Public Property Get Size() As Integer
 Attribute Size.VB_Description = "Returns the number of cookies in the collection"
    Size = colCookie.Count
 End Property
 
-'@Description("Removes a cookie corresponding to the given index or cookie object")
+'%Description("Removes a cookie corresponding to the given index or cookie object")
 Public Sub Remove(indexOrCookie As Variant)
 Attribute Remove.VB_Description = "Removes a cookie corresponding to the given index or cookie object"
     If TypeName(indexOrCookie) = "Cookie" Then
@@ -90,7 +90,7 @@ Attribute Remove.VB_Description = "Removes a cookie corresponding to the given i
 End Sub
 
 '@DefaultMember
-'@Description("Returns the cookie of the provided name")
+'%Description("Returns the cookie of the provided name")
 Public Property Get Item(ByVal cookieName As Variant) As WebCookie
 Attribute Item.VB_Description = "Returns the cookie of the provided name"
 Attribute Item.VB_UserMemId = 0
@@ -99,7 +99,7 @@ Attribute Item.VB_UserMemId = 0
     Set Item = colCookie.Item(cookieName)
 End Property
 
-'@Description("Returns True if cookie object is already in the collection, False otherwise")
+'%Description("Returns True if cookie object is already in the collection, False otherwise")
 Public Function Exists(ByRef cookie As WebCookie) As Boolean
 Attribute Exists.VB_Description = "Returns True if cookie object is already in the collection, False otherwise"
     On Error GoTo Err
@@ -110,7 +110,7 @@ Err:
     Exists = False
 End Function
 
-'@Description("Saves the cookie collection to a file path")
+'%Description("Saves the cookie collection to a file path")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
 Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file path"
     Dim fs As New FileSystemObject
@@ -128,7 +128,7 @@ Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file pat
     ts.Close
 End Sub
 
-'@Description("Loads the cookie collection from a file path")
+'%Description("Loads the cookie collection from a file path")
 Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt") As WebCookies
 Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file path"
     Dim fs As New FileSystemObject
@@ -164,9 +164,9 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
 End Function
 
 '@Enumerator
-Public Function NewEnum() As IUnknown
-Attribute NewEnum.VB_UserMemId = -4
-    Set NewEnum = colCookie.[_NewEnum]
+Public Function _NewEnum() As IUnknown
+Attribute _NewEnum.VB_UserMemId = -4
+    Set _NewEnum = colCookie.[_NewEnum]
 End Function
 
 Friend Sub RemoveAll()
