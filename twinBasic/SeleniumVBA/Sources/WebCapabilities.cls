@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.2
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -179,11 +179,11 @@ Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     AddToOptionList "extensions", ParamListToStringArray(varry)
 End Sub
 
-'%Description("Sets the binary option")
+'%Description("Sets the path to the browser executable in a non-standard location")
 Public Sub SetBrowserBinary(ByVal browserPath As String)
-Attribute SetBrowserBinary.VB_Description = "Sets the binary option"
+Attribute SetBrowserBinary.VB_Description = "Sets the path to the browser executable in a non-standard location"
     'set the path to the browser executable to use
-    Me.SetOption "binary", browserPath
+    Me.SetOption "binary", WebShared.GetFullLocalPath(browserPath, driver_.DefaultIOFolder)
 End Sub
 
 '%Description("Removes control notification for Edge/Chrome")
@@ -384,13 +384,13 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
         
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbCrLf & vbCrLf & filePath
+    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbCrLf & vbCrLf & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     Set data_ = jc.ParseJson(ts.ReadAll)
     ts.Close
     
-    If data_.Item("browserName") <> WebShared.GetBrowserName(browser_) Then Err.Raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
+    If data_.Item("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
 '%Description("Initializes capabilities object for Chrome browser")

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.2
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99

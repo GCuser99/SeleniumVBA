@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.2
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -2185,6 +2185,7 @@ End Function
 
 '@Description("Creates a (optional) settings file that is initialized with system default settings")
 Public Sub CreateSettingsFile()
+Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file that is initialized with system default settings"
     Dim iniFilePath As String
     Dim fso As New FileSystemObject
     Dim ts As TextStream
@@ -2995,4 +2996,3 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
         
     Set ObjectifyScriptResponse = responseValue
 End Function
-

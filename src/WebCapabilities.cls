@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.2
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -179,11 +179,11 @@ Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     AddToOptionList "extensions", ParamListToStringArray(varry)
 End Sub
 
-'@Description("Sets the binary option")
+'@Description("Sets the path to the browser executable in a non-standard location")
 Public Sub SetBrowserBinary(ByVal browserPath As String)
-Attribute SetBrowserBinary.VB_Description = "Sets the binary option"
+Attribute SetBrowserBinary.VB_Description = "Sets the path to the browser executable in a non-standard location"
     'set the path to the browser executable to use
-    Me.SetOption "binary", browserPath
+    Me.SetOption "binary", WebShared.GetFullLocalPath(browserPath, driver_.DefaultIOFolder)
 End Sub
 
 '@Description("Removes control notification for Edge/Chrome")

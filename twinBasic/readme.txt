@@ -21,12 +21,12 @@ To upgrade an already existing registered Dll:
 
 1) Open up a command terminal and CD to the location of the Dll
 2) Unregister by entering into terminal: %systemroot%\System32\regsvr32.exe /u SeleniumVBA_win64.dll
-3) After unregistering, replace the old file with the new one
+3) After unregistering (not before!), replace the old file with the new one
 4) Register by entering into terminal: %systemroot%\System32\regsvr32.exe SeleniumVBA_win64.dll
 
 Method 2 - Using the twinBasic compiler with the supplied SeleniumVBA project folder
 
-1) Copy the entire SeleniumVBA folder found in this repo folder to a location of your choice
+1) Copy the entire SeleniumVBA folder found in this twinBasic repo folder to a location of your choice
 2) Download the latest version of twinBasic compiler from https://github.com/twinbasic/twinbasic/releases
 3) Open the compiler twinBASIC.exe
 4) Click Cancel on the New Project pop-up
@@ -38,7 +38,7 @@ Method 2 - Using the twinBasic compiler with the supplied SeleniumVBA project fo
 10) Go to File->Make/Build - you should see success messages in the immediate window
 11) Exit compiler
 
-The Registered Dll should be found in a folder "Build" under folder where the project was saved.
+The registered Dll should be found in a folder "Build" under folder where the project was saved.
 
 You can optionally copy the SeleniumVBA.ini file in this repo folder to the same folder as the Dll.
 

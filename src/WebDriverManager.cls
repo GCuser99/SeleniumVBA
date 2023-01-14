@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.2
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -100,6 +100,9 @@ Private Declare PtrSafe Function URLDownloadToFile Lib "urlmon" _
 
 Private mDefaultDriverFolder As String
 
+Private Const verBrowserNotFound As String = "-999.0.000.00"
+Private Const verDriverNotFound As String = "000.0.000.00"
+
 Public Enum svbaCompatibility
     svbaNotCompatible = 0
     svbaMajor = 1
@@ -141,19 +144,29 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     Dim respStr As String
     Dim dverInstalled As String
     
+    bverInstalled = GetInstalledBrowserVersion(browser)
+        
+    'user might be using a portable browser that will be set in capabilities
+    'so if browser is not found in registry, then set browser version to a
+    'dummy value and then install latest driver, if not already installed
+    If Left(bverInstalled, 5) = "Error" Then bverInstalled = verBrowserNotFound
+    
     Select Case browser
     Case svbaBrowser.Edge, svbaBrowser.Chrome
-        bverInstalled = GetInstalledBrowserVersion(browser)
-        'should error below be in GetInstalledBrowserVersion?
-        If Left(bverInstalled, 5) = "Error" Then Err.raise 1, "WebDriverManager", bverInstalled
+        
         dverInstalled = GetInstalledDriverVersion(browser, driverPath)
         
         'because of the way Edge and Chrome maintain synchrony between diver and browser version numbers
         'we can compare driver and browser version strings to determine compatibility
         If CheckCompatibilityLevel(bverInstalled, dverInstalled) < minCompatibilityLevel Then
+            
             'the installed driver version is sufficiently different than the installed browser version
             'so find the most compatible driver version for installed browser
-            dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+            If bverInstalled = verBrowserNotFound Then
+                dverCompat = GetLatestDriverVersion(browser)
+            Else
+                dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+            End If
             
             'check if we have an error and then take appropriate action
             If Left(dverCompat, 5) = "Error" Then
@@ -179,11 +192,14 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.Firefox
-        bverInstalled = GetInstalledBrowserVersion(browser)
-        If Left(bverInstalled, 5) = "Error" Then Err.raise 1, "WebDriverManager", bverInstalled
-        
+
         dverInstalled = GetInstalledDriverVersion(browser, driverPath)
-        dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+        
+        If bverInstalled = verBrowserNotFound Then
+            dverCompat = GetLatestDriverVersion(browser)
+        Else
+            dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+        End If
                  
         'check if we have an error and then take appropriate action
         If Left(dverCompat, 5) = "Error" Then
@@ -205,12 +221,14 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.IE
-        'edge needs to be installed
-        bverInstalled = GetInstalledBrowserVersion(browser)
-        If Left(bverInstalled, 5) = "Error" Then Err.raise 1, "WebDriverManager", bverInstalled
         
         dverInstalled = GetInstalledDriverVersion(browser, driverPath)
-        dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+        
+        If bverInstalled = verBrowserNotFound Then
+            dverCompat = GetLatestDriverVersion(browser)
+        Else
+            dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
+        End If
                  
         'check if we have an error and then take appropriate action
         If Left(dverCompat, 5) = "Error" Then
@@ -288,7 +306,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultDriverFolder)
     
     If Not fso.FileExists(driverPath) Then
-        GetInstalledDriverVersion = "000.0.000.00"
+        GetInstalledDriverVersion = verDriverNotFound
         Exit Function
     End If
     

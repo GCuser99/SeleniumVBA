@@ -89,7 +89,7 @@
 	],
 	"project.versionBuild": 0,
 	"project.versionMajor": 3,
-	"project.versionMinor": 1,
+	"project.versionMinor": 2,
 	"project.versionProductName": "SeleniumVBA",
 	"project.warnings": {
 		"errors": [],
