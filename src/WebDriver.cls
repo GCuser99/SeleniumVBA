@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.2
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -169,8 +169,8 @@ Private Type typCMD
     CMD_SET_WINDOW_RECT As Variant
     CMD_GET_WINDOW_RECT As Variant
     CMD_MAXIMIZE_WINDOW As Variant
-    'CMD_GET_LOCATION As Variant                   'not wrapped yet
-    'CMD_SET_LOCATION As Variant                   'not wrapped yet
+    CMD_GET_LOCATION As Variant
+    CMD_SET_LOCATION As Variant
     'CMD_GET_APP_CACHE_STATUS As Variant           'not wrapped yet
     'CMD_GET_NETWORK_CONNECTION As Variant         'not wrapped yet
     'CMD_SET_NETWORK_CONNECTION As Variant         'not wrapped yet
@@ -291,8 +291,8 @@ Private Sub InitCommands()
         .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
         .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
         .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-        '.CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-        '.CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+        .CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
+        .CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
         '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
         '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
         '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
@@ -2183,6 +2183,26 @@ Attribute PageToString.VB_Description = "Returns the current webpage source as a
     PageToString = Me.GetPageSource()
 End Function
 
+'@Description("Sets geolocation parameter values")
+Public Sub SetGeolocation(ByVal latitude As Double, ByVal longitude As Double, Optional ByVal altitude As Double = 0#, Optional ByVal accuracy As Double = 100#)
+Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
+    Dim data As New Dictionary
+    Dim location As New Dictionary
+    location.Add "latitude", latitude
+    location.Add "longitude", longitude
+    location.Add "altitude", altitude
+    location.Add "accuracy", accuracy
+    data.Add "location", location
+    Execute tCMD.CMD_SET_LOCATION, data
+End Sub
+
+'@Description("Gets geolocation parameter values as a dictionay object")
+Public Function GetGeolocation() As Dictionary
+Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as a dictionay object"
+    Dim data As New Dictionary
+    Set GetGeolocation = Execute(tCMD.CMD_GET_LOCATION, data)("value")
+End Function
+
 '@Description("Creates a (optional) settings file that is initialized with system default settings")
 Public Sub CreateSettingsFile()
 Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file that is initialized with system default settings"
@@ -2196,7 +2216,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     
     'if settings file already exists, then warn user
     If fso.FileExists(iniFilePath) Then
-        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbCrLf & vbCrLf & iniFilePath & vbCrLf & vbCrLf & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
+        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbNewLine & vbNewLine & iniFilePath & vbNewLine & vbNewLine & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
         If overWriteFile = vbNo Then Exit Sub
     End If
     

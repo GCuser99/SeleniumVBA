@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -65,7 +65,9 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         
         'check that reference path exists and notify user if not
         If Not fso.FolderExists(basePath) Then
-            Err.Raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+            If Not IsPathHTTPS(basePath) Then 'its a url which fso doesn't support - must trust that it exists (@6DiegoDiego9)
+                Err.raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+            End If
         End If
         
         'employ fso to make the conversion of relative path to absolute
@@ -111,6 +113,8 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
                         strSecPart = Mid(strSecPart, InStr(2, strSecPart, pathSep))
                         GetLocalOneDrivePath = strMountpoint & strSecPart
                     Loop
+                    Dim fso As New FileSystemObject
+                    If Not fso.FolderExists(GetLocalOneDrivePath) Then GetLocalOneDrivePath = strPath 'OneDrive folder excluded from sync (@6DiegoDiego9)
                     Exit Function
                 End If
             Next subKey
@@ -150,6 +154,10 @@ Public Function GetBrowserName(ByVal browser As svbaBrowser) As String
     End Select
 End Function
 
+
+
+
+
 Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
     'this searches input path for %[Environ Variable]% pattern and if found, then replaces with the path equivalent
     Dim ipos1 As Long
@@ -163,14 +171,14 @@ Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
         
         'check if trailing delimeter exists - raise error if not
         If ipos2 = -1 Then
-            Err.Raise 1, "WebShared", "Environment variable not formed properly - use ""%UserProfile%\Documents"" for example"
+            Err.raise 1, "WebShared", "Environment variable not formed properly - use ""%UserProfile%\Documents"" for example"
         End If
         
         'now make the substitution and return modified string
         environString = Mid(inputPath, ipos1, ipos2 - ipos1 + 1)
         expandedPath = Environ(environString)
         If expandedPath = "" Then
-            Err.Raise 1, "WebShared", "Environment variable """ & environString & """ used in path not recognized"
+            Err.raise 1, "WebShared", "Environment variable """ & environString & """ used in path not recognized"
         End If
         
         ExpandEnvironVariable = Replace(inputPath, "%" & environString & "%", expandedPath)
@@ -206,7 +214,7 @@ Public Function EnumTextToValue(ByVal enumText As String) As Long
     'this function converts an enum string read from the settings file to it's corresponding enum value
     enumText = Trim(enumText)
     If IsNumeric(enumText) Then
-        EnumTextToValue = VBA.Val(enumText)
+        EnumTextToValue = VBA.val(enumText)
         Exit Function
     End If
     Select Case LCase(enumText)
@@ -240,5 +248,9 @@ Public Function EnumTextToValue(ByVal enumText As String) As Long
         EnumTextToValue = svbaUnits.svbaCentimeters
     Case LCase("svbaInches")
         EnumTextToValue = svbaUnits.svbaInches
+    Case Else
+        Err.raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
     End Select
 End Function
+
+

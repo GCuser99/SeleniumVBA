@@ -259,3 +259,25 @@ Sub test_firefox_json_viewer_bug()
    
     driver.Shutdown
 End Sub
+
+Sub test_geolocation()
+    Dim driver As SeleniumVBA.WebDriver
+    
+    Set driver = SeleniumVBA.New_WebDriver
+
+    driver.StartFirefox
+    driver.OpenBrowser
+    
+    'firefox does not support geolocation commands
+    
+    driver.SetGeolocation 41.1621429, -8.6219537
+  
+    driver.NavigateTo "https://www.gps-coordinates.net/my-location"
+    driver.Wait 1000
+    
+    'print the name of the location
+    Debug.Print driver.FindElementByXPath("//*[@id='addr']").GetText
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub

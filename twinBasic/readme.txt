@@ -38,7 +38,7 @@ Method 2 - Using the twinBasic compiler with the supplied SeleniumVBA project fo
 10) Go to File->Make/Build - you should see success messages in the immediate window
 11) Exit compiler
 
-The registered Dll should be found in a folder "Build" under folder where the project was saved.
+The newly compiled and registered Dll should be found in a folder "Build" under folder where the project was saved.
 
 You can optionally copy the SeleniumVBA.ini file in this repo folder to the same folder as the Dll.
 

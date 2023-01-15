@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.2
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -384,7 +384,7 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
         
     filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbCrLf & vbCrLf & filePath
+    If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     Set data_ = jc.ParseJson(ts.ReadAll)

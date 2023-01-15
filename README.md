@@ -1,4 +1,4 @@
-## SeleniumVBA v3.2
+## SeleniumVBA v3.3
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Office VBA
 

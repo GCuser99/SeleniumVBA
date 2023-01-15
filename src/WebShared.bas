@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.2
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -65,7 +65,9 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         
         'check that reference path exists and notify user if not
         If Not fso.FolderExists(basePath) Then
-            Err.raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+            If Not IsPathHTTPS(basePath) Then 'its a url which fso doesn't support - must trust that it exists (@6DiegoDiego9)
+                Err.raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+            End If
         End If
         
         'employ fso to make the conversion of relative path to absolute
@@ -111,6 +113,8 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
                         strSecPart = Mid(strSecPart, InStr(2, strSecPart, pathSep))
                         GetLocalOneDrivePath = strMountpoint & strSecPart
                     Loop
+                    Dim fso As New FileSystemObject
+                    If Not fso.FolderExists(GetLocalOneDrivePath) Then GetLocalOneDrivePath = strPath 'OneDrive folder excluded from sync (@6DiegoDiego9)
                     Exit Function
                 End If
             Next subKey
@@ -164,7 +168,7 @@ Private Function ActiveVBAProjectFolderPath() As String
     'will throw an error so trap and report below...
     
     If Not VBAIsTrusted Then
-        Err.raise 1, "WebShared", "Error: No Access to VB Project" & vbLf & vbLf & "File > Options > Trust Center > Trust Center Settings > Macro Settings > Trust Access to VBA project object model"
+        Err.raise 1, "WebShared", "Error: No Access to VB Project" & vbNewLine & vbNewLine & "File > Options > Trust Center > Trust Center Settings > Macro Settings > Trust Access to VBA project object model"
     End If
     
     On Error Resume Next

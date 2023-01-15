@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.2
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -100,7 +100,7 @@ Private Declare PtrSafe Function URLDownloadToFile Lib "urlmon" _
 
 Private mDefaultDriverFolder As String
 
-Private Const verBrowserNotFound As String = "-999.0.000.00"
+Private Const verBrowserNotFound As String = "-99.0.000.00"
 Private Const verDriverNotFound As String = "000.0.000.00"
 
 Public Enum svbaCompatibility
@@ -145,21 +145,20 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     Dim dverInstalled As String
     
     bverInstalled = GetInstalledBrowserVersion(browser)
-        
     'user might be using a portable browser that will be set in capabilities
     'so if browser is not found in registry, then set browser version to a
     'dummy value and then install latest driver, if not already installed
     If Left(bverInstalled, 5) = "Error" Then bverInstalled = verBrowserNotFound
     
+    dverInstalled = GetInstalledDriverVersion(browser, driverPath)
+    
     Select Case browser
     Case svbaBrowser.Edge, svbaBrowser.Chrome
-        
-        dverInstalled = GetInstalledDriverVersion(browser, driverPath)
         
         'because of the way Edge and Chrome maintain synchrony between diver and browser version numbers
         'we can compare driver and browser version strings to determine compatibility
         If CheckCompatibilityLevel(bverInstalled, dverInstalled) < minCompatibilityLevel Then
-            
+        
             'the installed driver version is sufficiently different than the installed browser version
             'so find the most compatible driver version for installed browser
             If bverInstalled = verBrowserNotFound Then
@@ -167,7 +166,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             Else
                 dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
             End If
-            
+        
             'check if we have an error and then take appropriate action
             If Left(dverCompat, 5) = "Error" Then
                 If runSilent Then 'don't throw the error - just report back to caller
@@ -178,10 +177,11 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
                 End If
             End If
             
-            'its possible that the browser version is a dev version, and there is not
-            'an updated driver version, so check to make sure dverCompat is not already installed
-            'if they are different, then install the compatible driver
-            If dverCompat <> dverInstalled Then
+            'It's possible that the browser version is a dev version, and there is not
+            'an updated driver version. It's also possible that the browser was not found and
+            'that dverCompat is latest version. Check to make sure dverCompat and dverInstalled
+            'are sufficiently different, then if so, install the "compatible" driver
+            If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
                 DownloadAndInstallDriver browser, dverCompat, driverPath
                 dverInstalled = dverCompat
                 respStr = "The latest " & BrowserNameStr(browser) & " Webdriver was installed."
@@ -192,9 +192,9 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.Firefox
-
-        dverInstalled = GetInstalledDriverVersion(browser, driverPath)
-        
+                 
+        'the installed driver version is sufficiently different than the installed browser version
+        'so find the most compatible driver version for installed browser
         If bverInstalled = verBrowserNotFound Then
             dverCompat = GetLatestDriverVersion(browser)
         Else
@@ -221,9 +221,9 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.IE
-        
-        dverInstalled = GetInstalledDriverVersion(browser, driverPath)
-        
+    
+        'the installed driver version is sufficiently different than the installed browser version
+        'so find the most compatible driver version for installed browser
         If bverInstalled = verBrowserNotFound Then
             dverCompat = GetLatestDriverVersion(browser)
         Else

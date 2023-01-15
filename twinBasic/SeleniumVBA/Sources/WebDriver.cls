@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -63,12 +63,8 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 
 Option Explicit
 
-'set to True if auto-check-and-update desired
-'Private Const checkDriverBrowserVersionAlignment As Boolean = True
 Private checkDriverBrowserVersionAlignment As Boolean
 
-'set version compatibility threshold for triggering a driver update
-'Private Const minDriverBrowserCompatibilityLevel As Integer = svbaBuildMajor
 Private minDriverBrowserCompatibilityLevel As Long
 
 'desired lower bound of returned arrays
@@ -85,7 +81,6 @@ Private browser_ As svbaBrowser
 Private appWinStyle As VbAppWinStyle
 Private defaultIOFolder_ As String
 Private defaultDriverFolder_ As String
-
 
 Private preloadChromeCapabilitiesFilePath As String
 Private preloadEdgeCapabilitiesFilePath As String
@@ -174,8 +169,8 @@ Private Type typCMD
     CMD_SET_WINDOW_RECT As Variant
     CMD_GET_WINDOW_RECT As Variant
     CMD_MAXIMIZE_WINDOW As Variant
-    'CMD_GET_LOCATION As Variant                   'not wrapped yet
-    'CMD_SET_LOCATION As Variant                   'not wrapped yet
+    CMD_GET_LOCATION As Variant
+    CMD_SET_LOCATION As Variant
     'CMD_GET_APP_CACHE_STATUS As Variant           'not wrapped yet
     'CMD_GET_NETWORK_CONNECTION As Variant         'not wrapped yet
     'CMD_SET_NETWORK_CONNECTION As Variant         'not wrapped yet
@@ -225,12 +220,12 @@ Private Sub Class_Initialize()
     iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
     
     Me.CommandWindowStyle = EnumTextToValue(ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
-    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.NameSpace("shell:Downloads").Self.Path)
+    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
     Me.DefaultIOFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
     
     checkDriverBrowserVersionAlignment = ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True)
     minDriverBrowserCompatibilityLevel = EnumTextToValue(ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", svbaBuildMajor))
-    
+
     preloadChromeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString)
     preloadEdgeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
     preloadFirefoxCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
@@ -296,8 +291,8 @@ Private Sub InitCommands()
         .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
         .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
         .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-        '.CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-        '.CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+        .CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
+        .CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
         '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
         '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
         '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
@@ -370,7 +365,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     End If
     
     If Not fso.FileExists(driverPath) Then
-        Err.Raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
+        Err.raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
     End If
     
     commandStr = vbNullString: serviceArgs = vbNullString
@@ -396,7 +391,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+        Err.raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     End If
     
     'if we've got this far, then store some global variable values for later use
@@ -434,7 +429,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     Dim resp As Dictionary
     
     If sessionId_ <> vbNullString Then
-        Err.Raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
+        Err.raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
     End If
     
     If caps Is Nothing Then
@@ -459,7 +454,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     
     'needed for some reason to prevent error if command window is not hidden or minimized
     DoEvents
-    
+
     Set resp = Execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
     
     sessionId_ = resp("sessionId")
@@ -889,7 +884,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         'Create the JS string for the highlighting SetAttribute
         Dim borderColorString As String, backgroundColorString As String
         If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            Err.Raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+            Err.raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
         End If
         If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
             borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
@@ -932,8 +927,7 @@ ErrHnd:
 If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
     Resume Next
 Else
-    'With Err: Err.Raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
-    Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
+    With Err: Err.raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
 End If
 End Sub
 
@@ -1011,7 +1005,7 @@ Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     Dim resp As Dictionary
     
     If browser_ = svbaBrowser.Firefox Then
-        Err.Raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
+        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     data.Add "id", element.elementId
@@ -1030,7 +1024,7 @@ Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
     Dim resp As Dictionary
     
     If browser_ = svbaBrowser.Firefox Then
-        Err.Raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
+        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     data.Add "id", element.elementId
@@ -1379,7 +1373,7 @@ Attribute SetWindowRect.VB_Description = "Sets the position and size in screen p
     If IsMissing(y) Then y = rect("y")
     data.Add "x", x
     data.Add "y", y
-    data.Add "width", Width
+    data.Add "width", width
     data.Add "height", height
     Set SetWindowRect = Execute(tCMD.CMD_SET_WINDOW_RECT, data)("value")
 End Function
@@ -1391,7 +1385,7 @@ Attribute SetWindowSize.VB_Description = "Sets the size in screen pixels for the
     Set rect = GetWindowRect
     If IsMissing(width) Then width = rect("width")
     If IsMissing(height) Then height = rect("height")
-    SetWindowRect rect("x"), rect("y"), Width, height
+    SetWindowRect rect("x"), rect("y"), width, height
 End Sub
 
 '%Description("Sets the position in screen pixels for the active window")
@@ -1681,7 +1675,7 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     
     'insure that this function is being called in the correct order
     If browser_ = 0 Or sessionId_ <> vbNullString Then
-        Err.Raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        Err.raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
     End If
     
     'now initialize Capabilities
@@ -1885,7 +1879,7 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     'since only one browser per driver is allowed, this will return a collection of one
     'so lets return a more useful dictionary instead
     If browser_ = svbaBrowser.Firefox Then
-        Err.Raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
+        Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = Execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
@@ -1984,7 +1978,7 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
         If element.IsDisplayed Then Exit Do
         nowTime = VBA.Timer()
         Dim elapsedTime As Single
-        If nowTime < startTime Then 'oops - someone is burning the midnight oil!
+        If nowTime < startTime Then
             endTime = endTime - elapsedTime
             startTime = 0
         End If
@@ -2001,7 +1995,7 @@ Attribute GetUserAgent.VB_Description = "Returns the user agent string - must be
     If sessionId_ <> vbNullString Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        Err.Raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
+        Err.raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
     End If
 End Function
 
@@ -2084,7 +2078,7 @@ End Function
 Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
 Attribute TableToArray.VB_Description = "Returns an array holding the text values from a table or tbody element"
     Dim htmlDoc As New HTMLDocument
-    Dim htmlTbl As HTMLTable
+    Dim htmlTbl As htmlTable
 
     'convert the WebElement table into an html dom table object
     'input WebElement can either be a table or a tbody element
@@ -2101,7 +2095,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlTbl.innerHTML = table.GetOuterHTML
         Case Else 'report error
-            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
     Else
         'this is the work-around...
@@ -2111,10 +2105,10 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
         Case Else 'report error
-            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
         
-        Set htmlTbl = htmlDoc.body.children(0)
+        Set htmlTbl = htmlDoc.body.Children(0)
     End If
 
     TableToArray = htmlTableToArray(htmlTbl, skipHeader, skipFooter, createSpanData)
@@ -2132,7 +2126,7 @@ Attribute PageToHTMLDoc.VB_Description = "Converts webpage to an html document o
     If sanitize Then pageSource = sanitizeHTML(pageSource)
 
     If htmlDoc.documentMode >= 11 Then
-        htmlDoc.documentElement.innerHTML = pageSource
+        htmlDoc.DocumentElement.innerHTML = pageSource
         Set PageToHTMLDoc = htmlDoc
         Exit Function
     Else
@@ -2150,7 +2144,7 @@ End Function
 Public Function PageToXMLDoc() As MSXML2.DOMDocument60
 Attribute PageToXMLDoc.VB_Description = "Converts webpage to an xml document object"
     Dim xmlDoc As New MSXML2.DOMDocument60
-    xmlDoc.loadXML getXMLStringFromPage()
+    xmlDoc.LoadXML getXMLStringFromPage()
     Set PageToXMLDoc = xmlDoc
 End Function
 
@@ -2192,6 +2186,140 @@ Attribute PageToString.VB_Description = "Returns the current webpage source as a
     PageToString = Me.GetPageSource()
 End Function
 
+'%Description("Sets geolocation parameter values")
+Public Sub SetGeolocation(ByVal latitude As Double, ByVal longitude As Double, Optional ByVal altitude As Double = 0#, Optional ByVal accuracy As Double = 100#)
+Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
+    Dim data As New Dictionary
+    Dim location As New Dictionary
+    location.Add "latitude", latitude
+    location.Add "longitude", longitude
+    location.Add "altitude", altitude
+    location.Add "accuracy", accuracy
+    data.Add "location", location
+    Execute tCMD.CMD_SET_LOCATION, data
+End Sub
+
+'%Description("Gets geolocation parameter values as a dictionay object")
+Public Function GetGeolocation() As Dictionary
+Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as a dictionay object"
+    Dim data As New Dictionary
+    Set GetGeolocation = Execute(tCMD.CMD_GET_LOCATION, data)("value")
+End Function
+
+'%Description("Creates a (optional) settings file that is initialized with system default settings")
+Public Sub CreateSettingsFile()
+Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file that is initialized with system default settings"
+    Dim iniFilePath As String
+    Dim fso As New FileSystemObject
+    Dim ts As TextStream
+    Dim overWriteFile As Long
+    Dim i As Long
+    
+    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    
+    'if settings file already exists, then warn user
+    If fso.FileExists(iniFilePath) Then
+        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbNewLine & vbNewLine & iniFilePath & vbNewLine & vbNewLine & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
+        If overWriteFile = vbNo Then Exit Sub
+    End If
+    
+    Dim entryCol As New Collection
+    
+    entryCol.Add "# This settings file is completely optional. For it to have effect,"
+    entryCol.Add "# it must be located in the same folder as the SeleniumVBA code library."
+    entryCol.Add " "
+    entryCol.Add "# If a value for an entry is not specified, then the system"
+    entryCol.Add "# default value will be used."
+    entryCol.Add " "
+    entryCol.Add "# Note that all path-type entry values recognize the %[Environ]% syntax."
+    entryCol.Add " "
+    
+    entryCol.Add "[GENERAL]"
+    entryCol.Add " "
+    entryCol.Add "# The driver_location_folder system defaults to Downloads folder."
+    entryCol.Add "# The default_io_folder system defaults to the active vba project's"
+    entryCol.Add "# document location - leave this blank to use default."
+    entryCol.Add "# Valid values for command_window_style are vbHide (default), "
+    entryCol.Add "# vbNormalFocus, vbMinimizedFocus, vbMaximizedFocus, vbNormalNoFocus,"
+    entryCol.Add "# and vbMinimizedNoFocus."
+    entryCol.Add " "
+    entryCol.Add "driver_location_folder=%USERPROFILE%\Downloads"
+    entryCol.Add "default_io_folder="
+    entryCol.Add "command_window_style=vbHide"
+    entryCol.Add " "
+    
+    entryCol.Add "[AUTO-DRIVER-UPDATE]"
+    entryCol.Add " "
+    entryCol.Add "# If auto_detect_and_update=True (system default) then everytime"
+    entryCol.Add "# the WebDriver's Start* method is called, the Selenium driver's"
+    entryCol.Add "# version is checked against the corresponding browser version."
+    entryCol.Add "# If the driver is not compatible with browser, it will be updated."
+    entryCol.Add "# min_compatibility_level determines trigger for updating an"
+    entryCol.Add "# an out-of-date driver. System default is svbaBuildMajor."
+    entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
+    entryCol.Add "# for more frequent updating."
+    entryCol.Add " "
+    entryCol.Add "auto_detect_and_update=True"
+    entryCol.Add "min_compatibility_level=svbaBuildMajor"
+    entryCol.Add " "
+    
+    entryCol.Add "# Below are browser-specific initializations."
+    entryCol.Add "# To automatically initialize a set of capabilities each time the"
+    entryCol.Add "# OpenBrowser method of WebDriver class is invoked, set the"
+    entryCol.Add "# preload_capabilities_file_path entry to the path of a valid json"
+    entryCol.Add "# capabilities file. Note that if preload_capabilities_file_path is"
+    entryCol.Add "# set to a blank value, or the entry is missing or commented out,"
+    entryCol.Add "# then this option is ignored. Use the SaveToFile method of the"
+    entryCol.Add "# WebCapabilities class to save a default set of capabilities"
+    entryCol.Add "# for pre-loading."
+    entryCol.Add " "
+    
+    entryCol.Add "[CHROME]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+
+    entryCol.Add "[EDGE]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[FIREFOX]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[INTERNET EXPLORER]"
+    entryCol.Add " "
+    entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add " "
+    
+    entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
+    entryCol.Add " "
+    entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
+    entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
+    entryCol.Add " "
+    entryCol.Add "units=svbaInches"
+    entryCol.Add "page_height=11"
+    entryCol.Add "page_width=8.5"
+    entryCol.Add "margin_bottom=.393701"
+    entryCol.Add "margin_top=.393701"
+    entryCol.Add "margin_right=.393701"
+    entryCol.Add "margin_left=.393701"
+    entryCol.Add "background=False"
+    entryCol.Add "orientation=svbaPortrait"
+    entryCol.Add "print_scale=1.0"
+    entryCol.Add "shrink_to_fit=True"
+    
+    Set ts = fso.CreateTextFile(iniFilePath, True)
+    
+    For i = 1 To entryCol.Count
+        ts.WriteLine entryCol.Item(i)
+    Next i
+    
+    ts.Close
+End Sub
+
 Friend Function Execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
     Dim cmdMethod As String
     Dim cmdPath As String
@@ -2213,7 +2341,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
         parameters.Add "sessionId", sessionId_
     End If
     
-    For Each parmKey In parameters.Keys
+    For Each parmKey In parameters.keys
         If InStr(cmdPath, "$" & parmKey) > 0 Then 'path parameter
             cmdPath = Replace(cmdPath, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
@@ -2226,7 +2354,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     
     'Send request to selenium server
 
-    client.open cmdMethod, driverUrl_ & cmdPath
+    client.Open cmdMethod, driverUrl_ & cmdPath
     
     'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
     client.setTimeouts 0, 60000, 30000, 0
@@ -2247,7 +2375,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         'Debug.Print GetResponseErrorMessage(response)
-        Err.Raise client.status, "WebDriver", GetResponseErrorMessage(response)
+        Err.raise client.status, "WebDriver", GetResponseErrorMessage(response)
     End If
 
     Set Execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
@@ -2295,7 +2423,7 @@ Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
 End Function
 
 Private Function rgbLongToString(ByVal rgbColor As Long) As String
-    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.Raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
+    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
     Dim r As Long
     Dim g As Long
     Dim b As Long
@@ -2309,7 +2437,7 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
     Select Case TypeName(elementOrElements)
         Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
         Case "WebElements": Set ObjToWebElements = elementOrElements
-        Case Else: Err.Raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+        Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
 
@@ -2339,7 +2467,7 @@ Private Function DecodeBase64(ByVal strData As String) As Byte()
     Dim domNode As MSXML2.IXMLDOMElement
     'create node with type of base 64 and decode
     Set domNode = domDoc.createElement("b64")
-    domNode.dataType = "bin.base64"
+    domNode.DataType = "bin.base64"
     domNode.text = strData
     DecodeBase64 = domNode.nodeTypedValue
 End Function
@@ -2408,7 +2536,7 @@ Private Function TaskKillByPid(ByVal pid As String) As Variant
     TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function
 
-Private Function htmlTableToArray(table As HTMLTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
     Dim row As HTMLTableRow
     Dim cell As HTMLTableCell
     Dim cellChild As HTMLHtmlElement
@@ -2424,24 +2552,24 @@ Private Function htmlTableToArray(table As HTMLTable, Optional ByVal skipHeader 
     
     If createSpanData Then
         'first handle row spans
-        For Each row In table.rows
+        For Each row In table.Rows
             For Each cell In row.cells
                 rowSpan = cell.rowSpan
                 If rowSpan > 1 Then
-                    For i = row.rowIndex + 1 To row.rowIndex + rowSpan - 1
-                        table.rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
+                    For i = row.RowIndex + 1 To row.RowIndex + rowSpan - 1
+                        table.Rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
                     Next i
                 End If
             Next cell
         Next row
         
         'now process column spans
-        For Each row In table.rows
+        For Each row In table.Rows
             For Each cell In row.cells
                 colSpan = cell.colSpan
                 If colSpan > 1 Then
                     For i = 1 To colSpan - 1
-                        row.insertCell(row.cells.length).innerText = cell.innerText
+                        row.insertCell(row.cells.Length).innerText = cell.innerText
                     Next i
                 End If
             Next cell
@@ -2449,32 +2577,32 @@ Private Function htmlTableToArray(table As HTMLTable, Optional ByVal skipHeader 
     End If
     
     'calculate the number of array columns needed for output
-    For Each row In table.rows
-        If row.cells.length > maxCols Then maxCols = row.cells.length
+    For Each row In table.Rows
+        If row.cells.Length > maxCols Then maxCols = row.cells.Length
     Next row
     
     'dimension output array
-    ReDim v(baseArrayIdx To table.rows.length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
+    ReDim v(baseArrayIdx To table.Rows.Length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
     
     'extract cell data (td and th elements) from each row
-    For Each row In table.rows
+    For Each row In table.Rows
         For Each cell In row.cells
             'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
             'search to see if there is at least one table
             'if there are more than one in the cell then only process first!
-            If cell.children.Length > 0 Then
+            If cell.Children.Length > 0 Then
                 foundTable = False
-                For Each cellChild In cell.children
+                For Each cellChild In cell.Children
                     If cellChild.tagName = "TABLE" Then
                         'recursive call to TableToArray
-                        v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData)
+                        v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData)
                         foundTable = True
                         Exit For
                     End If
                 Next cellChild
-                If Not foundTable Then v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
+                If Not foundTable Then v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
             Else
-                v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
+                v(row.RowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
             End If
         Next cell
     Next row
@@ -2493,7 +2621,7 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
         str = Me.GetPageSource
     End Select
     
-    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.Raise 1, "WebDriver", "Error: The page source is not XML format!"
+    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
     
     If prettyPrint Then str = formatXML(str)
     
@@ -2513,7 +2641,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
             If Me.IsPresent(By.ID, "rawdata-tab") Then
                 Me.FindElementByID("rawdata-tab").Click
             Else
-                Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
+                Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
             End If
         End If
         
@@ -2526,7 +2654,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         If Me.IsPresent(By.tagName, "pre") Then
             str = Me.FindElementByTagName("pre").GetText
         Else
-            Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
+            Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
         End If
     End If
     
@@ -2594,61 +2722,61 @@ Private Function sanitizeHTML(ByVal str As String) As String
     
     'disable scripts
     Set elems = parentElem.querySelectorAll("script")
-    For i = 0 To elems.length - 1
+    For i = 0 To elems.Length - 1
         If htmlDoc.documentMode >= 11 Then
             'these work in Office 365, but appear not to work on some 64-bit systems
-            Set elem = elems.item(i)
+            Set elem = elems.Item(i)
             elem.innerText = vbNullString
         Else
             'so we use the node replace method to empty script
-            Set scriptNode = elems.item(i)
+            Set scriptNode = elems.Item(i)
             Set emptyScript = htmlDoc.createElement("script")
-            scriptNode.parentNode.replaceChild emptyScript, scriptNode
+            scriptNode.ParentNode.replaceChild emptyScript, scriptNode
         End If
     Next i
     
     'disable redirect
     Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "content", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "content", vbNullString
     Next i
     
     'disable src attributes
     Set elems = parentElem.querySelectorAll("*[src]")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "src", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "src", vbNullString
     Next i
     
     'disable srcset attributes
     Set elems = parentElem.querySelectorAll("*[srcset]")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "srcset", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "srcset", vbNullString
     Next i
     
     'disable href attributes
     Set elems = parentElem.querySelectorAll("*[href]")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        If Not (elem.getAttribute("href") Like "about:blank*") Then
-            elem.setAttribute "href", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        If Not (elem.GetAttribute("href") Like "about:blank*") Then
+            elem.SetAttribute "href", vbNullString
         End If
     Next i
     
     'disable rel attributes
     Set elems = parentElem.querySelectorAll("*[rel]")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "rel", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "rel", vbNullString
     Next i
     
     'disable url() function in style elements
     If htmlDoc.documentMode >= 11 Then
         Set elems = parentElem.querySelectorAll("style")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
+        For i = 0 To elems.Length - 1
+            Set elem = elems.Item(i)
             subStr = LCase(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
             foundOne = False
             ipos1 = InStr(1, subStr, "url(")
@@ -2667,9 +2795,9 @@ Private Function sanitizeHTML(ByVal str As String) As String
     
     'disable url() function in style attributes
     Set elems = parentElem.querySelectorAll("[style*='url(']")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        subStr = LCase(elem.getAttribute("style"))
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        subStr = LCase(elem.GetAttribute("style"))
         foundOne = False
         ipos1 = InStr(1, subStr, "url(")
         Do While ipos1
@@ -2679,28 +2807,28 @@ Private Function sanitizeHTML(ByVal str As String) As String
             ipos1 = InStr(ipos1 + 5, subStr, "url(")
             DoEvents
         Loop
-        If foundOne Then elem.setAttribute "style", subStr
+        If foundOne Then elem.SetAttribute "style", subStr
     Next i
     
     'disable action attributes in form elements
     Set elems = parentElem.querySelectorAll("form[action]")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "action", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "action", vbNullString
     Next i
     
     'disable as attributes equal to "script" in link elements
     Set elems = parentElem.querySelectorAll("link[as='script']")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "as", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "as", vbNullString
     Next i
     
     'disable data attributes in object elements
     Set elems = parentElem.querySelectorAll("object[data]")
-    For i = 0 To elems.length - 1
-        Set elem = elems.item(i)
-        elem.setAttribute "data", vbNullString
+    For i = 0 To elems.Length - 1
+        Set elem = elems.Item(i)
+        elem.SetAttribute "data", vbNullString
     Next i
     
     'disable on* event attributes
@@ -2708,12 +2836,12 @@ Private Function sanitizeHTML(ByVal str As String) As String
     For j = 0 To UBound(eventsArray)
         eventStr = eventsArray(j)
         Set elems = parentElem.querySelectorAll("*[" & eventStr & "]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
+        For i = 0 To elems.Length - 1
+            Set elem = elems.Item(i)
             'can't use SetAttribute for on* event attributes so let's remove it instead
             elem.removeAttribute eventStr
             'add a replacement attribute with dummy suffix - will remove suffix with replace after dom processing
-            elem.setAttribute eventStr & "___xxx123", vbNullString
+            elem.SetAttribute eventStr & "___xxx123", vbNullString
         Next i
     Next j
 
@@ -2740,9 +2868,9 @@ Private Function formatXML(ByVal val As String) As String
     Dim xmlDocFormatted As New MSXML2.DOMDocument60
     Dim xmlDoc As New MSXML2.DOMDocument60
     
-    xmlDoc.loadXML val
+    xmlDoc.LoadXML val
     
-    xslDoc.loadXML "<?xml version=" & Chr(34) & "1.0" & Chr(34) & "?>" _
+    xslDoc.LoadXML "<?xml version=" & Chr(34) & "1.0" & Chr(34) & "?>" _
             & "<xsl:stylesheet version=" & Chr(34) & "1.0" & Chr(34) _
             & "                xmlns:xsl=" & Chr(34) & "http://www.w3.org/1999/XSL/Transform" & Chr(34) & ">" _
             & "<xsl:strip-space elements=" & Chr(34) & "*" & Chr(34) & " />" _
@@ -2757,7 +2885,7 @@ Private Function formatXML(ByVal val As String) As String
     
     xslDoc.async = False
     xmlDoc.transformNodeToObject xslDoc, xmlDocFormatted
-    formatXML = xmlDocFormatted.xml
+    formatXML = xmlDocFormatted.XML
 End Function
 
 Private Function fixFirefoxBug1797871(ByVal str As String) As String
@@ -2891,108 +3019,3 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
         
     Set ObjectifyScriptResponse = responseValue
 End Function
-
-'%Description("Creates a (optional) settings file with default settings")
-Public Sub CreateSettingsFile()
-Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file with default settings"
-    Dim iniFilePath As String
-    Dim fso As New FileSystemObject
-    Dim ts As TextStream
-    Dim overWriteFile As Long
-    Dim i As Long
-    
-    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
-    
-    'if settings file already exists, then warn user
-    If fso.FileExists(iniFilePath) Then
-        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbCrLf & vbCrLf & iniFilePath & vbCrLf & vbCrLf & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
-        If overWriteFile = vbNo Then Exit Sub
-    End If
-    
-    Dim entryCol As New Collection
-    
-    entryCol.Add "# Note: if value for an entry is not specified, then system default"
-    entryCol.Add "# value will be used."
-    entryCol.Add " "
-    entryCol.Add "# Note: all path-type entries below recognize the %[Environ]% syntax."
-    entryCol.Add " "
-    
-    entryCol.Add "[GENERAL]"
-    entryCol.Add " "
-    entryCol.Add "# driver_location_folder system defaults to Downloads folder."
-    entryCol.Add "# default_io_folder system defaults to the active vba project's"
-    entryCol.Add "# document location - leave this blank to use default."
-    entryCol.Add " "
-    entryCol.Add "driver_location_folder=%USERPROFILE%\Downloads"
-    entryCol.Add "default_io_folder="
-    entryCol.Add "command_window_style=vbHide"
-    entryCol.Add " "
-    
-    entryCol.Add "[AUTO-DRIVER-UPDATE]"
-    entryCol.Add " "
-    entryCol.Add "# If auto_detect_and_update=True (system default) then everytime"
-    entryCol.Add "# the WebDriver's Start* method is called, the Selenium driver's"
-    entryCol.Add "# version is checked against the corresponding browser version."
-    entryCol.Add "# If the driver is not compatible with browser, it will be updated."
-    entryCol.Add "# min_compatibility_level determines trigger for updating an"
-    entryCol.Add "# an out-of-date driver. System default is svbaBuildMajor."
-    entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
-    entryCol.Add "# for more frequent updating."
-    entryCol.Add " "
-    entryCol.Add "auto_detect_and_update=True"
-    entryCol.Add "min_compatibility_level=svbaBuildMajor"
-    entryCol.Add " "
-    
-    entryCol.Add "# Below are browser-specific initializations."
-    entryCol.Add "# Set preload_capabilities_file_path to a json capabilities file path"
-    entryCol.Add "# to automatically initialize a set of capabilities each time that the"
-    entryCol.Add "# OpenBrowser method of WebDriver class is invoked. Note that if"
-    entryCol.Add "# preload_capabilities_file_path is set to a blank value, invalid,"
-    entryCol.Add "# or the entry is missing or commented out, then this option is ignored."
-    entryCol.Add " "
-    
-    entryCol.Add "[CHROME]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-
-    entryCol.Add "[EDGE]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-    
-    entryCol.Add "[FIREFOX]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-    
-    entryCol.Add "[INTERNET EXPLORER]"
-    entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add " "
-    
-    entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
-    entryCol.Add " "
-    entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
-    entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
-    entryCol.Add " "
-    entryCol.Add "units=svbaInches"
-    entryCol.Add "page_height=11"
-    entryCol.Add "page_width=8.5"
-    entryCol.Add "margin_bottom=.393701"
-    entryCol.Add "margin_top=.393701"
-    entryCol.Add "margin_right=.393701"
-    entryCol.Add "margin_left=.393701"
-    entryCol.Add "background=False"
-    entryCol.Add "orientation=svbaPortrait"
-    entryCol.Add "print_scale=1.0"
-    entryCol.Add "shrink_to_fit=True"
-    
-    Set ts = fso.CreateTextFile(iniFilePath, True)
-    
-    For i = 1 To entryCol.Count
-        ts.WriteLine entryCol.Item(i)
-    Next i
-    
-    ts.Close
-End Sub
