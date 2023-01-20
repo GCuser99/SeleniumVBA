@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.1
+' SeleniumVBA v3.3
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -169,8 +169,8 @@ Private Type typCMD
     CMD_SET_WINDOW_RECT As Variant
     CMD_GET_WINDOW_RECT As Variant
     CMD_MAXIMIZE_WINDOW As Variant
-    'CMD_GET_LOCATION As Variant                   'not wrapped yet
-    'CMD_SET_LOCATION As Variant                   'not wrapped yet
+    CMD_GET_LOCATION As Variant
+    CMD_SET_LOCATION As Variant
     'CMD_GET_APP_CACHE_STATUS As Variant           'not wrapped yet
     'CMD_GET_NETWORK_CONNECTION As Variant         'not wrapped yet
     'CMD_SET_NETWORK_CONNECTION As Variant         'not wrapped yet
@@ -291,8 +291,8 @@ Private Sub InitCommands()
         .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
         .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
         .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-        '.CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-        '.CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+        .CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
+        .CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
         '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
         '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
         '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
@@ -365,7 +365,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     End If
     
     If Not fso.FileExists(driverPath) Then
-        err.raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
+        Err.raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
     End If
     
     commandStr = vbNullString: serviceArgs = vbNullString
@@ -391,7 +391,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        err.raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+        Err.raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     End If
     
     'if we've got this far, then store some global variable values for later use
@@ -429,7 +429,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     Dim resp As Dictionary
     
     If sessionId_ <> vbNullString Then
-        err.raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
+        Err.raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
     End If
     
     If caps Is Nothing Then
@@ -881,7 +881,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         'Create the JS string for the highlighting SetAttribute
         Dim borderColorString As String, backgroundColorString As String
         If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            err.raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+            Err.raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
         End If
         If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
             borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
@@ -921,10 +921,10 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
     End If
     Exit Sub
 ErrHnd:
-If err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
+If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
     Resume Next
 Else
-    With err: err.raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
+    With Err: Err.raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
 End If
 End Sub
 
@@ -1002,7 +1002,7 @@ Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     Dim resp As Dictionary
     
     If browser_ = svbaBrowser.Firefox Then
-        err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
+        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     data.Add "id", element.elementId
@@ -1021,7 +1021,7 @@ Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
     Dim resp As Dictionary
     
     If browser_ = svbaBrowser.Firefox Then
-        err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
+        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
     End If
     
     data.Add "id", element.elementId
@@ -1513,7 +1513,7 @@ Attribute Wait.VB_Description = "Pauses in-line execution for the specified numb
     'these native methods below mysteriously interfere with/accept browser alerts -
     'maybe because they are browser-level, not system-level?
     '
-    'WebActionChain.Wait(milliseconds).Perform
+    'ActionChain.Wait(milliseconds).Perform
     '
     'If milliseconds > 30000 Then SetScriptTimeout 2 * milliseconds '30000 is the default, so this isn't needed unless waitTime > 30 secs is needed
     'ExecuteScriptAsync "window.setTimeout(arguments[arguments.length - 1], arguments[0]);", milliseconds
@@ -1672,7 +1672,7 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     
     'insure that this function is being called in the correct order
     If browser_ = 0 Or sessionId_ <> vbNullString Then
-        err.raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        Err.raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
     End If
     
     'now initialize Capabilities
@@ -1797,7 +1797,7 @@ Attribute GetAllCookies.VB_Description = "Returns the collection of cookies for 
         If resp(i).Exists("httpOnly") Then cookie.HttpOnly = resp(i)("httpOnly")
         If resp(i).Exists("sameSite") Then cookie.SameSite = resp(i)("sameSite")
         If resp(i).Exists("secure") Then cookie.Secure = resp(i)("secure")
-        If resp(i).Exists("value") Then cookie.value = resp(i)("value")
+        If resp(i).Exists("value") Then cookie.Value = resp(i)("value")
         If resp(i).Exists("path") Then cookie.Path = resp(i)("path")
         cookies.Add cookie
     Next i
@@ -1818,7 +1818,7 @@ Attribute GetCookie.VB_Description = "Returns a cookie having the specified name
     If resp.Exists("httpOnly") Then cookie.HttpOnly = resp("httpOnly")
     If resp.Exists("sameSite") Then cookie.SameSite = resp("sameSite")
     If resp.Exists("secure") Then cookie.Secure = resp("secure")
-    If resp.Exists("value") Then cookie.value = resp("value")
+    If resp.Exists("value") Then cookie.Value = resp("value")
     If resp.Exists("path") Then cookie.Path = resp("path")
     Set GetCookie = cookie
 End Function
@@ -1838,7 +1838,7 @@ Attribute SetCookie.VB_Description = "Sets a cookie object"
     'value can take a number string greater than 15 digits
     'need to set the following in JSonConverter else  will get an error on execute (see sendRequest):
     'jc.OptionsUseDoubleForLargeNumbers = True
-    If cookie.Name <> vbNullString And cookie.value <> vbNullString Then
+    If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
         data.Add "cookie", cookie.ToDictionary
         Execute tCMD.CMD_ADD_COOKIE, data
     End If
@@ -1876,7 +1876,7 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     'since only one browser per driver is allowed, this will return a collection of one
     'so lets return a more useful dictionary instead
     If browser_ = svbaBrowser.Firefox Then
-        err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
+        Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = Execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
@@ -1992,7 +1992,7 @@ Attribute GetUserAgent.VB_Description = "Returns the user agent string - must be
     If sessionId_ <> vbNullString Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        err.raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
+        Err.raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
     End If
 End Function
 
@@ -2092,7 +2092,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlTbl.innerHTML = table.GetOuterHTML
         Case Else 'report error
-            err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
     Else
         'this is the work-around...
@@ -2102,7 +2102,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
         Case Else 'report error
-            err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
         
         Set htmlTbl = htmlDoc.body.Children(0)
@@ -2183,8 +2183,29 @@ Attribute PageToString.VB_Description = "Returns the current webpage source as a
     PageToString = Me.GetPageSource()
 End Function
 
+'@Description("Sets geolocation parameter values")
+Public Sub SetGeolocation(ByVal latitude As Double, ByVal longitude As Double, Optional ByVal altitude As Double = 0#, Optional ByVal accuracy As Double = 100#)
+Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
+    Dim data As New Dictionary
+    Dim location As New Dictionary
+    location.Add "latitude", latitude
+    location.Add "longitude", longitude
+    location.Add "altitude", altitude
+    location.Add "accuracy", accuracy
+    data.Add "location", location
+    Execute tCMD.CMD_SET_LOCATION, data
+End Sub
+
+'@Description("Gets geolocation parameter values as a dictionay object")
+Public Function GetGeolocation() As Dictionary
+Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as a dictionay object"
+    Dim data As New Dictionary
+    Set GetGeolocation = Execute(tCMD.CMD_GET_LOCATION, data)("value")
+End Function
+
 '@Description("Creates a (optional) settings file that is initialized with system default settings")
 Public Sub CreateSettingsFile()
+Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file that is initialized with system default settings"
     Dim iniFilePath As String
     Dim fso As New FileSystemObject
     Dim ts As TextStream
@@ -2195,7 +2216,7 @@ Public Sub CreateSettingsFile()
     
     'if settings file already exists, then warn user
     If fso.FileExists(iniFilePath) Then
-        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbCrLf & vbCrLf & iniFilePath & vbCrLf & vbCrLf & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
+        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbNewLine & vbNewLine & iniFilePath & vbNewLine & vbNewLine & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
         If overWriteFile = vbNo Then Exit Sub
     End If
     
@@ -2351,7 +2372,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     
     If raise And IsResponseError(response) Then 'raise error if occurs
         Debug.Print GetResponseErrorMessage(response)
-        err.raise client.status, "WebDriver", GetResponseErrorMessage(response)
+        Err.raise client.status, "WebDriver", GetResponseErrorMessage(response)
     End If
 
     Set Execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
@@ -2399,7 +2420,7 @@ Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
 End Function
 
 Private Function rgbLongToString(ByVal rgbColor As Long) As String
-    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
+    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
     Dim r As Long
     Dim g As Long
     Dim b As Long
@@ -2413,12 +2434,29 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
     Select Case TypeName(elementOrElements)
         Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
         Case "WebElements": Set ObjToWebElements = elementOrElements
-        Case Else: err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+        Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
 
 Private Sub TimerWait(ByVal durationMS As Long)
-    WebShared.Sleep CCur(durationMS)
+    'pause in milliseconds
+    Dim startTime As Single
+    Dim endTime As Single
+    Dim nowTime As Single
+    Dim elapsedTime As Single
+    
+    startTime = VBA.Timer()
+    nowTime = startTime
+    endTime = startTime + durationMS / 1000#
+    Do While nowTime < endTime
+        nowTime = VBA.Timer()
+        If nowTime < startTime Then
+            endTime = endTime - elapsedTime
+            startTime = 0
+        End If
+        elapsedTime = nowTime - startTime
+        DoEvents    'yield to other processes.
+    Loop
 End Sub
 
 Private Function DecodeBase64(ByVal strData As String) As Byte()
@@ -2580,7 +2618,7 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
         str = Me.GetPageSource
     End Select
     
-    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then err.raise 1, "WebDriver", "Error: The page source is not XML format!"
+    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
     
     If prettyPrint Then str = formatXML(str)
     
@@ -2600,7 +2638,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
             If Me.IsPresent(By.ID, "rawdata-tab") Then
                 Me.FindElementByID("rawdata-tab").Click
             Else
-                err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+                Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
             End If
         End If
         
@@ -2613,7 +2651,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         If Me.IsPresent(By.tagName, "pre") Then
             str = Me.FindElementByTagName("pre").GetText
         Else
-            err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+            Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
         End If
     End If
     
