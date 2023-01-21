@@ -164,8 +164,8 @@ Private Type typCMD
     CMD_SET_ALERT_TEXT As Variant
     CMD_GET_ALERT_TEXT As Variant
     CMD_CLICK As Variant
-    'CMD_ACTIONS As Variant                        'used in ActionChain.cls
-    'CMD_CLEAR_ACTIONS As Variant                  'used in ActionChain.cls
+    'CMD_ACTIONS As Variant                        'used in WebActionChain.cls
+    'CMD_CLEAR_ACTIONS As Variant                  'used in WebActionChain.cls
     CMD_SET_WINDOW_RECT As Variant
     CMD_GET_WINDOW_RECT As Variant
     CMD_MAXIMIZE_WINDOW As Variant
@@ -286,8 +286,8 @@ Private Sub InitCommands()
         .CMD_SET_ALERT_TEXT = Array("POST", "/session/$sessionId/alert/text")
         .CMD_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
         .CMD_CLICK = Array("POST", "/session/$sessionId/click")
-        '.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in ActionChain.cls
-        '.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in ActionChain.cls
+        '.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in WebActionChain.cls
+        '.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in WebActionChain.cls
         .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
         .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
         .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
@@ -2439,24 +2439,7 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
 End Function
 
 Private Sub TimerWait(ByVal durationMS As Long)
-    'pause in milliseconds
-    Dim startTime As Single
-    Dim endTime As Single
-    Dim nowTime As Single
-    Dim elapsedTime As Single
-    
-    startTime = VBA.Timer()
-    nowTime = startTime
-    endTime = startTime + durationMS / 1000#
-    Do While nowTime < endTime
-        nowTime = VBA.Timer()
-        If nowTime < startTime Then
-            endTime = endTime - elapsedTime
-            startTime = 0
-        End If
-        elapsedTime = nowTime - startTime
-        DoEvents    'yield to other processes.
-    Loop
+    WebShared.Sleep CCur(durationMS)
 End Sub
 
 Private Function DecodeBase64(ByVal strData As String) As Byte()
