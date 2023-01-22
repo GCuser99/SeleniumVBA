@@ -1,8 +1,6 @@
-## SeleniumVBA v3.3
+<img src="https://github.com/GCuser99/SeleniumTwinBasic/blob/main/logo.png" alt="SeleniumVBA" width=25% height=25%>
 
 A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Office VBA
-
-Modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
 ## Features
 
@@ -104,7 +102,7 @@ End Sub
 
 ## Credits
 
-[TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/) by Uezo and other contributors to that project
+This project is modified/extended from [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA
 
