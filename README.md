@@ -17,7 +17,7 @@ A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE wr
 
 Driver updates can also be programmatically invoked via the WebDriverManager class.
 
-To use the experimental SeleniumVBA twinBasic Dll, see instructions in the [twinBasic folder](https://github.com/GCuser99/SeleniumVBA/tree/main/twinBasic).
+To try the experimental SeleniumVBA twinBasic Dll, see instructions in the [twinBasic folder](https://github.com/GCuser99/SeleniumVBA/tree/main/twinBasic).
 
 ## SendKeys Example
 
