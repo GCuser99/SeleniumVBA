@@ -100,7 +100,7 @@ End Sub
 
 ## Credits
 
-This project is an extensively modified/extended version of [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
+This project is an extensively modified/extended version of uezo's [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
 
 [VBA-JSON](https://github.com/VBA-tools/VBA-JSON) by Tim Hall, JSON converter for VBA
 
