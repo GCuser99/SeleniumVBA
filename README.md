@@ -1,6 +1,6 @@
 <img src="https://github.com/GCuser99/SeleniumVBA/blob/main/dev/logo.png" alt="SeleniumVBA" width=25% height=25%>
 
-A comprehensive Selenium wrapper for automating Edge, Chrome, Firefox, and IE written in Windows Office VBA
+A comprehensive Selenium wrapper for browser automation written in Windows Office VBA (64-bit)
 
 ## Features
 
