@@ -9,7 +9,7 @@ A comprehensive Selenium wrapper for browser automation written in Windows Offic
 - A superset of Selenium's JSon Wire Protocol commands - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
-- Help documentation is available - see the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
+- Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
 
 ## Setup
 
