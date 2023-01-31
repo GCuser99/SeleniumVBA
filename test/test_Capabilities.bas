@@ -121,7 +121,7 @@ Sub test_initialize_caps_from_file()
     'now let's start again
     driver.StartChrome
     
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities()
     
     'load the saved capabilities into new instance of caps
     caps.LoadFromFile "chrome.json"
@@ -214,7 +214,7 @@ Sub test_kiosk_printing()
     Dim mediaSizeOptions As New Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
-    Set jc = SeleniumVBA.New_WebJSonConverter
+    Set jc = SeleniumVBA.New_WebJsonConverter
     
     driver.StartEdge
     

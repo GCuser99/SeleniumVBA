@@ -50,7 +50,7 @@ Sub test_executeScriptAsync()
     Dim url As String, waitTime As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
-    Set jc = SeleniumVBA.New_WebJSonConverter
+    Set jc = SeleniumVBA.New_WebJsonConverter
     
     'driver.CommandWindowStyle = vbNormalFocus
     

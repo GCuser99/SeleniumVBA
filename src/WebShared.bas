@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.3
+' SeleniumVBA v3.4
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -21,7 +21,7 @@ Attribute VB_Name = "WebShared"
 'The only times in the code base where the default basePath is not specified is in DefaultIOFolder & DefaultDriverFolder
 
 Option Explicit
-'Option Private Module
+Option Private Module
 
 'for the Sleep procedure
 Private Declare PtrSafe Sub SleepWinAPI Lib "kernel32" Alias "Sleep" (ByVal milliseconds As Long)
@@ -32,7 +32,14 @@ Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCu
 Private Declare PtrSafe Function PathIsRelative Lib "shlwapi" Alias "PathIsRelativeA" (ByVal pszPath As String) As Long
 Private Declare PtrSafe Function PathIsURL Lib "shlwapi" Alias "PathIsURLA" (ByVal pszPath As String) As Long
 
+Private Declare PtrSafe Function FindWindowEx Lib "user32" Alias "FindWindowExA" (ByVal hWnd1 As LongPtr, ByVal hWnd2 As LongPtr, ByVal lpsz1 As String, ByVal lpsz2 As String) As LongPtr
+Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hWnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
+Private Declare PtrSafe Function GetWindowTextLength Lib "user32" Alias "GetWindowTextLengthA" (ByVal hWnd As LongPtr) As Long
+Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hWnd As LongPtr, lpdwProcessId As Long) As Long
+
 Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFilename As String) As Long
+
+Public Declare PtrSafe Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 
 Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
@@ -164,60 +171,54 @@ Private Function ActiveVBAProjectFolderPath() As String
     'then this returns the path to the caller, not the Add-in (unless they are the same).
     'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
     'may not be the caller's intended target if it resides in a different project.
-    Dim fso As New FileSystemObject
-    Dim strPath As String
     
-    strPath = vbNullString
-    
-    'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
-    'will throw an error so trap and report below...
-    
-    Enforce_Trust_Access_to_VBA_Project_Object_Model
-    strPath = Application.VBE.ActiveVBProject.Filename
-    
-    If strPath <> vbNullString Then
-        strPath = fso.GetParentFolderName(strPath)
-        ActiveVBAProjectFolderPath = strPath
-    Else
-        Err.raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
-    End If
-End Function
-
-Public Sub Enforce_Trust_Access_to_VBA_Project_Object_Model(Optional ByVal val As Boolean = True)
-'in case it's not already enabled, programmatically (assist the user to) enable-enforce the "Trust Access to VBA ..." Excel option
-    If Not VBAIsTrusted Then
-        Dim SHost As Object, Path As String
-        
-        On Error GoTo UserIntv
-        Set SHost = CreateObject("WScript.Shell")
-        
-        On Error Resume Next
-        'First, check if the HKLocalMachine key for Excel security is present
-        Path = "HKLM\SOFTWARE\Microsoft\Office\" + Trim(Application.Version) + "\Excel\Security\AccessVBOM"
-        SHost.RegRead (Path)
-        If Err.Number = 0 Then 'If the key is present then enable/disable access to the VBA Project
-            SHost.RegWrite Path, IIf(val = True, 1, 0), "REG_DWORD"
+    Dim sRespType As String
+    sRespType = TypeName(Application.Caller)
+    If sRespType <> "Error" Then 'eg. if launched by a formula or a shape button in a worksheet
+        ActiveVBAProjectFolderPath = ActiveWorkbook.Path
+    Else 'if launched in the VBE
+        If VBAIsTrusted Then
+            Dim fso As New FileSystemObject
+            'below will return an error if active project's host doc has not yet been saved, even if access trusted
+            On Error Resume Next
+            ActiveVBAProjectFolderPath = fso.GetParentFolderName(Application.VBE.ActiveVBProject.fileName)
+            On Error GoTo 0
+        Else 'if Excel security setting "Trust access to the VBA project object model" is not enabled
+            Dim ThisAppProcessID As Long
+            GetWindowThreadProcessId Application.hWnd, ThisAppProcessID
+            Do 'search for this VBE window
+                Dim hWnd As LongPtr
+                hWnd = FindWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
+                If hWnd > 0 Then
+                    Dim WndProcessID As Long
+                    GetWindowThreadProcessId hWnd, WndProcessID
+                    If ThisAppProcessID = WndProcessID Then
+                        'get its caption
+                        Dim Length As Long, caption As String, result As Long
+                        Length = GetWindowTextLength(hWnd)
+                        caption = Space$(Length + 1)
+                        result = GetWindowText(hWnd, caption, Length + 1)
+                        
+                        'extract filename from the caption
+                        Dim oRegex As New RegExp
+                        oRegex.Pattern = "^Microsoft Visual Basic[^-]* - ([^[]*) \[[^]]+\] - \[[^(]+\([^)]+\)\]$"
+                        Dim regexRes As MatchCollection
+                        Set regexRes = oRegex.Execute(Left(caption, result))
+                        If regexRes.Count = 1 Then
+                            Dim sFilename As String
+                            sFilename = regexRes.Item(0).SubMatches(0)
+                            'this returns vbNullString if workbook has not been saved yet
+                            ActiveVBAProjectFolderPath = Workbooks(sFilename).Path
+                        Else
+                            Err.raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
+                        End If
+                    End If
+                End If
+            Loop Until hWnd = 0
         End If
-        Err.Clear
-        
-        On Error GoTo UserIntv
-        'Second, overwrite the HKCurrentUser key to enable/disable access to the VBA Project
-        Path = "HKCU\SOFTWARE\Microsoft\Office\" + Trim(Application.Version) + "\Excel\Security\AccessVBOM"
-        SHost.RegWrite Path, IIf(val = True, 1, 0), "REG_DWORD"
-        On Error GoTo 0
-        
-        Do
-            'The following step is necessary because although the registry setting and the UI option are enabled, for unknown reason (security?) the "OK" button still needs to be pressed to give effect to the setting.
-            Dim res As VbMsgBoxResult
-            res = MsgBox("Press ""OK"" in the following dialog window" & vbNewLine & "to enable the ""Trust Access to VBA Project Object Model"" setting", vbOKCancel)
-            If res = vbCancel Then End
-            Application.CommandBars.ExecuteMso ("MacroSecurity")
-        Loop Until VBAIsTrusted
     End If
-    Exit Sub
-UserIntv:
-Err.raise 1, , "Please Enable ""Trust Access to VBA Project Object Model"" in ""File > Options > Trust Center > Trust Center Settings > Macro Settings > Trust Access to VBA project object model"""
-End Sub
+    If ActiveVBAProjectFolderPath = vbNullString Then Err.raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
+End Function
 
 Public Function ThisLibFolderPath() As String
     'returns the path of this library - not the path of the active vba project, which may be referencing this library
@@ -235,31 +236,8 @@ End Function
 
 Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
     'this searches input path for %[Environ Variable]% pattern and if found, then replaces with the path equivalent
-    Dim ipos1 As Long
-    Dim ipos2 As Long
-    Dim environString As String
-    Dim expandedPath As String
-    'search for leading % delimeter - if not found, then return the input unchanged
-    ipos1 = InStr(inputPath, "%") + 1
-    If ipos1 > 1 Then
-        ipos2 = InStr(ipos1, inputPath, "%") - 1
-        
-        'check if trailing delimeter exists - raise error if not
-        If ipos2 = -1 Then
-            Err.raise 1, "WebShared", "Environment variable not formed properly - use ""%UserProfile%\Documents"" for example"
-        End If
-        
-        'now make the substitution and return modified string
-        environString = Mid(inputPath, ipos1, ipos2 - ipos1 + 1)
-        expandedPath = Environ(environString)
-        If expandedPath = "" Then
-            Err.raise 1, "WebShared", "Environment variable """ & environString & """ used in path not recognized"
-        End If
-        
-        ExpandEnvironVariable = Replace(inputPath, "%" & environString & "%", expandedPath)
-    Else
-        ExpandEnvironVariable = inputPath
-    End If
+    Dim wsh As New IWshRuntimeLibrary.WshShell
+    ExpandEnvironVariable = wsh.ExpandEnvironmentStrings(inputPath)
 End Function
 
 Public Function ReadIniFileEntry(ByVal filePath As String, ByVal section As String, ByVal keyName As String, Optional ByVal defaultValue As Variant = vbNullString) As String
@@ -335,7 +313,8 @@ Private Function VBAIsTrusted() As Boolean
     On Error GoTo 0
 End Function
 
-Public Sub Sleep(ms As Currency)
+Public Sub Sleep(ByVal ms As Currency)
+'Enhanced sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
 'Better Sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
 'Uses "Currency" as a good-enough workaround to avoid the complexity of LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
 'Note: VBA.Timer ( + VBA.Date for midnight adjustment) and VBA.Now avoided for accuracy issues (10-15ms and occasionally even worse? see https://stackoverflow.com/questions/68767198/is-this-unstable-vba-timer-behavior-real-or-am-i-doing-something-wrong)
@@ -369,3 +348,4 @@ Public Sub Sleep(ms As Currency)
         Loop
     End If
 End Sub
+

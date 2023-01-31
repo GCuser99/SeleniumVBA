@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.3
+' SeleniumVBA v3.4
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -86,6 +86,11 @@ Private preloadChromeCapabilitiesFilePath As String
 Private preloadEdgeCapabilitiesFilePath As String
 Private preloadFirefoxCapabilitiesFilePath As String
 Private preloadIECapabilitiesFilePath As String
+
+Private driverDefaultPortChrome As Long
+Private driverDefaultPortEdge As Long
+Private driverDefaultPortFirefox As Long
+Private driverDefaultPortIE As Long
 
 Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original style of Highlighted elements to be able to UnHighlight them at a future time
 
@@ -208,8 +213,6 @@ Public Enum svbaWindowType
     svbaTab = 1
 End Enum
 
-'Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell
     Dim iniFilePath As String
@@ -221,7 +224,8 @@ Private Sub Class_Initialize()
     
     Me.CommandWindowStyle = EnumTextToValue(ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
     Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
-    Me.DefaultIOFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
+    
+    defaultIOFolder_ = ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
     
     checkDriverBrowserVersionAlignment = ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True)
     minDriverBrowserCompatibilityLevel = EnumTextToValue(ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", svbaBuildMajor))
@@ -230,6 +234,11 @@ Private Sub Class_Initialize()
     preloadEdgeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
     preloadFirefoxCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
     preloadIECapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString)
+    
+    driverDefaultPortChrome = CLng(ReadIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515))
+    driverDefaultPortEdge = CLng(ReadIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516))
+    driverDefaultPortFirefox = CLng(ReadIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444))
+    driverDefaultPortIE = CLng(ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555))
 End Sub
 
 Private Sub InitCommands()
@@ -320,26 +329,30 @@ Attribute CommandWindowStyle.VB_Description = "Set the driver command window dis
 End Property
 
 '@Description("Start an Edge driver")
-Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
+Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
 Attribute StartEdge.VB_Description = "Start an Edge driver"
+    If localHostPort = 0 Then localHostPort = driverDefaultPortEdge
     Start svbaBrowser.Edge, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 '@Description("Start a Chrome driver")
-Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long = 9515, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome.log")
+Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome.log")
 Attribute StartChrome.VB_Description = "Start a Chrome driver"
+    If localHostPort = 0 Then localHostPort = driverDefaultPortChrome
     Start svbaBrowser.Chrome, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 '@Description("Start a Firefox driver")
-Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long = 4444, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox.log")
+Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox.log")
 Attribute StartFirefox.VB_Description = "Start a Firefox driver"
+    If localHostPort = 0 Then localHostPort = driverDefaultPortFirefox
     Start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 '@Description("Start an IE mode driver")
-Public Sub StartIE(Optional ByVal driverPath As String = "IEDriverServer.exe", Optional ByVal localHostPort As Long = 5555, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\ie.log")
+Public Sub StartIE(Optional ByVal driverPath As String = "IEDriverServer.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\ie.log")
 Attribute StartIE.VB_Description = "Start an IE mode driver"
+    If localHostPort = 0 Then localHostPort = driverDefaultPortIE
     Start svbaBrowser.IE, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
@@ -410,6 +423,7 @@ Attribute Shutdown.VB_Description = "Shuts down all driver instances attached to
         'this will shutdown driver and session - equivalent to CloseBrowser and kill driver process
         'see "detach" option for chrome/edge to affect this behavior
         Execute tCMD.CMD_SHUTDOWN
+        
     Case svbaBrowser.Firefox
         'firefox does not recognize shutdown command, so need to roll our own...
         'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
@@ -451,6 +465,8 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     If incognito Then
         caps.RunIncognito
     End If
+    
+    DoEvents 'this is needed to prevent intermittent error if command window is not hidden or minimized
     
     Set resp = Execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
     
@@ -707,9 +723,9 @@ Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements tha
     Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
 End Function
 
-'@Description("Sends a key sequence to the specified element - can include keyboard key values")
+'@Description("Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys")
 Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = True)
-Attribute SendKeys.VB_Description = "Sends a key sequence to the specified element - can include keyboard key values"
+Attribute SendKeys.VB_Description = "Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys"
     Dim data As New Dictionary
     Dim chunk() As String
     Dim chars() As String
@@ -782,12 +798,16 @@ Attribute Submit.VB_Description = "Submits a form element"
     Click element
 End Sub
 
-'@Description("Gets the text of the element")
-Public Function GetText(element As WebElement) As String
-Attribute GetText.VB_Description = "Gets the text of the element"
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    GetText = Execute(tCMD.CMD_GET_ELEMENT_TEXT, data)("value")
+'@Description("Gets the text of the element - set optional visibleOnly to False to return text whether hidden or not")
+Public Function GetText(element As WebElement, Optional ByVal visibleOnly As Boolean = True) As String
+Attribute GetText.VB_Description = "Gets the text of the element - set optional visibleOnly to False to return text whether hidden or not"
+    If visibleOnly Then 'default behavior of W3C GetText
+        Dim data As New Dictionary
+        data.Add "id", element.elementId
+        GetText = Execute(tCMD.CMD_GET_ELEMENT_TEXT, data)("value")
+    Else 'get the underlying text whether visible or not
+        GetText = ExecuteScript("return arguments[0].textContent;", element)
+    End If
 End Function
 
 '@Description("Simulates clicking the back arrow on the browser window")
@@ -1032,7 +1052,6 @@ Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
         GetAriaLabel = resp("value")
     End If
 End Function
-
 
 '@Description("Gets the tag name of the element")
 Public Function GetTagName(element As WebElement) As String
@@ -1505,18 +1524,7 @@ End Function
 '@Description("Pauses in-line execution for the specified number of milliseconds")
 Public Sub Wait(Optional ByVal milliseconds As Long = 300)
 Attribute Wait.VB_Description = "Pauses in-line execution for the specified number of milliseconds"
-    'both of the system-level timers below work
-    '
-    TimerWait milliseconds
-    'Sleep milliseconds 'this works great, but lets try to do without windows api if possible
-    '
-    'these native methods below mysteriously interfere with/accept browser alerts -
-    'maybe because they are browser-level, not system-level?
-    '
-    'ActionChain.Wait(milliseconds).Perform
-    '
-    'If milliseconds > 30000 Then SetScriptTimeout 2 * milliseconds '30000 is the default, so this isn't needed unless waitTime > 30 secs is needed
-    'ExecuteScriptAsync "window.setTimeout(arguments[arguments.length - 1], arguments[0]);", milliseconds
+    WebShared.Sleep milliseconds
 End Sub
 
 '@Description("Returns a boolean indicating if the element is present")
@@ -1963,26 +1971,22 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
     'waits until element is interactable, returns the input element for further action
     'such as "Click" on same line
     'see https://www.w3.org/TR/webdriver/#element-displayedness
-    Dim startTime As Single
-    Dim nowTime As Single
-    Dim endTime As Single
     
-    startTime = VBA.Timer
-    nowTime = startTime
-    endTime = startTime + maxWaitTimeMS / 1000#
+    Dim cTimeStart As Currency, cTimeNow As Currency
+    Dim dTimeElapsed As Currency, cMaxWaitTimeMS As Currency
     
-    Do While nowTime < endTime
+    getTime cTimeStart
+    
+    Static cPerSecond As Currency
+    If cPerSecond = 0 Then getFrequency cPerSecond
+    cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
+    
+    Do
         If element.IsDisplayed Then Exit Do
-        nowTime = VBA.Timer()
-        Dim elapsedTime As Single
-        If nowTime < startTime Then
-            endTime = endTime - elapsedTime
-            startTime = 0
-        End If
-        elapsedTime = nowTime - startTime
-        DoEvents    'yield to other processes.
-    Loop
-
+        getTime cTimeNow
+        DoEvents 'yield to other processes
+    Loop Until (cTimeNow - cTimeStart) >= cMaxWaitTimeMS
+    
     Set WaitUntilReady = element
 End Function
 
@@ -2230,6 +2234,13 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     entryCol.Add " "
     entryCol.Add "# Note that all path-type entry values recognize the %[Environ]% syntax."
     entryCol.Add " "
+    entryCol.Add "# A few useful Environ values:"
+    entryCol.Add " "
+    entryCol.Add "# %USERPROFILE%=C:\Users\[user name]"
+    entryCol.Add "# %APPDATA%=C:\Users\[user name]\AppData\Roaming"
+    entryCol.Add "# %LOCALAPPDATA%=C:\Users\[user name]\AppData\Local"
+    entryCol.Add "# %TEMP%=C:\Users\[user name]\AppData\Local\Temp"
+    entryCol.Add " "
     
     entryCol.Add "[GENERAL]"
     entryCol.Add " "
@@ -2274,21 +2285,25 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     entryCol.Add "[CHROME]"
     entryCol.Add " "
     entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add "local_host_port=9515"
     entryCol.Add " "
 
     entryCol.Add "[EDGE]"
     entryCol.Add " "
     entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add "local_host_port=9516"
     entryCol.Add " "
     
     entryCol.Add "[FIREFOX]"
     entryCol.Add " "
     entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add "local_host_port=4444"
     entryCol.Add " "
     
     entryCol.Add "[INTERNET EXPLORER]"
     entryCol.Add " "
     entryCol.Add "preload_capabilities_file_path="
+    entryCol.Add "local_host_port=5555"
     entryCol.Add " "
     
     entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
@@ -2315,6 +2330,143 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     Next i
     
     ts.Close
+End Sub
+
+'@Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")
+Public Sub DownloadResource(element As WebElement, ByVal srcAttribute As String, Optional ByVal fileOrFolderPath As String = ".\")
+Attribute DownloadResource.VB_Description = "Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source"
+    Dim url As String
+    Dim baseUrl As String
+    Dim srcMax As String
+    Dim sizeMax As String
+    Dim srcArray As Variant
+    Dim srcSizePair As Variant
+    Dim src As String
+    Dim srcSize As String
+    Dim ret As Long
+    Dim fso As New FileSystemObject
+    Dim filePath As String
+    Dim fileName As String
+    Dim ipos As Long
+    Dim i As Long
+    Dim urlLevel As Long
+    Dim curUrl As String
+    Dim numUpLevels As Long
+    Dim numUrlSections As Long
+    
+    url = element.GetAttribute(srcAttribute)
+    If url = vbNullString Then Err.raise 1, "WebDriver", "Could not find Attribute " & Chr(34) & srcAttribute & Chr(34)
+    'remove new line characters
+    url = Replace(Replace(url, vbLf, ""), vbCr, "")
+    
+    If LCase(srcAttribute) = "srcset" Then
+        'if image then get the highest pixel density src possible
+        'split the sources in srcset into an array
+        srcArray = Split(url, ", ")
+        
+        'initialize the maximum size and source
+        sizeMax = vbNullString
+        srcMax = vbNullString
+        
+        For i = 0 To UBound(srcArray)
+            'loop through and extract src/size pairs
+            srcSizePair = Split(Trim$(srcArray(i)), " ")
+            src = Trim(srcSizePair(0))
+            
+            'process size if available
+            If UBound(srcSizePair) > 0 Then
+                srcSize = Trim(srcSizePair(1))
+                'remove pixel density and/or width indicator for size compare
+                srcSize = Replace(Replace(srcSize, "x", vbNullString, , , vbTextCompare), "w", vbNullString, , , vbTextCompare)
+            Else
+                srcSize = vbNullString
+            End If
+            
+            'if this size is greater than max found size, then store as max
+            If srcSize >= sizeMax Then
+                sizeMax = srcSize
+                srcMax = src
+            End If
+        Next i
+        
+        'use the max found source
+        url = srcMax
+    End If
+    
+    'handle relative path if applicable
+    If Left(url, 4) <> "http" Then 'it is a relative path
+        'construct a full url from base url and the relative path
+        Dim urlSections As Variant
+        
+        'get the current url path
+        curUrl = GetCurrentURL
+        
+        'strip off query params if they exist
+        curUrl = Split(curUrl, "?")(0)
+        
+        'replace double slash in "http[s]://" - will put back later
+        urlSections = Split(Replace(curUrl, "//", "^^"), "/")
+        numUrlSections = UBound(urlSections)
+        
+        'determine relativity level (root, current, up(s))
+        Select Case True
+        Case url Like "/*"
+            'root level
+            urlLevel = 0
+        Case url Like "[!./]*", url Like "./*"
+            'current level
+            urlLevel = numUrlSections - 1
+            'strip out the rel indicator
+            url = Replace(url, "./", "")
+        Case url Like "../*"
+            'up-levels
+            'count how many up-levels
+            numUpLevels = UBound(Split(url, "../"))
+            urlLevel = numUrlSections - 1 - numUpLevels
+            'strip out the rel indicator(s)
+            url = Replace(url, "../", "")
+        End Select
+        
+        'build the base url
+        baseUrl = urlSections(0) 'root
+        For i = 1 To urlLevel
+            baseUrl = baseUrl & "/" & urlSections(i)
+        Next i
+        
+        'put back the double slash in "http[s]://"
+        baseUrl = Replace(baseUrl, "^^", "//")
+        
+        'make sure there is a slash between base url and relative url
+        If Right(baseUrl, 1) <> "/" And Left(url, 1) <> "/" Then baseUrl = baseUrl & "/"
+        
+        'concat to calculate absolute url
+        url = baseUrl & url
+    End If
+    
+    'now calculate the destination path
+    'first convert user input path to absolute path
+    fileOrFolderPath = WebShared.GetFullLocalPath(fileOrFolderPath, defaultIOFolder_)
+
+    'check if user gave a folder path or a file path
+    If fso.FolderExists(fileOrFolderPath) Then 'its a folder path
+        'file path inherits the name of the target url
+        fileName = fso.GetFileName(url)
+        'strip off query params if they exist
+        'and cat with full path of user input
+        filePath = fileOrFolderPath & "\" & Split(fileName, "?")(0)
+    Else 'its a file path
+        filePath = fileOrFolderPath
+        If Not fso.FolderExists(fso.GetParentFolderName(filePath)) Then
+            Err.raise 1, "WebDriver", "Specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
+        End If
+    End If
+    
+    'download the url to file path
+    ret = URLDownloadToFile(0&, url, filePath, 0&, 0&)
+    
+    If ret <> 0 Then
+         Err.raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
+    End If
 End Sub
 
 Friend Function Execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
@@ -2438,10 +2590,6 @@ Private Function ObjToWebElements(elementOrElements As Object) As WebElements
     End Select
 End Function
 
-Private Sub TimerWait(ByVal durationMS As Long)
-    WebShared.Sleep CCur(durationMS)
-End Sub
-
 Private Function DecodeBase64(ByVal strData As String) As Byte()
     Dim domDoc As New MSXML2.DOMDocument60
     Dim domNode As MSXML2.IXMLDOMElement
@@ -2533,7 +2681,7 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     If createSpanData Then
         'first handle row spans
         For Each row In table.Rows
-            For Each cell In row.cells
+            For Each cell In row.Cells
                 rowSpan = cell.rowSpan
                 If rowSpan > 1 Then
                     For i = row.RowIndex + 1 To row.RowIndex + rowSpan - 1
@@ -2545,11 +2693,11 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
         
         'now process column spans
         For Each row In table.Rows
-            For Each cell In row.cells
+            For Each cell In row.Cells
                 colSpan = cell.colSpan
                 If colSpan > 1 Then
                     For i = 1 To colSpan - 1
-                        row.insertCell(row.cells.Length).innerText = cell.innerText
+                        row.insertCell(row.Cells.Length).innerText = cell.innerText
                     Next i
                 End If
             Next cell
@@ -2558,7 +2706,7 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     
     'calculate the number of array columns needed for output
     For Each row In table.Rows
-        If row.cells.Length > maxCols Then maxCols = row.cells.Length
+        If row.Cells.Length > maxCols Then maxCols = row.Cells.Length
     Next row
     
     'dimension output array
@@ -2566,7 +2714,7 @@ Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader 
     
     'extract cell data (td and th elements) from each row
     For Each row In table.Rows
-        For Each cell In row.cells
+        For Each cell In row.Cells
             'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
             'search to see if there is at least one table
             'if there are more than one in the cell then only process first!

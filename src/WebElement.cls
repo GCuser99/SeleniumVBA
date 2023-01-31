@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.3
+' SeleniumVBA v3.4
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -211,10 +211,10 @@ Attribute Submit.VB_Description = "Submits a form element"
     driver_.Submit Me
 End Sub
 
-'@Description("Gets the text of this element")
-Public Function GetText() As String
-Attribute GetText.VB_Description = "Gets the text of this element"
-    GetText = driver_.GetText(Me)
+'@Description("Gets the text of this element - set optional visibleOnly to False to return text whether hidden or not")
+Public Function GetText(Optional ByVal visibleOnly As Boolean = True) As String
+Attribute GetText.VB_Description = "Gets the text of this element - set optional visibleOnly to False to return text whether hidden or not"
+    GetText = driver_.GetText(Me, visibleOnly)
 End Function
 
 '@Description("Gets the property state of this element, such as the value of an input box - if the property does not exist, then it returns vbNullString")
@@ -460,6 +460,12 @@ Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optio
 Attribute TableToArray.VB_Description = "Returns an array holding the text values from a table or tbody element"
     TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter, createSpanData)
 End Function
+
+'@Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")
+Public Sub DownloadResource(ByVal srcAttribute As String, Optional ByVal fileOrFolderPath As String = ".\")
+Attribute DownloadResource.VB_Description = "Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source"
+    driver_.DownloadResource Me, srcAttribute, fileOrFolderPath
+End Sub
 
 Private Sub Class_Terminate()
     Set driver_ = Nothing

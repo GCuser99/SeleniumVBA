@@ -14,11 +14,11 @@ Sub test_geolocation()
     'set the location
     driver.SetGeolocation 41.1621429, -8.6219537
   
-    driver.NavigateTo "https://www.gps-coordinates.net/my-location"
+    driver.NavigateTo "https://whatmylocation.com/"
     driver.Wait 1000
     
-    'print the name of the location to immedate window
-    Debug.Print driver.FindElementByXPath("//*[@id='addr']").GetText
+    'print the name/address of the location to immediate window
+    Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText
     
     driver.CloseBrowser
     driver.Shutdown

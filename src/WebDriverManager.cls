@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.3
+' SeleniumVBA v3.4
 ' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
 ' wire protocol.
 '
@@ -93,10 +93,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '
 Option Explicit
 
-Private Declare PtrSafe Function URLDownloadToFile Lib "urlmon" _
-    Alias "URLDownloadToFileA" (ByVal pCaller As Long, _
-    ByVal szURL As String, ByVal szFileName As String, _
-    ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+
 
 Private mDefaultDriverFolder As String
 
@@ -368,29 +365,32 @@ End Function
 '@Description("Returns the latest Driver version")
 Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser) As String
 Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver version"
-    'this function is here for completeness, although not used
     Dim jc As New WebJsonConverter
     Dim resp As New Dictionary
     Dim url As String
     Dim responseText As Variant
-    Dim try As Integer
+    Dim try As Long
     Dim searchOS As String
-    Dim i As Integer
+    Dim i As Long, j As Long
     Dim durl As String
+    Dim col As Collection
+    Dim json As Dictionary
     
     Select Case browser
     Case svbaBrowser.Edge
         url = "https://msedgedriver.azureedge.net/LATEST_STABLE"
         responseText = RequestData(url)
+        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         GetLatestDriverVersion = Replace(responseText, vbNewLine, vbNullString)
     Case svbaBrowser.Chrome
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
         responseText = RequestData(url)
+        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         GetLatestDriverVersion = responseText
     Case svbaBrowser.Firefox
         url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
         responseText = RequestData(url)
-        
+        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         Set resp = jc.ParseJson(responseText)
         'now search all
         'if os=64bit then search for win64 otherwise win32
@@ -407,11 +407,20 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
         Next i
         GetLatestDriverVersion = resp("name")
     Case svbaBrowser.IE
-        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"
-        Set resp = jc.ParseJson(RequestData(url))
-        
-        'this gets the latest release
-        GetLatestDriverVersion = Mid(resp("tag_name"), 10)
+        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
+        responseText = RequestData(url)
+        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
+        Set col = jc.ParseJson(responseText)
+        'search the release log until an IEDriveServer is found
+        For j = 1 To col.Count
+            Set json = col.Item(j)
+            For i = 1 To json("assets").Count
+                If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
+                    GetLatestDriverVersion = Mid(json("tag_name"), 10)
+                    Exit Function
+                End If
+            Next i
+        Next j
     End Select
 End Function
 
@@ -522,21 +531,14 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         table.deleteTHead
         
         For Each row In table.Rows
-            If CInt(verMajor) >= CInt(Split(row.cells(2).innerText)(0)) Then
-                GetCompatibleDriverVersion = Trim(row.cells(0).innerText)
+            If CInt(verMajor) >= CInt(Split(row.Cells(2).innerText)(0)) Then
+                GetCompatibleDriverVersion = Trim(row.Cells(0).innerText)
                 Exit For
             End If
         Next row
     Case svbaBrowser.IE
         'just get the latest release, independent of Edge browser version
-        Dim jc As New WebJsonConverter, json As Dictionary
-        
-        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"
-        
-        Set json = jc.ParseJson(RequestData(url))
-        
-        'this gets the latest release
-        GetCompatibleDriverVersion = Mid(json("tag_name"), 10)
+        GetCompatibleDriverVersion = GetLatestDriverVersion(svbaBrowser.IE)
     End Select
 End Function
 
@@ -572,6 +574,7 @@ End Function
 Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVersion As String, Optional ByVal driverPath As Variant)
 Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the specified Driver version"
     Dim url As String
+    Dim rurl As String
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
     Dim shll As New Shell32.Shell
     Dim driverFolder As String
@@ -581,9 +584,10 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     Dim tmpInstallZipPath As String
     Dim tmpZipDriverFilename As String
     Dim tmpInstallDriverpath As String
-    Dim i As Long
+    Dim i As Long, j As Long
     Dim jc As New WebJsonConverter
     Dim json As Dictionary
+    Dim col As Collection
     
     If IsMissing(driverPath) Then
         Select Case browser
@@ -604,13 +608,6 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     driverFilename = fso.GetFileName(driverPath)
     
     tmpInstallFolder = driverFolder & "\tmp\"
-    
-    'if tmp folder doesn't exist then create it - remember for clean up
-    createdTmpFolder = False
-    If Not fso.FolderExists(tmpInstallFolder) Then
-        createdTmpFolder = True
-        fso.CreateFolder tmpInstallFolder
-    End If
     
     Select Case browser
     Case svbaBrowser.Chrome
@@ -642,20 +639,33 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     Case svbaBrowser.IE
         'just get the latest release, independent of Edge browser version
-        Set json = jc.ParseJson(RequestData("https://api.github.com/repos/SeleniumHQ/selenium/releases/latest"))
-        'this finds the executable download link
-        For i = 1 To json("assets").Count
-            If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
-                url = json("assets")(i)("browser_download_url")
-                tmpInstallZipPath = tmpInstallFolder & json("assets")(i)("name")
-                Exit For
-            End If
-        Next i
+        rurl = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
+        Set col = jc.ParseJson(RequestData(rurl))
+        'search the release log until an IEDriveServer is found
+        For j = 1 To col.Count
+            Set json = col.Item(j)
+            'this finds the executable download link
+            For i = 1 To json("assets").Count
+                If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
+                    url = json("assets")(i)("browser_download_url")
+                    tmpInstallZipPath = tmpInstallFolder & json("assets")(i)("name")
+                    Exit For
+                End If
+            Next i
+            If url <> vbNullString Then Exit For
+        Next j
+        If url = vbNullString Then Err.raise 1, "WebDriverManager", "Error: Could not locate latest version of IEDriverServer"
         tmpZipDriverFilename = "IEDriverServer.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     End Select
     
-    'download driver zip file to temp install path
+    'if tmp folder doesn't exist then create it - remember for clean up
+    createdTmpFolder = False
+    If Not fso.FolderExists(tmpInstallFolder) Then
+        createdTmpFolder = True
+        fso.CreateFolder tmpInstallFolder
+    End If
+    
     URLDownloadToFile 0, url, tmpInstallZipPath, 0, 0
     
     'make sure driver zip file was created successfully
@@ -679,7 +689,6 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     
     'if created tmp folder, then delete it
     If createdTmpFolder Then fso.DeleteFolder Left(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
-
 End Sub
 
 '@Description("Returns the folder path to Florent Breheret's SeleniumBasic application in local AppData, assuming that it is installed")

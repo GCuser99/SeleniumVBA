@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.3
+' SeleniumVBA v3.4
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -654,9 +654,9 @@ Attribute MoveToXY.VB_Description = "Moves the mouse pointer to (x,y) relative t
     Set MoveToXY.DataDictionary = data_
 End Function
 
-'@Description("Sends key sequence to current focused element (see Keyboard class for special keys support)")
+'@Description("Sends key sequence to current focused element (see WebKeyboard class for special keys support)")
 Public Function SendKeys(ByVal keys As String, Optional element As WebElement) As WebActionChain
-Attribute SendKeys.VB_Description = "Sends key sequence to current focused element (see Keyboard class for special keys support)"
+Attribute SendKeys.VB_Description = "Sends key sequence to current focused element (see WebKeyboard class for special keys support)"
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions() As Dictionary

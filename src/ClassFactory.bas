@@ -3,7 +3,7 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 '@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.3
+' SeleniumVBA v3.4
 ' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
 '
 ' (c) GCUser99
@@ -66,9 +66,9 @@ End Function
 'End Function
 
 '@Description("Instantiates a WebJsonConverter object - this is optional as this object is predeclared")
-Public Function New_WebJSonConverter() As WebJsonConverter
-Attribute New_WebJSonConverter.VB_Description = "Instantiates a WebJsonConverter object - this is optional as this object is predeclared"
-    Set New_WebJSonConverter = New WebJsonConverter
+Public Function New_WebJsonConverter() As WebJsonConverter
+Attribute New_WebJsonConverter.VB_Description = "Instantiates a WebJsonConverter object - this is optional as this object is predeclared"
+    Set New_WebJsonConverter = New WebJsonConverter
 End Function
 
 '@Description("Instantiates a WebKeyboard object - this is optional as this object is predeclared")
