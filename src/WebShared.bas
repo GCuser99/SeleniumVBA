@@ -183,20 +183,24 @@ Private Function ActiveVBAProjectFolderPathExcel() As String
     'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
     'may not be the caller's intended target if it resides in a different project.
     
+    'need late bound so that if this module is used in Access, Access vba can compile
+    Dim oApp As Object
+    Set oApp = Application
+    
     Dim sRespType As String
-    sRespType = TypeName(Application.Caller)
+    sRespType = TypeName(oApp.Caller)
     If sRespType <> "Error" Then 'eg. if launched by a formula or a shape button in a worksheet
-        ActiveVBAProjectFolderPathExcel = ActiveWorkbook.Path
+        ActiveVBAProjectFolderPathExcel = oApp.ActiveWorkbook.Path
     Else 'if launched in the VBE
         If VBAIsTrusted Then
             Dim fso As New FileSystemObject
             'below will return an error if active project's host doc has not yet been saved, even if access trusted
             On Error Resume Next
-            ActiveVBAProjectFolderPathExcel = fso.GetParentFolderName(Application.VBE.ActiveVBProject.fileName)
+            ActiveVBAProjectFolderPathExcel = fso.GetParentFolderName(oApp.VBE.ActiveVBProject.fileName)
             On Error GoTo 0
         Else 'if Excel security setting "Trust access to the VBA project object model" is not enabled
             Dim ThisAppProcessID As Long
-            GetWindowThreadProcessId Application.hWnd, ThisAppProcessID
+            GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
             Do 'search for this VBE window
                 Dim hWnd As LongPtr
                 hWnd = FindWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
@@ -219,7 +223,7 @@ Private Function ActiveVBAProjectFolderPathExcel() As String
                             Dim sFilename As String
                             sFilename = regexRes.Item(0).SubMatches(0)
                             'this returns vbNullString if workbook has not been saved yet
-                            ActiveVBAProjectFolderPathExcel = Workbooks(sFilename).Path
+                            ActiveVBAProjectFolderPathExcel = oApp.Workbooks(sFilename).Path
                         Else
                             Err.raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
                         End If
