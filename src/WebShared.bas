@@ -167,9 +167,7 @@ Public Function GetBrowserName(ByVal browser As svbaBrowser) As String
 End Function
 
 Private Function ActiveVBAProjectFolderPath() As String
-    Dim app As Object
-    Set app = Application
-    Select Case app.Name
+    Select Case Application.Name
     Case "Microsoft Excel"
         ActiveVBAProjectFolderPath = ActiveVBAProjectFolderPathExcel
     Case "Microsoft Access"
@@ -245,9 +243,9 @@ Private Function ActiveVBAProjectFolderPathAccess() As String
     'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
     'will throw an error so trap and report below...
     
-    If Not VBAIsTrusted Then
-        Err.raise 1, "WebShared", "Error: No Access to VB Project" & vbLf & vbLf & "File > Options > Trust Center > Trust Center Settings > Macro Settings > Trust Access to VBA project object model"
-    End If
+    'If Not VBAIsTrusted Then
+    '    Err.raise 1, "WebShared", "Error: No Access to VB Project" & vbLf & vbLf & "File > Options > Trust Center > Trust Center Settings > Macro Settings > Trust Access to VBA project object model"
+    'End If
     
     On Error Resume Next
     strPath = Application.VBE.ActiveVBProject.fileName
