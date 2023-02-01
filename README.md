@@ -98,6 +98,8 @@ End Sub
 
 [@6DiegoDiego9](https://github.com/6DiegoDiego9)
 
+[@GCUser99](https://github.com/GCUser99)
+
 ## Credits
 
 This project is an extensively modified/extended version of uezo's [TinySeleniumVBA](https://github.com/uezo/TinySeleniumVBA/)
