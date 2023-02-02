@@ -17,7 +17,7 @@ A comprehensive Selenium wrapper for browser automation written in Windows Offic
 
 Driver updates can also be programmatically invoked via the WebDriverManager class.
 
-To try the experimental SeleniumVBA twinBasic Dll, see instructions in the [twinBasic folder](https://github.com/GCuser99/SeleniumVBA/tree/main/twinBasic).
+To try the experimental SeleniumVBA twinBasic Dll, see instructions in the [dist folder]((https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
 
 ## SendKeys Example
 
