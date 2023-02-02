@@ -52,7 +52,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
     Dim fso As New Scripting.FileSystemObject, savePath As String
 
     'make sure no rogue beginning or ending spaces and expand "%[Environ Variable]%" if in the path
-    inputPath = ExpandEnvironVariable(VBA.Trim(inputPath))
+    inputPath = ExpandEnvironVariable(VBA.Trim$(inputPath))
 
     If Not IsPathRelative(inputPath) Then 'its an absolute path
         'just in case OneDrive/SharePoint user has specified a path built with ThisWorkbook.Path...
@@ -65,7 +65,7 @@ Public Function GetFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         GetFullLocalPath = inputPath
     Else 'ok then convert relative path to absolute
         'make sure no unintended beginning or ending spaces
-        basePath = ExpandEnvironVariable(VBA.Trim(basePath))
+        basePath = ExpandEnvironVariable(VBA.Trim$(basePath))
         
         If basePath = vbNullString Then
             basePath = ActiveVBAProjectFolderPath
@@ -121,11 +121,11 @@ Private Function GetLocalOneDrivePath(ByVal strPath As String) As String
                 objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
                 If InStr(strPath, strValue) > 0 Then
                     objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
-                    strSecPart = Replace(Mid(strPath, Len(strValue)), "/", pathSep)
+                    strSecPart = Replace$(Mid$(strPath, Len(strValue)), "/", pathSep)
                     GetLocalOneDrivePath = strMountpoint & strSecPart
         
                     Do Until Dir(GetLocalOneDrivePath, vbDirectory) <> vbNullString Or InStr(2, strSecPart, pathSep) = 0
-                        strSecPart = Mid(strSecPart, InStr(2, strSecPart, pathSep))
+                        strSecPart = Mid$(strSecPart, InStr(2, strSecPart, pathSep))
                         GetLocalOneDrivePath = strMountpoint & strSecPart
                     Loop
                     Dim fso As New FileSystemObject
@@ -177,7 +177,6 @@ Private Function ActiveVBAProjectFolderPath() As String
     'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
     'may not be the caller's intended target if it resides in a different project.
 
-    
     Dim sRespType As String
     sRespType = TypeName(Application.Caller)
     If sRespType <> "Error" Then 'eg. if launched by a formula or a shape button in a worksheet
@@ -209,7 +208,7 @@ Private Function ActiveVBAProjectFolderPath() As String
                         Dim oRegex As New RegExp
                         oRegex.Pattern = "^Microsoft Visual Basic[^-]* - ([^[]*) \[[^]]+\] - \[[^(]+\([^)]+\)\]$"
                         Dim regexRes As MatchCollection
-                        Set regexRes = oRegex.Execute(Left(caption, result))
+                        Set regexRes = oRegex.Execute(Left$(caption, result))
                         If regexRes.Count = 1 Then
                             Dim sFilename As String
                             sFilename = regexRes.Item(0).SubMatches(0)
@@ -229,6 +228,13 @@ End Function
 Public Function ThisLibFolderPath() As String
     'returns the path of this library - not the path of the active vba project, which may be referencing this library
     ThisLibFolderPath = Application.ThisWorkbook.Path
+End Function
+
+Private Function VBAIsTrusted() As Boolean
+    VBAIsTrusted = False
+    On Error Resume Next
+    VBAIsTrusted = (Application.VBE.VBProjects.Count) > 0
+    On Error GoTo 0
 End Function
 
 #ElseIf AccessHost Then
@@ -263,7 +269,6 @@ Public Function ThisLibFolderPath() As String
     ThisLibFolderPath = Application.CodeProject.Path
 End Function
 
-
 #End If
 
 Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
@@ -297,7 +302,7 @@ End Function
 
 Public Function EnumTextToValue(ByVal enumText As String) As Long
     'this function converts an enum string read from the settings file to it's corresponding enum value
-    enumText = Trim(enumText)
+    enumText = Trim$(enumText)
     If IsNumeric(enumText) Then
         EnumTextToValue = VBA.val(enumText)
         Exit Function
@@ -336,13 +341,6 @@ Public Function EnumTextToValue(ByVal enumText As String) As Long
     Case Else
         Err.raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
     End Select
-End Function
-
-Private Function VBAIsTrusted() As Boolean
-    VBAIsTrusted = False
-    On Error Resume Next
-    VBAIsTrusted = (Application.VBE.VBProjects.Count) > 0
-    On Error GoTo 0
 End Function
 
 Public Sub Sleep(ByVal ms As Currency)

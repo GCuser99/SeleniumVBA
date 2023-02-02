@@ -392,7 +392,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
             'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
             'apparently firefox does not support command line argument for specifying log file path
             'so using cmd.exe to redirect log from console window
-            serviceArgs = " -vv"" > " & Replace(logFilePath, " ", "^ ") 'need to escape spaces in log path
+            serviceArgs = " -vv"" > " & Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
             commandStr = Chr(34) & Environ("comspec") & Chr(34) & " /c " & """"
         Case svbaBrowser.IE
             serviceArgs = " --log-level=TRACE --log-file=" & Chr(34) & logFilePath & Chr(34)
@@ -743,12 +743,12 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
         If ipos > 0 Then
             If ipos > 1 Then 'text to left is chunk
                 i = i + 1
-                chunk(i) = Left(keys, ipos - 1)
+                chunk(i) = Left$(keys, ipos - 1)
             End If
             'now process special key
             i = i + 1
-            chunk(i) = Mid(keys, ipos, 6)
-            keys = Right(keys, Len(keys) - (ipos + 5))
+            chunk(i) = Mid$(keys, ipos, 6)
+            keys = Right$(keys, Len(keys) - (ipos + 5))
         Else
             i = i + 1
             chunk(i) = keys
@@ -764,14 +764,14 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
     
     'loop through and send text chunks to target
     For i = 0 To UBound(chunk)
-        If Left(chunk(i), 4) = "\ue0" Then
+        If Left$(chunk(i), 4) = "\ue0" Then
             ReDim chars(0 To 0)
             chars(0) = chunk(i)
         Else
             ReDim chars(0 To Len(chunk(i)) - 1)
             Dim j As Long
             For j = 0 To Len(chunk(i)) - 1
-                chars(j) = Mid(chunk(i), j + 1, 1)
+                chars(j) = Mid$(chunk(i), j + 1, 1)
             Next j
         End If
         data("text") = chunk(i)
@@ -1742,7 +1742,7 @@ End Function
 Public Function ScrollIntoView(element As WebElement, Optional ByVal alignTop As Boolean = True) As WebElement
 Attribute ScrollIntoView.VB_Description = "Scrolls to the element"
     Dim script As String
-    script = "arguments[0].scrollIntoView(" & LCase(alignTop) & ");"
+    script = "arguments[0].scrollIntoView(" & LCase$(alignTop) & ");"
     ExecuteScript script, element
     Set ScrollIntoView = element
 End Function
@@ -1894,7 +1894,7 @@ Public Function GetDriverStatus() As Dictionary
 Attribute GetDriverStatus.VB_Description = "Returns a dictionary holding various info about the driver"
     Set GetDriverStatus = Execute(tCMD.CMD_STATUS)("value")
     'DriverVersion = resp("build")("version")
-    'DriverVersion = Trim(Left(DriverVersion, InStr(DriverVersion, "(") - 1))
+    'DriverVersion = Trim$(Left$(DriverVersion, InStr(DriverVersion, "(") - 1))
     'resp("message") 'gets info "MSEdgeDriver ready for new sessions."
     'resp("os")("name") 'gets info "Windows NT"
     'resp("os")("version") 'gets info "10.0.19042"
@@ -2280,6 +2280,8 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     entryCol.Add "# then this option is ignored. Use the SaveToFile method of the"
     entryCol.Add "# WebCapabilities class to save a default set of capabilities"
     entryCol.Add "# for pre-loading."
+    entryCol.Add "# The system defaults for local_host_port:"
+    entryCol.Add "# Chrome - 9515, Edge - 9516, Firefox - 4444, IE - 5555"
     entryCol.Add " "
     
     entryCol.Add "[CHROME]"
@@ -2357,9 +2359,9 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     url = element.GetAttribute(srcAttribute)
     If url = vbNullString Then Err.raise 1, "WebDriver", "Could not find Attribute " & Chr(34) & srcAttribute & Chr(34)
     'remove new line characters
-    url = Replace(Replace(url, vbLf, ""), vbCr, "")
+    url = Replace$(Replace$(url, vbLf, ""), vbCr, "")
     
-    If LCase(srcAttribute) = "srcset" Then
+    If LCase$(srcAttribute) = "srcset" Then
         'if image then get the highest pixel density src possible
         'split the sources in srcset into an array
         srcArray = Split(url, ", ")
@@ -2371,13 +2373,13 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         For i = 0 To UBound(srcArray)
             'loop through and extract src/size pairs
             srcSizePair = Split(Trim$(srcArray(i)), " ")
-            src = Trim(srcSizePair(0))
+            src = Trim$(srcSizePair(0))
             
             'process size if available
             If UBound(srcSizePair) > 0 Then
-                srcSize = Trim(srcSizePair(1))
+                srcSize = Trim$(srcSizePair(1))
                 'remove pixel density and/or width indicator for size compare
-                srcSize = Replace(Replace(srcSize, "x", vbNullString, , , vbTextCompare), "w", vbNullString, , , vbTextCompare)
+                srcSize = Replace$(Replace$(srcSize, "x", vbNullString, , , vbTextCompare), "w", vbNullString, , , vbTextCompare)
             Else
                 srcSize = vbNullString
             End If
@@ -2394,7 +2396,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     End If
     
     'handle relative path if applicable
-    If Left(url, 4) <> "http" Then 'it is a relative path
+    If Left$(url, 4) <> "http" Then 'it is a relative path
         'construct a full url from base url and the relative path
         Dim urlSections As Variant
         
@@ -2405,7 +2407,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         curUrl = Split(curUrl, "?")(0)
         
         'replace double slash in "http[s]://" - will put back later
-        urlSections = Split(Replace(curUrl, "//", "^^"), "/")
+        urlSections = Split(Replace$(curUrl, "//", "^^"), "/")
         numUrlSections = UBound(urlSections)
         
         'determine relativity level (root, current, up(s))
@@ -2417,14 +2419,14 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
             'current level
             urlLevel = numUrlSections - 1
             'strip out the rel indicator
-            url = Replace(url, "./", "")
+            url = Replace$(url, "./", "")
         Case url Like "../*"
             'up-levels
             'count how many up-levels
             numUpLevels = UBound(Split(url, "../"))
             urlLevel = numUrlSections - 1 - numUpLevels
             'strip out the rel indicator(s)
-            url = Replace(url, "../", "")
+            url = Replace$(url, "../", "")
         End Select
         
         'build the base url
@@ -2434,10 +2436,10 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         Next i
         
         'put back the double slash in "http[s]://"
-        baseUrl = Replace(baseUrl, "^^", "//")
+        baseUrl = Replace$(baseUrl, "^^", "//")
         
         'make sure there is a slash between base url and relative url
-        If Right(baseUrl, 1) <> "/" And Left(url, 1) <> "/" Then baseUrl = baseUrl & "/"
+        If Right$(baseUrl, 1) <> "/" And Left$(url, 1) <> "/" Then baseUrl = baseUrl & "/"
         
         'concat to calculate absolute url
         url = baseUrl & url
@@ -2492,7 +2494,7 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
     
     For Each parmKey In parameters.keys
         If InStr(cmdPath, "$" & parmKey) > 0 Then 'path parameter
-            cmdPath = Replace(cmdPath, "$" & parmKey, parameters(parmKey))
+            cmdPath = Replace$(cmdPath, "$" & parmKey, parameters(parmKey))
         Else 'non-path parameter
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
@@ -2643,7 +2645,7 @@ Private Sub KillDriver(ByVal browser As svbaBrowser, Optional ByVal port As Inte
         Set objParentList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE ProcessID = '" & objDriver.ParentProcessId & "'")
         If objParentList.Count > 0 Then
             Set objParent = objParentList.ItemIndex(0)
-            Select Case LCase(objParent.Name)
+            Select Case LCase$(objParent.Name)
             Case "cmd.exe"
                 'driver was called using cmd.exe so we kill the parent process and all subprocesses (/t parameter)
                 pid = objParent.processID
@@ -2749,7 +2751,7 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
         str = Me.GetPageSource
     End Select
     
-    If Left(str, 1) <> "<" Or Left(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
+    If Left$(str, 1) <> "<" Or Left$(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
     
     If prettyPrint Then str = formatXML(str)
     
@@ -2807,7 +2809,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Dim styleNode As IHTMLDOMNode
     Dim newStyleNode As IHTMLDOMNode
     Dim tempDoc As HTMLDocument
-    
+
     'This function renders html source "offline" by disabling dynamic content, while leaving the DOM tree intact.
     
     'This following are disabled:
@@ -2831,23 +2833,20 @@ Private Function sanitizeHTML(ByVal str As String) As String
     
     'rename html, head, and body tags
     'use vbTextCompare for case insensitivity
-    str = Replace(str, "<html>", "<html_>", Compare:=vbTextCompare)
-    str = Replace(str, "<html ", "<html_ ", Compare:=vbTextCompare)
-    str = Replace(str, "</html>", "</html_>", Compare:=vbTextCompare)
+    str = Replace$(str, "<html", "<html_", Compare:=vbTextCompare, Count:=1)
+    str = Replace$(str, "</html", "</html_", Compare:=vbTextCompare, Count:=1)
 
-    str = Replace(str, "<head>", "<head_>", Compare:=vbTextCompare)
-    str = Replace(str, "<head ", "<head_ ", Compare:=vbTextCompare)
-    str = Replace(str, "</head>", "</head_>", Compare:=vbTextCompare)
+    str = Replace$(str, "<head", "<head_", Compare:=vbTextCompare, Count:=1)
+    str = Replace$(str, "</head", "</head_", Compare:=vbTextCompare, Count:=1)
     
-    str = Replace(str, "<body>", "<body_>", Compare:=vbTextCompare)
-    str = Replace(str, "<body ", "<body_ ", Compare:=vbTextCompare)
-    str = Replace(str, "</body>", "</body_>", Compare:=vbTextCompare)
-
+    str = Replace$(str, "<body", "<body_", Compare:=vbTextCompare, Count:=1)
+    str = Replace$(str, "</body", "</body_", Compare:=vbTextCompare, Count:=1)
+    
     'create the simulated document fragment using a div element
     Set parentElem = htmlDoc.createElement("div")
     'assign the input string to inner html of the parent element
     parentElem.innerHTML = str
-    
+
     'disable scripts
     Set elems = parentElem.querySelectorAll("script")
     For i = 0 To elems.Length - 1
@@ -2862,7 +2861,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
             scriptNode.ParentNode.replaceChild emptyScript, scriptNode
         End If
     Next i
-    
+
     'disable redirect
     Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
     For i = 0 To elems.Length - 1
@@ -2901,20 +2900,27 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Next i
     
     'disable url() function in style elements
+    'this one takes the longest by far
     If htmlDoc.documentMode >= 11 Then
         Set elems = parentElem.querySelectorAll("style")
+        
         For i = 0 To elems.Length - 1
             Set elem = elems.Item(i)
-            subStr = LCase(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
+            subStr = LCase$(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
+            
             foundOne = False
             ipos1 = InStr(1, subStr, "url(")
             Do While ipos1
                 ipos2 = InStr(ipos1 + 4, subStr, ")")
-                subStr = Mid(subStr, 1, ipos1 + 3) & Mid(subStr, ipos2)
+                'subStr = Left$(subStr, ipos1 + 3) & Mid$(subStr, ipos2)
+                'ipos1 = InStr(ipos1 + 5, subStr, "url(")
+                'this takes a fraction of time as the above but replaces with spaces instead of nulls
+                Mid$(subStr, ipos1 + 4, ipos2 - ipos1 - 4) = Space$(ipos2 - ipos1 - 4)
+                ipos1 = InStr(ipos2 + 1, subStr, "url(")
                 foundOne = True
-                ipos1 = InStr(ipos1 + 5, subStr, "url(")
                 DoEvents
             Loop
+            
             If foundOne Then
                 elem.innerHTML = subStr
             End If
@@ -2925,19 +2931,22 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Set elems = parentElem.querySelectorAll("[style*='url(']")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
-        subStr = LCase(elem.GetAttribute("style"))
+        subStr = LCase$(elem.GetAttribute("style"))
         foundOne = False
         ipos1 = InStr(1, subStr, "url(")
         Do While ipos1
             ipos2 = InStr(ipos1 + 4, subStr, ")")
-            subStr = Mid(subStr, 1, ipos1 + 3) & Mid(subStr, ipos2)
+            'subStr = Left$(subStr, ipos1 + 3) & Mid$(subStr, ipos2)
+            'ipos1 = InStr(ipos1 + 5, subStr, "url(")
+            'this takes a fraction of time as the above but replaces with spaces instead of nulls
+            Mid$(subStr, ipos1 + 4, ipos2 - ipos1 - 4) = Space$(ipos2 - ipos1 - 4)
+            ipos1 = InStr(ipos2 + 1, subStr, "url(")
             foundOne = True
-            ipos1 = InStr(ipos1 + 5, subStr, "url(")
             DoEvents
         Loop
         If foundOne Then elem.SetAttribute "style", subStr
     Next i
-    
+
     'disable action attributes in form elements
     Set elems = parentElem.querySelectorAll("form[action]")
     For i = 0 To elems.Length - 1
@@ -2958,7 +2967,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
         Set elem = elems.Item(i)
         elem.SetAttribute "data", vbNullString
     Next i
-    
+   
     'disable on* event attributes
     eventsArray = Array("onclick", "onload", "onoffline", "ononline", "onunload", "onpageshow", "onpagehide", "onerror", "onresize", "onhashchange", "onbeforeunload", "onpopstate", "onmessage")
     For j = 0 To UBound(eventsArray)
@@ -2977,19 +2986,21 @@ Private Function sanitizeHTML(ByVal str As String) As String
     str = parentElem.innerHTML
     
     'rename dummy tags back to original tag names
-    str = Replace(str, "<html_", "<html", , 1)
-    str = Replace(str, "</html_>", "</html>", , 1)
+    str = Replace$(str, "<html_", "<html", , 1)
+    str = Replace$(str, "</html_", "</html", , 1)
 
-    str = Replace(str, "<head_", "<head", , 1)
-    str = Replace(str, "</head_>", "</head>", , 1)
+    str = Replace$(str, "<head_", "<head", , 1)
+    str = Replace$(str, "</head_", "</head", , 1)
     
-    str = Replace(str, "<body_", "<body")
-    str = Replace(str, "</body_>", "</body>")
+    str = Replace$(str, "<body_", "<body", , 1)
+    str = Replace$(str, "</body_", "</body", , 1)
     
-    str = Replace(str, "___xxx123", vbNullString)
+    str = Replace$(str, "___xxx123", vbNullString)
     
     sanitizeHTML = str
 End Function
+
+
 
 Private Function formatXML(ByVal val As String) As String
     Dim xslDoc As New MSXML2.DOMDocument60
@@ -3038,7 +3049,7 @@ Private Function fixFirefoxBug1797871(ByVal str As String) As String
         ReDim Preserve bytes(0 To j + 1)
         str = bytes
         
-        fixFirefoxBug1797871 = Replace(str, vbNewLine & vbNewLine, vbNewLine)
+        fixFirefoxBug1797871 = Replace$(str, vbNewLine & vbNewLine, vbNewLine)
     Else
         fixFirefoxBug1797871 = str
     End If

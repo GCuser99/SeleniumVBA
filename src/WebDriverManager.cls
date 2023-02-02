@@ -145,7 +145,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     'user might be using a portable browser that will be set in capabilities
     'so if browser is not found in registry, then set browser version to a
     'dummy value and then install latest driver, if not already installed
-    If Left(bverInstalled, 5) = "Error" Then bverInstalled = verBrowserNotFound
+    If Left$(bverInstalled, 5) = "Error" Then bverInstalled = verBrowserNotFound
     
     dverInstalled = GetInstalledDriverVersion(browser, driverPath)
     
@@ -165,7 +165,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             End If
         
             'check if we have an error and then take appropriate action
-            If Left(dverCompat, 5) = "Error" Then
+            If Left$(dverCompat, 5) = "Error" Then
                 If runSilent Then 'don't throw the error - just report back to caller
                     AlignDriverWithBrowser = dverCompat
                     Exit Function
@@ -199,7 +199,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         End If
                  
         'check if we have an error and then take appropriate action
-        If Left(dverCompat, 5) = "Error" Then
+        If Left$(dverCompat, 5) = "Error" Then
             If runSilent Then 'don't throw the error - just report back to caller
                 AlignDriverWithBrowser = dverCompat
                 Exit Function
@@ -228,7 +228,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         End If
                  
         'check if we have an error and then take appropriate action
-        If Left(dverCompat, 5) = "Error" Then
+        If Left$(dverCompat, 5) = "Error" Then
             If runSilent Then 'don't throw the error - just report back to caller
                 AlignDriverWithBrowser = dverCompat
                 Exit Function
@@ -313,7 +313,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     Dim vparts() As String
     vparts = Split(resp, " ")
     For i = 0 To UBound(vparts)
-        If IsNumeric(Replace(vparts(i), ".", vbNullString)) Then
+        If IsNumeric(Replace$(vparts(i), ".", vbNullString)) Then
             ver = vparts(i)
             Exit For
         End If
@@ -381,7 +381,7 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
         url = "https://msedgedriver.azureedge.net/LATEST_STABLE"
         responseText = RequestData(url)
         If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
-        GetLatestDriverVersion = Replace(responseText, vbNewLine, vbNullString)
+        GetLatestDriverVersion = Replace$(responseText, vbNewLine, vbNullString)
     Case svbaBrowser.Chrome
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
         responseText = RequestData(url)
@@ -416,7 +416,7 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
             Set json = col.Item(j)
             For i = 1 To json("assets").Count
                 If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
-                    GetLatestDriverVersion = Mid(json("tag_name"), 10)
+                    GetLatestDriverVersion = Mid$(json("tag_name"), 10)
                     Exit Function
                 End If
             Next i
@@ -461,7 +461,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
             
             responseText = RequestData(url)
             
-            If Left(responseText, 5) = "Error" Then
+            If Left$(responseText, 5) = "Error" Then
                 GetCompatibleDriverVersion = responseText
                 Exit Function
             End If
@@ -471,7 +471,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
             verMajor = verMajor - 1
         Loop
         
-        GetCompatibleDriverVersion = Replace(responseText, vbNewLine, vbNullString)
+        GetCompatibleDriverVersion = Replace$(responseText, vbNewLine, vbNullString)
 
     Case svbaBrowser.Chrome
 
@@ -484,7 +484,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         
         responseText = RequestData(url)
         
-        If Left(responseText, 5) = "Error" Then
+        If Left$(responseText, 5) = "Error" Then
             GetCompatibleDriverVersion = responseText
             Exit Function
         End If
@@ -497,7 +497,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
                 url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
                 responseText = RequestData(url)
                 
-                If Left(responseText, 5) = "Error" Then
+                If Left$(responseText, 5) = "Error" Then
                     GetCompatibleDriverVersion = responseText
                     Exit Function
                 End If
@@ -519,7 +519,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         
         responseText = RequestData(url)
         
-        If Left(responseText, 5) = "Error" Then
+        If Left$(responseText, 5) = "Error" Then
             GetCompatibleDriverVersion = responseText
             Exit Function
         End If
@@ -532,7 +532,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         
         For Each row In table.Rows
             If CInt(verMajor) >= CInt(Split(row.Cells(2).innerText)(0)) Then
-                GetCompatibleDriverVersion = Trim(row.Cells(0).innerText)
+                GetCompatibleDriverVersion = Trim$(row.Cells(0).innerText)
                 Exit For
             End If
         Next row
@@ -671,7 +671,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     'make sure driver zip file was created successfully
     If Not fso.FileExists(tmpInstallZipPath) Then
         'clean up first
-        If createdTmpFolder Then fso.DeleteFolder Left(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
+        If createdTmpFolder Then fso.DeleteFolder Left$(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
         Err.raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
     End If
     
@@ -688,7 +688,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     fso.CopyFile tmpInstallDriverpath, driverPath, True
     
     'if created tmp folder, then delete it
-    If createdTmpFolder Then fso.DeleteFolder Left(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
+    If createdTmpFolder Then fso.DeleteFolder Left$(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
 End Sub
 
 '@Description("Returns the folder path to Florent Breheret's SeleniumBasic application in local AppData, assuming that it is installed")

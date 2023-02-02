@@ -26,7 +26,7 @@ Sub test_hide_headless()
     
     'now we modify the user agent string by tossing the "Headless" keyword and then
     'update WebCapabilities UserArgent argument
-    caps.SetUserAgent Replace(ua, "HeadlessChrome", "Chrome")
+    caps.SetUserAgent Replace$(ua, "HeadlessChrome", "Chrome")
     
     driver.OpenBrowser caps, invisible:=True
     

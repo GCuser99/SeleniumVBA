@@ -109,11 +109,11 @@ Sub test_download_resource()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/blob/main/dev/logo.png"
+    driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
     driver.Wait 1000
 
     'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
-    driver.FindElement(By.cssSelector, "img[alt='logo.png'").DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
+    driver.FindElement(By.cssSelector, "img[alt='SeleniumVBA'").DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
     
     driver.CloseBrowser
     driver.Shutdown
