@@ -109,3 +109,7 @@ This project is an extensively modified/extended version of uezo's [TinySelenium
 [RubberDuck](https://rubberduckvba.com/) by Mathieu Guindon
 
 [twinBasic](https://twinbasic.com/preview.html) by Wayne Phillips
+
+[Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell
+
+[UninsIS](https://github.com/Bill-Stewart/UninsIS) by Bill Stewart
