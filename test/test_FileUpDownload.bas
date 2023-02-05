@@ -103,6 +103,7 @@ End Sub
 Sub test_download_resource()
     'this test uses the DownloadResource method of the WebElement class to download the src to an img element
     Dim driver As SeleniumVBA.WebDriver
+    Dim element As WebElement
 
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -112,8 +113,10 @@ Sub test_download_resource()
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
     driver.Wait 1000
 
+    Set element = driver.FindElement(By.cssSelector, "img[alt='SeleniumVBA'")
+    
     'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
-    driver.FindElement(By.cssSelector, "img[alt='SeleniumVBA'").DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
+    element.DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
     
     driver.CloseBrowser
     driver.Shutdown

@@ -110,6 +110,6 @@ This project is an extensively modified/extended version of uezo's [TinySelenium
 
 [twinBasic](https://twinbasic.com/preview.html) by Wayne Phillips
 
-[Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell
+[Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell and [UninsIS](https://github.com/Bill-Stewart/UninsIS) by Bill Stewart
 
-[UninsIS](https://github.com/Bill-Stewart/UninsIS) by Bill Stewart
+

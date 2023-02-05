@@ -20,9 +20,6 @@ Attribute VB_Name = "WebShared"
 'parent document. The user has the ability to change the default basePath through DefaultIOFolder
 'The only times in the code base where the default basePath is not specified is in DefaultIOFolder & DefaultDriverFolder
 
-#Const AccessHost = False
-#Const ExcelHost = True
-
 Option Explicit
 Option Private Module
 
@@ -156,6 +153,109 @@ Private Function IsArrayInitialized(ByRef arry() As Variant) As Boolean
     If (Not arry) = -1 Then IsArrayInitialized = False Else IsArrayInitialized = True
 End Function
 
+Private Function ActiveVBAProjectFolderPath() As String
+    'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
+    'then this returns the path to the caller, not the Add-in (unless they are the same).
+    'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
+    'may not be the caller's intended target if it resides in a different project.
+    Dim fso As FileSystemObject
+    Dim oApp As Object
+    
+    Set oApp = Application 'late bound needed for cross-app compatibility
+    
+    Select Case oApp.Name
+    Case "Microsoft Excel"
+        Dim sRespType As String
+        sRespType = TypeName(oApp.Caller)
+        If sRespType <> "Error" Then 'eg. if launched by a formula or a shape button in a worksheet
+            ActiveVBAProjectFolderPath = oApp.ActiveWorkbook.Path
+        Else 'if launched in the VBE
+            If VBAIsTrusted Then
+                'below will return an error if active project's host doc has not yet been saved, even if access trusted
+                Set fso = New FileSystemObject
+                On Error Resume Next
+                ActiveVBAProjectFolderPath = fso.GetParentFolderName(oApp.VBE.ActiveVBProject.fileName)
+                On Error GoTo 0
+            Else 'if Excel security setting "Trust access to the VBA project object model" is not enabled
+                Dim ThisAppProcessID As Long
+                GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
+                Do 'search for this VBE window
+                    Dim hWnd As LongPtr
+                    hWnd = FindWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
+                    If hWnd > 0 Then
+                        Dim WndProcessID As Long
+                        GetWindowThreadProcessId hWnd, WndProcessID
+                        If ThisAppProcessID = WndProcessID Then
+                            'get its caption
+                            Dim Length As Long, caption As String, result As Long
+                            Length = GetWindowTextLength(hWnd)
+                            caption = Space$(Length + 1)
+                            result = GetWindowText(hWnd, caption, Length + 1)
+                            
+                            'extract filename from the caption
+                            Dim oRegex As New RegExp
+                            oRegex.Pattern = "^Microsoft Visual Basic[^-]* - ([^[]*) \[[^]]+\] - \[[^(]+\([^)]+\)\]$"
+                            Dim regexRes As MatchCollection
+                            Set regexRes = oRegex.Execute(Left$(caption, result))
+                            If regexRes.Count = 1 Then
+                                Dim sFilename As String
+                                sFilename = regexRes.Item(0).SubMatches(0)
+                                'this returns vbNullString if workbook has not been saved yet
+                                ActiveVBAProjectFolderPath = oApp.Workbooks(sFilename).Path
+                            Else
+                                Err.raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
+                            End If
+                        End If
+                    End If
+                Loop Until hWnd = 0
+            End If
+        End If
+        If ActiveVBAProjectFolderPath = vbNullString Then Err.raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
+    Case "Microsoft Access"
+        Dim strPath As String
+    
+        strPath = vbNullString
+        
+        'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
+        'will throw an error so trap and report below...
+        
+        On Error Resume Next
+        strPath = oApp.VBE.ActiveVBProject.fileName
+        On Error GoTo 0
+        
+        If strPath <> vbNullString Then
+            Set fso = New FileSystemObject
+            strPath = fso.GetParentFolderName(strPath)
+            ActiveVBAProjectFolderPath = strPath
+        Else
+            Err.raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
+        End If
+    Case Else
+        Err.raise 1, "WebShared", "Error: Only MS Access and MS Excel supported."
+    End Select
+End Function
+
+Private Function VBAIsTrusted() As Boolean
+    VBAIsTrusted = False
+    On Error Resume Next
+    VBAIsTrusted = (Application.VBE.VBProjects.Count) > 0
+    On Error GoTo 0
+End Function
+
+Public Function ThisLibFolderPath() As String
+    'returns the path of this library - not the path of the active vba project, which may be referencing this library"
+    Dim oApp As Object
+    Set oApp = Application
+    Select Case oApp.Name
+    Case "Microsoft Excel"
+        ThisLibFolderPath = oApp.ThisWorkbook.Path
+    Case "Microsoft Access"
+        ThisLibFolderPath = oApp.CodeProject.Path
+    Case Else
+        Err.raise 1, "WebShared", "Error: Only MS Access and MS Excel supported."
+    End Select
+End Function
+
 Public Function GetBrowserName(ByVal browser As svbaBrowser) As String
     Select Case browser
     Case svbaBrowser.Chrome
@@ -168,108 +268,6 @@ Public Function GetBrowserName(ByVal browser As svbaBrowser) As String
         GetBrowserName = "internet explorer"
     End Select
 End Function
-
-#If ExcelHost Then
-
-Private Function ActiveVBAProjectFolderPath() As String
-    'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
-    'then this returns the path to the caller, not the Add-in (unless they are the same).
-    'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
-    'may not be the caller's intended target if it resides in a different project.
-
-    Dim sRespType As String
-    sRespType = TypeName(Application.Caller)
-    If sRespType <> "Error" Then 'eg. if launched by a formula or a shape button in a worksheet
-        ActiveVBAProjectFolderPath = Application.ActiveWorkbook.Path
-    Else 'if launched in the VBE
-        If VBAIsTrusted Then
-            Dim fso As New FileSystemObject
-            'below will return an error if active project's host doc has not yet been saved, even if access trusted
-            On Error Resume Next
-            ActiveVBAProjectFolderPath = fso.GetParentFolderName(Application.VBE.ActiveVBProject.fileName)
-            On Error GoTo 0
-        Else 'if Excel security setting "Trust access to the VBA project object model" is not enabled
-            Dim ThisAppProcessID As Long
-            GetWindowThreadProcessId Application.hWnd, ThisAppProcessID
-            Do 'search for this VBE window
-                Dim hWnd As LongPtr
-                hWnd = FindWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
-                If hWnd > 0 Then
-                    Dim WndProcessID As Long
-                    GetWindowThreadProcessId hWnd, WndProcessID
-                    If ThisAppProcessID = WndProcessID Then
-                        'get its caption
-                        Dim Length As Long, caption As String, result As Long
-                        Length = GetWindowTextLength(hWnd)
-                        caption = Space$(Length + 1)
-                        result = GetWindowText(hWnd, caption, Length + 1)
-                        
-                        'extract filename from the caption
-                        Dim oRegex As New RegExp
-                        oRegex.Pattern = "^Microsoft Visual Basic[^-]* - ([^[]*) \[[^]]+\] - \[[^(]+\([^)]+\)\]$"
-                        Dim regexRes As MatchCollection
-                        Set regexRes = oRegex.Execute(Left$(caption, result))
-                        If regexRes.Count = 1 Then
-                            Dim sFilename As String
-                            sFilename = regexRes.Item(0).SubMatches(0)
-                            'this returns vbNullString if workbook has not been saved yet
-                            ActiveVBAProjectFolderPath = Application.Workbooks(sFilename).Path
-                        Else
-                            Err.raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
-                        End If
-                    End If
-                End If
-            Loop Until hWnd = 0
-        End If
-    End If
-    If ActiveVBAProjectFolderPath = vbNullString Then Err.raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
-End Function
-
-Public Function ThisLibFolderPath() As String
-    'returns the path of this library - not the path of the active vba project, which may be referencing this library
-    ThisLibFolderPath = Application.ThisWorkbook.Path
-End Function
-
-Private Function VBAIsTrusted() As Boolean
-    VBAIsTrusted = False
-    On Error Resume Next
-    VBAIsTrusted = (Application.VBE.VBProjects.Count) > 0
-    On Error GoTo 0
-End Function
-
-#ElseIf AccessHost Then
-
-Private Function ActiveVBAProjectFolderPath() As String
-    'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
-    'then this returns the path to the caller, not the Add-in (unless they are the same).
-    'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
-    'may not be the caller's intended target if it resides in a different project.
-    Dim strPath As String
-    
-    strPath = vbNullString
-    
-    'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
-    'will throw an error so trap and report below...
-    
-    On Error Resume Next
-    strPath = Application.VBE.ActiveVBProject.fileName
-    On Error GoTo 0
-    
-    If strPath <> vbNullString Then
-        Dim fso As New FileSystemObject
-        strPath = fso.GetParentFolderName(strPath)
-        ActiveVBAProjectFolderPath = strPath
-    Else
-        Err.raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
-    End If
-End Function
-
-Public Function ThisLibFolderPath() As String
-    'returns the path of this library - not the path of the active vba project, which may be referencing this library"
-    ThisLibFolderPath = Application.CodeProject.Path
-End Function
-
-#End If
 
 Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
     'this searches input path for %[Environ Variable]% pattern and if found, then replaces with the path equivalent
@@ -378,4 +376,5 @@ Public Sub Sleep(ByVal ms As Currency)
         Loop
     End If
 End Sub
+
 
