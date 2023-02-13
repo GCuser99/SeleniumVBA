@@ -6,9 +6,9 @@ This repository folder contains 3 different SeleniumVBA solutions, depending on 
 
 - An MS Access database called SeleniumVBA.accdb. Like the Excel version, this file contains all of the source and test modules and can optionally be called from another MS Access database.
 
-- An EXPERIMENTAL ActiveX DLL called SeleniumVBA.dll. This DLL must be installed and registered using the SeleniumVBADLLSetup.exe Inno setup program. Once installed, the SeleniumVBA DLL can be referenced by your VBA projects in either MS Excel or MS Access to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (currently in Beta) twinBasic compiler. 
+- An EXPERIMENTAL ActiveX DLL called SeleniumVBA_win64.dll. This DLL can be installed and registered using the SeleniumVBADLLSetup.exe Inno setup program. Once installed, the SeleniumVBA object model library can be referenced by your VBA projects in either MS Excel or MS Access to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (currently in Beta) twinBasic compiler. 
 
-All three solutions above allow for storing and referencing SeleniumVBA functionality from a centralized file location. This might be of use if the user does not intend to integrate the SeleniumVBA classes directly into their own code and wants a convenient means of updating SeleniumVBA with newer versions of the code library.
+All three solutions above allow for storing and referencing SeleniumVBA functionality from a centralized file location. This might be of use if the user does not intend to integrate the SeleniumVBA source directly into their own code and wants a convenient means of updating SeleniumVBA with newer versions of the code library.
 
 NOTES:
 

@@ -12,30 +12,23 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.4
-' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v3.5
 '
-' (c) GCUser99
+' A Selenium wrapper for browser automation developed for MS Office VBA
 '
 ' https://github.com/GCuser99/SeleniumVBA/tree/main
 '
-' ==========================================================================
+' Contact Info:
 '
-' MODIFIED/EXTENDED BY GCUser99 FROM:
+' https://github.com/6DiegoDiego9
+' https://github.com/GCUser99
 '
-' TinySeleniumVBA v0.1.3
-' A tiny Selenium wrapper written in pure VBA
-'
-' (c) 2021 uezo
-'
-' Mail: uezo@uezo.net
-' Twitter: @uezochan
-' https://github.com/uezo/TinySeleniumVBA
-'
+' Based originally on uezo's TinySeleniumVBA with extensive changes/additions
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2021 uezo
+' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -55,11 +48,6 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' SOFTWARE.
 ' ==========================================================================
-
-'References:
-'Microsoft Script Control 1.0
-'Microsoft XML, v6.0
-'Microsoft Scripting Runtime
 
 Option Explicit
 
@@ -92,7 +80,8 @@ Private driverDefaultPortEdge As Long
 Private driverDefaultPortFirefox As Long
 Private driverDefaultPortIE As Long
 
-Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary 'store original style of Highlighted elements to be able to UnHighlight them at a future time
+'store original style of Highlighted elements to be able to UnHighlight them at a future time
+Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary
 
 Public Enum VBAcolors
     Unchanged = -1
@@ -143,7 +132,6 @@ Private Type typCMD
     CMD_CLEAR_ELEMENT As Variant
     CMD_GET_ELEMENT_TEXT As Variant
     CMD_SEND_KEYS_TO_ELEMENT As Variant
-    'CMD_UPLOAD_FILE As Variant                    'not wrapped yet
     CMD_GET_ELEMENT_TAG_NAME As Variant
     CMD_IS_ELEMENT_SELECTED As Variant
     CMD_IS_ELEMENT_ENABLED As Variant
@@ -169,21 +157,11 @@ Private Type typCMD
     CMD_SET_ALERT_TEXT As Variant
     CMD_GET_ALERT_TEXT As Variant
     CMD_CLICK As Variant
-    'CMD_ACTIONS As Variant                        'used in WebActionChain.cls
-    'CMD_CLEAR_ACTIONS As Variant                  'used in WebActionChain.cls
     CMD_SET_WINDOW_RECT As Variant
     CMD_GET_WINDOW_RECT As Variant
     CMD_MAXIMIZE_WINDOW As Variant
     CMD_GET_LOCATION As Variant
     CMD_SET_LOCATION As Variant
-    'CMD_GET_APP_CACHE_STATUS As Variant           'not wrapped yet
-    'CMD_GET_NETWORK_CONNECTION As Variant         'not wrapped yet
-    'CMD_SET_NETWORK_CONNECTION As Variant         'not wrapped yet
-    'CMD_GET_LOG As Variant                        'see logging option in StartEdge and StartChrome methods
-    'CMD_GET_AVAILABLE_LOG_TYPES As Variant        'see logging option in StartEdge and StartChrome methods
-    'CMD_CURRENT_CONTEXT_HANDLE As Variant         'not wrapped yet
-    'CMD_CONTEXT_HANDLES As Variant                'not wrapped yet
-    'CMD_SWITCH_TO_CONTEXT As Variant              'not wrapped yet
     CMD_FULLSCREEN_WINDOW As Variant
     CMD_MINIMIZE_WINDOW As Variant
     CMD_SHUTDOWN As Variant
@@ -269,7 +247,6 @@ Private Sub InitCommands()
         .CMD_CLEAR_ELEMENT = Array("POST", "/session/$sessionId/element/$id/clear")
         .CMD_GET_ELEMENT_TEXT = Array("GET", "/session/$sessionId/element/$id/text")
         .CMD_SEND_KEYS_TO_ELEMENT = Array("POST", "/session/$sessionId/element/$id/value")
-        '.CMD_UPLOAD_FILE = Array("POST", "/session/$sessionId/file")
         .CMD_GET_ELEMENT_TAG_NAME = Array("GET", "/session/$sessionId/element/$id/name")
         .CMD_IS_ELEMENT_SELECTED = Array("GET", "/session/$sessionId/element/$id/selected")
         .CMD_IS_ELEMENT_ENABLED = Array("GET", "/session/$sessionId/element/$id/enabled")
@@ -295,21 +272,11 @@ Private Sub InitCommands()
         .CMD_SET_ALERT_TEXT = Array("POST", "/session/$sessionId/alert/text")
         .CMD_GET_ALERT_TEXT = Array("GET", "/session/$sessionId/alert/text")
         .CMD_CLICK = Array("POST", "/session/$sessionId/click")
-        '.CMD_ACTIONS = Array("POST", "/session/$sessionId/actions") 'used in WebActionChain.cls
-        '.CMD_CLEAR_ACTIONS = Array("DELETE", "/session/$sessionId/actions") 'used in WebActionChain.cls
         .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
         .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
         .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
         .CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
         .CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
-        '.CMD_GET_APP_CACHE_STATUS = Array("GET", "/session/$sessionId/application_cache/status")
-        '.CMD_GET_NETWORK_CONNECTION = Array("GET", "/session/$sessionId/network_connection")
-        '.CMD_SET_NETWORK_CONNECTION = Array("POST", "/session/$sessionId/network_connection")
-        '.CMD_GET_LOG = Array("POST", "/session/$sessionId/se/log")  'see logging option in StartEdge and StartChrome methods
-        '.CMD_GET_AVAILABLE_LOG_TYPES = Array("GET", "/session/$sessionId/se/log/types") 'see logging option in StartEdge and StartChrome methods
-        '.CMD_CURRENT_CONTEXT_HANDLE = Array("GET", "/session/$sessionId/se/context")
-        '.CMD_CONTEXT_HANDLES = Array("GET", "/session/$sessionId/se/contexts")
-        '.CMD_SWITCH_TO_CONTEXT = Array("POST", "/session/$sessionId/context")
         .CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
         .CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
         .CMD_SHUTDOWN = Array("GET", "/shutdown")
@@ -387,19 +354,19 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
         logFilePath = WebShared.GetFullLocalPath(logFilePath, defaultIOFolder_)
         Select Case browser_
         Case svbaBrowser.Edge, svbaBrowser.Chrome
-            serviceArgs = " --verbose --log-path=" & Chr(34) & logFilePath & Chr(34)
+            serviceArgs = " --verbose --log-path=" & Chr$(34) & logFilePath & Chr$(34)
         Case svbaBrowser.Firefox
             'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
             'apparently firefox does not support command line argument for specifying log file path
             'so using cmd.exe to redirect log from console window
             serviceArgs = " -vv"" > " & Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
-            commandStr = Chr(34) & Environ("comspec") & Chr(34) & " /c " & """"
+            commandStr = Chr$(34) & Environ("comspec") & Chr$(34) & " /c " & """"
         Case svbaBrowser.IE
-            serviceArgs = " --log-level=TRACE --log-file=" & Chr(34) & logFilePath & Chr(34)
+            serviceArgs = " --log-level=TRACE --log-file=" & Chr$(34) & logFilePath & Chr$(34)
         End Select
     End If
     
-    commandStr = commandStr & Chr(34) & driverPath & Chr(34) & " --port=" & localHostPort & serviceArgs
+    commandStr = commandStr & Chr$(34) & driverPath & Chr$(34) & " --port=" & localHostPort & serviceArgs
     
     processID = Shell(commandStr, appWinStyle)
 
@@ -2051,13 +2018,13 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
 End Sub
 
 '@Description("Saves a specified string to a file")
-Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filePath As String = ".\snippet.html")
+Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filePath As String = ".\snippet.html", Optional ByVal formatUnicode16 As Boolean = True)
 Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject
     Dim ts As TextStream
     filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
-    Set ts = fs.CreateTextFile(filePath, True, True)
+    Set ts = fs.CreateTextFile(filePath, True, formatUnicode16)
     ts.Write val
     ts.Close
 End Sub
@@ -2158,26 +2125,26 @@ Attribute PageToJSONObject.VB_Description = "Converts webpage to a json dictiona
 End Function
 
 '@Description("Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact")
-Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False)
+Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False, Optional ByVal formatUnicode16 As Boolean = True)
 Attribute PageToHTMLFile.VB_Description = "Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact"
     'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
     If sanitize Then
-        Me.SaveStringToFile sanitizeHTML(Me.GetPageSource), filePath
+        Me.SaveStringToFile sanitizeHTML(Me.GetPageSource), filePath, formatUnicode16
     Else
-        Me.SaveStringToFile Me.GetPageSource, filePath
+        Me.SaveStringToFile Me.GetPageSource, filePath, formatUnicode16
     End If
 End Sub
 
 '@Description("Converts webpage to an xml file")
-Public Sub PageToXMLFile(ByVal filePath As String, Optional ByVal prettyPrint As Boolean = False)
+Public Sub PageToXMLFile(ByVal filePath As String, Optional ByVal prettyPrint As Boolean = False, Optional ByVal formatUnicode16 As Boolean = True)
 Attribute PageToXMLFile.VB_Description = "Converts webpage to an xml file"
-    Me.SaveStringToFile getXMLStringFromPage(prettyPrint), filePath
+    Me.SaveStringToFile getXMLStringFromPage(prettyPrint), filePath, formatUnicode16
 End Sub
 
 '@Description("Converts webpage to a json file")
-Public Sub PageToJSONFile(ByVal filePath As String, Optional ByVal prettyPrint As Boolean = False)
+Public Sub PageToJSONFile(ByVal filePath As String, Optional ByVal prettyPrint As Boolean = False, Optional ByVal formatUnicode16 As Boolean = True)
 Attribute PageToJSONFile.VB_Description = "Converts webpage to a json file"
-    Me.SaveStringToFile getJSONStringFromPage(prettyPrint), filePath
+    Me.SaveStringToFile getJSONStringFromPage(prettyPrint), filePath, formatUnicode16
 End Sub
 
 '@Description("Returns the current webpage source as a string")
@@ -2207,27 +2174,24 @@ Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as 
     Set GetGeolocation = Execute(tCMD.CMD_GET_LOCATION, data)("value")
 End Function
 
-'@Description("Creates a (optional) settings file that is initialized with system default settings")
-Public Sub CreateSettingsFile()
-Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings file that is initialized with system default settings"
+'@Description("Creates/updates the optional INI settings file - set keepExistingValues to False to reset existing settings to system defaults")
+Public Sub CreateSettingsFile(Optional ByVal keepExistingValues As Boolean = True)
+Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI settings file - set keepExistingValues to False to reset existing settings to system defaults"
     Dim iniFilePath As String
     Dim fso As New FileSystemObject
     Dim ts As TextStream
     Dim overWriteFile As Long
     Dim i As Long
+    Dim useDefaultValue As Boolean
+    Dim entryCol As New Collection
+    
+    useDefaultValue = Not keepExistingValues
     
     iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
     
-    'if settings file already exists, then warn user
-    If fso.FileExists(iniFilePath) Then
-        overWriteFile = MsgBox("A SeleniumVBA settings file already exists at:" & vbNewLine & vbNewLine & iniFilePath & vbNewLine & vbNewLine & "Would you like to replace it?", vbYesNo, "SeleniumVBA")
-        If overWriteFile = vbNo Then Exit Sub
-    End If
-    
-    Dim entryCol As New Collection
-    
     entryCol.Add "# This settings file is completely optional. For it to have effect,"
-    entryCol.Add "# it must be located in the same folder as the SeleniumVBA code library."
+    entryCol.Add "# it must be located in the same folder as the SeleniumVBA code"
+    entryCol.Add "# library, and be named ""SeleniumVBA.ini""."
     entryCol.Add " "
     entryCol.Add "# If a value for an entry is not specified, then the system"
     entryCol.Add "# default value will be used."
@@ -2251,9 +2215,9 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     entryCol.Add "# vbNormalFocus, vbMinimizedFocus, vbMaximizedFocus, vbNormalNoFocus,"
     entryCol.Add "# and vbMinimizedNoFocus."
     entryCol.Add " "
-    entryCol.Add "driver_location_folder=%USERPROFILE%\Downloads"
-    entryCol.Add "default_io_folder="
-    entryCol.Add "command_window_style=vbHide"
+    entryCol.Add "driver_location_folder=" & ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", "%USERPROFILE%\Downloads", useDefaultValue)
+    entryCol.Add "default_io_folder=" & ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString, useDefaultValue)
+    entryCol.Add "command_window_style=" & ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", "vbHide", useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[AUTO-DRIVER-UPDATE]"
@@ -2267,8 +2231,8 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
     entryCol.Add "# for more frequent updating."
     entryCol.Add " "
-    entryCol.Add "auto_detect_and_update=True"
-    entryCol.Add "min_compatibility_level=svbaBuildMajor"
+    entryCol.Add "auto_detect_and_update=" & ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True, useDefaultValue)
+    entryCol.Add "min_compatibility_level=" & ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", "svbaBuildMajor", useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "# Below are browser-specific initializations."
@@ -2286,26 +2250,26 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     
     entryCol.Add "[CHROME]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add "local_host_port=9515"
+    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515, useDefaultValue)
     entryCol.Add " "
 
     entryCol.Add "[EDGE]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add "local_host_port=9516"
+    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[FIREFOX]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add "local_host_port=4444"
+    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[INTERNET EXPLORER]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path="
-    entryCol.Add "local_host_port=5555"
+    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
@@ -2313,17 +2277,17 @@ Attribute CreateSettingsFile.VB_Description = "Creates a (optional) settings fil
     entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
     entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
     entryCol.Add " "
-    entryCol.Add "units=svbaInches"
-    entryCol.Add "page_height=11"
-    entryCol.Add "page_width=8.5"
-    entryCol.Add "margin_bottom=.393701"
-    entryCol.Add "margin_top=.393701"
-    entryCol.Add "margin_right=.393701"
-    entryCol.Add "margin_left=.393701"
-    entryCol.Add "background=False"
-    entryCol.Add "orientation=svbaPortrait"
-    entryCol.Add "print_scale=1.0"
-    entryCol.Add "shrink_to_fit=True"
+    entryCol.Add "units=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "units", "svbaInches", useDefaultValue)
+    entryCol.Add "page_height=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_height", 11, useDefaultValue)
+    entryCol.Add "page_width=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_width", 8.5, useDefaultValue)
+    entryCol.Add "margin_bottom=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_bottom", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "margin_top=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_top", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "margin_right=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_right", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "margin_left=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_left", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "background=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "background", False, useDefaultValue)
+    entryCol.Add "orientation=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", "svbaPortrait", useDefaultValue)
+    entryCol.Add "print_scale=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
+    entryCol.Add "shrink_to_fit=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
     
     Set ts = fso.CreateTextFile(iniFilePath, True)
     
@@ -2357,7 +2321,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Dim numUrlSections As Long
     
     url = element.GetAttribute(srcAttribute)
-    If url = vbNullString Then Err.raise 1, "WebDriver", "Could not find Attribute " & Chr(34) & srcAttribute & Chr(34)
+    If url = vbNullString Then Err.raise 1, "WebDriver", "Could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
     'remove new line characters
     url = Replace$(Replace$(url, vbLf, ""), vbCr, "")
     
@@ -2900,7 +2864,6 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Next i
     
     'disable url() function in style elements
-    'this one takes the longest by far
     If htmlDoc.documentMode >= 11 Then
         Set elems = parentElem.querySelectorAll("style")
         
@@ -3009,15 +2972,15 @@ Private Function formatXML(ByVal val As String) As String
     
     xmlDoc.LoadXML val
     
-    xslDoc.LoadXML "<?xml version=" & Chr(34) & "1.0" & Chr(34) & "?>" _
-            & "<xsl:stylesheet version=" & Chr(34) & "1.0" & Chr(34) _
-            & "                xmlns:xsl=" & Chr(34) & "http://www.w3.org/1999/XSL/Transform" & Chr(34) & ">" _
-            & "<xsl:strip-space elements=" & Chr(34) & "*" & Chr(34) & " />" _
-            & "<xsl:output method=" & Chr(34) & "xml" & Chr(34) & " indent=" & Chr(34) & "yes" & Chr(34) & vbNullString _
-            & "            encoding=" & Chr(34) & "UTF-8" & Chr(34) & "/>" _
-            & " <xsl:template match=" & Chr(34) & "node() | @*" & Chr(34) & ">" _
+    xslDoc.LoadXML "<?xml version=" & Chr$(34) & "1.0" & Chr$(34) & "?>" _
+            & "<xsl:stylesheet version=" & Chr$(34) & "1.0" & Chr$(34) _
+            & "                xmlns:xsl=" & Chr$(34) & "http://www.w3.org/1999/XSL/Transform" & Chr$(34) & ">" _
+            & "<xsl:strip-space elements=" & Chr$(34) & "*" & Chr$(34) & " />" _
+            & "<xsl:output method=" & Chr$(34) & "xml" & Chr$(34) & " indent=" & Chr$(34) & "yes" & Chr$(34) & vbNullString _
+            & "            encoding=" & Chr$(34) & "UTF-8" & Chr$(34) & "/>" _
+            & " <xsl:template match=" & Chr$(34) & "node() | @*" & Chr$(34) & ">" _
             & "  <xsl:copy>" _
-            & "   <xsl:apply-templates select=" & Chr(34) & "node() | @*" & Chr(34) & " />" _
+            & "   <xsl:apply-templates select=" & Chr$(34) & "node() | @*" & Chr$(34) & " />" _
             & "  </xsl:copy>" _
             & " </xsl:template>" _
             & "</xsl:stylesheet>"

@@ -34,7 +34,7 @@ Sub test_shadowroots_clear_browser_history()
     
     Set driver = SeleniumVBA.New_WebDriver
 
-    driver.StartChrome 'this is a chome-only demo
+    driver.StartChrome 'this is a chrome-only demo
     driver.OpenBrowser
     
     'make some browsing history

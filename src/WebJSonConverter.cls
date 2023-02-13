@@ -11,19 +11,12 @@ Attribute VB_Exposed = True
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.4
-' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
-'
-' (c) GCUser99
-'
-' https://github.com/GCuser99/SeleniumVBA/tree/main
-'
-' The following changes were made to Tim Hall's version:
+' The following changes were made by GCUser99 to Tim Hall's version:
 '    Converted from VBA standard module to class
 '    Removed Mac OS conditional compiles
 '    Modification to json_Encode so that special Selenium key codes are not escaped
-'    Set default for UseDoubleForLargeNumbers option equal to True  - this is needed for large number strings that can occur with cookie values
-'
+'    Set default for UseDoubleForLargeNumbers option equal to True  -
+'    this is needed for large number strings that can occur with cookie values
 ' ==========================================================================
 ' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON

@@ -12,17 +12,20 @@ Attribute VB_Description = "This class is used to manage print settings for gene
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.4
-' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v3.5
 '
-' (c) GCUser99
+' A Selenium wrapper for browser automation developed for MS Office VBA
 '
 ' https://github.com/GCuser99/SeleniumVBA/tree/main
 '
+' Contact Info:
+'
+' https://github.com/6DiegoDiego9
+' https://github.com/GCUser99
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2022 GCUser99
+' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal

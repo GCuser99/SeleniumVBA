@@ -1,24 +1,44 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.4
-' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v3.5
 '
-' (c) GCUser99
+' A Selenium wrapper for browser automation developed for MS Office VBA
 '
 ' https://github.com/GCuser99/SeleniumVBA/tree/main
 '
+' Contact Info:
+'
+' https://github.com/6DiegoDiego9
+' https://github.com/GCUser99
+' ==========================================================================
+' MIT License
+'
+' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+'
+' Permission is hereby granted, free of charge, to any person obtaining a copy
+' of this software and associated documentation files (the "Software"), to deal
+' in the Software without restriction, including without limitation the rights
+' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+' copies of the Software, and to permit persons to whom the Software is
+' furnished to do so, subject to the following conditions:
+'
+' The above copyright notice and this permission notice shall be included in all
+' copies or substantial portions of the Software.
+'
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+' SOFTWARE.
 ' ==========================================================================
 ' For more info:
 ' https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
 ' http://vbnet.mvps.org/index.html?code/fileapi/pathisrelative.htm
 ' https://stackoverflow.com/questions/57475738/ (for use of SetCurrentDirectory)
 ' https://stackoverflow.com/a/72736800/11738627 (handling of OneDrive/SharePoint cloud urls)
-
-'Several points of clarification:
-'If the basePath is not specified or vbNullString, then the basePath is set to the path of active code project's
-'parent document. The user has the ability to change the default basePath through DefaultIOFolder
-'The only times in the code base where the default basePath is not specified is in DefaultIOFolder & DefaultDriverFolder
 
 Option Explicit
 Option Private Module
@@ -275,14 +295,20 @@ Private Function ExpandEnvironVariable(ByVal inputPath As String) As String
     ExpandEnvironVariable = wsh.ExpandEnvironmentStrings(inputPath)
 End Function
 
-Public Function ReadIniFileEntry(ByVal filePath As String, ByVal section As String, ByVal keyName As String, Optional ByVal defaultValue As Variant = vbNullString) As String
+Public Function ReadIniFileEntry(ByVal filePath As String, ByVal section As String, ByVal keyName As String, Optional ByVal defaultValue As Variant = vbNullString, Optional ByVal useDefaultValue As Boolean = False) As String
     'reads a single settings file entry
     Const lenStr = 255
     Dim outputLen As Long
     Dim retStr As String * lenStr
-    Dim fso As New FileSystemObject
+    Dim fso As FileSystemObject
     
-    'check if optional settinsg file exists - if not then use default and exit
+    If useDefaultValue Then 'quick escape!
+        ReadIniFileEntry = defaultValue
+        Exit Function
+    End If
+    
+    'check if optional settings file exists - if not then use default and exit
+    Set fso = New FileSystemObject
     If Not fso.FileExists(filePath) Then
         ReadIniFileEntry = defaultValue
         Exit Function

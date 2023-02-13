@@ -3,35 +3,20 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
 
-'IMPORTANT!!!!
 '---------------------------------------------------------------------------------------------------------------
 '
 'To immediately check on the version alignment between installed Selenium WebDrivers and Browsers, and to then
 'install compatible drivers if not compatible, run the "test_UpdateDrivers" subroutine below. This will install the
-'compatible versions of WebDriver Chrome, Edge, and Firefox even if you have not yet installed them. Note that
-'the default folder for installation is the same folder that this Excel file resides.
+'compatible versions of WebDriver Chrome, Edge, and Firefox, even if you have not yet installed them. Note that
+'the default folder for installation is your Downloads folder.
 '
 '---------------------------------------------------------------------------------------------------------------
 '
 'There is also the optional capability in the WebDriver class to auto-check and conditionally install every time the StartChrome, StartEdge,
 'and StartFirefox methods are invoked. The default in this version of SeleniumVBA is set to auto-check and install.
 '
-'If user wishes to turn this functionality off and manage the alignment themselves, then set the flag below in WebDriver class to False.
-'
-'Private Const CheckDriverBrowserVersionAlignment = False
-'
-'---------------------------------------------------------------------------------------------------------------
-'
-'Otherwise if to install the WebDrivers manually, then download from:
-'
-'Edge: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
-'
-'Chrome: https://chromedriver.chromium.org/downloads
-'
-'Firefox: https://github.com/mozilla/geckodriver/releases
-'
-'Be sure to install drivers with the same major version (number to left of first period)
-'as corresponding browser. Place the driver(s) in the same directory as where this Excel file resides.
+'If user wishes to turn this functionality off and manage the alignment themselves, then see the Wiki topic
+'Advanced Customization at https://github.com/GCuser99/SeleniumVBA/wiki#advanced-customization
 '
 '---------------------------------------------------------------------------------------------------------------
 

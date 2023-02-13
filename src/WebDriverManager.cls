@@ -12,18 +12,20 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.4
-' A Selenium wrapper for Edge and Chrome written in Windows VBA based on JSon
-' wire protocol.
+' SeleniumVBA v3.5
 '
-' (c) GCUser99
+' A Selenium wrapper for browser automation developed for MS Office VBA
 '
 ' https://github.com/GCuser99/SeleniumVBA/tree/main
 '
+' Contact Info:
+'
+' https://github.com/6DiegoDiego9
+' https://github.com/GCUser99
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2022 GCUser99
+' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -92,8 +94,6 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '   Microsoft WMI Scripting V1.2 Library
 '
 Option Explicit
-
-
 
 Private mDefaultDriverFolder As String
 
@@ -249,6 +249,8 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     
     End Select
     
+    If bverInstalled = verBrowserNotFound Then bverInstalled = "Not found"
+    
     respStr = respStr & vbNewLine & vbNewLine & "Browser version: " & bverInstalled & vbNewLine & "Driver version:    " & dverInstalled
     
     AlignDriverWithBrowser = respStr
@@ -307,7 +309,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
         Exit Function
     End If
     
-    resp = wsh.Exec(Chr(34) & driverPath & Chr(34) & " --version").StdOut.ReadAll
+    resp = wsh.Exec(Chr$(34) & driverPath & Chr$(34) & " --version").StdOut.ReadAll
     
     'assume only numbers and periods are allowed in version numbers(?)
     Dim vparts() As String

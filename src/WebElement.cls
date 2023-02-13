@@ -12,30 +12,23 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.4
-' A Selenium wrapper for Edge, Chrome, Firefox, and IE written in Windows VBA based on JSon wire protocol.
+' SeleniumVBA v3.5
 '
-' (c) GCUser99
+' A Selenium wrapper for browser automation developed for MS Office VBA
 '
 ' https://github.com/GCuser99/SeleniumVBA/tree/main
 '
-' ==========================================================================
+' Contact Info:
 '
-' MODIFIED/EXTENDED BY GCUser99 FROM:
+' https://github.com/6DiegoDiego9
+' https://github.com/GCUser99
 '
-' TinySeleniumVBA v0.1.3
-' A tiny Selenium wrapper written in pure VBA
-'
-' (c)2021 uezo
-'
-' Mail: uezo@uezo.net
-' Twitter: @uezochan
-' https://github.com/uezo/TinySeleniumVBA
-'
+' Based originally on uezo's TinySeleniumVBA with extensive changes/additions
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2021 uezo
+' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
