@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.5
+' SeleniumVBA v3.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -121,14 +121,14 @@ Private Sub Class_Initialize()
     
     'attempt to read global variable values from optional settings file - if not successful,
     'then assign a system default value (last input parameter of ReadIniFileEntry)
-    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
-    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
+    iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
+    Me.DefaultDriverFolder = readIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
 End Sub
 
 '@Description("Sets the default driver folder path")
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
 Attribute DefaultDriverFolder.VB_Description = "Sets the default driver folder path"
-    mDefaultDriverFolder = WebShared.GetFullLocalPath(folderPath)
+    mDefaultDriverFolder = WebShared.getFullLocalPath(folderPath)
 End Property
 
 Public Property Get DefaultDriverFolder() As String
@@ -141,7 +141,9 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     Dim respStr As String
     Dim dverInstalled As String
     
+    'get the installed versions of driver and browser
     bverInstalled = GetInstalledBrowserVersion(browser)
+    
     'user might be using a portable browser that will be set in capabilities
     'so if browser is not found in registry, then set browser version to a
     'dummy value and then install latest driver, if not already installed
@@ -152,8 +154,8 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
     Select Case browser
     Case svbaBrowser.Edge, svbaBrowser.Chrome
         
-        'because of the way Edge and Chrome maintain synchrony between diver and browser version numbers
-        'we can compare driver and browser version strings to determine compatibility
+        'because of the way Edge and Chrome maintain synchrony between driver and browser version numbers
+        'we can compare installed driver and browser version strings to determine compatibility
         If CheckCompatibilityLevel(bverInstalled, dverInstalled) < minCompatibilityLevel Then
         
             'the installed driver version is sufficiently different than the installed browser version
@@ -181,17 +183,16 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
                 DownloadAndInstallDriver browser, dverCompat, driverPath
                 dverInstalled = dverCompat
-                respStr = "The latest " & BrowserNameStr(browser) & " Webdriver was installed."
+                respStr = "The latest " & browserNameStr(browser) & " Webdriver was installed."
             Else
-                respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
+                respStr = browserNameStr(browser) & " Webdriver and Browser are compatible."
             End If
         Else
-            respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
+            respStr = browserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.Firefox
                  
-        'the installed driver version is sufficiently different than the installed browser version
-        'so find the most compatible driver version for installed browser
+        'get the compatible driver version for the installed browser
         If bverInstalled = verBrowserNotFound Then
             dverCompat = GetLatestDriverVersion(browser)
         Else
@@ -213,14 +214,13 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             'so install it
             DownloadAndInstallDriver browser, dverCompat, driverPath
             dverInstalled = dverCompat
-            respStr = "The latest " & BrowserNameStr(browser) & " Webdriver was installed."
+            respStr = "The latest " & browserNameStr(browser) & " Webdriver was installed."
         Else
-            respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
+            respStr = browserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.IE
     
-        'the installed driver version is sufficiently different than the installed browser version
-        'so find the most compatible driver version for installed browser
+        'get the compatible driver version for the installed browser
         If bverInstalled = verBrowserNotFound Then
             dverCompat = GetLatestDriverVersion(browser)
         Else
@@ -242,9 +242,9 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             'so install it
             DownloadAndInstallDriver browser, dverCompat, driverPath
             dverInstalled = dverCompat
-            respStr = "The latest " & BrowserNameStr(browser) & " Webdriver was installed."
+            respStr = "The latest " & browserNameStr(browser) & " Webdriver was installed."
         Else
-            respStr = BrowserNameStr(browser) & " Webdriver and Browser are compatible."
+            respStr = browserNameStr(browser) & " Webdriver and Browser are compatible."
         End If
     
     End Select
@@ -302,7 +302,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
         End Select
     End If
     
-    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultDriverFolder)
+    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
     
     If Not fso.FileExists(driverPath) Then
         GetInstalledDriverVersion = verDriverNotFound
@@ -381,17 +381,17 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
     Select Case browser
     Case svbaBrowser.Edge
         url = "https://msedgedriver.azureedge.net/LATEST_STABLE"
-        responseText = RequestData(url)
+        responseText = requestData(url)
         If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         GetLatestDriverVersion = Replace$(responseText, vbNewLine, vbNullString)
     Case svbaBrowser.Chrome
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
-        responseText = RequestData(url)
+        responseText = requestData(url)
         If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         GetLatestDriverVersion = responseText
     Case svbaBrowser.Firefox
         url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
-        responseText = RequestData(url)
+        responseText = requestData(url)
         If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         Set resp = jc.ParseJson(responseText)
         'now search all
@@ -410,7 +410,7 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
         GetLatestDriverVersion = resp("name")
     Case svbaBrowser.IE
         url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        responseText = RequestData(url)
+        responseText = requestData(url)
         If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
         Set col = jc.ParseJson(responseText)
         'search the release log until an IEDriveServer is found
@@ -461,7 +461,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         Do While verMajor >= 75
             url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor & "_WINDOWS"
             
-            responseText = RequestData(url)
+            responseText = requestData(url)
             
             If Left$(responseText, 5) = "Error" Then
                 GetCompatibleDriverVersion = responseText
@@ -484,7 +484,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         'first see if we can find an exact match
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor & "." & verMinor & "." & verBuild
         
-        responseText = RequestData(url)
+        responseText = requestData(url)
         
         If Left$(responseText, 5) = "Error" Then
             GetCompatibleDriverVersion = responseText
@@ -497,7 +497,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
 
             Do While verMajor >= 70
                 url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
-                responseText = RequestData(url)
+                responseText = requestData(url)
                 
                 If Left$(responseText, 5) = "Error" Then
                     GetCompatibleDriverVersion = responseText
@@ -519,7 +519,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         'to get the most recent driver version compatible with the installed browser
         url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
         
-        responseText = RequestData(url)
+        responseText = requestData(url)
         
         If Left$(responseText, 5) = "Error" Then
             GetCompatibleDriverVersion = responseText
@@ -566,7 +566,7 @@ Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Bro
     On Error Resume Next
     resp = wsh.RegRead(regkey)
     If Err.Number <> 0 Then
-        resp = "Error: " & BrowserNameStr(browser) & " Browser Not Installed"
+        resp = "Error: " & browserNameStr(browser) & " Browser Not Installed"
     End If
 
     GetInstalledBrowserVersion = resp
@@ -604,7 +604,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         End Select
     End If
     
-    driverPath = WebShared.GetFullLocalPath(driverPath, mDefaultDriverFolder)
+    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
     
     driverFolder = fso.GetParentFolderName(driverPath)
     driverFilename = fso.GetFileName(driverPath)
@@ -642,7 +642,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     Case svbaBrowser.IE
         'just get the latest release, independent of Edge browser version
         rurl = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        Set col = jc.ParseJson(RequestData(rurl))
+        Set col = jc.ParseJson(requestData(rurl))
         'search the release log until an IEDriveServer is found
         For j = 1 To col.Count
             Set json = col.Item(j)
@@ -668,7 +668,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         fso.CreateFolder tmpInstallFolder
     End If
     
-    URLDownloadToFile 0, url, tmpInstallZipPath, 0, 0
+    urlDownloadToFile 0, url, tmpInstallZipPath, 0, 0
     
     'make sure driver zip file was created successfully
     If Not fso.FileExists(tmpInstallZipPath) Then
@@ -683,7 +683,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
 
     'check if driver exists and if it does, make sure it isn't in use before overwrite
     If fso.FileExists(driverPath) Then
-        If IsProcessRunning(driverFilename) Then TaskKillByImage (driverFilename)
+        If isProcessRunning(driverFilename) Then taskKillByImage (driverFilename)
     End If
 
     'copy file from temp folder to driver path
@@ -713,7 +713,7 @@ Attribute GetDownloadsFolderPath.VB_Description = "Returns the folder path to th
     GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.Path
 End Function
 
-Private Function IsProcessRunning(ByVal process As String) As Boolean
+Private Function isProcessRunning(ByVal process As String) As Boolean
     Dim objServices As WbemScripting.SWbemServices
     Dim objProcessList As WbemScripting.SWbemObjectSet
     
@@ -721,13 +721,13 @@ Private Function IsProcessRunning(ByVal process As String) As Boolean
     Set objProcessList = objServices.ExecQuery("select * from win32_process where name='" & process & "'")
     
     If objProcessList.Count > 0 Then
-        IsProcessRunning = True
+        isProcessRunning = True
     Else
-        IsProcessRunning = False
+        isProcessRunning = False
     End If
 End Function
 
-Private Function RequestData(ByVal url As String, Optional maxTries As Integer = 20) As Variant
+Private Function requestData(ByVal url As String, Optional maxTries As Integer = 20) As Variant
     'see https://github.com/GCuser99/SeleniumVBA/discussions/29#discussioncomment-3673682
     Dim client As New MSXML2.XMLHTTP60
     Dim try As Integer
@@ -748,43 +748,43 @@ Private Function RequestData(ByVal url As String, Optional maxTries As Integer =
         
         Select Case client.status
         Case 200
-            RequestData = client.responseText
+            requestData = client.responseText
             Exit Function
         Case 404
-            RequestData = "Release Not Found"
+            requestData = "Release Not Found"
             Exit Function
         Case 12007
-            RequestData = "Error: No Internet Connection"
+            requestData = "Error: No Internet Connection"
             Exit Function
         Case 12029, 12031
             'Don't exit loop - make another try to see if we can connect
             'RequestData = "Error: Cannot Connect to Server"
         Case Else 'an unexpected error
             Debug.Print "Please report this error to developers: RequestData Status= " & client.status & ", " & "Response= " & client.responseText
-            RequestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
+            requestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
             Exit Function
         End Select
         
         Debug.Print "try: ", try, client.status, client.responseText, url
     Next try
     'if here then had too many 12029/12031's
-    RequestData = "Error: Cannot Connect to Server"
+    requestData = "Error: Cannot Connect to Server"
 End Function
 
-Private Function BrowserNameStr(ByVal val As svbaBrowser) As String
+Private Function browserNameStr(ByVal val As svbaBrowser) As String
     Select Case val
     Case svbaBrowser.Edge
-        BrowserNameStr = "Edge"
+        browserNameStr = "Edge"
     Case svbaBrowser.Chrome
-        BrowserNameStr = "Chrome"
+        browserNameStr = "Chrome"
     Case svbaBrowser.Firefox
-        BrowserNameStr = "Firefox"
+        browserNameStr = "Firefox"
     Case svbaBrowser.IE
-        BrowserNameStr = "IE"
+        browserNameStr = "IE"
     End Select
 End Function
 
-Private Function TaskKillByImage(ByVal taskName As String) As Variant
+Private Function taskKillByImage(ByVal taskName As String) As Variant
     Dim wsh As New IWshRuntimeLibrary.WshShell
-    TaskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
+    taskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
 End Function

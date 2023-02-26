@@ -5,7 +5,7 @@ Option Private Module
 
 Sub test_WebElements()
     Dim driver As SeleniumVBA.WebDriver
-    Dim mytable As SeleniumVBA.WebElement
+    Dim myTable As SeleniumVBA.WebElement
     Dim rowsTable As SeleniumVBA.WebElements
     Dim columnsRow As SeleniumVBA.WebElements
     Dim rowElem As SeleniumVBA.WebElement
@@ -21,8 +21,8 @@ Sub test_WebElements()
     driver.NavigateTo "https://demo.guru99.com/test/table.html"
     driver.Wait 2000
         
-    Set mytable = driver.FindElement(By.XPath, "/html/body/table/tbody")
-    Set rowsTable = mytable.FindElements(By.tagName, "tr")
+    Set myTable = driver.FindElement(By.XPath, "/html/body/table/tbody")
+    Set rowsTable = myTable.FindElements(By.tagName, "tr")
     
     Debug.Print "Number of rows in table: " & rowsTable.Count
     Debug.Print "Item 1 of first row: " & rowsTable.Item(1).GetText

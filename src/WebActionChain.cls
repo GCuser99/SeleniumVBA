@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.5
+' SeleniumVBA v3.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -140,13 +140,13 @@ Attribute MoveToElement.VB_Description = "Moves the mouse to the middle of an el
     
     If SetFocus Then 'add click after move
         ReDim actions(0 To 3)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-        Set actions(1) = ActionPointerDown
-        Set actions(2) = ActionPointerUp
-        Set actions(3) = ActionPause
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
+        Set actions(1) = actionPointerDown
+        Set actions(2) = actionPointerUp
+        Set actions(3) = actionPause
     Else
         ReDim actions(0 To 0)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
         'ActionPointerMove already has pause built in
     End If
     
@@ -157,7 +157,7 @@ Attribute MoveToElement.VB_Description = "Moves the mouse to the middle of an el
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -180,17 +180,17 @@ Attribute Click.VB_Description = "Clicks an element"
     
     If element Is Nothing Then
         ReDim actions(0 To 3)
-        Set actions(0) = ActionPointerDown
-        Set actions(1) = ActionPointerUp
-        Set actions(2) = ActionPause
-        Set actions(3) = ActionPause
+        Set actions(0) = actionPointerDown
+        Set actions(1) = actionPointerUp
+        Set actions(2) = actionPause
+        Set actions(3) = actionPause
     Else
         ReDim actions(0 To 4)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-        Set actions(1) = ActionPointerDown
-        Set actions(2) = ActionPointerUp
-        Set actions(3) = ActionPause
-        Set actions(4) = ActionPause
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
+        Set actions(1) = actionPointerDown
+        Set actions(2) = actionPointerUp
+        Set actions(3) = actionPause
+        Set actions(4) = actionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -200,7 +200,7 @@ Attribute Click.VB_Description = "Clicks an element"
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -223,13 +223,13 @@ Attribute ClickAndHold.VB_Description = "Holds down the left mouse button on an 
     
     If element Is Nothing Then
         ReDim actions(0 To 1)
-        Set actions(0) = ActionPointerDown
-        Set actions(1) = ActionPause
+        Set actions(0) = actionPointerDown
+        Set actions(1) = actionPause
     Else
         ReDim actions(0 To 2)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-        Set actions(1) = ActionPointerDown
-        Set actions(2) = ActionPause
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
+        Set actions(1) = actionPointerDown
+        Set actions(2) = actionPause
     End If
         
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -239,7 +239,7 @@ Attribute ClickAndHold.VB_Description = "Holds down the left mouse button on an 
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -262,17 +262,17 @@ Attribute ClickContext.VB_Description = "Performs a context-click (right click) 
     
     If element Is Nothing Then
         ReDim actions(0 To 3)
-        Set actions(0) = ActionPointerDown(rightButton)
-        Set actions(1) = ActionPointerUp(rightButton)
-        Set actions(2) = ActionPause
-        Set actions(3) = ActionPause
+        Set actions(0) = actionPointerDown(rightButton)
+        Set actions(1) = actionPointerUp(rightButton)
+        Set actions(2) = actionPause
+        Set actions(3) = actionPause
     Else
         ReDim actions(0 To 4)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-        Set actions(1) = ActionPointerDown(rightButton)
-        Set actions(2) = ActionPointerUp(rightButton)
-        Set actions(3) = ActionPause
-        Set actions(4) = ActionPause
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
+        Set actions(1) = actionPointerDown(rightButton)
+        Set actions(2) = actionPointerUp(rightButton)
+        Set actions(3) = actionPause
+        Set actions(4) = actionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -282,7 +282,7 @@ Attribute ClickContext.VB_Description = "Performs a context-click (right click) 
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -305,21 +305,21 @@ Attribute DoubleClick.VB_Description = "Double-clicks an element"
     
     If element Is Nothing Then
         ReDim actions(0 To 5)
-        Set actions(0) = ActionPointerDown
-        Set actions(1) = ActionPointerUp
-        Set actions(2) = ActionPointerDown
-        Set actions(3) = ActionPointerUp
-        Set actions(4) = ActionPause
-        Set actions(5) = ActionPause
+        Set actions(0) = actionPointerDown
+        Set actions(1) = actionPointerUp
+        Set actions(2) = actionPointerDown
+        Set actions(3) = actionPointerUp
+        Set actions(4) = actionPause
+        Set actions(5) = actionPause
     Else
         ReDim actions(0 To 6)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-        Set actions(1) = ActionPointerDown
-        Set actions(2) = ActionPointerUp
-        Set actions(3) = ActionPointerDown
-        Set actions(4) = ActionPointerUp
-        Set actions(5) = ActionPause
-        Set actions(6) = ActionPause
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
+        Set actions(1) = actionPointerDown
+        Set actions(2) = actionPointerUp
+        Set actions(3) = actionPointerDown
+        Set actions(4) = actionPointerUp
+        Set actions(5) = actionPause
+        Set actions(6) = actionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -329,7 +329,7 @@ Attribute DoubleClick.VB_Description = "Double-clicks an element"
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -352,13 +352,13 @@ Attribute ReleaseButton.VB_Description = "Releases a held mouse button on an ele
     
     If element Is Nothing Then
         ReDim actions(0 To 1)
-        Set actions(0) = ActionPointerUp
-        Set actions(1) = ActionPause
+        Set actions(0) = actionPointerUp
+        Set actions(1) = actionPause
     Else
         ReDim actions(0 To 2)
-        Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-        Set actions(1) = ActionPointerUp
-        Set actions(2) = ActionPause
+        Set actions(0) = actionPointerMove(, , , , , element.elementId)
+        Set actions(1) = actionPointerUp
+        Set actions(2) = actionPause
     End If
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
@@ -368,7 +368,7 @@ Attribute ReleaseButton.VB_Description = "Releases a held mouse button on an ele
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -390,11 +390,11 @@ Attribute DragAndDrop.VB_Description = "Holds down the left mouse button on the 
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionPointerMove(, , , , , sourceElement.elementId)
-    Set actions(1) = ActionPointerDown
-    Set actions(2) = ActionPointerMove(, , , , , targetElement.elementId)
-    Set actions(3) = ActionPointerUp
-    Set actions(4) = ActionPause
+    Set actions(0) = actionPointerMove(, , , , , sourceElement.elementId)
+    Set actions(1) = actionPointerDown
+    Set actions(2) = actionPointerMove(, , , , , targetElement.elementId)
+    Set actions(3) = actionPointerUp
+    Set actions(4) = actionPause
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -403,7 +403,7 @@ Attribute DragAndDrop.VB_Description = "Holds down the left mouse button on the 
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -425,11 +425,11 @@ Attribute DragAndDropByOffset.VB_Description = "Holds down the left mouse button
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-    Set actions(1) = ActionPointerDown
-    Set actions(2) = ActionPointerMove(xOffset, yOffset, , , "pointer")
-    Set actions(3) = ActionPointerUp
-    Set actions(4) = ActionPause
+    Set actions(0) = actionPointerMove(, , , , , element.elementId)
+    Set actions(1) = actionPointerDown
+    Set actions(2) = actionPointerMove(xOffset, yOffset, , , "pointer")
+    Set actions(3) = actionPointerUp
+    Set actions(4) = actionPause
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -438,7 +438,7 @@ Attribute DragAndDropByOffset.VB_Description = "Holds down the left mouse button
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -460,11 +460,11 @@ Attribute DragAndDropToPosition.VB_Description = "Holds down the left mouse butt
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionPointerMove(, , , , , element.elementId)
-    Set actions(1) = ActionPointerDown
-    Set actions(2) = ActionPointerMove(x, y, , , "viewport")
-    Set actions(3) = ActionPointerUp
-    Set actions(4) = ActionPause
+    Set actions(0) = actionPointerMove(, , , , , element.elementId)
+    Set actions(1) = actionPointerDown
+    Set actions(2) = actionPointerMove(x, y, , , "viewport")
+    Set actions(3) = actionPointerUp
+    Set actions(4) = actionPause
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -473,7 +473,7 @@ Attribute DragAndDropToPosition.VB_Description = "Holds down the left mouse butt
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -496,8 +496,8 @@ Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it
     End If
     
     ReDim actions(0 To 1)
-    Set actions(0) = ActionKeyDown(modifierKey)
-    Set actions(1) = ActionPause
+    Set actions(0) = actionKeyDown(modifierKey)
+    Set actions(1) = actionPause
     
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -505,7 +505,7 @@ Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -528,8 +528,8 @@ Attribute KeyUp.VB_Description = "Releases a modifier key"
     End If
 
     ReDim actions(0 To 1)
-    Set actions(0) = ActionKeyUp(modifierKey)
-    Set actions(1) = ActionPause
+    Set actions(0) = actionKeyUp(modifierKey)
+    Set actions(1) = actionPause
     
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -537,7 +537,7 @@ Attribute KeyUp.VB_Description = "Releases a modifier key"
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -559,7 +559,7 @@ Attribute Wait.VB_Description = "Pauses execution for time in milliseconds"
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 0)
-    Set actions(0) = ActionPause(durationMS)
+    Set actions(0) = actionPause(durationMS)
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -568,7 +568,7 @@ Attribute Wait.VB_Description = "Pauses execution for time in milliseconds"
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -600,11 +600,11 @@ Attribute MoveByOffset.VB_Description = "Moves the mouse to an offset from curre
         x = rect.Item("x") + xOffset
         y = rect.Item("y") + yOffset
         ReDim actions(0 To 1)
-        Set actions(0) = ActionPointerMove(x, y)
+        Set actions(0) = actionPointerMove(x, y)
         'ActionPointerMove has built in pause
     Else
         ReDim actions(0 To 0)
-        Set actions(0) = ActionPointerMove(xOffset, yOffset, , , "pointer")
+        Set actions(0) = actionPointerMove(xOffset, yOffset, , , "pointer")
         'ActionPointerMove has built in pause
     End If
     
@@ -615,7 +615,7 @@ Attribute MoveByOffset.VB_Description = "Moves the mouse to an offset from curre
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -637,7 +637,7 @@ Attribute MoveToXY.VB_Description = "Moves the mouse pointer to (x,y) relative t
     parameters.Add "pointerType", "mouse" 'required for 'pointer' inputs
     
     ReDim actions(0 To 0)
-    Set actions(0) = ActionPointerMove(x, y)
+    Set actions(0) = actionPointerMove(x, y)
     
     inputChan.Add "id", "pointerDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "pointer"
@@ -646,7 +646,7 @@ Attribute MoveToXY.VB_Description = "Moves the mouse pointer to (x,y) relative t
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -689,11 +689,11 @@ Attribute SendKeys.VB_Description = "Sends key sequence to current focused eleme
     
     ReDim actions(0 To 2 * UBound(charArray) + 2)
     For i = 0 To UBound(charArray)
-        Set actions(i * 2) = ActionKeyDown(charArray(i))
-        Set actions(i * 2 + 1) = ActionKeyUp(charArray(i))
+        Set actions(i * 2) = actionKeyDown(charArray(i))
+        Set actions(i * 2 + 1) = actionKeyUp(charArray(i))
     Next i
     
-    Set actions(2 * UBound(charArray) + 2) = ActionPause
+    Set actions(2 * UBound(charArray) + 2) = actionPause
     
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -701,7 +701,7 @@ Attribute SendKeys.VB_Description = "Sends key sequence to current focused eleme
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -724,13 +724,13 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
     End If
     
     ReDim actions(0 To 6)
-    Set actions(0) = ActionKeyDown("\ue009") 'control key
-    Set actions(1) = ActionKeyDown("a")
-    Set actions(2) = ActionKeyUp("a")
-    Set actions(3) = ActionKeyUp("\ue009")
-    Set actions(4) = ActionKeyDown("\ue017") 'delete key
-    Set actions(5) = ActionKeyUp("\ue017")
-    Set actions(6) = ActionPause
+    Set actions(0) = actionKeyDown("\ue009") 'control key
+    Set actions(1) = actionKeyDown("a")
+    Set actions(2) = actionKeyUp("a")
+    Set actions(3) = actionKeyUp("\ue009")
+    Set actions(4) = actionKeyDown("\ue017") 'delete key
+    Set actions(5) = actionKeyUp("\ue017")
+    Set actions(6) = actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -738,7 +738,7 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -761,11 +761,11 @@ Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused el
     End If
 
     ReDim actions(0 To 4)
-    Set actions(0) = ActionKeyDown("\ue009") 'control key
-    Set actions(1) = ActionKeyDown(key)
-    Set actions(2) = ActionKeyUp(key)
-    Set actions(3) = ActionKeyUp("\ue009")
-    Set actions(4) = ActionPause
+    Set actions(0) = actionKeyDown("\ue009") 'control key
+    Set actions(1) = actionKeyDown(key)
+    Set actions(2) = actionKeyUp(key)
+    Set actions(3) = actionKeyUp("\ue009")
+    Set actions(4) = actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -773,7 +773,7 @@ Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused el
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -796,11 +796,11 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     End If
     
     ReDim actions(0 To 4)
-    Set actions(0) = ActionKeyDown("\ue008") 'shift key
-    Set actions(1) = ActionKeyDown(key)
-    Set actions(2) = ActionKeyUp(key)
-    Set actions(3) = ActionKeyUp("\ue008")
-    Set actions(4) = ActionPause
+    Set actions(0) = actionKeyDown("\ue008") 'shift key
+    Set actions(1) = actionKeyDown(key)
+    Set actions(2) = actionKeyUp(key)
+    Set actions(3) = actionKeyUp("\ue008")
+    Set actions(4) = actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
     inputChan.Add "type", "key"
@@ -808,7 +808,7 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -827,7 +827,7 @@ Attribute ScrollToElement.VB_Description = "Scrolls to element position with opt
     Dim actions() As Dictionary
     
     ReDim actions(0 To 0)
-    Set actions(0) = ActionScroll(, , xOffset, yOffset, , element.elementId)
+    Set actions(0) = actionScroll(, , xOffset, yOffset, , element.elementId)
     
     inputChan.Add "type", "wheel"
     inputChan.Add "id", "wheelDevice"
@@ -835,7 +835,7 @@ Attribute ScrollToElement.VB_Description = "Scrolls to element position with opt
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -854,7 +854,7 @@ Attribute ScrollBy.VB_Description = "Scrolls window by x and y offsets"
     Dim actions() As Dictionary
     
     ReDim actions(0 To 0)
-    Set actions(0) = ActionScroll(, , xOffset, yOffset)
+    Set actions(0) = actionScroll(, , xOffset, yOffset)
     
     inputChan.Add "type", "wheel"
     inputChan.Add "id", "wheelDevice"
@@ -862,7 +862,7 @@ Attribute ScrollBy.VB_Description = "Scrolls window by x and y offsets"
     
     If data_.Exists("actions") Then
         inputChans = data_.Item("actions")
-        data_.Item("actions") = AppendInputChannel(inputChans, inputChan)
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
     Else
         data_.Add "actions", Array(inputChan)
     End If
@@ -894,20 +894,20 @@ Attribute Perform.VB_Description = "Executes the action chain and then resets th
             inputChans = data_.Item("actions")
             For i = 0 To UBound(inputChans)
                 data_.Item("actions") = Array(inputChans(i))
-                driver_.Execute tCMD.CMD_ACTIONS, data_
+                driver_.execute tCMD.CMD_ACTIONS, data_
             Next i
         Else
             '... or synchronize input channels and call Execute method once
             'for typical action chains, this is 5-10% faster...
-            driver_.Execute tCMD.CMD_ACTIONS, SyncChannels(data_)
+            driver_.execute tCMD.CMD_ACTIONS, syncChannels(data_)
         End If
         
         'it seems that reset actions should always been done on Perform, but Selenium Python doesn't(?)
-        ResetActions
+        resetActions
     End If
 End Sub
 
-Private Function SyncChannels(data As Dictionary) As Dictionary
+Private Function syncChannels(data As Dictionary) As Dictionary
     'this private function aggregates an unsynchronized set of action input channels
     'to create a three-channel (keyboard, pointer, and wheel) synchronized set
     'that can be passed as a single call to the Selenium action processor
@@ -935,12 +935,12 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     inputChans = data.Item("actions")
                 
     If UBound(inputChans) = 0 Then 'only one channel - no need to sync
-        Set SyncChannels = data
+        Set syncChannels = data
         Exit Function
     End If
     
     'this is a computationally expensive step so do it once up front!!
-    Set pause = ActionPause(0) 'dummy pause
+    Set pause = actionPause(0) 'dummy pause
     
     'determine in advance the sync'd action array sizes
     Dim numActions As Long
@@ -1036,33 +1036,33 @@ Private Function SyncChannels(data As Dictionary) As Dictionary
     
     data.Item("actions") = syncdInputChans
     
-    Set SyncChannels = data
+    Set syncChannels = data
 End Function
 
 'make this public for compatibility with Selenium Python? (see Perform method)
-Private Sub ResetActions()
+Private Sub resetActions()
     'clears actions that are already stored locally and on the remote end
-    driver_.Execute tCMD.CMD_CLEAR_ACTIONS, data_ 'remote end clear
+    driver_.execute tCMD.CMD_CLEAR_ACTIONS, data_ 'remote end clear
     data_.Remove "actions" 'local end clear
 End Sub
 
 'Following are private single action functions
 
-Private Function ActionKeyDown(Optional ByVal val As String) As Dictionary
+Private Function actionKeyDown(Optional ByVal val As String) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "keyDown"
     action.Add "value", val
-    Set ActionKeyDown = action
+    Set actionKeyDown = action
 End Function
 
-Private Function ActionKeyUp(Optional ByVal val As String) As Dictionary
+Private Function actionKeyUp(Optional ByVal val As String) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "keyUp"
     action.Add "value", val
-    Set ActionKeyUp = action
+    Set actionKeyUp = action
 End Function
 
-Private Function ActionPointerDown(Optional ByVal button As ButtonType = 0) As Dictionary
+Private Function actionPointerDown(Optional ByVal button As ButtonType = 0) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pointerDown" 'pause, keyUp, KeyDown, pointerUp, pointerDown, pointerCancel
     action.Add "button", button '0 for left, 1 for middle,  2 for right
@@ -1078,30 +1078,30 @@ Private Function ActionPointerDown(Optional ByVal button As ButtonType = 0) As D
     'action.Add "azimuthAngle", 0
     'action.Add "twist", 0
     
-    Set ActionPointerDown = action
+    Set actionPointerDown = action
 End Function
 
-Private Function ActionPointerUp(Optional ByVal button As ButtonType = 0) As Dictionary
+Private Function actionPointerUp(Optional ByVal button As ButtonType = 0) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pointerUp"
     action.Add "button", button
-    Set ActionPointerUp = action
+    Set actionPointerUp = action
 End Function
 
-Private Function ActionPause(Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION) As Dictionary
+Private Function actionPause(Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION) As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pause"
     If duration > 0 Then action.Add "duration", duration
-    Set ActionPause = action
+    Set actionPause = action
 End Function
 
-Private Function ActionPointerCancel() As Dictionary
+Private Function actionPointerCancel() As Dictionary
     Dim action As New Dictionary
     action.Add "type", "pointerCancel"
-    Set ActionPointerCancel = action
+    Set actionPointerCancel = action
 End Function
 
-Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin As String = "viewport", Optional elementId As String) As Dictionary
+Private Function actionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin As String = "viewport", Optional elementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "pointerMove"
@@ -1131,10 +1131,10 @@ Private Function ActionPointerMove(Optional ByVal x As Long = 0, Optional ByVal 
     'action.Add "azimuthAngle", 0
     'action.Add "twist", 0
     
-    Set ActionPointerMove = action
+    Set actionPointerMove = action
 End Function
 
-Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional elementId As String) As Dictionary
+Private Function actionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional elementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "scroll"
@@ -1153,14 +1153,14 @@ Private Function ActionScroll(Optional ByVal x As Long = 0, Optional ByVal y As 
     action.Add "deltaX", deltaX
     action.Add "deltaY", deltaY
     
-    Set ActionScroll = action
+    Set actionScroll = action
 End Function
 
 'this is a utility function to append an input channel to the input channel array
-Private Function AppendInputChannel(inputChans() As Variant, inputChan As Dictionary) As Variant()
+Private Function appendInputChannel(inputChans() As Variant, inputChan As Dictionary) As Variant()
     ReDim Preserve inputChans(0 To UBound(inputChans) + 1)
     Set inputChans(UBound(inputChans)) = inputChan
-    AppendInputChannel = inputChans
+    appendInputChannel = inputChans
 End Function
 
 Private Sub Class_Initialize()

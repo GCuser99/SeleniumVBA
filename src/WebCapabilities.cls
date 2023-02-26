@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.5
+' SeleniumVBA v3.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -86,11 +86,11 @@ Private browser_ As svbaBrowser
 Private driver_ As WebDriver
 
 Public Enum svbaAlertHandling
-    svbaAccept
-    svbaDismiss
-    svbaIgnore
-    svbaDismissAndNotify
-    svbaAcceptAndNotify
+    svbaAccept = 0
+    svbaDismiss = 1
+    svbaIgnore = 2
+    svbaDismissAndNotify = 3
+    svbaAcceptAndNotify = 4
 End Enum
 
 '-------------------------------------------------------------------------
@@ -121,7 +121,7 @@ End Sub
 '@Description("Sets the unhandledPromptBehavior capability")
 Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
 Attribute SetUnhandledPromptBehavior.VB_Description = "Sets the unhandledPromptBehavior capability"
-    Me.SetCapability "unhandledPromptBehavior", GetAlertHandlingString(val)
+    Me.SetCapability "unhandledPromptBehavior", getAlertHandlingString(val)
 End Sub
 
 '-------------------------------------------------------------------------
@@ -153,7 +153,7 @@ Public Sub AddExcludeSwitches(ParamArray addList() As Variant)
 Attribute AddExcludeSwitches.VB_Description = "Adds a list of option excludeSwitches"
     Dim varry() As Variant
     varry = addList
-    AddToOptionList "excludeSwitches", ParamListToStringArray(varry)
+    addToOptionList "excludeSwitches", paramListToStringArray(varry)
 End Sub
 
 '@Description("Adds a list of option windowTypes")
@@ -161,7 +161,7 @@ Public Sub AddWindowTypes(ParamArray addList() As Variant)
 Attribute AddWindowTypes.VB_Description = "Adds a list of option windowTypes"
     Dim varry() As Variant
     varry = addList
-    AddToOptionList "windowTypes", ParamListToStringArray(varry)
+    addToOptionList "windowTypes", paramListToStringArray(varry)
 End Sub
 
 '@Description("Adds a list of option extensions")
@@ -169,14 +169,14 @@ Public Sub AddExtensions(ParamArray addList() As Variant)
 Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     Dim varry() As Variant
     varry = addList
-    AddToOptionList "extensions", ParamListToStringArray(varry)
+    addToOptionList "extensions", paramListToStringArray(varry)
 End Sub
 
 '@Description("Sets the path to the browser executable in a non-standard location")
 Public Sub SetBrowserBinary(ByVal browserPath As String)
 Attribute SetBrowserBinary.VB_Description = "Sets the path to the browser executable in a non-standard location"
     'set the path to the browser executable to use
-    Me.SetOption "binary", WebShared.GetFullLocalPath(browserPath, driver_.DefaultIOFolder)
+    Me.SetOption "binary", WebShared.getFullLocalPath(browserPath, driver_.DefaultIOFolder)
 End Sub
 
 '@Description("Removes control notification for Edge/Chrome")
@@ -184,10 +184,7 @@ Public Sub RemoveControlNotification()
 Attribute RemoveControlNotification.VB_Description = "Removes control notification for Edge/Chrome"
     'this removes the "Chrome/Edge is being controlled by automated test software" browser notification
     Select Case browser_
-    Case svbaBrowser.Chrome
-        Me.AddExcludeSwitches "enable-automation"
-        Me.SetOption "useAutomationExtension", False
-    Case svbaBrowser.Edge
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.AddExcludeSwitches "enable-automation"
         Me.SetOption "useAutomationExtension", False
         'for msedge, you may be greeted with an unwanted "Sync your profile" dialog
@@ -201,10 +198,23 @@ End Sub
 Public Sub SetDetachBrowser(ByVal val As Boolean)
 Attribute SetDetachBrowser.VB_Description = "Sets the detach option for Edge/Chrome"
     'this sets whether browser is closed (false) or left open (true) when the driver is sent the shutdown command
-    If browser_ = svbaBrowser.Firefox Then
-        Exit Sub 'as yet have not found a working equivalent - SetPreference("detach", True) does not work
-    End If
-    Me.SetOption "detach", val
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        Me.SetOption "detach", val
+    Case svbaBrowser.Firefox, svbaBrowser.IE
+        'no need to do anything
+    End Select
+End Sub
+
+'@Description("Sets the debuggerAddress option for Edge/Chrome")
+Public Sub SetDebuggerAddress(Optional ByVal val As String = "localhost:9222")
+Attribute SetDebuggerAddress.VB_Description = "Sets the debuggerAddress option for Edge/Chrome"
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        Me.SetOption "debuggerAddress", val
+    Case svbaBrowser.Firefox, svbaBrowser.IE
+        'no need to do anything
+    End Select
 End Sub
 
 '-------------------------------------------------------------------------
@@ -216,7 +226,7 @@ Public Sub AddArguments(ParamArray addList() As Variant)
 Attribute AddArguments.VB_Description = "Adds a list of option arguments"
     Dim varry() As Variant
     varry = addList
-    AddToOptionList "args", ParamListToStringArray(varry)
+    addToOptionList "args", paramListToStringArray(varry)
 End Sub
 
 '@Description("Runs headless argument mode")
@@ -250,7 +260,7 @@ Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     Dim userDir As String
     Dim profileName As String
     
-    profilePath = WebShared.GetFullLocalPath(profilePath, driver_.DefaultIOFolder)
+    profilePath = WebShared.getFullLocalPath(profilePath, driver_.DefaultIOFolder)
     
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
@@ -261,7 +271,7 @@ Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     Case svbaBrowser.Firefox
         'unlike edge and chrome, firefox requires that the folder to exist
         'hence check and if doesn't exist, then create it
-        If Not fso.FolderExists(profilePath) Then CreateFolderPath profilePath
+        If Not fso.FolderExists(profilePath) Then createFolderPath profilePath
         Me.AddArguments "-profile", profilePath
     End Select
 End Sub
@@ -290,9 +300,9 @@ Attribute SetPreference.VB_Description = "Sets an option preference key/value"
     End If
     
     'need to come up with a more generalized approach to paths - this is just a band-aid
-    If key = "download.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
-    If key = "browser.download.dir" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
-    If key = "savefile.default_directory" Then val = WebShared.GetFullLocalPath(val, driver_.DefaultIOFolder)
+    If key = "download.default_directory" Then val = WebShared.getFullLocalPath(val, driver_.DefaultIOFolder)
+    If key = "browser.download.dir" Then val = WebShared.getFullLocalPath(val, driver_.DefaultIOFolder)
+    If key = "savefile.default_directory" Then val = WebShared.getFullLocalPath(val, driver_.DefaultIOFolder)
     
     If IsObject(val) Then
         Set data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = val
@@ -310,7 +320,7 @@ End Sub
 '@Description("Sets auto-download preferences and directory path")
 Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
 Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and directory path"
-    downloadDirectoryPath = WebShared.GetFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
+    downloadDirectoryPath = WebShared.getFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
 
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
@@ -362,7 +372,7 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
 Attribute SaveToFile.VB_Description = "Saves the capabilities to file path"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
-    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ts.Write Me.ToJson
     ts.Close
@@ -375,7 +385,7 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     Dim ts As TextStream
     Dim jc As New WebJsonConverter
         
-    filePath = WebShared.GetFullLocalPath(filePath, driver_.DefaultIOFolder)
+    filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
     
     If Not fso.FileExists(filePath) Then Err.raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
@@ -383,39 +393,39 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     Set data_ = jc.ParseJson(ts.ReadAll)
     ts.Close
     
-    If data_.Item("browserName") <> WebShared.GetBrowserName(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
+    If data_.Item("browserName") <> WebShared.getBrowserNameString(browser_) Then Err.raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
 '@Description("Initializes capabilities object for Chrome browser")
 Public Sub InitializeForChrome()
 Attribute InitializeForChrome.VB_Description = "Initializes capabilities object for Chrome browser"
-    InitializeFor svbaBrowser.Chrome
+    initializeFor svbaBrowser.Chrome
 End Sub
 
 '@Description("Initializes capabilities object for Edge browser")
 Public Sub InitializeForEdge()
 Attribute InitializeForEdge.VB_Description = "Initializes capabilities object for Edge browser"
-    InitializeFor svbaBrowser.Edge
+    initializeFor svbaBrowser.Edge
 End Sub
 
 '@Description("Initializes capabilities object for Firefox browser")
 Public Sub InitializeForFirefox()
 Attribute InitializeForFirefox.VB_Description = "Initializes capabilities object for Firefox browser"
-    InitializeFor svbaBrowser.Firefox
+    initializeFor svbaBrowser.Firefox
 End Sub
 
 '@Description("Initializes capabilities object for Edge IE Mode browser")
 Public Sub InitializeForIE()
 Attribute InitializeForIE.VB_Description = "Initializes capabilities object for Edge IE Mode browser"
-    InitializeFor svbaBrowser.IE
+    initializeFor svbaBrowser.IE
 End Sub
 
 '-------------------------------------------------------------------------
 ' Private helper methods
 '-------------------------------------------------------------------------
-Friend Sub InitializeFor(ByVal browser As svbaBrowser)
+Friend Sub initializeFor(ByVal browser As svbaBrowser)
     Set data_ = New Dictionary
-    data_.Add "browserName", WebShared.GetBrowserName(browser)
+    data_.Add "browserName", WebShared.getBrowserNameString(browser)
     data_.Add "alwaysMatch", New Dictionary
     browser_ = browser
     
@@ -442,22 +452,22 @@ Friend Property Set WebDriver(ByRef obj As WebDriver)
     Set driver_ = obj
 End Property
 
-Private Function GetAlertHandlingString(ByVal val As svbaAlertHandling) As String
+Private Function getAlertHandlingString(ByVal val As svbaAlertHandling) As String
     Select Case val
     Case svbaAlertHandling.svbaAccept
-        GetAlertHandlingString = "accept"
+        getAlertHandlingString = "accept"
     Case svbaAlertHandling.svbaAcceptAndNotify
-        GetAlertHandlingString = "accept and notify"
+        getAlertHandlingString = "accept and notify"
     Case svbaAlertHandling.svbaDismiss
-        GetAlertHandlingString = "dismiss"
+        getAlertHandlingString = "dismiss"
     Case svbaAlertHandling.svbaDismissAndNotify
-        GetAlertHandlingString = "dismiss and notify"
+        getAlertHandlingString = "dismiss and notify"
     Case svbaAlertHandling.svbaIgnore
-        GetAlertHandlingString = "ignore"
+        getAlertHandlingString = "ignore"
     End Select
 End Function
 
-Private Sub AddToOptionList(ByVal optionName As String, addList() As String)
+Private Sub addToOptionList(ByVal optionName As String, addList() As String)
     'add to list of option parameters, while checking for duplicates
     Dim parameters() As String
     Dim found As Boolean
@@ -490,7 +500,7 @@ Private Sub AddToOptionList(ByVal optionName As String, addList() As String)
     data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
 End Sub
 
-Private Function ParamListToStringArray(parmList() As Variant) As String()
+Private Function paramListToStringArray(parmList() As Variant) As String()
     'a parameter array can include arrays as list elements - expand into a string array
     Dim i As Integer
     Dim j As Integer
@@ -538,11 +548,11 @@ Private Function ParamListToStringArray(parmList() As Variant) As String()
         End If
     Next i
     
-    ParamListToStringArray = strlist
+    paramListToStringArray = strlist
 End Function
 
 'https://stackoverflow.com/questions/31033820/filesystemobject-createfolder-to-create-directory-and-subdirectories
-Private Function CreateFolderPath(ByVal folderPath As String) As Boolean
+Private Function createFolderPath(ByVal folderPath As String) As Boolean
     Static fso As FileSystemObject
  
     'Initialize fso variable if not already setup
@@ -550,30 +560,30 @@ Private Function CreateFolderPath(ByVal folderPath As String) As Boolean
 
     'Is the folderPath parameter populated
     If Len(folderPath) = 0 Then
-        CreateFolderPath = False
+        createFolderPath = False
         Exit Function
     End If
 
     'If the folderPath exists as a file, the function fails.
     If fso.FileExists(folderPath) Then
-        CreateFolderPath = False
+        createFolderPath = False
         Exit Function
     End If
  
     'If the folderPath already exists as a folder, don't do anything and return success.
     If fso.FolderExists(folderPath) Then
-        CreateFolderPath = True
+        createFolderPath = True
         Exit Function
     End If
  
     'recursively create the parent folder, then if successful create the top folder.
-    If CreateFolderPath(fso.GetParentFolderName(folderPath)) Then
+    If createFolderPath(fso.GetParentFolderName(folderPath)) Then
         If fso.CreateFolder(folderPath) Is Nothing Then
-            CreateFolderPath = False
+            createFolderPath = False
         Else
-            CreateFolderPath = True
+            createFolderPath = True
         End If
     Else
-        CreateFolderPath = False
+        createFolderPath = False
     End If
 End Function

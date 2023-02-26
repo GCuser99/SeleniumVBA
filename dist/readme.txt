@@ -1,12 +1,12 @@
 SUMMARY:
 
-This repository folder contains 3 different SeleniumVBA solutions, depending on user requirements:
+This repository folder makes available 3 different SeleniumVBA solutions, depending on user requirements:
 
-- An MS Excel Add-in called SeleniumVBA.xlam. This file contains all of the source and test modules and can optionally be called from another Excel workbook.
+- An MS Excel Add-in called SeleniumVBA.xlam. This file contains all of the source and test modules and can optionally be called from another Excel workbook. It works in Office 2010 or greater, 32/64-bit.
 
-- An MS Access database called SeleniumVBA.accdb. Like the Excel version, this file contains all of the source and test modules and can optionally be called from another MS Access database.
+- An MS Access database called SeleniumVBA.accdb. Like the Excel version, this file contains all of the source and test modules and can optionally be called from another MS Access database. It works in Office 2010 or greater, 32/64-bit.
 
-- An EXPERIMENTAL ActiveX DLL called SeleniumVBA_win64.dll. This DLL can be installed and registered using the SeleniumVBADLLSetup.exe Inno setup program. Once installed, the SeleniumVBA object model library can be referenced by your VBA projects in either MS Excel or MS Access to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (currently in Beta) twinBasic compiler. 
+- An EXPERIMENTAL ActiveX DLL called SeleniumVBA_win64.dll. This DLL can be installed and registered using the SeleniumVBADLLSetup.exe Inno setup program. Once installed, the SeleniumVBA object model library can be referenced by your VBA projects in either MS Excel, MS Access, or MS VBScript to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (currently in Beta) twinBasic compiler. This works in Office 2010 or greater, 64-bit only.
 
 All three solutions above allow for storing and referencing SeleniumVBA functionality from a centralized file location. This might be of use if the user does not intend to integrate the SeleniumVBA source directly into their own code and wants a convenient means of updating SeleniumVBA with newer versions of the code library.
 

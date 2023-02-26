@@ -1,4 +1,4 @@
-Attribute VB_Name = "test_WaitUntilReady"
+Attribute VB_Name = "test_Wait"
 Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")

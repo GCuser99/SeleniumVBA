@@ -71,7 +71,8 @@ Sub test_file_download()
     driver.Wait 1000
     
     driver.FindElementByCssSelector(".icon-csv").Click
-    driver.Wait 2000
+    
+    driver.WaitForDownload ".\BrowserStack - List of devices to test on.csv"
             
     driver.CloseBrowser
     driver.Shutdown
@@ -94,7 +95,8 @@ Sub test_file_download2()
     driver.DeleteFiles ".\test.pdf"
     
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
-    driver.Wait 2000
+    
+    driver.WaitForDownload ".\test.pdf"
     
     driver.CloseBrowser
     driver.Shutdown

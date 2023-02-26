@@ -61,7 +61,7 @@ Sub test_executeScriptAsync()
 
     waitTime = 3000
     
-    If waitTime > 30000 Then driver.SetScriptTimeout 2 * waitTime '30000 is the default, so this isn't needed unless waitTime > 30 secs is needed
+    If waitTime > 30000 Then driver.ScriptTimeout = 2 * waitTime '30000 is the default, so this isn't needed unless waitTime > 30 secs is needed
     
     driver.NavigateTo url
         

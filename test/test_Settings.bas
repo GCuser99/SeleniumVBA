@@ -3,7 +3,7 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
 
-Sub test_settins()
+Sub test_settings()
     Dim driver As SeleniumVBA.WebDriver
     
     Set driver = SeleniumVBA.New_WebDriver

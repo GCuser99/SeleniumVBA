@@ -184,7 +184,7 @@ Sub test_detach_browser()
     
     driver.StartEdge
     
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'this sets whether browser is closed (false) or left open (true)
     'when the driver is sent the shutdown command before browser is closed
@@ -245,10 +245,10 @@ Sub test_kiosk_printing()
     'initalize margins object in pts (72 pts=1 inch)
     appState.Add "marginsType", 3 'Default=0, None=1, Minimum=2, Custom=3
     
-    customMargins.Add "marginTop", Round(0.5 * 72)
-    customMargins.Add "marginRight", Round(0.5 * 72)
-    customMargins.Add "marginBottom", Round(0.5 * 72)
-    customMargins.Add "marginLeft", Round(0.5 * 72)
+    customMargins.Add "marginTop", Round(0.1 * 72)
+    customMargins.Add "marginRight", Round(0.1 * 72)
+    customMargins.Add "marginBottom", Round(0.1 * 72)
+    customMargins.Add "marginLeft", Round(0.1 * 72)
     
     appState.Add "customMargins", customMargins
     
@@ -286,7 +286,7 @@ Sub test_kiosk_printing()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 1000
+    driver.Wait 3000
     
     'default print file name is based on webpage title
     driver.DeleteFiles ".\" & driver.GetTitle & ".pdf"
@@ -294,7 +294,45 @@ Sub test_kiosk_printing()
     'now print the page
     driver.ExecuteScript ("window.print();")
     
-    driver.Wait 7000 'need to wait long enough for print preview to complete!
+    driver.WaitForDownload ".\" & driver.GetTitle & ".pdf"
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_remoteDebugger()
+    'this allows one to connect to an existing browser instance
+    Dim driver As SeleniumVBA.WebDriver
+    Dim keys As SeleniumVBA.WebKeyboard
+    Dim caps As SeleniumVBA.WebCapabilities
+    Dim wshell As Object
+    Dim keySeq As String
+    
+    Set keys = SeleniumVBA.New_WebKeyboard
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'must start the browser on the debugging port
+    Set wshell = CreateObject("WScript.Shell")
+    wshell.Run "chrome.exe --remote-debugging-port=9222"
+
+    driver.StartChrome
+    
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
+    
+    'set debugger address to same port as browser
+    caps.SetDebuggerAddress "localhost:9222"
+    'Debug.Print caps.ToJson
+    
+    driver.OpenBrowser caps
+    
+    driver.NavigateTo "https://www.wikipedia.org/"
+    driver.Wait 1000
+    
+    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    
+    driver.FindElement(By.ID, "searchInput").SendKeys keySeq
+
+    driver.Wait 1500
     
     driver.CloseBrowser
     driver.Shutdown

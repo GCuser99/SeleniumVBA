@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.5
+' SeleniumVBA v3.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -96,7 +96,7 @@ Public Enum VBAcolors
 End Enum
 
 'Highlighting globals:
-Private SetHightlightFoundElems_Settings As Collection
+Private setHightlightFoundElems_Settings As Collection
 Private lastElems As WebElements
 
 Private driverFilename As String
@@ -194,32 +194,32 @@ End Enum
 Private Sub Class_Initialize()
     Dim oShell As New Shell32.Shell
     Dim iniFilePath As String
-    InitCommands
+    initCommands
 
     'attempt to read global variable values from optional settings file - if not successful,
     'then assign a system default value (last input parameter of ReadIniFileEntry)
-    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
     
-    Me.CommandWindowStyle = EnumTextToValue(ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
-    Me.DefaultDriverFolder = ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
+    Me.CommandWindowStyle = enumTextToValue(readIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
+    Me.DefaultDriverFolder = readIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
     
-    defaultIOFolder_ = ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
+    defaultIOFolder_ = readIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString)
     
-    checkDriverBrowserVersionAlignment = ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True)
-    minDriverBrowserCompatibilityLevel = EnumTextToValue(ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", svbaBuildMajor))
+    checkDriverBrowserVersionAlignment = readIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True)
+    minDriverBrowserCompatibilityLevel = enumTextToValue(readIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", svbaBuildMajor))
 
-    preloadChromeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString)
-    preloadEdgeCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
-    preloadFirefoxCapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
-    preloadIECapabilitiesFilePath = ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString)
+    preloadChromeCapabilitiesFilePath = readIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString)
+    preloadEdgeCapabilitiesFilePath = readIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
+    preloadFirefoxCapabilitiesFilePath = readIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
+    preloadIECapabilitiesFilePath = readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString)
     
-    driverDefaultPortChrome = CLng(ReadIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515))
-    driverDefaultPortEdge = CLng(ReadIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516))
-    driverDefaultPortFirefox = CLng(ReadIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444))
-    driverDefaultPortIE = CLng(ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555))
+    driverDefaultPortChrome = CLng(readIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515))
+    driverDefaultPortEdge = CLng(readIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516))
+    driverDefaultPortFirefox = CLng(readIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444))
+    driverDefaultPortIE = CLng(readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555))
 End Sub
 
-Private Sub InitCommands()
+Private Sub initCommands()
     With tCMD
         .CMD_STATUS = Array("GET", "/status")
         .CMD_NEW_SESSION = Array("POST", "/session")
@@ -299,31 +299,31 @@ End Property
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
 Attribute StartEdge.VB_Description = "Start an Edge driver"
     If localHostPort = 0 Then localHostPort = driverDefaultPortEdge
-    Start svbaBrowser.Edge, driverPath, localHostPort, enableLogging, logFilePath
+    start svbaBrowser.Edge, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 '@Description("Start a Chrome driver")
 Public Sub StartChrome(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\chrome.log")
 Attribute StartChrome.VB_Description = "Start a Chrome driver"
     If localHostPort = 0 Then localHostPort = driverDefaultPortChrome
-    Start svbaBrowser.Chrome, driverPath, localHostPort, enableLogging, logFilePath
+    start svbaBrowser.Chrome, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 '@Description("Start a Firefox driver")
 Public Sub StartFirefox(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\firefox.log")
 Attribute StartFirefox.VB_Description = "Start a Firefox driver"
     If localHostPort = 0 Then localHostPort = driverDefaultPortFirefox
-    Start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
+    start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
 '@Description("Start an IE mode driver")
 Public Sub StartIE(Optional ByVal driverPath As String = "IEDriverServer.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\ie.log")
 Attribute StartIE.VB_Description = "Start an IE mode driver"
     If localHostPort = 0 Then localHostPort = driverDefaultPortIE
-    Start svbaBrowser.IE, driverPath, localHostPort, enableLogging, logFilePath
+    start svbaBrowser.IE, driverPath, localHostPort, enableLogging, logFilePath
 End Sub
 
-Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
+Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
     Dim fso As New Scripting.FileSystemObject, serviceArgs As String, commandStr As String
     
     browser_ = browser
@@ -333,10 +333,10 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
         'on OpenBrowser so kill all driver instances on the assigned port
         'could use KillDriver on Chrome/Edge too, but since they support multi-sessions on same port, this will eliminate
         'that functionality if important
-        KillDriver browser_, localHostPort
+        killDriver browser_, localHostPort
     End If
     
-    driverPath = WebShared.GetFullLocalPath(driverPath, defaultDriverFolder_)
+    driverPath = WebShared.getFullLocalPath(driverPath, defaultDriverFolder_)
 
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
@@ -351,7 +351,7 @@ Private Sub Start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     commandStr = vbNullString: serviceArgs = vbNullString
 
     If enableLogging Then
-        logFilePath = WebShared.GetFullLocalPath(logFilePath, defaultIOFolder_)
+        logFilePath = WebShared.getFullLocalPath(logFilePath, defaultIOFolder_)
         Select Case browser_
         Case svbaBrowser.Edge, svbaBrowser.Chrome
             serviceArgs = " --verbose --log-path=" & Chr$(34) & logFilePath & Chr$(34)
@@ -389,18 +389,17 @@ Attribute Shutdown.VB_Description = "Shuts down all driver instances attached to
     Case svbaBrowser.Edge, svbaBrowser.Chrome
         'this will shutdown driver and session - equivalent to CloseBrowser and kill driver process
         'see "detach" option for chrome/edge to affect this behavior
-        Execute tCMD.CMD_SHUTDOWN
-        
+        execute tCMD.CMD_SHUTDOWN
     Case svbaBrowser.Firefox
         'firefox does not recognize shutdown command, so need to roll our own...
         'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
         If sessionId_ <> vbNullString Then CloseBrowser
-        TaskKillByPid processID
+        taskKillByPid processID
     Case svbaBrowser.IE
         'unfortunately, CMD_SHUTDOWN in IE mode does not kill all driver sub-processes such as the broswer
         'so similar to Firefox, must check if browser is still open, and close if needed
         If sessionId_ <> vbNullString Then CloseBrowser
-        Execute tCMD.CMD_SHUTDOWN
+        execute tCMD.CMD_SHUTDOWN
     End Select
 End Sub
 
@@ -435,27 +434,15 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     
     DoEvents 'this is needed to prevent intermittent error if command window is not hidden or minimized
     
-    Set resp = Execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
+    Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
     
     sessionId_ = resp("sessionId")
-    
-    'here's some more info that can be extracted if needed...
-    'browserName = resp("capabilities")("browserName")
-    'browserVersion = resp("capabilities")("browserVersion")
-    'driverVersion = resp("capabilities")("chrome")("chromedriverVersion")
-    'driverVersion = resp("capabilities")("msedge")("msedgedriverVersion")
-    'Debug.Print resp("capabilities")("chrome")("userDataDir")
-    'Debug.Print resp("capabilities")("msedge")("userDataDir")
-    'Debug.Print resp("capabilities")("goog:chromeOptions")("debuggerAddress")
-    'DebuggerAddress = resp("capabilities")("ms:edgeOptions")("debuggerAddress")
-    'Debug.Print resp("capabilities")(GetBrowserName())("userDataDir")
 End Sub
 
 '@Description("Closes browser without terminating driver instance")
 Public Sub CloseBrowser()
 Attribute CloseBrowser.VB_Description = "Closes browser without terminating driver instance"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_QUIT, data
+    execute tCMD.CMD_QUIT, New Dictionary
     sessionId_ = vbNullString
 End Sub
 
@@ -468,19 +455,19 @@ Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage 
     
     data.Add "url", url
     If Not IsMissing(timeOutms) Then
-        savTimeOutms = GetPageLoadTimeout()
-        If savTimeOutms <> timeOutms Then SetPageLoadTimeout timeOutms
+        savTimeOutms = PageLoadTimeout()
+        If savTimeOutms <> timeOutms Then PageLoadTimeout = timeOutms
     End If
     
-    Set resp = Execute(tCMD.CMD_GET, data, raise)
+    Set resp = execute(tCMD.CMD_GET, data, raise)
 
     If Not IsMissing(timeOutms) Then
-        If savTimeOutms <> timeOutms Then SetPageLoadTimeout savTimeOutms
+        If savTimeOutms <> timeOutms Then PageLoadTimeout = savTimeOutms
     End If
     
-    If IsResponseError(resp) Then
+    If isResponseError(resp) Then
         NavigateTo = False
-        Debug.Print GetResponseErrorMessage(resp)
+        Debug.Print getResponseErrorMessage(resp)
     Else
         NavigateTo = True
     End If
@@ -492,7 +479,7 @@ Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of 
     'input file must have html extension to be interpreted as a webpage
     'NavigateTo (tCMD.CMD_GET) will automatically discern whether the input is a file or url, even without the 'file:///'
     'So the only functional value of this method is to handle relative paths!
-    NavigateTo "file:///" & WebShared.GetFullLocalPath(htmlFilePath, defaultIOFolder_)
+    NavigateTo "file:///" & WebShared.getFullLocalPath(htmlFilePath, defaultIOFolder_)
 End Sub
 
 '@Description("Finds the first element for a given selector and value")
@@ -501,7 +488,7 @@ Attribute FindElement.VB_Description = "Finds the first element for a given sele
     Dim data As Dictionary
     Dim vCMD As Variant
     Dim elem As New WebElement
-    Set data = ToSelector(by_, val)
+    Set data = toSelector(by_, val)
     If Not parentElement Is Nothing Then
         data.Add "id", parentElement.elementId
         vCMD = tCMD.CMD_FIND_ELEMENT_FROM_ELEMENT
@@ -509,9 +496,9 @@ Attribute FindElement.VB_Description = "Finds the first element for a given sele
         vCMD = tCMD.CMD_FIND_ELEMENT
     End If
 
-    Set elem = ToWebElement(Execute(vCMD, data)("value")(ELEMENT_KEY))
+    Set elem = toWebElement(execute(vCMD, data)("value")(ELEMENT_KEY))
     
-    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elem
     
     Set FindElement = elem
 End Function
@@ -525,7 +512,7 @@ Attribute FindElements.VB_Description = "Finds all elements that satisfy the spe
     Dim elements As Collection
     Dim elems As New WebElements
     
-    Set data = ToSelector(by_, val)
+    Set data = toSelector(by_, val)
     
     If Not parentElement Is Nothing Then
         data.Add "id", parentElement.elementId
@@ -534,21 +521,21 @@ Attribute FindElements.VB_Description = "Finds all elements that satisfy the spe
         vCMD = tCMD.CMD_FIND_ELEMENTS
     End If
     
-    Set elements = Execute(vCMD, data)("value")
+    Set elements = execute(vCMD, data)("value")
     
     For i = 1 To elements.Count
-        elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
+        elems.Add toWebElement(elements(i)(ELEMENT_KEY))
     Next
 
-    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elems
     
     Set elems.WebDriver = Me
     
     Set FindElements = elems
 End Function
 
-Private Sub SetHightlightFoundElems_exec(elementOrElements As Object)
-    With SetHightlightFoundElems_Settings
+Private Sub setHightlightFoundElems_exec(elementOrElements As Object)
+    With setHightlightFoundElems_Settings
         Select Case TypeName(elementOrElements)
             Case "WebElement"
                 SetHighlight True, elementOrElements, .Item(1), .Item(2), .Item(3)
@@ -558,7 +545,7 @@ Private Sub SetHightlightFoundElems_exec(elementOrElements As Object)
     End With
 End Sub
 
-Private Function ToSelector(by_ As By, ByVal val As String) As Dictionary
+Private Function toSelector(by_ As By, ByVal val As String) As Dictionary
     Dim data As New Dictionary
     
     Select Case by_
@@ -591,7 +578,7 @@ Private Function ToSelector(by_ As By, ByVal val As String) As Dictionary
         data.Add "value", val
     End Select
     
-    Set ToSelector = data
+    Set toSelector = data
 End Function
 
 '@Description("Finds the first element by the specified id value")
@@ -698,7 +685,7 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
     Dim chars() As String
     
     data.Add "id", element.elementId
-    If clearBeforeTyping = True Then Execute tCMD.CMD_CLEAR_ELEMENT, data
+    If clearBeforeTyping = True Then execute tCMD.CMD_CLEAR_ELEMENT, data
     
     'split key sequence into chunks with special keys (pattern "\ue0*") by themselves
     ReDim chunk(0 To Len(keys) - 1)
@@ -743,7 +730,7 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
         End If
         data("text") = chunk(i)
         data("value") = chars
-        Execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
+        execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
     Next i
 End Sub
 
@@ -753,9 +740,9 @@ Attribute Click.VB_Description = "Clicks the element"
     Dim data As New Dictionary
     If Not element Is Nothing Then
         data.Add "id", element.elementId
-        Execute tCMD.CMD_CLICK_ELEMENT, data
+        execute tCMD.CMD_CLICK_ELEMENT, data
     Else
-        Execute tCMD.CMD_CLICK, data
+        execute tCMD.CMD_CLICK, data
     End If
 End Sub
 
@@ -771,7 +758,7 @@ Attribute GetText.VB_Description = "Gets the text of the element - set optional 
     If visibleOnly Then 'default behavior of W3C GetText
         Dim data As New Dictionary
         data.Add "id", element.elementId
-        GetText = Execute(tCMD.CMD_GET_ELEMENT_TEXT, data)("value")
+        GetText = execute(tCMD.CMD_GET_ELEMENT_TEXT, data)("value")
     Else 'get the underlying text whether visible or not
         GetText = ExecuteScript("return arguments[0].textContent;", element)
     End If
@@ -780,42 +767,37 @@ End Function
 '@Description("Simulates clicking the back arrow on the browser window")
 Public Sub GoBack()
 Attribute GoBack.VB_Description = "Simulates clicking the back arrow on the browser window"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_GO_BACK, data
+    execute tCMD.CMD_GO_BACK, New Dictionary
 End Sub
 
 '@Description("Simulates clicking the forward arrow on the browser window")
 Public Sub GoForward()
 Attribute GoForward.VB_Description = "Simulates clicking the forward arrow on the browser window"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_GO_FORWARD, data
+    execute tCMD.CMD_GO_FORWARD, New Dictionary
 End Sub
 
 '@Description("Refreshes the current url")
 Public Sub Refresh()
 Attribute Refresh.VB_Description = "Refreshes the current url"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_REFRESH, data
+    execute tCMD.CMD_REFRESH, New Dictionary
 End Sub
 
 '@Description("Returns the current url string")
 Public Function GetCurrentURL() As String
 Attribute GetCurrentURL.VB_Description = "Returns the current url string"
-    Dim data As New Dictionary
     Dim encodeURL As String
-    encodeURL = Execute(tCMD.CMD_GET_CURRENT_URL, data)("value")
+    encodeURL = execute(tCMD.CMD_GET_CURRENT_URL, New Dictionary)("value")
     GetCurrentURL = ExecuteScript("return decodeURI('" & encodeURL & "')")
 End Function
 
 '@Description("Returns the active element")
 Public Function GetActiveElement() As WebElement
 Attribute GetActiveElement.VB_Description = "Returns the active element"
-    Dim data As New Dictionary
     Dim elem As WebElement
     
-    Set elem = ToWebElement(Execute(tCMD.CMD_GET_ACTIVE_ELEMENT, data)("value")(ELEMENT_KEY))
+    Set elem = toWebElement(execute(tCMD.CMD_GET_ACTIVE_ELEMENT, New Dictionary)("value")(ELEMENT_KEY))
     
-    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elem
     
     Set GetActiveElement = elem
 End Function
@@ -829,7 +811,7 @@ Attribute GetProperty.VB_Description = "Gets the property state of the element, 
     data.Add "name", propName
     data.Add "id", element.elementId
     
-    Set resp = Execute(tCMD.CMD_GET_ELEMENT_PROPERTY, data)
+    Set resp = execute(tCMD.CMD_GET_ELEMENT_PROPERTY, data)
     
     If IsNull(resp("value")) Then
         GetProperty = vbNullString
@@ -849,7 +831,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
     Dim elements As WebElements
     Dim element As WebElement
     
-    Set elements = ObjToWebElements(elementOrElements)
+    Set elements = objToWebElements(elementOrElements)
 
     If onOffSwitch = True Then
         If lastElems Is Nothing Then Set lastElems = New WebElements
@@ -923,8 +905,8 @@ Public Sub SetHightlightFoundElems(ByVal onOffSwitch As Boolean, Optional ByVal 
 Attribute SetHightlightFoundElems.VB_Description = "Highlights/unhighlights future found element(s) with color"
     If onOffSwitch = True Then
         'store border and color settings:
-        If SetHightlightFoundElems_Settings Is Nothing Then Set SetHightlightFoundElems_Settings = New Collection
-        With SetHightlightFoundElems_Settings
+        If setHightlightFoundElems_Settings Is Nothing Then Set setHightlightFoundElems_Settings = New Collection
+        With setHightlightFoundElems_Settings
             .Add elemBorderSizePx:  .Add elemBorderColor:  .Add elemBackgroundColor:
             .Add elemsBorderSizePx: .Add elemsBorderColor: .Add elemsBackgroundColor:
         End With
@@ -937,7 +919,7 @@ Attribute SetHightlightFoundElems.VB_Description = "Highlights/unhighlights futu
                 Next
             End If
         End If
-        Set SetHightlightFoundElems_Settings = Nothing
+        Set setHightlightFoundElems_Settings = Nothing
     End If
 End Sub
 
@@ -966,7 +948,7 @@ Attribute GetAttribute.VB_Description = "Gets the specified attribute of the ele
     data.Add "id", element.elementId
     data.Add "name", attrName
     
-    Set resp = Execute(tCMD.CMD_GET_ELEMENT_ATTRIBUTE, data)
+    Set resp = execute(tCMD.CMD_GET_ELEMENT_ATTRIBUTE, data)
     If IsNull(resp("value")) Then
         GetAttribute = vbNullString
     Else
@@ -993,7 +975,7 @@ Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     End If
     
     data.Add "id", element.elementId
-    Set resp = Execute(tCMD.CMD_GET_ELEMENT_ARIA_ROLE, data)
+    Set resp = execute(tCMD.CMD_GET_ELEMENT_ARIA_ROLE, data)
     If IsNull(resp("value")) Then
         GetAriaRole = vbNullString
     Else
@@ -1012,7 +994,7 @@ Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
     End If
     
     data.Add "id", element.elementId
-    Set resp = Execute(tCMD.CMD_GET_ELEMENT_ARIA_LABEL, data)
+    Set resp = execute(tCMD.CMD_GET_ELEMENT_ARIA_LABEL, data)
     If IsNull(resp("value")) Then
         GetAriaLabel = vbNullString
     Else
@@ -1025,7 +1007,7 @@ Public Function GetTagName(element As WebElement) As String
 Attribute GetTagName.VB_Description = "Gets the tag name of the element"
     Dim data As New Dictionary
     data.Add "id", element.elementId
-    GetTagName = Execute(tCMD.CMD_GET_ELEMENT_TAG_NAME, data)("value")
+    GetTagName = execute(tCMD.CMD_GET_ELEMENT_TAG_NAME, data)("value")
 End Function
 
 '@Description("Selects a dropdown option element with the specified value attribute")
@@ -1110,7 +1092,7 @@ Public Function IsSelected(element As WebElement) As Boolean
 Attribute IsSelected.VB_Description = "Returns a boolean indicating if the dropdown option element is selected"
     Dim data As New Dictionary
     data.Add "id", element.elementId
-    IsSelected = Execute(tCMD.CMD_IS_ELEMENT_SELECTED, data)("value")
+    IsSelected = execute(tCMD.CMD_IS_ELEMENT_SELECTED, data)("value")
 End Function
 
 '@Description("Returns a boolean indicating if the element is a multi-select dropdown")
@@ -1173,17 +1155,17 @@ Attribute ExecuteScript.VB_Description = "Executes a java script synchronously"
     'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
     If UBound(argumentList) >= 0 Then
         args = argumentList
-        args = DeObjectifyInputArgs(args)
+        args = deObjectifyInputArgs(args)
     End If
     
     data.Add "args", args
     
-    Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT, data)
+    Set resp = execute(tCMD.CMD_EXECUTE_SCRIPT, data)
     
     'replace the response representation of an element, a collection of elements, and a shadow root
     'with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
     If IsObject(resp("value")) Then
-        Set ExecuteScript = ObjectifyScriptResponse(resp("value"))
+        Set ExecuteScript = objectifyScriptResponse(resp("value"))
     Else
         ExecuteScript = resp("value")
     End If
@@ -1201,17 +1183,17 @@ Attribute ExecuteScriptAsync.VB_Description = "Executes a java script asynchrono
     'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
     If UBound(argumentList) >= 0 Then
         args = argumentList
-        args = DeObjectifyInputArgs(args)
+        args = deObjectifyInputArgs(args)
     End If
     
     data.Add "args", args
     
-    Set resp = Execute(tCMD.CMD_EXECUTE_SCRIPT_ASYNC, data)
+    Set resp = execute(tCMD.CMD_EXECUTE_SCRIPT_ASYNC, data)
     
     'replace the response representation of an element, a collection of elements, and a shadow root
     'with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
     If IsObject(resp("value")) Then
-        Set ExecuteScriptAsync = ObjectifyScriptResponse(resp("value"))
+        Set ExecuteScriptAsync = objectifyScriptResponse(resp("value"))
     Else
         ExecuteScriptAsync = resp("value")
     End If
@@ -1223,16 +1205,16 @@ Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active brow
     Dim data As New Dictionary
     Dim pngstr As String
         
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
+    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     
     If element Is Nothing Then
-        pngstr = Execute(tCMD.CMD_SCREENSHOT, data)("value")
+        pngstr = execute(tCMD.CMD_SCREENSHOT, data)("value")
     Else
         data.Add "id", element.elementId
-        pngstr = Execute(tCMD.CMD_ELEMENT_SCREENSHOT, data)("value")
+        pngstr = execute(tCMD.CMD_ELEMENT_SCREENSHOT, data)("value")
     End If
     
-    SaveByteArrayToFile DecodeBase64(pngstr), filePath
+    saveByteArrayToFile decodeBase64(pngstr), filePath
 End Sub
 
 '@Description("Prints the current webpage window to a specified pdf file path - browser must be in headless mode")
@@ -1241,15 +1223,15 @@ Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a sp
     Dim data As New Dictionary
     Dim pdfstr As String
     
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
+    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     
     If Not settings Is Nothing Then
         Set data = settings.ToDictionary
     End If
     
-    pdfstr = Execute(tCMD.CMD_PRINT_PAGE, data)("value")
+    pdfstr = execute(tCMD.CMD_PRINT_PAGE, data)("value")
 
-    SaveByteArrayToFile DecodeBase64(pdfstr), filePath
+    saveByteArrayToFile decodeBase64(pdfstr), filePath
 End Sub
 
 '@Description("Returns a dictionary containing x, y, width, height of the element")
@@ -1258,32 +1240,30 @@ Attribute GetRect.VB_Description = "Returns a dictionary containing x, y, width,
     'returns dictionary with following keys x, y, width, height
     Dim data As New Dictionary
     data.Add "id", element.elementId
-    Set GetRect = Execute(tCMD.CMD_GET_ELEMENT_RECT, data)("value")
+    Set GetRect = execute(tCMD.CMD_GET_ELEMENT_RECT, data)("value")
 End Function
 
 '@Description("Returns the current webpage source as a string")
 Public Function GetPageSource() As String
 Attribute GetPageSource.VB_Description = "Returns the current webpage source as a string"
     Dim data As New Dictionary
-    GetPageSource = Execute(tCMD.CMD_GET_PAGE_SOURCE, data)("value")
+    GetPageSource = execute(tCMD.CMD_GET_PAGE_SOURCE, data)("value")
 End Function
 
 '@Description("Returns the active window's handle as a string")
 Public Function GetCurrentWindowHandle() As String
 Attribute GetCurrentWindowHandle.VB_Description = "Returns the active window's handle as a string"
-    Dim data As New Dictionary
-    GetCurrentWindowHandle = Execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, data)("value")
+    GetCurrentWindowHandle = execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, New Dictionary)("value")
 End Function
 
 '@Description("Returns all windows' handles as a string array")
 Public Function GetWindowHandles() As String()
 Attribute GetWindowHandles.VB_Description = "Returns all windows' handles as a string array"
-    Dim data As New Dictionary
     Dim handles As Collection
     Dim ret() As String
     Dim i As Integer
     
-    Set handles = Execute(tCMD.CMD_GET_WINDOW_HANDLES, data)("value")
+    Set handles = execute(tCMD.CMD_GET_WINDOW_HANDLES, New Dictionary)("value")
     
     'To array of handles
     ReDim ret(baseArrayIdx To handles.Count - 1 + baseArrayIdx)
@@ -1304,7 +1284,7 @@ Attribute SwitchToNewWindow.VB_Description = "Opens and activates a new window o
     If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
     
     data.Add "type", wtype 'tab or window
-    hndl = Execute(tCMD.CMD_NEW_WINDOW, data)("value")("handle")
+    hndl = execute(tCMD.CMD_NEW_WINDOW, data)("value")("handle")
     
     SwitchToWindow hndl 'above just creates a new window - we still need to switch to it
     
@@ -1314,9 +1294,8 @@ End Function
 '@Description("Activates the window of the specified index or handle string")
 Public Function SwitchToWindow(ByVal handleOrIndex As Variant) As String
 Attribute SwitchToWindow.VB_Description = "Activates the window of the specified index or handle string"
-    Dim data As New Dictionary
     Dim hndl As String
-    
+    Dim data As New Dictionary
     If IsNumeric(handleOrIndex) Then
         hndl = GetWindowHandles()(handleOrIndex)
     Else
@@ -1324,7 +1303,7 @@ Attribute SwitchToWindow.VB_Description = "Activates the window of the specified
     End If
     
     data.Add "handle", hndl
-    Execute tCMD.CMD_SWITCH_TO_WINDOW, data
+    execute tCMD.CMD_SWITCH_TO_WINDOW, data
     
     SwitchToWindow = hndl
 End Function
@@ -1332,16 +1311,14 @@ End Function
 '@Description("Closes the window of the specified index or handle string - if no window is specified, then the active window is closed")
 Public Sub CloseWindow(Optional ByVal handleOrIndex As Variant)
 Attribute CloseWindow.VB_Description = "Closes the window of the specified index or handle string - if no window is specified, then the active window is closed"
-    Dim data As New Dictionary
     If Not IsMissing(handleOrIndex) Then SwitchToWindow handleOrIndex
-    Execute tCMD.CMD_CLOSE, data
+    execute tCMD.CMD_CLOSE, New Dictionary
 End Sub
 
 '@Description("Returns a dictionary containing x, y, width, and height in screen pixels of the active window")
 Public Function GetWindowRect() As Dictionary
 Attribute GetWindowRect.VB_Description = "Returns a dictionary containing x, y, width, and height in screen pixels of the active window"
-    Dim data As New Dictionary
-    Set GetWindowRect = Execute(tCMD.CMD_GET_WINDOW_RECT, data)("value")
+    Set GetWindowRect = execute(tCMD.CMD_GET_WINDOW_RECT, New Dictionary)("value")
 End Function
 
 '@Description("Sets the position and size in screen pixels for the active window")
@@ -1358,7 +1335,7 @@ Attribute SetWindowRect.VB_Description = "Sets the position and size in screen p
     data.Add "y", y
     data.Add "width", width
     data.Add "height", height
-    Set SetWindowRect = Execute(tCMD.CMD_SET_WINDOW_RECT, data)("value")
+    Set SetWindowRect = execute(tCMD.CMD_SET_WINDOW_RECT, data)("value")
 End Function
 
 '@Description("Sets the size in screen pixels for the active window")
@@ -1385,22 +1362,19 @@ End Sub
 '@Description("Maximize the active window")
 Public Sub MaximizeWindow()
 Attribute MaximizeWindow.VB_Description = "Maximize the active window"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_MAXIMIZE_WINDOW, data
+    execute tCMD.CMD_MAXIMIZE_WINDOW, New Dictionary
 End Sub
 
 '@Description("Sets the current window to full screen mode")
 Public Sub FullScreenWindow()
 Attribute FullScreenWindow.VB_Description = "Sets the current window to full screen mode"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_FULLSCREEN_WINDOW, data
+    execute tCMD.CMD_FULLSCREEN_WINDOW, New Dictionary
 End Sub
 
 '@Description("Minimize the active window")
 Public Sub MinimizeWindow()
 Attribute MinimizeWindow.VB_Description = "Minimize the active window"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_MINIMIZE_WINDOW, data
+    execute tCMD.CMD_MINIMIZE_WINDOW, New Dictionary
 End Sub
 
 '@Description("Switches focus to the frame element")
@@ -1410,7 +1384,7 @@ Attribute SwitchToFrame.VB_Description = "Switches focus to the frame element"
     Dim elem As New Dictionary
     elem.Add ELEMENT_KEY, frameElement.elementId
     data.Add "id", elem
-    Execute tCMD.CMD_SWITCH_TO_FRAME, data
+    execute tCMD.CMD_SWITCH_TO_FRAME, data
 End Sub
 
 '@Description("Switches focus to the frame indicated by the specified index")
@@ -1418,7 +1392,7 @@ Public Sub SwitchToFrameByIndex(ByVal index As Integer)
 Attribute SwitchToFrameByIndex.VB_Description = "Switches focus to the frame indicated by the specified index"
     Dim data As New Dictionary
     data.Add "id", index - baseDomIdx
-    Execute tCMD.CMD_SWITCH_TO_FRAME, data
+    execute tCMD.CMD_SWITCH_TO_FRAME, data
 End Sub
 
 '@Description("Switches focus to the frame of the main document")
@@ -1426,15 +1400,14 @@ Public Sub SwitchToDefaultContent()
 Attribute SwitchToDefaultContent.VB_Description = "Switches focus to the frame of the main document"
     Dim data As New Dictionary
     data.Add "id", Null
-    Execute tCMD.CMD_SWITCH_TO_FRAME, data
+    execute tCMD.CMD_SWITCH_TO_FRAME, data
 End Sub
 
 '@Description("Switches focus to the active frame's parent")
 Public Sub SwitchToParentFrame()
 Attribute SwitchToParentFrame.VB_Description = "Switches focus to the active frame's parent"
     'if top-level frame then this switches to main document
-    Dim data As New Dictionary
-    Execute tCMD.CMD_SWITCH_TO_PARENT_FRAME, data
+    execute tCMD.CMD_SWITCH_TO_PARENT_FRAME, New Dictionary
 End Sub
 
 '@Description("Returns the name of the active frame")
@@ -1443,74 +1416,65 @@ Attribute GetCurrentFrameName.VB_Description = "Returns the name of the active f
     GetCurrentFrameName = ExecuteScript("return self.name")
 End Function
 
-'@Description("Sets how long to wait for the element location strategy to complete when locating an element(s)")
-Public Sub SetImplicitlyWait(Optional ByVal milliseconds As Long = 0)
-Attribute SetImplicitlyWait.VB_Description = "Sets how long to wait for the element location strategy to complete when locating an element(s)"
+'@Description("Sets/Gets how long to wait for the element location strategy to complete when locating an element(s)")
+Public Property Let ImplicitWait(ByVal milliseconds As Long)
+Attribute ImplicitWait.VB_Description = "Sets/Gets how long to wait for the element location strategy to complete when locating an element(s)"
     Dim data As New Dictionary
     data.Add "implicit", milliseconds
-    Execute tCMD.CMD_SET_TIMEOUTS, data
-End Sub
+    execute tCMD.CMD_SET_TIMEOUTS, data
+End Property
 
-'@Description("Sets the timeout limit used to interrupt a navigation attempt")
-Public Sub SetPageLoadTimeout(Optional ByVal milliseconds As Long = 300000)
-Attribute SetPageLoadTimeout.VB_Description = "Sets the timeout limit used to interrupt a navigation attempt"
+Public Property Get ImplicitWait() As Long
+    ImplicitWait = execute(tCMD.CMD_GET_TIMEOUTS, New Dictionary)("value")("implicit")
+End Property
+
+'@Description("Sets/Gets the timeout limit used to interrupt a navigation attempt")
+Public Property Let PageLoadTimeout(ByVal milliseconds As Long)
+Attribute PageLoadTimeout.VB_Description = "Sets/Gets the timeout limit used to interrupt a navigation attempt"
     Dim data As New Dictionary
     data.Add "pageLoad", milliseconds
-    Execute tCMD.CMD_SET_TIMEOUTS, data
-End Sub
+    execute tCMD.CMD_SET_TIMEOUTS, data
+End Property
 
-'@Description("Sets how long to wait to interrupt a script that is being evaluated")
-Public Sub SetScriptTimeout(Optional ByVal milliseconds As Long = 30000)
-Attribute SetScriptTimeout.VB_Description = "Sets how long to wait to interrupt a script that is being evaluated"
+Public Property Get PageLoadTimeout() As Long
+    PageLoadTimeout = execute(tCMD.CMD_GET_TIMEOUTS, New Dictionary)("value")("pageLoad")
+End Property
+
+'@Description("Sets/Gets how long to wait to interrupt a script that is being evaluated")
+Public Property Let ScriptTimeout(ByVal milliseconds As Long)
+Attribute ScriptTimeout.VB_Description = "Sets/Gets how long to wait to interrupt a script that is being evaluated"
     Dim data As New Dictionary
     data.Add "script", milliseconds
-    Execute tCMD.CMD_SET_TIMEOUTS, data
-End Sub
+    execute tCMD.CMD_SET_TIMEOUTS, data
+End Property
 
-'@Description("Gets how long to wait for the element location strategy to complete when locating an element(s)")
-Public Function GetImplicitlyWait() As Long
-Attribute GetImplicitlyWait.VB_Description = "Gets how long to wait for the element location strategy to complete when locating an element(s)"
-    Dim data As New Dictionary
-    GetImplicitlyWait = Execute(tCMD.CMD_GET_TIMEOUTS, data)("value")("implicit")
-End Function
-
-'@Description("Gets the timeout limit used to interrupt an navigation attempt")
-Public Function GetPageLoadTimeout() As Long
-Attribute GetPageLoadTimeout.VB_Description = "Gets the timeout limit used to interrupt an navigation attempt"
-    Dim data As New Dictionary
-    GetPageLoadTimeout = Execute(tCMD.CMD_GET_TIMEOUTS, data)("value")("pageLoad")
-End Function
-
-'@Description("Gets how long to wait to interrupt a script that is being evaluated")
-Public Function GetScriptTimeout() As Long
-Attribute GetScriptTimeout.VB_Description = "Gets how long to wait to interrupt a script that is being evaluated"
-    Dim data As New Dictionary
-    GetScriptTimeout = Execute(tCMD.CMD_GET_TIMEOUTS, data)("value")("script")
-End Function
+Public Property Get ScriptTimeout() As Long
+    ScriptTimeout = execute(tCMD.CMD_GET_TIMEOUTS, New Dictionary)("value")("script")
+End Property
 
 '@Description("Pauses in-line execution for the specified number of milliseconds")
 Public Sub Wait(Optional ByVal milliseconds As Long = 300)
 Attribute Wait.VB_Description = "Pauses in-line execution for the specified number of milliseconds"
-    WebShared.Sleep milliseconds
+    WebShared.sleep milliseconds
 End Sub
 
 '@Description("Returns a boolean indicating if the element is present")
-Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal implicitWait As Long = 0) As Boolean
+Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0) As Boolean
 Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present"
     Dim timeout As Long
     Dim resp As Dictionary
     Dim data As Dictionary
     
-    timeout = GetImplicitlyWait()
-    If timeout <> implicitWait Then SetImplicitlyWait implicitWait
-    Set data = ToSelector(by_, val)
-    Set resp = Execute(tCMD.CMD_FIND_ELEMENT, data, False) 'don't raise an error if not present
-    If IsResponseError(resp) Then
+    timeout = ImplicitWait()
+    If timeout <> ImplicitWaitMS Then ImplicitWait = ImplicitWaitMS
+    Set data = toSelector(by_, val)
+    Set resp = execute(tCMD.CMD_FIND_ELEMENT, data, False) 'don't raise an error if not present
+    If isResponseError(resp) Then
         IsPresent = False
     Else
         IsPresent = True
     End If
-    If timeout <> implicitWait Then SetImplicitlyWait timeout
+    If timeout <> ImplicitWaitMS Then ImplicitWait = timeout
 End Function
 
 '@Description("Returns a boolean indicating if the element is enabled")
@@ -1518,7 +1482,7 @@ Public Function IsEnabled(element As WebElement) As Boolean
 Attribute IsEnabled.VB_Description = "Returns a boolean indicating if the element is enabled"
     Dim data As New Dictionary
     data.Add "id", element.elementId
-    IsEnabled = Execute(tCMD.CMD_IS_ELEMENT_ENABLED, data)("value")
+    IsEnabled = execute(tCMD.CMD_IS_ELEMENT_ENABLED, data)("value")
 End Function
 
 '@Description("Returns a boolean indicating if the element is displayed")
@@ -1526,20 +1490,19 @@ Public Function IsDisplayed(element As WebElement) As Boolean
 Attribute IsDisplayed.VB_Description = "Returns a boolean indicating if the element is displayed"
     Dim data As New Dictionary
     data.Add "id", element.elementId
-    IsDisplayed = Execute(tCMD.CMD_IS_ELEMENT_DISPLAYED, data)("value")
+    IsDisplayed = execute(tCMD.CMD_IS_ELEMENT_DISPLAYED, data)("value")
 End Function
 
 '@Description("Gets the browser name")
 Public Function GetBrowserName() As String
 Attribute GetBrowserName.VB_Description = "Gets the browser name"
-    GetBrowserName = WebShared.GetBrowserName(browser_)
+    GetBrowserName = WebShared.getBrowserNameString(browser_)
 End Function
 
 '@Description("Gets the text of the active alert")
 Public Function GetAlertText() As String
 Attribute GetAlertText.VB_Description = "Gets the text of the active alert"
-    Dim data As New Dictionary
-    GetAlertText = Execute(tCMD.CMD_GET_ALERT_TEXT, data)("value")
+    GetAlertText = execute(tCMD.CMD_GET_ALERT_TEXT, New Dictionary)("value")
 End Function
 
 '@Description("Sends the specified text to the active alert")
@@ -1547,30 +1510,27 @@ Public Sub SetAlertText(ByVal alertText As String)
 Attribute SetAlertText.VB_Description = "Sends the specified text to the active alert"
     Dim data As New Dictionary
     data.Add "text", alertText
-    Execute tCMD.CMD_SET_ALERT_TEXT, data
+    execute tCMD.CMD_SET_ALERT_TEXT, data
 End Sub
 
 '@Description("Accepts the active alert")
 Public Sub AcceptAlert()
 Attribute AcceptAlert.VB_Description = "Accepts the active alert"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_ACCEPT_ALERT, data
+    execute tCMD.CMD_ACCEPT_ALERT, New Dictionary
 End Sub
 
 '@Description("Dismisses the active alert")
 Public Sub DismissAlert()
 Attribute DismissAlert.VB_Description = "Dismisses the active alert"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_DISMISS_ALERT, data
+    execute tCMD.CMD_DISMISS_ALERT, New Dictionary
 End Sub
 
 '@Description("Returns a boolean indicating whether an active alert is present")
 Public Function IsAlertPresent() As Boolean
 Attribute IsAlertPresent.VB_Description = "Returns a boolean indicating whether an active alert is present"
-    Dim data As New Dictionary
     Dim resp As Dictionary
-    Set resp = Execute(tCMD.CMD_GET_ALERT_TEXT, data, False)
-    If IsResponseError(resp) Then
+    Set resp = execute(tCMD.CMD_GET_ALERT_TEXT, New Dictionary, False)
+    If isResponseError(resp) Then
         IsAlertPresent = False
     Else
         IsAlertPresent = True
@@ -1584,15 +1544,14 @@ Attribute Clear.VB_Description = "Clears the text field of the element"
     data.Add "id", element.elementId
     data.Add "text", vbNullString
     data.Add "value", vbNullString
-    Execute tCMD.CMD_CLEAR_ELEMENT, data
+    execute tCMD.CMD_CLEAR_ELEMENT, data
     Set Clear = element
 End Function
 
 '@Description("Gets the active browser window's title")
 Public Function GetTitle() As String
 Attribute GetTitle.VB_Description = "Gets the active browser window's title"
-    Dim data As New Dictionary
-    GetTitle = Execute(tCMD.CMD_GET_TITLE, data)("value")
+    GetTitle = execute(tCMD.CMD_GET_TITLE, New Dictionary)("value")
 End Function
 
 '@Description("Gets the shadow root hosted by the element")
@@ -1601,8 +1560,8 @@ Attribute GetShadowRoot.VB_Description = "Gets the shadow root hosted by the ele
     Dim data As New Dictionary
     Dim resp As Dictionary
     data.Add "id", element.elementId
-    Set resp = Execute(tCMD.CMD_GET_ELEMENT_SHADOW_ROOT, data)
-    Set GetShadowRoot = ToShadowRoot(resp("value")(SHADOWROOT_KEY))
+    Set resp = execute(tCMD.CMD_GET_ELEMENT_SHADOW_ROOT, data)
+    Set GetShadowRoot = toShadowRoot(resp("value")(SHADOWROOT_KEY))
 End Function
 
 '@Description("Gets the specified CSS property of the element")
@@ -1611,7 +1570,7 @@ Attribute GetCSSProperty.VB_Description = "Gets the specified CSS property of th
     Dim data As New Dictionary
     data.Add "id", element.elementId
     data.Add "name", attrName
-    GetCSSProperty = Execute(tCMD.CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, data)("value")
+    GetCSSProperty = execute(tCMD.CMD_GET_ELEMENT_VALUE_OF_CSS_PROPERTY, data)("value")
 End Function
 
 '@Description("Gets the inner HTML of the element")
@@ -1651,7 +1610,7 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     End If
     
     'now initialize Capabilities
-    caps.InitializeFor browser_
+    caps.initializeFor browser_
     
     Set caps.WebDriver = Me
     
@@ -1755,11 +1714,10 @@ End Function
 '@Description("Returns the collection of cookies for the current webpage")
 Public Function GetAllCookies() As WebCookies
 Attribute GetAllCookies.VB_Description = "Returns the collection of cookies for the current webpage"
-    Dim data As New Dictionary
     Dim resp As Collection
     Dim cookie As WebCookie
     Dim cookies As WebCookies
-    Set resp = Execute(tCMD.CMD_GET_ALL_COOKIES, data)("value")
+    Set resp = execute(tCMD.CMD_GET_ALL_COOKIES, New Dictionary)("value")
     'Dim jc As New WebJSonConverter
     'Debug.Print jc.ConvertToJson(resp, 4)
     Set cookies = Me.CreateCookies
@@ -1782,11 +1740,11 @@ End Function
 '@Description("Returns a cookie having the specified name")
 Public Function GetCookie(ByVal cookieName As String) As WebCookie
 Attribute GetCookie.VB_Description = "Returns a cookie having the specified name"
-    Dim data As New Dictionary
     Dim resp As Dictionary
+    Dim data As New Dictionary
     Dim cookie As New WebCookie
     data.Add "name", cookieName
-    Set resp = Execute(tCMD.CMD_GET_COOKIE, data)("value")
+    Set resp = execute(tCMD.CMD_GET_COOKIE, data)("value")
     If resp.Exists("name") Then cookie.Name = resp("name")
     If resp.Exists("domain") Then cookie.Domain = resp("domain")
     If resp.Exists("expiry") Then cookie.ExpiryUnix = resp("expiry")
@@ -1803,7 +1761,7 @@ Public Sub DeleteCookie(ByVal cookieName As String)
 Attribute DeleteCookie.VB_Description = "Deletes a cookie having the specified name"
     Dim data As New Dictionary
     data.Add "name", cookieName
-    Execute tCMD.CMD_DELETE_COOKIE, data
+    execute tCMD.CMD_DELETE_COOKIE, data
 End Sub
 
 '@Description("Sets a cookie object")
@@ -1815,7 +1773,7 @@ Attribute SetCookie.VB_Description = "Sets a cookie object"
     'jc.OptionsUseDoubleForLargeNumbers = True
     If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
         data.Add "cookie", cookie.ToDictionary
-        Execute tCMD.CMD_ADD_COOKIE, data
+        execute tCMD.CMD_ADD_COOKIE, data
     End If
 End Sub
 
@@ -1831,8 +1789,7 @@ End Sub
 '@Description("Deletes all cookies")
 Public Sub DeleteAllCookies()
 Attribute DeleteAllCookies.VB_Description = "Deletes all cookies"
-    Dim data As New Dictionary
-    Execute tCMD.CMD_DELETE_ALL_COOKIES, data
+    execute tCMD.CMD_DELETE_ALL_COOKIES, New Dictionary
 End Sub
 
 '@Description("Checks if the current url is equal to the specified url")
@@ -1853,13 +1810,13 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     If browser_ = svbaBrowser.Firefox Then
         Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
-    Set GetSessionsInfo = Execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
+    Set GetSessionsInfo = execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
 
 '@Description("Returns a dictionary holding various info about the driver")
 Public Function GetDriverStatus() As Dictionary
 Attribute GetDriverStatus.VB_Description = "Returns a dictionary holding various info about the driver"
-    Set GetDriverStatus = Execute(tCMD.CMD_STATUS)("value")
+    Set GetDriverStatus = execute(tCMD.CMD_STATUS)("value")
     'DriverVersion = resp("build")("version")
     'DriverVersion = Trim$(Left$(DriverVersion, InStr(DriverVersion, "(") - 1))
     'resp("message") 'gets info "MSEdgeDriver ready for new sessions."
@@ -1872,11 +1829,10 @@ End Function
 '@Description("Creates an initialized action chain object")
 Public Function ActionChain() As WebActionChain
 Attribute ActionChain.VB_Description = "Creates an initialized action chain object"
-    Dim data_ As New Dictionary
     Set ActionChain = New WebActionChain
     'pass a reference of the driver to each link
     Set ActionChain.WebDriver = Me
-    Set ActionChain.DataDictionary = data_
+    Set ActionChain.DataDictionary = New Dictionary
 End Function
 
 '@Description("Finds the first element in the shadow root for a given selector and value")
@@ -1885,11 +1841,11 @@ Attribute FindElementFromShadowRoot.VB_Description = "Finds the first element in
     Dim data As Dictionary
     Dim elem As WebElement
     
-    Set data = ToSelector(by_, val)
+    Set data = toSelector(by_, val)
     data.Add "sid", shadowRoot.shadowRootId
-    Set elem = ToWebElement(Execute(tCMD.CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, data)("value")(ELEMENT_KEY))
+    Set elem = toWebElement(execute(tCMD.CMD_FIND_ELEMENT_FROM_SHADOW_ROOT, data)("value")(ELEMENT_KEY))
     
-    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elem
+    If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elem
     
     Set FindElementFromShadowRoot = elem
 End Function
@@ -1902,16 +1858,16 @@ Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the
     Dim elems As WebElements
     Dim i As Integer
     
-    Set data = ToSelector(by_, val)
+    Set data = toSelector(by_, val)
     data.Add "sid", shadowRoot.shadowRootId
     
-    Set elements = Execute(tCMD.CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT, data)("value")
+    Set elements = execute(tCMD.CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT, data)("value")
     
     For i = 1 To elements.Count
-        elems.Add ToWebElement(elements(i)(ELEMENT_KEY))
+        elems.Add toWebElement(elements(i)(ELEMENT_KEY))
     Next i
     
-    If Not SetHightlightFoundElems_Settings Is Nothing Then SetHightlightFoundElems_exec elems
+    If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elems
     
     Set elems.WebDriver = Me
     
@@ -1922,7 +1878,7 @@ End Function
 Public Sub UploadFile(element As WebElement, ByVal filePath As String)
 Attribute UploadFile.VB_Description = "Uploads the contents of a file to the element"
     'this is just a special wrapper for sendkeys (upload file mode)
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
+    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     SendKeys element, filePath
 End Sub
 
@@ -1932,30 +1888,130 @@ Attribute DragAndDrop.VB_Description = "Drags and drops the element to the speci
     ActionChain.DragAndDrop(sourceElement, targetElement).Perform
 End Sub
 
-'@Description("Waits until element is interactable")
-Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 30000) As WebElement
-Attribute WaitUntilReady.VB_Description = "Waits until element is interactable"
+'@Description("Waits until element is interactable (displayed)")
+Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = -1) As WebElement
+Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (displayed)"
     'waits until element is interactable, returns the input element for further action
-    'such as "Click" on same line
+    'if maxWaitTimeMS is positive, then throw error if limit is exceeded before IsDisplayed condition is met
     'see https://www.w3.org/TR/webdriver/#element-displayedness
+    Dim cTimeStart As Currency
+    Dim cTimeNow As Currency
+    Dim cMaxWaitTimeMS As Currency
     
-    Dim cTimeStart As Currency, cTimeNow As Currency
-    Dim dTimeElapsed As Currency, cMaxWaitTimeMS As Currency
+    Const loopDelay As Long = 50 'in ms
     
-    getTime cTimeStart
-    
-    Static cPerSecond As Currency
-    If cPerSecond = 0 Then getFrequency cPerSecond
-    cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
+    If maxWaitTimeMS >= 0 Then
+        getTime cTimeStart
+        Static cPerSecond As Currency
+        If cPerSecond = 0 Then getFrequency cPerSecond
+        cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
+    Else
+        'set up to run until IsDisplayed condition is met (no max time limit)
+        cMaxWaitTimeMS = 0
+        cTimeNow = 0
+    End If
     
     Do
-        If element.IsDisplayed Then Exit Do
-        getTime cTimeNow
+        If element.IsDisplayed Then
+            Set WaitUntilReady = element
+            Exit Function
+        End If
+        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        
+        sleep loopDelay
         DoEvents 'yield to other processes
-    Loop Until (cTimeNow - cTimeStart) >= cMaxWaitTimeMS
+    Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
-    Set WaitUntilReady = element
+    Err.raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to be ready."
 End Function
+
+'@Description("Waits until file is finished downloading")
+Public Sub WaitForDownload(ByVal filePath As String, Optional ByVal maxWaitTimeMS As Long = -1)
+Attribute WaitForDownload.VB_Description = "Waits until file is finished downloading"
+    'adapted from WaitNewFile in https://github.com/florentbr/SeleniumBasic/tree/master/Examples/Excel
+    'if maxWaitTimeMS is positive, then throw error if limit is exceeded before file ready condition is met
+    Dim fso As New FileSystemObject
+    Dim cTimeStart As Currency
+    Dim cTimeNow As Currency
+    Dim cMaxWaitTimeMS As Currency
+    
+    Const loopDelay As Long = 50 'in ms
+    
+    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    
+    If maxWaitTimeMS >= 0 Then
+        getTime cTimeStart 'gets current time
+        Static cPerSecond As Currency
+        If cPerSecond = 0 Then getFrequency cPerSecond
+        cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
+    Else
+        'set up to run until file created and closed condition is met (no max time limit)
+        cMaxWaitTimeMS = 0
+        cTimeNow = 0
+    End If
+    
+    'loop until file exists
+    Do
+        If fso.FileExists(filePath) Then Exit Do
+        sleep loopDelay
+        DoEvents 'yield to other processes
+        'check if max time as elapsed
+        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        If (cTimeNow - cTimeStart) > cMaxWaitTimeMS Then GoTo MaxTimeExceeded
+    Loop
+    
+    'the file exists but now make sure it is finished writing (closed)
+    On Error Resume Next
+    Do
+        sleep loopDelay
+        DoEvents 'yield to other processes
+        
+        'if file length > 0, then try to rename it to itself
+        'if not ready, will throw an error 75 - Path/File access error
+        If FileLen(filePath) Then
+            Name filePath As filePath
+            If Err.Number = 0 Then Exit Sub
+        End If
+    
+        'check if max time as elapsed
+        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+    Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
+    
+MaxTimeExceeded:
+    Err.raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for file download."
+End Sub
+
+'@Description("Waits until an element is not present anymore")
+Public Sub WaitUntilNotPresent(by_ As By, ByVal val As String, Optional ByVal maxWaitTimeMS As Long = -1)
+Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not present anymore"
+    'if maxWaitTimeMS is positive, then throw error if limit is exceeded before not IsPresent condition is met
+    Dim cTimeStart As Currency
+    Dim cTimeNow As Currency
+    Dim cMaxWaitTimeMS As Currency
+    
+    Const loopDelay As Long = 50 'in ms
+    
+    If maxWaitTimeMS >= 0 Then
+        getTime cTimeStart
+        Static cPerSecond As Currency
+        If cPerSecond = 0 Then getFrequency cPerSecond
+        cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
+    Else
+        'set up to run until not IsPresent condition is met (no max time limit)
+        cMaxWaitTimeMS = 0
+        cTimeNow = 0
+    End If
+    
+    Do
+        If Not IsPresent(by_, val) Then Exit Sub
+        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        
+        sleep loopDelay
+        DoEvents 'yield to other processes
+    Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
+    
+    Err.raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to disappear."
+End Sub
 
 '@Description("Returns the user agent string - must be called after OpenBrowser")
 Public Function GetUserAgent() As String
@@ -1967,21 +2023,21 @@ Attribute GetUserAgent.VB_Description = "Returns the user agent string - must be
     End If
 End Function
 
-'@Description("Sets the default input/output folder")
+'@Description("Sets/Gets the default input/output folder")
 Public Property Let DefaultIOFolder(ByVal folderPath As String)
-Attribute DefaultIOFolder.VB_Description = "Sets the default input/output folder"
-    defaultIOFolder_ = WebShared.GetFullLocalPath(folderPath)
+Attribute DefaultIOFolder.VB_Description = "Sets/Gets the default input/output folder"
+    defaultIOFolder_ = WebShared.getFullLocalPath(folderPath)
 End Property
 
 Public Property Get DefaultIOFolder() As String
     DefaultIOFolder = defaultIOFolder_
 End Property
 
-'@Description("Sets the default Selenium driver folder")
+'@Description("Sets/Gets the default Selenium driver folder")
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
-Attribute DefaultDriverFolder.VB_Description = "Sets the default Selenium driver folder"
+Attribute DefaultDriverFolder.VB_Description = "Sets/Gets the default Selenium driver folder"
 'Note: default folder is Downloads dir
-    defaultDriverFolder_ = WebShared.GetFullLocalPath(folderPath)
+    defaultDriverFolder_ = WebShared.getFullLocalPath(folderPath)
 End Property
 
 Public Property Get DefaultDriverFolder() As String
@@ -2002,7 +2058,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
                 strlist = Split(fileList(i)(j), ",")
                 For k = 0 To UBound(strlist)
                     On Error Resume Next 'file might not exists
-                    fso.DeleteFile WebShared.GetFullLocalPath(strlist(k), defaultIOFolder_), True
+                    fso.DeleteFile WebShared.getFullLocalPath(strlist(k), defaultIOFolder_), True
                     On Error GoTo 0
                 Next k
             Next j
@@ -2010,7 +2066,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
             strlist = Split(fileList(i), ",")
             For k = 0 To UBound(strlist)
                 On Error Resume Next 'file might not exists 'file might not exists
-                fso.DeleteFile WebShared.GetFullLocalPath(strlist(k), defaultIOFolder_), True
+                fso.DeleteFile WebShared.getFullLocalPath(strlist(k), defaultIOFolder_), True
                 On Error GoTo 0
             Next k
         End If
@@ -2023,7 +2079,7 @@ Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fs As New FileSystemObject
     Dim ts As TextStream
-    filePath = WebShared.GetFullLocalPath(filePath, defaultIOFolder_)
+    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     Set ts = fs.CreateTextFile(filePath, True, formatUnicode16)
     ts.Write val
     ts.Close
@@ -2164,14 +2220,13 @@ Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
     location.Add "altitude", altitude
     location.Add "accuracy", accuracy
     data.Add "location", location
-    Execute tCMD.CMD_SET_LOCATION, data
+    execute tCMD.CMD_SET_LOCATION, data
 End Sub
 
 '@Description("Gets geolocation parameter values as a dictionay object")
 Public Function GetGeolocation() As Dictionary
 Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as a dictionay object"
-    Dim data As New Dictionary
-    Set GetGeolocation = Execute(tCMD.CMD_GET_LOCATION, data)("value")
+    Set GetGeolocation = execute(tCMD.CMD_GET_LOCATION, New Dictionary)("value")
 End Function
 
 '@Description("Creates/updates the optional INI settings file - set keepExistingValues to False to reset existing settings to system defaults")
@@ -2187,7 +2242,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     
     useDefaultValue = Not keepExistingValues
     
-    iniFilePath = GetFullLocalPath(ThisLibFolderPath) & "\SeleniumVBA.ini"
+    iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
     
     entryCol.Add "# This settings file is completely optional. For it to have effect,"
     entryCol.Add "# it must be located in the same folder as the SeleniumVBA code"
@@ -2198,7 +2253,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add " "
     entryCol.Add "# Note that all path-type entry values recognize the %[Environ]% syntax."
     entryCol.Add " "
-    entryCol.Add "# A few useful Environ values:"
+    entryCol.Add "# A few useful Environ values for reference:"
     entryCol.Add " "
     entryCol.Add "# %USERPROFILE%=C:\Users\[user name]"
     entryCol.Add "# %APPDATA%=C:\Users\[user name]\AppData\Roaming"
@@ -2215,9 +2270,9 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "# vbNormalFocus, vbMinimizedFocus, vbMaximizedFocus, vbNormalNoFocus,"
     entryCol.Add "# and vbMinimizedNoFocus."
     entryCol.Add " "
-    entryCol.Add "driver_location_folder=" & ReadIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", "%USERPROFILE%\Downloads", useDefaultValue)
-    entryCol.Add "default_io_folder=" & ReadIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString, useDefaultValue)
-    entryCol.Add "command_window_style=" & ReadIniFileEntry(iniFilePath, "GENERAL", "command_window_style", "vbHide", useDefaultValue)
+    entryCol.Add "driver_location_folder=" & readIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", "%USERPROFILE%\Downloads", useDefaultValue)
+    entryCol.Add "default_io_folder=" & readIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString, useDefaultValue)
+    entryCol.Add "command_window_style=" & readIniFileEntry(iniFilePath, "GENERAL", "command_window_style", "vbHide", useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[AUTO-DRIVER-UPDATE]"
@@ -2231,8 +2286,8 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "# Use svbaMinor for less frequent updating, and svbaExactMatch"
     entryCol.Add "# for more frequent updating."
     entryCol.Add " "
-    entryCol.Add "auto_detect_and_update=" & ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True, useDefaultValue)
-    entryCol.Add "min_compatibility_level=" & ReadIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", "svbaBuildMajor", useDefaultValue)
+    entryCol.Add "auto_detect_and_update=" & readIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "auto_detect_and_update", True, useDefaultValue)
+    entryCol.Add "min_compatibility_level=" & readIniFileEntry(iniFilePath, "AUTO-DRIVER-UPDATE", "min_compat_level", "svbaBuildMajor", useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "# Below are browser-specific initializations."
@@ -2250,26 +2305,26 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     
     entryCol.Add "[CHROME]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString, useDefaultValue)
-    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515, useDefaultValue)
+    entryCol.Add "preload_capabilities_file_path=" & readIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & readIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515, useDefaultValue)
     entryCol.Add " "
 
     entryCol.Add "[EDGE]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString, useDefaultValue)
-    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516, useDefaultValue)
+    entryCol.Add "preload_capabilities_file_path=" & readIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & readIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[FIREFOX]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString, useDefaultValue)
-    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444, useDefaultValue)
+    entryCol.Add "preload_capabilities_file_path=" & readIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & readIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[INTERNET EXPLORER]"
     entryCol.Add " "
-    entryCol.Add "preload_capabilities_file_path=" & ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString, useDefaultValue)
-    entryCol.Add "local_host_port=" & ReadIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555, useDefaultValue)
+    entryCol.Add "preload_capabilities_file_path=" & readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString, useDefaultValue)
+    entryCol.Add "local_host_port=" & readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
@@ -2277,17 +2332,17 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
     entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
     entryCol.Add " "
-    entryCol.Add "units=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "units", "svbaInches", useDefaultValue)
-    entryCol.Add "page_height=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_height", 11, useDefaultValue)
-    entryCol.Add "page_width=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_width", 8.5, useDefaultValue)
-    entryCol.Add "margin_bottom=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_bottom", Format(1 / 2.54, ".000000"), useDefaultValue)
-    entryCol.Add "margin_top=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_top", Format(1 / 2.54, ".000000"), useDefaultValue)
-    entryCol.Add "margin_right=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_right", Format(1 / 2.54, ".000000"), useDefaultValue)
-    entryCol.Add "margin_left=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_left", Format(1 / 2.54, ".000000"), useDefaultValue)
-    entryCol.Add "background=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "background", False, useDefaultValue)
-    entryCol.Add "orientation=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", "svbaPortrait", useDefaultValue)
-    entryCol.Add "print_scale=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
-    entryCol.Add "shrink_to_fit=" & ReadIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
+    entryCol.Add "units=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "units", "svbaInches", useDefaultValue)
+    entryCol.Add "page_height=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_height", 11, useDefaultValue)
+    entryCol.Add "page_width=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_width", 8.5, useDefaultValue)
+    entryCol.Add "margin_bottom=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_bottom", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "margin_top=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_top", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "margin_right=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_right", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "margin_left=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_left", Format(1 / 2.54, ".000000"), useDefaultValue)
+    entryCol.Add "background=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "background", False, useDefaultValue)
+    entryCol.Add "orientation=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", "svbaPortrait", useDefaultValue)
+    entryCol.Add "print_scale=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
+    entryCol.Add "shrink_to_fit=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
     
     Set ts = fso.CreateTextFile(iniFilePath, True)
     
@@ -2411,7 +2466,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     
     'now calculate the destination path
     'first convert user input path to absolute path
-    fileOrFolderPath = WebShared.GetFullLocalPath(fileOrFolderPath, defaultIOFolder_)
+    fileOrFolderPath = WebShared.getFullLocalPath(fileOrFolderPath, defaultIOFolder_)
 
     'check if user gave a folder path or a file path
     If fso.FolderExists(fileOrFolderPath) Then 'its a folder path
@@ -2428,14 +2483,14 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     End If
     
     'download the url to file path
-    ret = URLDownloadToFile(0&, url, filePath, 0&, 0&)
+    ret = urlDownloadToFile(0&, url, filePath, 0&, 0&)
     
     If ret <> 0 Then
          Err.raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
     End If
 End Sub
 
-Friend Function Execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
+Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
     Dim cmdMethod As String
     Dim cmdPath As String
     Dim cmdArgs As New Dictionary
@@ -2488,42 +2543,42 @@ Friend Function Execute(driverCommand As Variant, Optional parameters As Diction
 
     Set response = jc.ParseJson(client.responseText)
     
-    If raise And IsResponseError(response) Then 'raise error if occurs
-        Debug.Print GetResponseErrorMessage(response)
-        Err.raise client.status, "WebDriver", GetResponseErrorMessage(response)
+    If raise And isResponseError(response) Then 'raise error if occurs
+        Debug.Print getResponseErrorMessage(response)
+        Err.raise client.status, "WebDriver", getResponseErrorMessage(response)
     End If
 
-    Set Execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
+    Set execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
 End Function
 
-Private Function ToWebElement(ByVal elementId As String) As WebElement
+Private Function toWebElement(ByVal elementId As String) As WebElement
     Dim element As New WebElement
     Set element.driver = Me
     element.elementId = elementId
-    Set ToWebElement = element
+    Set toWebElement = element
 End Function
 
-Private Function ToShadowRoot(ByVal shadowRootId As String) As WebShadowRoot
+Private Function toShadowRoot(ByVal shadowRootId As String) As WebShadowRoot
     Dim sr As New WebShadowRoot
     Set sr.driver = Me
     sr.shadowRootId = shadowRootId
-    Set ToShadowRoot = sr
+    Set toShadowRoot = sr
 End Function
 
-Private Function GetResponseErrorMessage(resp As Dictionary) As String
-    GetResponseErrorMessage = vbNullString
+Private Function getResponseErrorMessage(resp As Dictionary) As String
+    getResponseErrorMessage = vbNullString
     If TypeName(resp("value")) = "Dictionary" Then
         If resp("value").Exists("error") Then
-            GetResponseErrorMessage = resp("value")("message")
+            getResponseErrorMessage = resp("value")("message")
         End If
     End If
 End Function
 
-Private Function IsResponseError(resp As Dictionary) As Boolean
-    IsResponseError = False
+Private Function isResponseError(resp As Dictionary) As Boolean
+    isResponseError = False
     If TypeName(resp("value")) = "Dictionary" Then
         If resp("value").Exists("error") Then
-            IsResponseError = True
+            isResponseError = True
         End If
     End If
 End Function
@@ -2548,25 +2603,25 @@ Private Function rgbLongToString(ByVal rgbColor As Long) As String
     rgbLongToString = "rgb(" & r & "," & g & "," & b & ")"
 End Function
 
-Private Function ObjToWebElements(elementOrElements As Object) As WebElements
+Private Function objToWebElements(elementOrElements As Object) As WebElements
     Select Case TypeName(elementOrElements)
-        Case "WebElement": Set ObjToWebElements = New WebElements: ObjToWebElements.Add elementOrElements
-        Case "WebElements": Set ObjToWebElements = elementOrElements
+        Case "WebElement": Set objToWebElements = New WebElements: objToWebElements.Add elementOrElements
+        Case "WebElements": Set objToWebElements = elementOrElements
         Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
 
-Private Function DecodeBase64(ByVal strData As String) As Byte()
+Private Function decodeBase64(ByVal strData As String) As Byte()
     Dim domDoc As New MSXML2.DOMDocument60
     Dim domNode As MSXML2.IXMLDOMElement
     'create node with type of base 64 and decode
     Set domNode = domDoc.createElement("b64")
     domNode.DataType = "bin.base64"
     domNode.text = strData
-    DecodeBase64 = domNode.nodeTypedValue
+    decodeBase64 = domNode.nodeTypedValue
 End Function
 
-Private Sub SaveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
+Private Sub saveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
     Dim fp As Long, fso As New FileSystemObject
     If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
     fp = FreeFile
@@ -2575,7 +2630,7 @@ Private Sub SaveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
     Close fp
 End Sub
 
-Private Sub KillDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
+Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
     'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
     Dim objService As WbemScripting.SWbemServices
     Dim objDriverList As WbemScripting.SWbemObjectSet
@@ -2620,14 +2675,14 @@ Private Sub KillDriver(ByVal browser As svbaBrowser, Optional ByVal port As Inte
         Else 'its a stranded process (parent may have already been quit)
             pid = objDriver.processID
         End If
-        TaskKillByPid pid
+        taskKillByPid pid
 10:
     Next objDriver
 End Sub
 
-Private Function TaskKillByPid(ByVal pid As String) As Variant
+Private Function taskKillByPid(ByVal pid As String) As Variant
     Dim wsh As New IWshRuntimeLibrary.WshShell
-    TaskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
+    taskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
 End Function
 
 Private Function htmlTableToArray(table As htmlTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
@@ -2826,7 +2881,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
         End If
     Next i
 
-    'disable redirect
+    'disable redirects
     Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
@@ -2963,8 +3018,6 @@ Private Function sanitizeHTML(ByVal str As String) As String
     sanitizeHTML = str
 End Function
 
-
-
 Private Function formatXML(ByVal val As String) As String
     Dim xslDoc As New MSXML2.DOMDocument60
     Dim xmlDocFormatted As New MSXML2.DOMDocument60
@@ -3018,7 +3071,7 @@ Private Function fixFirefoxBug1797871(ByVal str As String) As String
     End If
 End Function
 
-Private Function DeObjectifyInputArgs(argumentList() As Variant) As Variant()
+Private Function deObjectifyInputArgs(argumentList() As Variant) As Variant()
     'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
     Dim i As Long, j As Long
     Dim elemCol As Collection
@@ -3059,10 +3112,10 @@ Private Function DeObjectifyInputArgs(argumentList() As Variant) As Variant()
         End Select
     Next i
     
-    DeObjectifyInputArgs = args
+    deObjectifyInputArgs = args
 End Function
 
-Private Function ObjectifyScriptResponse(responseValue As Object) As Object
+Private Function objectifyScriptResponse(responseValue As Object) As Object
     'this function replaces the ExecuteScript response representation of an element, a collection of elements,
     'and a shadow root with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
     'its recursive designed allows to search and replace a nested response structure
@@ -3081,7 +3134,7 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
         'loop through all items of the collection, looking for objects
         For i = 1 To numItems
             If IsObject(responseValue.Item(i)) Then
-                Set obj = ObjectifyScriptResponse(responseValue.Item(i))
+                Set obj = objectifyScriptResponse(responseValue.Item(i))
                 
                 If TypeName(obj) <> "WebElement" Then isElementCollection = False
                 
@@ -3107,17 +3160,17 @@ Private Function ObjectifyScriptResponse(responseValue As Object) As Object
     Case "Dictionary"
         'check if its an element or shadow root representation and if so, replace with WebElement or WebShadowRoot object
         If responseValue.Exists(ELEMENT_KEY) Then 'replace with a WebElement object
-            Set responseValue = ToWebElement(responseValue(ELEMENT_KEY))
+            Set responseValue = toWebElement(responseValue(ELEMENT_KEY))
         ElseIf responseValue.Exists(SHADOWROOT_KEY) Then 'replace with a WebShadowRoot object
-            Set responseValue = ToShadowRoot(responseValue(SHADOWROOT_KEY))
+            Set responseValue = toShadowRoot(responseValue(SHADOWROOT_KEY))
         Else 'check each key value for collection or dictionary
             For Each vkey In responseValue.keys
                 If IsObject(responseValue.Item(vkey)) Then
-                    Set responseValue.Item(vkey) = ObjectifyScriptResponse(responseValue.Item(vkey))
+                    Set responseValue.Item(vkey) = objectifyScriptResponse(responseValue.Item(vkey))
                 End If
             Next vkey
         End If
     End Select
         
-    Set ObjectifyScriptResponse = responseValue
+    Set objectifyScriptResponse = responseValue
 End Function
