@@ -13,9 +13,9 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 ## Setup
 
-**SeleniumVBA will function right out-of-the-box**. Just download/install any one of the provided [SeleniumVBA solutions](https://github.com/GCuser99/SeleniumVBA/tree/main/dist) and then run one of the subs in the "test" Standard modules. If the Selenium WebDriver does not exist, or is out-of-date, SeleniumVBA will detect this automatically and download the appropriate driver to a [configurable](https://github.com/GCuser99/SeleniumVBA/wiki#advanced-customization) location on your system.
+**SeleniumVBA will function right out-of-the-box**. Just download/install any one of the provided [SeleniumVBA solutions](https://github.com/GCuser99/SeleniumVBA/tree/main/dist) and then run one of the subs in the "test" Standard modules. If the Selenium WebDriver does not exist, or is out-of-date, SeleniumVBA will detect this automatically and download the appropriate driver to a [configurable location](https://github.com/GCuser99/SeleniumVBA/wiki#advanced-customization) on your system.
 
-Driver updates can also be programmatically invoked via the WebDriverManager class.
+Driver updates can also be programmatically invoked via the [WebDriverManager class](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview#webdrivermanager).
 
 To try the experimental ActiveX DLL, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
 
