@@ -20,7 +20,7 @@ Below is a table showing the compatibility for each solution with various versio
 
 ### Excel Add-in and Access DB Installation:
 
-The Excel and Access solutions are self-contained - they include both source code and test routines. However, it is also possible to reference these solutions from another Excel/Access documents.
+The Excel and Access solutions are self-contained - they include both source code and test routines. However, it is also possible to reference these solutions externally from another Excel/Access document.
 
 Instructions for referencing add-in versions of SeleniumVBA from another MS Excel/Access document:
 
