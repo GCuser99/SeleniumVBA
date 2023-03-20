@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.6
+' SeleniumVBA v3.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -668,7 +668,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         fso.CreateFolder tmpInstallFolder
     End If
     
-    urlDownloadToFile 0, url, tmpInstallZipPath, 0, 0
+    UrlDownloadToFile 0, url, tmpInstallZipPath, 0, 0
     
     'make sure driver zip file was created successfully
     If Not fso.FileExists(tmpInstallZipPath) Then

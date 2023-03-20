@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.6
+' SeleniumVBA v3.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -44,22 +44,22 @@ Option Explicit
 Option Private Module
 
 'for the Sleep procedure
-Private Declare PtrSafe Sub sleepWinAPI Lib "kernel32" Alias "Sleep" (ByVal milliseconds As Long)
-Public Declare PtrSafe Function getFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (ByRef Frequency As Currency) As Long
-Public Declare PtrSafe Function getTime Lib "kernel32" Alias "QueryPerformanceCounter" (ByRef counter As Currency) As Long
+Private Declare PtrSafe Sub SleepWinAPI Lib "kernel32" Alias "Sleep" (ByVal milliseconds As Long)
+Public Declare PtrSafe Function GetFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (ByRef Frequency As Currency) As Long
+Public Declare PtrSafe Function GetTime Lib "kernel32" Alias "QueryPerformanceCounter" (ByRef counter As Currency) As Long
 
-Private Declare PtrSafe Function setCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
-Private Declare PtrSafe Function pathIsRelative Lib "shlwapi" Alias "PathIsRelativeA" (ByVal pszPath As String) As Long
-Private Declare PtrSafe Function pathIsURL Lib "shlwapi" Alias "PathIsURLA" (ByVal pszPath As String) As Long
+Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
+Private Declare PtrSafe Function PathIsRelative Lib "shlwapi" Alias "PathIsRelativeA" (ByVal pszPath As String) As Long
+Private Declare PtrSafe Function PathIsURL Lib "shlwapi" Alias "PathIsURLA" (ByVal pszPath As String) As Long
 
-Private Declare PtrSafe Function findWindowEx Lib "user32" Alias "FindWindowExA" (ByVal hWnd1 As LongPtr, ByVal hWnd2 As LongPtr, ByVal lpsz1 As String, ByVal lpsz2 As String) As LongPtr
-Private Declare PtrSafe Function getWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hWnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
-Private Declare PtrSafe Function getWindowTextLength Lib "user32" Alias "GetWindowTextLengthA" (ByVal hWnd As LongPtr) As Long
-Private Declare PtrSafe Function getWindowThreadProcessId Lib "user32" (ByVal hWnd As LongPtr, lpdwProcessId As Long) As Long
+Private Declare PtrSafe Function FindWindowEx Lib "user32" Alias "FindWindowExA" (ByVal hWnd1 As LongPtr, ByVal hWnd2 As LongPtr, ByVal lpsz1 As String, ByVal lpsz2 As String) As LongPtr
+Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hWnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
+Private Declare PtrSafe Function GetWindowTextLength Lib "user32" Alias "GetWindowTextLengthA" (ByVal hWnd As LongPtr) As Long
+Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hWnd As LongPtr, lpdwProcessId As Long) As Long
 
-Private Declare PtrSafe Function getPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFilename As String) As Long
+Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFilename As String) As Long
 
-Public Declare PtrSafe Function urlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+Public Declare PtrSafe Function UrlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 
 Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
@@ -104,9 +104,9 @@ Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         
         'employ fso to make the conversion of relative path to absolute
         savePath = CurDir()
-        setCurrentDirectory basePath
+        SetCurrentDirectory basePath
         getFullLocalPath = fso.GetAbsolutePathName(inputPath)
-        setCurrentDirectory savePath
+        SetCurrentDirectory savePath
     End If
 End Function
 
@@ -158,7 +158,7 @@ End Function
 
 Private Function isPathRelative(ByVal sPath As String) As Boolean
     'PathIsRelative interprets a properly formed url as relative, so add a check for url too
-    If pathIsRelative(sPath) = 1 And pathIsURL(sPath) = 0 Then isPathRelative = True Else isPathRelative = False
+    If PathIsRelative(sPath) = 1 And PathIsURL(sPath) = 0 Then isPathRelative = True Else isPathRelative = False
 End Function
 
 Private Function isPathHTTPS(ByVal sPath As String) As Boolean
@@ -166,7 +166,7 @@ Private Function isPathHTTPS(ByVal sPath As String) As Boolean
 End Function
 
 Private Function isPathUrl(ByVal sPath As String) As Boolean
-    If pathIsURL(sPath) = 1 Then isPathUrl = True Else isPathUrl = False
+    If PathIsURL(sPath) = 1 Then isPathUrl = True Else isPathUrl = False
 End Function
 
 Private Function isArrayInitialized(ByRef arry() As Variant) As Boolean
@@ -198,25 +198,25 @@ Private Function activeVBAProjectFolderPath() As String
                 On Error GoTo 0
             Else 'if Excel security setting "Trust access to the VBA project object model" is not enabled
                 Dim ThisAppProcessID As Long
-                getWindowThreadProcessId oApp.hWnd, ThisAppProcessID
+                GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
                 Do 'search for this VBE window
                     Dim hWnd As LongPtr
-                    hWnd = findWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
+                    hWnd = FindWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
                     If hWnd > 0 Then
                         Dim WndProcessID As Long
-                        getWindowThreadProcessId hWnd, WndProcessID
+                        GetWindowThreadProcessId hWnd, WndProcessID
                         If ThisAppProcessID = WndProcessID Then
                             'get its caption
-                            Dim Length As Long, caption As String, result As Long
-                            Length = getWindowTextLength(hWnd)
-                            caption = Space$(Length + 1)
-                            result = getWindowText(hWnd, caption, Length + 1)
-                            
+                            Dim bufferLen As Long, caption As String, result As Long
+                            bufferLen = GetWindowTextLength(hWnd)
+                            caption = Space$(bufferLen + 1)
+                            result = GetWindowText(hWnd, caption, bufferLen + 1)
                             'extract filename from the caption
                             Dim oRegex As New RegExp
-                            oRegex.Pattern = "^Microsoft Visual Basic[^-]* - ([^[]*) \[[^]]+\] - \[[^(]+\([^)]+\)\]$"
+                            oRegex.Pattern = "^Microsoft Visual Basic[^-]* - (.*?)(?:| \[[^]]*\]) - \[[^]]*\]$"
                             Dim regexRes As MatchCollection
-                            Set regexRes = oRegex.execute(Left$(caption, result))
+                            caption = Left$(caption, InStr(caption, vbNullChar) - 1)
+                            Set regexRes = oRegex.execute(caption)
                             If regexRes.Count = 1 Then
                                 Dim sFilename As String
                                 sFilename = regexRes.Item(0).SubMatches(0)
@@ -316,7 +316,7 @@ Public Function readIniFileEntry(ByVal filePath As String, ByVal section As Stri
     
     'try to read and return the section/keyName value - if not then use default and exit
     retStr = Space(lenStr)
-    outputLen = getPrivateProfileString(section, keyName, vbNullString, retStr, lenStr, filePath)
+    outputLen = GetPrivateProfileString(section, keyName, vbNullString, retStr, lenStr, filePath)
     If outputLen Then
         readIniFileEntry = Left$(retStr, outputLen)
     Else
@@ -376,29 +376,29 @@ Public Sub sleep(ByVal ms As Currency)
     Dim dTimeElapsed As Currency, cTimeTarget As Currency
     Dim cApproxDelay As Currency
     
-    getTime cTimeStart
+    GetTime cTimeStart
     
     Static cPerSecond As Currency
-    If cPerSecond = 0 Then getFrequency cPerSecond
+    If cPerSecond = 0 Then GetFrequency cPerSecond
     cTimeTarget = ms * (cPerSecond / 1000)
     
     If ms <= 25 Then
         'empty loop for improved accuracy (SleepWinAPI alone costs 2-15ms and DoEvents 2-8ms)
         Do
-            getTime cTimeEnd
+            GetTime cTimeEnd
         Loop Until cTimeEnd - cTimeStart >= cTimeTarget
         Exit Sub
     Else 'fully featured loop
-        sleepWinAPI 5 '"WaitMessage" avoided because it costs 0.0* to 2**(!) ms
+        SleepWinAPI 5 '"WaitMessage" avoided because it costs 0.0* to 2**(!) ms
         DoEvents
-        getTime cTimeEnd
+        GetTime cTimeEnd
         cApproxDelay = (cTimeEnd - cTimeStart) / 2
         
         cTimeTarget = cTimeTarget - cApproxDelay
         Do While (cTimeEnd - cTimeStart) < cTimeTarget
-            sleepWinAPI 1
+            SleepWinAPI 1
             DoEvents
-            getTime cTimeEnd
+            GetTime cTimeEnd
         Loop
     End If
 End Sub

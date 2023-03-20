@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.6
+' SeleniumVBA v3.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1901,9 +1901,9 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (
     Const loopDelay As Long = 50 'in ms
     
     If maxWaitTimeMS >= 0 Then
-        getTime cTimeStart
+        GetTime cTimeStart
         Static cPerSecond As Currency
-        If cPerSecond = 0 Then getFrequency cPerSecond
+        If cPerSecond = 0 Then GetFrequency cPerSecond
         cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
     Else
         'set up to run until IsDisplayed condition is met (no max time limit)
@@ -1916,7 +1916,7 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (
             Set WaitUntilReady = element
             Exit Function
         End If
-        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
         
         sleep loopDelay
         DoEvents 'yield to other processes
@@ -1940,9 +1940,9 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     
     If maxWaitTimeMS >= 0 Then
-        getTime cTimeStart 'gets current time
+        GetTime cTimeStart 'gets current time
         Static cPerSecond As Currency
-        If cPerSecond = 0 Then getFrequency cPerSecond
+        If cPerSecond = 0 Then GetFrequency cPerSecond
         cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
     Else
         'set up to run until file created and closed condition is met (no max time limit)
@@ -1956,7 +1956,7 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
         sleep loopDelay
         DoEvents 'yield to other processes
         'check if max time as elapsed
-        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
         If (cTimeNow - cTimeStart) > cMaxWaitTimeMS Then GoTo MaxTimeExceeded
     Loop
     
@@ -1974,7 +1974,7 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
         End If
     
         'check if max time as elapsed
-        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
 MaxTimeExceeded:
@@ -1992,9 +1992,9 @@ Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not pr
     Const loopDelay As Long = 50 'in ms
     
     If maxWaitTimeMS >= 0 Then
-        getTime cTimeStart
+        GetTime cTimeStart
         Static cPerSecond As Currency
-        If cPerSecond = 0 Then getFrequency cPerSecond
+        If cPerSecond = 0 Then GetFrequency cPerSecond
         cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
     Else
         'set up to run until not IsPresent condition is met (no max time limit)
@@ -2004,7 +2004,7 @@ Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not pr
     
     Do
         If Not IsPresent(by_, val) Then Exit Sub
-        If maxWaitTimeMS >= 0 Then getTime cTimeNow
+        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
         
         sleep loopDelay
         DoEvents 'yield to other processes
@@ -2483,7 +2483,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     End If
     
     'download the url to file path
-    ret = urlDownloadToFile(0&, url, filePath, 0&, 0&)
+    ret = UrlDownloadToFile(0&, url, filePath, 0&, 0&)
     
     If ret <> 0 Then
          Err.raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
