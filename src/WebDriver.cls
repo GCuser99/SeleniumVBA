@@ -1855,7 +1855,7 @@ Public Function FindElementsFromShadowRoot(by_ As By, ByVal val As String, shado
 Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the shadow root for a given selector and value"
     Dim data As Dictionary
     Dim elements As Collection
-    Dim elems As WebElements
+    Dim elems As New WebElements
     Dim i As Integer
     
     Set data = toSelector(by_, val)
