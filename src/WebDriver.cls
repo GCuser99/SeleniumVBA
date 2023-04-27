@@ -1451,8 +1451,8 @@ Attribute Wait.VB_Description = "Pauses in-line execution for the specified numb
 End Sub
 
 '@Description("Returns a boolean indicating if the element is present")
-Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0) As Boolean
-Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present"
+Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
+                            Optional ByRef elemFound As WebElement) As Boolean
     Dim timeout As Long
     Dim resp As Dictionary
     Dim data As Dictionary
@@ -1465,6 +1465,7 @@ Attribute IsPresent.VB_Description = "Returns a boolean indicating if the elemen
         IsPresent = False
     Else
         IsPresent = True
+        Set elemFound = toWebElement(resp("value")(ELEMENT_KEY))
     End If
     If timeout <> ImplicitWaitMS Then ImplicitWait = timeout
 End Function
