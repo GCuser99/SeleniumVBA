@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.7
+' SeleniumVBA v3.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -232,7 +232,19 @@ End Sub
 '@Description("Runs headless argument mode")
 Public Sub RunInvisible()
 Attribute RunInvisible.VB_Description = "Runs headless argument mode"
-    Me.AddArguments "--headless"
+    Select Case browser_
+    Case svbaBrowser.Chrome
+        Me.AddArguments "--headless=new"
+    Case svbaBrowser.Edge
+        'in theory, Edge should work with new headless mode but
+        'it can generate sync-your-profile pop-up so keep the old
+        'headless until bugs are sorted out (goes away by Selenium 4.10)
+        Me.AddArguments "--headless=old"
+    Case svbaBrowser.Firefox
+        Me.AddArguments "--headless"
+    Case svbaBrowser.IE
+        'not supported
+    End Select
 End Sub
 
 '@Description("Runs incognito/private argument mode")
@@ -241,12 +253,12 @@ Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode"
     Select Case browser_
     Case svbaBrowser.Chrome
         Me.AddArguments "--incognito"
-    Case svbaBrowser.Edge, svbaBrowser.IE
+    Case svbaBrowser.Edge
         Me.AddArguments "--inprivate"
     Case svbaBrowser.Firefox
         Me.AddArguments "-private"
     Case svbaBrowser.IE
-        'no method has been found
+        'not supported
     End Select
 End Sub
 

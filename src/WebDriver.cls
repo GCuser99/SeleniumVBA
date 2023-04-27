@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.7
+' SeleniumVBA v3.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -970,10 +970,6 @@ Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     Dim data As New Dictionary
     Dim resp As Dictionary
     
-    If browser_ = svbaBrowser.Firefox Then
-        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
-    End If
-    
     data.Add "id", element.elementId
     Set resp = execute(tCMD.CMD_GET_ELEMENT_ARIA_ROLE, data)
     If IsNull(resp("value")) Then
@@ -988,10 +984,6 @@ Public Function GetAriaLabel(element As WebElement) As String
 Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
     Dim data As New Dictionary
     Dim resp As Dictionary
-    
-    If browser_ = svbaBrowser.Firefox Then
-        Err.raise 1, "WebDriver", "Aria methods not supported for Firefox WebDriver"
-    End If
     
     data.Add "id", element.elementId
     Set resp = execute(tCMD.CMD_GET_ELEMENT_ARIA_LABEL, data)
@@ -1217,9 +1209,9 @@ Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active brow
     saveByteArrayToFile decodeBase64(pngstr), filePath
 End Sub
 
-'@Description("Prints the current webpage window to a specified pdf file path - browser must be in headless mode")
+'@Description("Prints the current webpage window to a specified pdf file path")
 Public Sub PrintToPDF(Optional ByVal filePath As String = ".\printpage.pdf", Optional settings As WebPrintSettings)
-Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a specified pdf file path - browser must be in headless mode"
+Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a specified pdf file path"
     Dim data As New Dictionary
     Dim pdfstr As String
     

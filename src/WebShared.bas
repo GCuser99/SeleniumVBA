@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.7
+' SeleniumVBA v3.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
