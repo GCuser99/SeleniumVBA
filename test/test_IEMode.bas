@@ -452,8 +452,7 @@ Sub test_print()
     'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartIE
-    'must open browser in headless (invisible) mode for PrintToPDF to work
-    driver.OpenBrowser , True
+    driver.OpenBrowser
     
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000

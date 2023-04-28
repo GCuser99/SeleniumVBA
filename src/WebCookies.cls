@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.8
+' SeleniumVBA v3.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

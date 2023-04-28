@@ -13,13 +13,9 @@ Option Private Module
 '
 'Known limitations for of Geckodriver:
 '
-'- Aria methods not supported (GetAriaLabel & GetAriaRole)
 '- Shutdown Method not recognized (currrently using taskkill to shutdown)
 '- Multi-sessions not supported
 '- GetSessionsInfo not functional
-'- Shadowroots are only partially supported (CMD_GET_ELEMENT_SHADOW_ROOT works but
-'  CMD_FIND_ELEMENT_FROM_SHADOW_ROOT & CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT do not).
-'  Apparently this support may be coming: see https://github.com/mozilla/geckodriver/issues/2005
 '- PrintScale method of PrintSettings class does not seem to have effect
 '
 Sub test_logging()
@@ -100,65 +96,6 @@ Sub test_file_download()
     driver.Shutdown
 End Sub
 
-Sub test_element_aria()
-    'Firefox does not support Aria attributes
-    Dim driver As SeleniumVBA.WebDriver, str As String
-    Dim filePath As String
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
-    str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
-    
-    filePath = ".\snippet.html"
-    
-    driver.StartFirefox
-    driver.OpenBrowser
-    
-    driver.SaveStringToFile str, filePath
-    
-    driver.NavigateToFile filePath
-    
-    driver.Wait 1000
-    
-    Debug.Print "Label: " & driver.FindElementByClassName("xyz").GetAriaLabel
-    Debug.Print "Role: " & driver.FindElementByClassName("xyz").GetAriaRole
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-Sub test_shadowroot()
-    'Firefox has partial support for Shadowroots
-    Dim driver As SeleniumVBA.WebDriver, shadowHost As SeleniumVBA.WebElement
-    Dim shadowContent As SeleniumVBA.WebElement, shadowRootelem As WebShadowRoot
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartFirefox
-    driver.OpenBrowser
-    driver.NavigateTo ("http://watir.com/examples/shadow_dom.html")
-    
-    Set shadowHost = driver.FindElement(By.ID, "shadow_host")
-    
-    'this works for Firefox
-    Set shadowRootelem = shadowHost.GetShadowRoot()
-    
-    Debug.Print "got shadowroot element ok"
-    
-    'the following returns "HTTP method not allowed" for Firefox
-    'apparently FindElement support for shadowroots may be coming:
-    'https://github.com/mozilla/geckodriver/issues/2005
-    'https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned&view=subtest
-    Set shadowContent = shadowRootelem.FindElement(By.ID, "shadow_content")
-    
-    Debug.Print shadowContent.GetText 'should return "some text"
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
 Sub test_Alerts()
     'see https://www.guru99.com/alert-popup-handling-selenium.html
     Dim driver As SeleniumVBA.WebDriver
@@ -192,6 +129,44 @@ Sub test_Alerts()
     driver.AcceptAlert
 
     driver.Wait 1000
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_print()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim settings As SeleniumVBA.WebPrintSettings
+    Dim keys As SeleniumVBA.WebKeyboard
+
+    Set driver = SeleniumVBA.New_WebDriver
+    Set settings = SeleniumVBA.New_WebPrintSettings
+    Set keys = SeleniumVBA.New_WebKeyboard
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+
+    driver.StartFirefox
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://www.wikipedia.org/"
+    driver.Wait 1000
+    
+    driver.FindElement(By.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
+    
+    driver.Wait 1000
+    
+    settings.Units = svbaInches
+    settings.MarginsAll = 0.4
+    settings.Orientation = svbaPortrait
+    settings.PrintScale = 0.25
+    'settings.PageRanges "1-2"  'prints the first 2 pages
+    'settings.PageRanges 1, 2   'prints the first 2 pages
+    'settings.PageRanges 2       'prints only the 2nd page
+    
+    'prints pdf file to specified filePath parameter (defaults to .\printpage.pdf)
+    driver.PrintToPDF , settings
+
+    driver.Wait 1000
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub

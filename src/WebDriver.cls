@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.8
+' SeleniumVBA v3.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1450,9 +1450,10 @@ Attribute Wait.VB_Description = "Pauses in-line execution for the specified numb
     WebShared.sleep milliseconds
 End Sub
 
-'@Description("Returns a boolean indicating if the element is present")
+'@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element.")
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
                             Optional ByRef elemFound As WebElement) As Boolean
+Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element."
     Dim timeout As Long
     Dim resp As Dictionary
     Dim data As Dictionary

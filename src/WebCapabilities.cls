@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.8
+' SeleniumVBA v3.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -233,13 +233,8 @@ End Sub
 Public Sub RunInvisible()
 Attribute RunInvisible.VB_Description = "Runs headless argument mode"
     Select Case browser_
-    Case svbaBrowser.Chrome
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.AddArguments "--headless=new"
-    Case svbaBrowser.Edge
-        'in theory, Edge should work with new headless mode but
-        'it can generate sync-your-profile pop-up so keep the old
-        'headless until bugs are sorted out (goes away by Selenium 4.10)
-        Me.AddArguments "--headless=old"
     Case svbaBrowser.Firefox
         Me.AddArguments "--headless"
     Case svbaBrowser.IE
@@ -481,35 +476,29 @@ End Function
 
 Private Sub addToOptionList(ByVal optionName As String, addList() As String)
     'add to list of option parameters, while checking for duplicates
-    Dim parameters() As String
+    Dim parameters As Collection
     Dim found As Boolean
     Dim j As Integer
     Dim i As Integer
-    Dim lboundParms As Integer
-    Dim uboundParms As Integer
 
-    If IsArray(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
-        parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
-        lboundParms = LBound(parameters)
-        uboundParms = UBound(parameters)
+    'lists are represnted as collections for caps initialized from LoadFromFile (jc.ParseJson)
+    If IsObject(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
+        Set parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
     Else 'starting from scratch
-        lboundParms = 1 '1 for 1-based, 0 for 0-based
-        uboundParms = lboundParms - 1
+        Set parameters = New Collection
     End If
 
     For i = LBound(addList) To UBound(addList)
         found = False
-        For j = lboundParms To uboundParms
+        For j = 1 To parameters.Count
             If addList(i) = parameters(j) Then found = True: Exit For
         Next j
         If Not found Then
-            uboundParms = uboundParms + 1
-            ReDim Preserve parameters(lboundParms To uboundParms)
-            parameters(uboundParms) = addList(i)
+            parameters.Add addList(i)
         End If
     Next i
     'put the expanded list back
-    data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
+    Set data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
 End Sub
 
 Private Function paramListToStringArray(parmList() As Variant) As String()
