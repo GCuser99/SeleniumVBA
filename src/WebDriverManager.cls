@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.9
+' SeleniumVBA v4.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -416,12 +416,17 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
         'search the release log until an IEDriveServer is found
         For j = 1 To col.Count
             Set json = col.Item(j)
-            For i = 1 To json("assets").Count
+            For i = json("assets").Count To 1 Step -1
                 If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
-                    GetLatestDriverVersion = Mid$(json("tag_name"), 10)
-                    Exit Function
+                    Dim oRegex As New RegExp
+                    oRegex.Pattern = "IEDriverServer_Win32_(.*?).zip"
+                    Dim regexRes As MatchCollection
+                    Set regexRes = oRegex.execute(json("assets")(i)("name"))
+                    GetLatestDriverVersion = regexRes.Item(0).SubMatches(0)
+                    Exit For
                 End If
             Next i
+            If GetLatestDriverVersion <> vbNullString Then Exit For
         Next j
     End Select
 End Function
@@ -647,7 +652,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         For j = 1 To col.Count
             Set json = col.Item(j)
             'this finds the executable download link
-            For i = 1 To json("assets").Count
+            For i = json("assets").Count To 1 Step -1
                 If json("assets")(i)("name") Like "IEDriverServer_Win32*" Then
                     url = json("assets")(i)("browser_download_url")
                     tmpInstallZipPath = tmpInstallFolder & json("assets")(i)("name")

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.9
+' SeleniumVBA v4.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -481,7 +481,7 @@ Private Sub addToOptionList(ByVal optionName As String, addList() As String)
     Dim j As Integer
     Dim i As Integer
 
-    'lists are represnted as collections for caps initialized from LoadFromFile (jc.ParseJson)
+    'lists are represented as collections for caps initialized from LoadFromFile (via jc.ParseJson)
     If IsObject(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
         Set parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
     Else 'starting from scratch

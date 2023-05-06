@@ -5,8 +5,8 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 ## Features
 
 - Edge, Chrome, Firefox, and IE Mode browser automation support
-- MS Excel Add-in, MS Access DB, and experimental [twinBasic](https://twinbasic.com/preview.html) ActiveX DLL solutions available
-- A superset of Selenium's JSon Wire Protocol commands - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
+- MS Excel Add-in, MS Access DB, and [twinBasic](https://twinbasic.com/preview.html) ActiveX DLL solutions available
+- A superset of Selenium's [WC3 WebDriver commands](https://w3c.github.io/webdriver/) - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
@@ -17,7 +17,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 Driver updates can also be programmatically invoked via the [WebDriverManager class](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview#webdrivermanager).
 
-To try the experimental ActiveX DLL, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
+To try the ActiveX DLL, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
 
 ## SendKeys Example
 
@@ -59,7 +59,9 @@ Sub doFileDownload()
     driver.DeleteFiles ".\test.pdf"
     
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
-    driver.Wait 2000
+
+    'wait until the download is complete before closing browser
+    driver.WaitForDownload ".\test.pdf"
     
     driver.CloseBrowser
     driver.Shutdown

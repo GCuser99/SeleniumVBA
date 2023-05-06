@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v3.9
+' SeleniumVBA v4.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1955,17 +1955,18 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     Loop
     
     'the file exists but now make sure it is finished writing (closed)
-    On Error Resume Next
     Do
         sleep loopDelay
         DoEvents 'yield to other processes
         
         'if file length > 0, then try to rename it to itself
-        'if not ready, will throw an error 75 - Path/File access error
+        'if not ready, will throw an error
+        On Error Resume Next
         If FileLen(filePath) Then
             Name filePath As filePath
             If Err.Number = 0 Then Exit Sub
         End If
+        On Error GoTo 0
     
         'check if max time as elapsed
         If maxWaitTimeMS >= 0 Then GetTime cTimeNow

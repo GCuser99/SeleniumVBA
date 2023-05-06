@@ -269,7 +269,7 @@ Sub test_kiosk_printing()
     appState.Add "mediaSize", mediaSizeOptions("Legal")
 
     'print the appState object to immediate window for qc
-    Debug.Print jc.ConvertToJson(appState, 4)
+    'Debug.Print jc.ConvertToJson(appState, 4)
     
     'this is the tricky part - we need to assign "appState" key of the settings object
     'to a json string - not a dictionary!!! So convert appstate to a string value...
@@ -286,7 +286,7 @@ Sub test_kiosk_printing()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 3000
+    driver.Wait 1000
     
     'default print file name is based on webpage title
     driver.DeleteFiles ".\" & driver.GetTitle & ".pdf"
