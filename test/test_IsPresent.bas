@@ -41,8 +41,8 @@ Sub test_isPresent_xpath()
     
     For Each elem In elems
         Debug.Print "child1 of " & elem.GetAttribute("id") & " exists:", elem.IsPresent(By.XPath, ".//div[@id = 'child1']")
-        Debug.Print "child2 of " & elem.GetAttribute("id") & " exists:", elem.IsPresent(By.XPath, ".//div[@id = 'child1']")
-        Debug.Print "child3 of " & elem.GetAttribute("id") & " exists:", elem.IsPresent(By.XPath, ".//div[@id = 'child1']")
+        Debug.Print "child2 of " & elem.GetAttribute("id") & " exists:", elem.IsPresent(By.XPath, ".//div[@id = 'child2']")
+        Debug.Print "child3 of " & elem.GetAttribute("id") & " exists:", elem.IsPresent(By.XPath, ".//div[@id = 'child3']")
     Next elem
     
     driver.CloseBrowser
