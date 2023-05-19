@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.0
+' SeleniumVBA v4.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -178,6 +178,13 @@ End Function
 Public Function FindElementsByPartialLinkText(ByVal val As String) As WebElements
 Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements that satisfy the specified partial link text value"
     Set FindElementsByPartialLinkText = driver_.FindElements(By.PartialLinkText, val, Me)
+End Function
+
+'@Description("Returns a boolean indicating if the element searched for by the selector is present")
+Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
+                            Optional ByRef elemFound As WebElement) As Boolean
+Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element searched for by the selector is present"
+    IsPresent = driver_.IsPresent(by_, val, ImplicitWaitMS, elemFound, Me)
 End Function
 
 '@Description("Sets the attribute of this element")

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for exposing a shadow root DOM su
 '@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.0
+' SeleniumVBA v4.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -74,7 +74,7 @@ Attribute FindElement.VB_Description = "Finds the first element for a given sele
 Err:
     Err.Raise Err.Number, Err.Source, Err.Description _
             & IIf(Err.Number = 400, vbNewLine _
-            & "XPath unsupported(?) in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
+            & "XPath unsupported in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
 End Function
 
 '@Description("Finds all elements that satisfy the specified selector and value")
@@ -86,5 +86,6 @@ Attribute FindElements.VB_Description = "Finds all elements that satisfy the spe
 Err:
     Err.Raise Err.Number, Err.Source, Err.Description _
             & IIf(Err.Number = 400, vbNewLine _
-            & "XPath unsupported(?) in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
+            & "XPath unsupported in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
 End Function
+

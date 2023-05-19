@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.0
+' SeleniumVBA v4.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -116,13 +116,13 @@ End Function
 '@Description("Saves the cookie collection to a file path")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
 Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file path"
-    Dim fs As New FileSystemObject
+    Dim fso As New FileSystemObject
     Dim ts As TextStream
     Dim darray() As Dictionary
     Dim i As Long
     Dim jc As New WebJsonConverter
     filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
-    Set ts = fs.CreateTextFile(filePath, True, True)
+    Set ts = fso.CreateTextFile(filePath, True, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
@@ -134,7 +134,7 @@ End Sub
 '@Description("Loads the cookie collection from a file path")
 Public Function LoadFromFile(Optional ByVal filePath As String = ".\cookies.txt") As WebCookies
 Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file path"
-    Dim fs As New FileSystemObject
+    Dim fso As New FileSystemObject
     Dim ts As TextStream
     Dim str As String
     Dim v As Collection
@@ -145,7 +145,7 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
     
     filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
-    Set ts = fs.OpenTextFile(filePath, , , TristateUseDefault)
+    Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     str = ts.ReadAll
     ts.Close
     Set v = jc.ParseJson(str)

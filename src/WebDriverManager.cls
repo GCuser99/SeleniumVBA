@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.0
+' SeleniumVBA v4.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -172,7 +172,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
                     AlignDriverWithBrowser = dverCompat
                     Exit Function
                 Else
-                    Err.raise 1, "WebDriverManager", dverCompat
+                    Err.Raise 1, "WebDriverManager", dverCompat
                 End If
             End If
             
@@ -205,7 +205,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
                 AlignDriverWithBrowser = dverCompat
                 Exit Function
             Else
-                Err.raise 1, "WebDriverManager", dverCompat
+                Err.Raise 1, "WebDriverManager", dverCompat
             End If
         End If
         
@@ -233,7 +233,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
                 AlignDriverWithBrowser = dverCompat
                 Exit Function
             Else
-                Err.raise 1, "WebDriverManager", dverCompat
+                Err.Raise 1, "WebDriverManager", dverCompat
             End If
         End If
         
@@ -423,10 +423,9 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
                     Dim regexRes As MatchCollection
                     Set regexRes = oRegex.execute(json("assets")(i)("name"))
                     GetLatestDriverVersion = regexRes.Item(0).SubMatches(0)
-                    Exit For
+                    Exit Function
                 End If
             Next i
-            If GetLatestDriverVersion <> vbNullString Then Exit For
         Next j
     End Select
 End Function
@@ -661,7 +660,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
             Next i
             If url <> vbNullString Then Exit For
         Next j
-        If url = vbNullString Then Err.raise 1, "WebDriverManager", "Error: Could not locate latest version of IEDriverServer"
+        If url = vbNullString Then Err.Raise 1, "WebDriverManager", "Error: Could not locate latest version of IEDriverServer"
         tmpZipDriverFilename = "IEDriverServer.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     End Select
@@ -673,13 +672,13 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         fso.CreateFolder tmpInstallFolder
     End If
     
-    UrlDownloadToFile 0, url, tmpInstallZipPath, 0, 0
+    UrlDownloadToFile 0&, StrPtr(url), StrPtr(tmpInstallZipPath), 0&, 0&
     
     'make sure driver zip file was created successfully
     If Not fso.FileExists(tmpInstallZipPath) Then
         'clean up first
         If createdTmpFolder Then fso.DeleteFolder Left$(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
-        Err.raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
+        Err.Raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
     End If
     
     If fso.FileExists(tmpInstallDriverpath) Then fso.DeleteFile tmpInstallDriverpath, True

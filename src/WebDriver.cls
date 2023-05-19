@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.0
+' SeleniumVBA v4.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -191,6 +191,7 @@ Public Enum ScrollIntoViewOptions_speed
     jump_instant = 2
     jump_auto = 3
 End Enum
+
 Public Enum ScrollIntoViewOptions_alignment
     align_start = 1
     align_center = 2
@@ -459,7 +460,7 @@ Attribute CloseBrowser.VB_Description = "Closes browser without terminating driv
 End Sub
 
 '@Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
-Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Variant, Optional ByVal Raise As Boolean = True) As Boolean
+Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Variant, Optional ByVal raiseError As Boolean = True) As Boolean
 Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage and returns true if no timeout or other error"
     Dim data As New Dictionary
     Dim resp As Dictionary
@@ -471,7 +472,7 @@ Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage 
         If savTimeOutms <> timeOutms Then PageLoadTimeout = timeOutms
     End If
     
-    Set resp = execute(tCMD.CMD_GET, data, Raise)
+    Set resp = execute(tCMD.CMD_GET, data, raiseError)
 
     If Not IsMissing(timeOutms) Then
         If savTimeOutms <> timeOutms Then PageLoadTimeout = savTimeOutms
@@ -870,6 +871,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         If backgroundColor <> VBAcolors.Unchanged Then
             backgroundColorString = "background:" & rgbLongToString(backgroundColor)
         End If
+        
         Dim finalString As String
         finalString = IIf(borderColorString <> vbNullString, borderColorString & "; ", vbNullString) & backgroundColorString
 
@@ -1464,18 +1466,28 @@ End Sub
 
 '@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element.")
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
-                            Optional ByRef elemFound As WebElement) As Boolean
+                            Optional ByRef elemFound As WebElement, Optional ByRef parentElement As WebElement) As Boolean
 Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element."
     Dim timeout As Long
     Dim resp As Dictionary
     Dim data As Dictionary
+    Dim vCMD As Variant
     
     timeout = ImplicitWait()
     If timeout <> ImplicitWaitMS Then ImplicitWait = ImplicitWaitMS
     Set data = toSelector(by_, val)
-    Set resp = execute(tCMD.CMD_FIND_ELEMENT, data, False) 'don't raise an error if not present
+    
+    If Not parentElement Is Nothing Then
+        data.Add "id", parentElement.elementId
+        vCMD = tCMD.CMD_FIND_ELEMENT_FROM_ELEMENT
+    Else
+        vCMD = tCMD.CMD_FIND_ELEMENT
+    End If
+    
+    Set resp = execute(vCMD, data, False) 'don't raise an error if not present
     If isResponseError(resp) Then
         IsPresent = False
+        Set elemFound = Nothing
     Else
         IsPresent = True
         Set elemFound = toWebElement(resp("value")(ELEMENT_KEY))
@@ -1675,6 +1687,7 @@ Public Function ScrollIntoView(element As WebElement, _
                     Optional enSpeed As ScrollIntoViewOptions_speed, _
                     Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
                     Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
+Attribute ScrollIntoView.VB_Description = "Scrolls to the element"
     Dim script As String
     
     If enSpeed = 0 And enAlign_vert = 0 And enAlign_horiz = 0 Then
@@ -1996,17 +2009,9 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     
     'the file exists but now make sure it is finished writing (closed)
     Do
+        If FileClosed(filePath) Then Exit Sub
         sleep loopDelay
         DoEvents 'yield to other processes
-        
-        'if file length > 0, then try to rename it to itself
-        'if not ready, will throw an error
-        On Error Resume Next
-        If FileLen(filePath) Then
-            Name filePath As filePath
-            If Err.Number = 0 Then Exit Sub
-        End If
-    
         'check if max time as elapsed
         If maxWaitTimeMS >= 0 Then GetTime cTimeNow
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
@@ -2111,10 +2116,10 @@ End Sub
 Public Sub SaveStringToFile(ByVal val As String, Optional ByVal filePath As String = ".\snippet.html", Optional ByVal formatUnicode16 As Boolean = True)
 Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     'this is used to save test html snippets to file for subsequent browser navigation
-    Dim fs As New FileSystemObject
+    Dim fso As New FileSystemObject
     Dim ts As TextStream
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
-    Set ts = fs.CreateTextFile(filePath, True, formatUnicode16)
+    Set ts = fso.CreateTextFile(filePath, True, formatUnicode16)
     ts.Write val
     ts.Close
 End Sub
@@ -2378,7 +2383,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "print_scale=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
     entryCol.Add "shrink_to_fit=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
     
-    Set ts = fso.CreateTextFile(iniFilePath, True)
+    Set ts = fso.CreateTextFile(iniFilePath, True, True)
     
     For i = 1 To entryCol.Count
         ts.WriteLine entryCol.Item(i)
@@ -2517,14 +2522,14 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     End If
     
     'download the url to file path
-    ret = UrlDownloadToFile(0&, url, filePath, 0&, 0&)
+    ret = UrlDownloadToFile(0&, StrPtr(url), StrPtr(filePath), 0&, 0&)
     
     If ret <> 0 Then
          Err.Raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
     End If
 End Sub
 
-Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal Raise As Boolean = True) As Dictionary
+Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True) As Dictionary
     Dim cmdMethod As String
     Dim cmdPath As String
     Dim cmdArgs As New Dictionary
@@ -2574,7 +2579,7 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
         GoTo errEnd
 Err:    If Err.Number = -2147012894 Then
             Err.Raise Err.Number, Err.Source, "Timeout in setting browser capabilities." & vbNewLine & vbNewLine _
-                        & "If you're trying to attach WebDriver to an existing istance of your Chrome/Edge browser," _
+                        & "If you're trying to attach WebDriver to an existing instance of your Chrome/Edge browser," _
                         & "restart your browser process(es) by adding command line argument " _
                         & """--remote-debugging-port=9222"" (or different port number)", Err.HelpFile, Err.HelpContext
         ElseIf Err.Number <> 0 Then
@@ -2591,7 +2596,7 @@ errEnd: On Error GoTo 0
 
     Set response = jc.ParseJson(client.responseText)
     
-    If Raise And isResponseError(response) Then 'raise error if occurs
+    If raiseError And isResponseError(response) Then 'raise error if occurs
         Debug.Print getResponseErrorMessage(response)
         Err.Raise client.status, "WebDriver", getResponseErrorMessage(response)
     End If
@@ -2669,13 +2674,20 @@ Private Function decodeBase64(ByVal strData As String) As Byte()
     decodeBase64 = domNode.nodeTypedValue
 End Function
 
-Private Sub saveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
-    Dim fp As Long, fso As New FileSystemObject
-    If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
-    fp = FreeFile
-    Open filePath For Binary Access Write As #fp
-    Put #fp, 1, byteArray
-    Close fp
+Private Sub saveByteArrayToFile(ByteArray() As Byte, ByVal filePath As String)
+  'Create Stream object
+  Dim binaryStream As New ADODB.Stream
+
+  'Specify stream type - we want To save binary data.
+  binaryStream.Type = adTypeBinary
+  
+  'Open the stream And write binary data To the object
+  binaryStream.Open
+  binaryStream.Write ByteArray
+  
+  'Save binary data To disk
+  binaryStream.SaveToFile filePath, adSaveCreateOverWrite
+  binaryStream.Close
 End Sub
 
 Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
@@ -3221,4 +3233,15 @@ Private Function objectifyScriptResponse(responseValue As Object) As Object
     End Select
         
     Set objectifyScriptResponse = responseValue
+End Function
+
+Private Function FileClosed(ByVal filePath As String) As Boolean
+    Dim fso As New FileSystemObject
+    On Error Resume Next
+    fso.MoveFile filePath, filePath
+    If Err.Number = 0 Then
+        FileClosed = True
+    Else
+        FileClosed = False
+    End If
 End Function

@@ -5,8 +5,8 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 ## Features
 
 - Edge, Chrome, Firefox, and IE Mode browser automation support
-- MS Excel Add-in, MS Access DB, and [twinBasic](https://twinbasic.com/preview.html) ActiveX DLL solutions available
-- A superset of Selenium's [WC3 WebDriver commands](https://w3c.github.io/webdriver/) - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
+- MS Excel Add-in, MS Access DB, and [twinBASIC](https://twinbasic.com/preview.html) ActiveX DLL solutions available
+- A superset of Selenium's [WC3 WebDriver](https://w3c.github.io/webdriver/) commands - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
@@ -108,7 +108,7 @@ This project is an extensively modified/extended version of uezo's [TinySelenium
 
 [RubberDuck](https://rubberduckvba.com/) by Mathieu Guindon
 
-[twinBasic](https://twinbasic.com/preview.html) by Wayne Phillips
+[twinBASIC](https://twinbasic.com/preview.html) by Wayne Phillips
 
 [Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell and [UninsIS](https://github.com/Bill-Stewart/UninsIS) by Bill Stewart
 

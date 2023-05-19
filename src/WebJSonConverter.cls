@@ -185,7 +185,7 @@ Public Function ParseJson(ByVal jsonString As String) As Object
         Set ParseJson = New Dictionary
     Case Else
         ' Error: Invalid JSON string
-        Err.raise 10001, "JSONConverter", json_ParseErrorMessage(jsonString, json_Index, "Expecting '{' or '['")
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(jsonString, json_Index, "Expecting '{' or '['")
     End Select
 End Function
 
@@ -466,7 +466,7 @@ Private Function json_ParseObject(json_String As String, ByRef json_Index As Lon
     Set json_ParseObject = New Scripting.Dictionary
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> "{" Then
-        Err.raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '{'")
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '{'")
     Else
         json_Index = json_Index + 1
 
@@ -496,7 +496,7 @@ Private Function json_ParseArray(json_String As String, ByRef json_Index As Long
 
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> "[" Then
-        Err.raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '['")
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '['")
     Else
         json_Index = json_Index + 1
 
@@ -537,7 +537,7 @@ Private Function json_ParseValue(json_String As String, ByRef json_Index As Long
         ElseIf VBA.InStr("+-0123456789", VBA.Mid$(json_String, json_Index, 1)) Then
             json_ParseValue = json_ParseNumber(json_String, json_Index)
         Else
-            Err.raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
+            Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
         End If
     End Select
 End Function
@@ -651,13 +651,13 @@ Private Function json_ParseKey(json_String As String, ByRef json_Index As Long) 
             End If
         Loop
     Else
-        Err.raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '""' or '''")
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '""' or '''")
     End If
 
     ' Check for colon and skip if present or throw if not present
     json_SkipSpaces json_String, json_Index
     If VBA.Mid$(json_String, json_Index, 1) <> ":" Then
-        Err.raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting ':'")
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting ':'")
     Else
         json_Index = json_Index + 1
     End If
@@ -913,7 +913,7 @@ Public Function ParseUtc(utc_UtcDate As Date) As Date
     Exit Function
 
 utc_ErrorHandling:
-    Err.raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.Description
+    Err.Raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.Description
 End Function
 
 ''
@@ -939,7 +939,7 @@ Public Function ConvertToUtc(utc_LocalDate As Date) As Date
     Exit Function
 
 utc_ErrorHandling:
-    Err.raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
+    Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
 ''
@@ -1017,7 +1017,7 @@ Public Function ParseIso(utc_IsoString As String) As Date
     Exit Function
 
 utc_ErrorHandling:
-    Err.raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
+    Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
 End Function
 
 ''
@@ -1036,7 +1036,7 @@ Public Function ConvertToIso(utc_LocalDate As Date) As String
     Exit Function
 
 utc_ErrorHandling:
-    Err.raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
+    Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
 End Function
 
 ' ============================================= '

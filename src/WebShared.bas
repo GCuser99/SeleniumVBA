@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.0
+' SeleniumVBA v4.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -48,18 +48,18 @@ Private Declare PtrSafe Sub SleepWinAPI Lib "kernel32" Alias "Sleep" (ByVal mill
 Public Declare PtrSafe Function GetFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (ByRef Frequency As Currency) As Long
 Public Declare PtrSafe Function GetTime Lib "kernel32" Alias "QueryPerformanceCounter" (ByRef counter As Currency) As Long
 
-Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryA" (ByVal lpPathName As String) As Long
-Private Declare PtrSafe Function PathIsRelative Lib "shlwapi" Alias "PathIsRelativeA" (ByVal pszPath As String) As Long
-Private Declare PtrSafe Function PathIsURL Lib "shlwapi" Alias "PathIsURLA" (ByVal pszPath As String) As Long
+Private Declare PtrSafe Function SetCurrentDirectory Lib "kernel32" Alias "SetCurrentDirectoryW" (ByVal lpPathName As LongPtr) As Long
+Private Declare PtrSafe Function PathIsRelative Lib "shlwapi" Alias "PathIsRelativeW" (ByVal pszPath As LongPtr) As Long
+Private Declare PtrSafe Function PathIsURL Lib "shlwapi" Alias "PathIsURLW" (ByVal pszPath As LongPtr) As Long
 
-Private Declare PtrSafe Function FindWindowEx Lib "user32" Alias "FindWindowExA" (ByVal hWnd1 As LongPtr, ByVal hWnd2 As LongPtr, ByVal lpsz1 As String, ByVal lpsz2 As String) As LongPtr
-Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextA" (ByVal hWnd As LongPtr, ByVal lpString As String, ByVal cch As Long) As Long
-Private Declare PtrSafe Function GetWindowTextLength Lib "user32" Alias "GetWindowTextLengthA" (ByVal hWnd As LongPtr) As Long
+Private Declare PtrSafe Function FindWindowEx Lib "user32" Alias "FindWindowExW" (ByVal hWndParent As LongPtr, ByVal hWndChildAfter As LongPtr, ByVal lpszClass As LongPtr, ByVal lpszWindow As LongPtr) As LongPtr
+Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextW" (ByVal hWnd As LongPtr, ByVal lpString As LongPtr, ByVal cch As Long) As Long
+Private Declare PtrSafe Function GetWindowTextLength Lib "user32" Alias "GetWindowTextLengthW" (ByVal hWnd As LongPtr) As Long
 Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hWnd As LongPtr, lpdwProcessId As Long) As Long
 
-Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFilename As String) As Long
+Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringW" (ByVal lpApplicationName As LongPtr, ByVal lpKeyName As LongPtr, ByVal lpDefault As LongPtr, lpReturnedString As Any, ByVal nSize As Long, ByVal lpFilename As LongPtr) As Long
 
-Public Declare PtrSafe Function UrlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+Public Declare PtrSafe Function UrlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileW" (ByVal pCaller As Long, ByVal szURL As LongPtr, ByVal szFileName As LongPtr, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 
 Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
@@ -98,15 +98,15 @@ Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         'check that reference path exists and notify user if not
         If Not fso.FolderExists(basePath) Then
             If Not isPathHTTPS(basePath) Then 'its a url which fso doesn't support - must trust that it exists (@6DiegoDiego9)
-                Err.raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
+                Err.Raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
             End If
         End If
         
         'employ fso to make the conversion of relative path to absolute
         savePath = CurDir()
-        SetCurrentDirectory basePath
+        SetCurrentDirectory StrPtr(basePath)
         getFullLocalPath = fso.GetAbsolutePathName(inputPath)
-        SetCurrentDirectory savePath
+        SetCurrentDirectory StrPtr(savePath)
     End If
 End Function
 
@@ -158,7 +158,7 @@ End Function
 
 Private Function isPathRelative(ByVal sPath As String) As Boolean
     'PathIsRelative interprets a properly formed url as relative, so add a check for url too
-    If PathIsRelative(sPath) = 1 And PathIsURL(sPath) = 0 Then isPathRelative = True Else isPathRelative = False
+    If PathIsRelative(StrPtr(sPath)) = 1 And PathIsURL(StrPtr(sPath)) = 0 Then isPathRelative = True Else isPathRelative = False
 End Function
 
 Private Function isPathHTTPS(ByVal sPath As String) As Boolean
@@ -166,7 +166,7 @@ Private Function isPathHTTPS(ByVal sPath As String) As Boolean
 End Function
 
 Private Function isPathUrl(ByVal sPath As String) As Boolean
-    If PathIsURL(sPath) = 1 Then isPathUrl = True Else isPathUrl = False
+    If PathIsURL(StrPtr(sPath)) = 1 Then isPathUrl = True Else isPathUrl = False
 End Function
 
 Private Function isArrayInitialized(ByRef arry() As Variant) As Boolean
@@ -201,7 +201,9 @@ Private Function activeVBAProjectFolderPath() As String
                 GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
                 Do 'search for this VBE window
                     Dim hWnd As LongPtr
-                    hWnd = FindWindowEx(0, hWnd, "wndclass_desked_gsk", vbNullString)
+                    Dim lpszClass As String
+                    lpszClass = "wndclass_desked_gsk"
+                    hWnd = FindWindowEx(0, hWnd, StrPtr(lpszClass), 0&)
                     If hWnd > 0 Then
                         Dim WndProcessID As Long
                         GetWindowThreadProcessId hWnd, WndProcessID
@@ -209,13 +211,13 @@ Private Function activeVBAProjectFolderPath() As String
                             'get its caption
                             Dim bufferLen As Long, caption As String, result As Long
                             bufferLen = GetWindowTextLength(hWnd)
-                            caption = Space$(bufferLen + 1)
-                            result = GetWindowText(hWnd, caption, bufferLen + 1)
+                            caption = String$(bufferLen + 1, vbNullChar)
+                            result = GetWindowText(hWnd, StrPtr(caption), bufferLen + 1)
+                            caption = Left$(caption, InStr(caption, vbNullChar) - 1)
                             'extract filename from the caption
                             Dim oRegex As New RegExp
                             oRegex.Pattern = "^Microsoft Visual Basic[^-]* - (.*?)(?:| \[[^]]*\]) - \[[^]]*\]$"
                             Dim regexRes As MatchCollection
-                            caption = Left$(caption, InStr(caption, vbNullChar) - 1)
                             Set regexRes = oRegex.execute(caption)
                             If regexRes.Count = 1 Then
                                 Dim sFilename As String
@@ -223,14 +225,14 @@ Private Function activeVBAProjectFolderPath() As String
                                 'this returns vbNullString if workbook has not been saved yet
                                 activeVBAProjectFolderPath = oApp.Workbooks(sFilename).Path
                             Else
-                                Err.raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
+                                Err.Raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
                             End If
                         End If
                     End If
                 Loop Until hWnd = 0
             End If
         End If
-        If activeVBAProjectFolderPath = vbNullString Then Err.raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
+        If activeVBAProjectFolderPath = vbNullString Then Err.Raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
     Case "Microsoft Access"
         Dim strPath As String
     
@@ -248,10 +250,10 @@ Private Function activeVBAProjectFolderPath() As String
             strPath = fso.GetParentFolderName(strPath)
             activeVBAProjectFolderPath = strPath
         Else
-            Err.raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
+            Err.Raise 1, "WebShared", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
         End If
     Case Else
-        Err.raise 1, "WebShared", "Error: Only MS Access and MS Excel supported."
+        Err.Raise 1, "WebShared", "Error: Only MS Access and MS Excel supported."
     End Select
 End Function
 
@@ -272,7 +274,7 @@ Public Function thisLibFolderPath() As String
     Case "Microsoft Access"
         thisLibFolderPath = oApp.CodeProject.Path
     Case Else
-        Err.raise 1, "WebShared", "Error: Only MS Access and MS Excel supported."
+        Err.Raise 1, "WebShared", "Error: Only MS Access and MS Excel supported."
     End Select
 End Function
 
@@ -297,10 +299,10 @@ End Function
 
 Public Function readIniFileEntry(ByVal filePath As String, ByVal section As String, ByVal keyName As String, Optional ByVal defaultValue As Variant = vbNullString, Optional ByVal useDefaultValue As Boolean = False) As String
     'reads a single settings file entry
-    Const lenStr = 255
+    Const lenBuffer = 512
     Dim outputLen As Long
-    Dim retStr As String * lenStr
     Dim fso As FileSystemObject
+    Dim buffer() As Byte
     
     If useDefaultValue Then 'quick escape!
         readIniFileEntry = defaultValue
@@ -315,10 +317,19 @@ Public Function readIniFileEntry(ByVal filePath As String, ByVal section As Stri
     End If
     
     'try to read and return the section/keyName value - if not then use default and exit
-    retStr = Space(lenStr)
-    outputLen = GetPrivateProfileString(section, keyName, vbNullString, retStr, lenStr, filePath)
+
+    ReDim buffer(0 To lenBuffer - 1)
+
+    outputLen = GetPrivateProfileString( _
+                    StrPtr(section), _
+                    StrPtr(keyName), _
+                    0&, _
+                    buffer(0), _
+                    lenBuffer, _
+                    StrPtr(filePath))
+                    
     If outputLen Then
-        readIniFileEntry = Left$(retStr, outputLen)
+        readIniFileEntry = Left$(buffer, outputLen)
     Else
         readIniFileEntry = defaultValue
     End If
@@ -363,7 +374,7 @@ Public Function enumTextToValue(ByVal enumText As String) As Long
     Case LCase("svbaInches")
         enumTextToValue = svbaUnits.svbaInches
     Case Else
-        Err.raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
+        Err.Raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
     End Select
 End Function
 
