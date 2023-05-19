@@ -267,10 +267,10 @@ End Function
 '@Description("Highlights with color this element")
 Public Function Highlight(Optional ByVal borderSizePx As Byte = 4, Optional ByVal borderColor As VBAcolors = Blue, _
                      Optional ByVal backgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                     Optional ByVal ScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True) _
+                     Optional ByVal bScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True) _
                      As WebElement
 Attribute Highlight.VB_Description = "Highlights with color this element"
-    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, unHighlightLast
+    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, bScrollIntoView, unHighlightLast
     Set Highlight = Me
 End Function
 
@@ -407,9 +407,10 @@ Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced t
 End Function
 
 '@Description("Scrolls to this element")
-Public Function ScrollIntoView(Optional ByVal alignTop As Boolean = True) As WebElement
-Attribute ScrollIntoView.VB_Description = "Scrolls to this element"
-    Set ScrollIntoView = driver_.ScrollIntoView(Me, alignTop)
+Public Function ScrollIntoView(Optional enSpeed As ScrollIntoViewOptions_speed, _
+                               Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
+                               Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
+    Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz)
 End Function
 
 '@Description("Gets the shadow root hosted by this element")

@@ -68,12 +68,23 @@ End Property
 '@Description("Finds the first element for a given selector and value")
 Public Function FindElement(by_ As By, ByVal val As String) As WebElement
 Attribute FindElement.VB_Description = "Finds the first element for a given selector and value"
+    If by_ = XPath Then On Error GoTo Err
     Set FindElement = driver_.FindElementFromShadowRoot(by_, val, Me)
+    Exit Function
+Err:
+    Err.Raise Err.Number, Err.Source, Err.Description _
+            & IIf(Err.Number = 400, vbNewLine _
+            & "XPath unsupported(?) in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
 End Function
 
 '@Description("Finds all elements that satisfy the specified selector and value")
 Public Function FindElements(by_ As By, ByVal val As String) As WebElements
 Attribute FindElements.VB_Description = "Finds all elements that satisfy the specified selector and value"
+    If by_ = XPath Then On Error GoTo Err
     Set FindElements = driver_.FindElementsFromShadowRoot(by_, val, Me)
+    Exit Function
+Err:
+    Err.Raise Err.Number, Err.Source, Err.Description _
+            & IIf(Err.Number = 400, vbNewLine _
+            & "XPath unsupported(?) in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
 End Function
-
