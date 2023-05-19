@@ -186,6 +186,18 @@ Public Enum By
     PartialLinkText = 7
 End Enum
 
+Public Enum ScrollIntoViewOptions_speed
+    jump_smooth = 1
+    jump_instant = 2
+    jump_auto = 3
+End Enum
+Public Enum ScrollIntoViewOptions_alignment
+    align_start = 1
+    align_center = 2
+    align_end = 3
+    align_nearest = 4
+End Enum
+
 Public Enum svbaWindowType
     svbaWindow = 0
     svbaTab = 1
@@ -345,7 +357,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     End If
     
     If Not fso.FileExists(driverPath) Then
-        Err.raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
+        Err.Raise 1, "WebDriver", "Could not find Selenium WebDriver at :" & vbNewLine & vbNewLine & driverPath & vbNewLine & vbNewLine & "Either manually install the driver or let WebDriverManager class install"
     End If
     
     commandStr = vbNullString: serviceArgs = vbNullString
@@ -371,7 +383,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     processID = Shell(commandStr, appWinStyle)
 
     If processID = 0 Then
-        Err.raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+        Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     End If
     
     'if we've got this far, then store some global variable values for later use
@@ -409,7 +421,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     Dim resp As Dictionary
     
     If sessionId_ <> vbNullString Then
-        Err.raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
+        Err.Raise 1, "WebDriver", "Only one OpenBrowser command per WebDriver instance is allowed! Use CloseBrowser before another OpenBrowser to fix this."
     End If
     
     If caps Is Nothing Then
@@ -447,7 +459,7 @@ Attribute CloseBrowser.VB_Description = "Closes browser without terminating driv
 End Sub
 
 '@Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
-Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Variant, Optional ByVal raise As Boolean = True) As Boolean
+Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Variant, Optional ByVal Raise As Boolean = True) As Boolean
 Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage and returns true if no timeout or other error"
     Dim data As New Dictionary
     Dim resp As Dictionary
@@ -459,7 +471,7 @@ Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage 
         If savTimeOutms <> timeOutms Then PageLoadTimeout = timeOutms
     End If
     
-    Set resp = execute(tCMD.CMD_GET, data, raise)
+    Set resp = execute(tCMD.CMD_GET, data, Raise)
 
     If Not IsMissing(timeOutms) Then
         If savTimeOutms <> timeOutms Then PageLoadTimeout = savTimeOutms
@@ -824,7 +836,7 @@ End Function
 Public Sub SetHighlight(ByVal onOffSwitch As Boolean, elementOrElements As Object, _
                 Optional ByVal borderSizePx As Byte = 4, Optional ByVal borderColor As VBAcolors = Blue, _
                 Optional ByVal backgroundColor As VBAcolors = VBAcolors.Unchanged, _
-                Optional ByVal ScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True, _
+                Optional ByVal bScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True, _
                 Optional ByVal bForgiving_UnHighlight As Boolean = False)
 Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified element(s) with color"
 
@@ -850,7 +862,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         'Create the JS string for the highlighting SetAttribute
         Dim borderColorString As String, backgroundColorString As String
         If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            Err.raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+            Err.Raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
         End If
         If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
             borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
@@ -862,7 +874,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         finalString = IIf(borderColorString <> vbNullString, borderColorString & "; ", vbNullString) & backgroundColorString
 
         For Each element In elements
-            If ScrollIntoView And (element Is elements.Item(1)) Then element.ScrollIntoView
+            If bScrollIntoView And (element Is elements.Item(1)) Then element.ScrollIntoView
             'Dim maxYcoord As Long
             'maxYcoord = Application.WorksheetFunction.Max(maxYcoord, element.GetRect("y"))
 
@@ -893,7 +905,7 @@ ErrHnd:
 If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
     Resume Next
 Else
-    With Err: Err.raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
+    With Err: Err.Raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
 End If
 End Sub
 
@@ -1600,7 +1612,7 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     
     'insure that this function is being called in the correct order
     If browser_ = 0 Or sessionId_ <> vbNullString Then
-        Err.raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        Err.Raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
     End If
     
     'now initialize Capabilities
@@ -1653,16 +1665,44 @@ End Function
 '@Description("Scrolls by an XY offset referenced to location of the element")
 Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
 Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced to location of the element"
-    ScrollIntoView element, True
+    ScrollIntoView element
     ScrollBy xOffset, yOffset
     Set ScrollToElement = element
 End Function
 
 '@Description("Scrolls to the element")
-Public Function ScrollIntoView(element As WebElement, Optional ByVal alignTop As Boolean = True) As WebElement
-Attribute ScrollIntoView.VB_Description = "Scrolls to the element"
+Public Function ScrollIntoView(element As WebElement, _
+                    Optional enSpeed As ScrollIntoViewOptions_speed, _
+                    Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
+                    Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
     Dim script As String
-    script = "arguments[0].scrollIntoView(" & LCase$(alignTop) & ");"
+    
+    If enSpeed = 0 And enAlign_vert = 0 And enAlign_horiz = 0 Then
+        script = "arguments[0].scrollIntoView();" 'Default, same of "arguments[0].scrollIntoView(true)"
+    Else
+        Dim sSpeed$, sAlign_vert$, sAlign_horiz$
+        Select Case enSpeed
+            Case 0: sSpeed = "auto" 'Default
+            Case 1: sSpeed = "smooth"
+            Case 2: sSpeed = "instant"
+            Case 3: sSpeed = "auto"
+        End Select
+        Select Case enAlign_vert
+            Case 0: sAlign_vert = "start" 'Default
+            Case 1: sAlign_vert = "start"
+            Case 2: sAlign_vert = "center"
+            Case 3: sAlign_vert = "end"
+            Case 4: sAlign_vert = "nearest"
+        End Select
+        Select Case enAlign_horiz
+            Case 0: sAlign_horiz = "nearest" 'Default
+            Case 1: sAlign_horiz = "start"
+            Case 2: sAlign_horiz = "center"
+            Case 3: sAlign_horiz = "end"
+            Case 4: sAlign_horiz = "nearest"
+        End Select
+        script = "arguments[0].scrollIntoView({ behavior: """ & sSpeed & """, block: """ & sAlign_vert & """, inline: """ & sAlign_horiz & """ });"
+    End If
     ExecuteScript script, element
     Set ScrollIntoView = element
 End Function
@@ -1802,7 +1842,7 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     'since only one browser per driver is allowed, this will return a collection of one
     'so lets return a more useful dictionary instead
     If browser_ = svbaBrowser.Firefox Then
-        Err.raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
+        Err.Raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
@@ -1916,7 +1956,7 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (
         DoEvents 'yield to other processes
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
-    Err.raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to be ready."
+    Err.Raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to be ready."
 End Function
 
 '@Description("Waits until file is finished downloading")
@@ -1966,14 +2006,13 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
             Name filePath As filePath
             If Err.Number = 0 Then Exit Sub
         End If
-        On Error GoTo 0
     
         'check if max time as elapsed
         If maxWaitTimeMS >= 0 Then GetTime cTimeNow
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
 MaxTimeExceeded:
-    Err.raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for file download."
+    Err.Raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for file download."
 End Sub
 
 '@Description("Waits until an element is not present anymore")
@@ -2005,7 +2044,7 @@ Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not pr
         DoEvents 'yield to other processes
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
-    Err.raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to disappear."
+    Err.Raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to disappear."
 End Sub
 
 '@Description("Returns the user agent string - must be called after OpenBrowser")
@@ -2014,7 +2053,7 @@ Attribute GetUserAgent.VB_Description = "Returns the user agent string - must be
     If sessionId_ <> vbNullString Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        Err.raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
+        Err.Raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
     End If
 End Function
 
@@ -2114,7 +2153,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlTbl.innerHTML = table.GetOuterHTML
         Case Else 'report error
-            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
     Else
         'this is the work-around...
@@ -2124,7 +2163,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
         Case Else 'report error
-            Err.raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
         End Select
         
         Set htmlTbl = htmlDoc.body.Children(0)
@@ -2371,7 +2410,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Dim numUrlSections As Long
     
     url = element.GetAttribute(srcAttribute)
-    If url = vbNullString Then Err.raise 1, "WebDriver", "Could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
+    If url = vbNullString Then Err.Raise 1, "WebDriver", "Could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
     'remove new line characters
     url = Replace$(Replace$(url, vbLf, ""), vbCr, "")
     
@@ -2473,7 +2512,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Else 'its a file path
         filePath = fileOrFolderPath
         If Not fso.FolderExists(fso.GetParentFolderName(filePath)) Then
-            Err.raise 1, "WebDriver", "Specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
+            Err.Raise 1, "WebDriver", "Specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
         End If
     End If
     
@@ -2481,11 +2520,11 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     ret = UrlDownloadToFile(0&, url, filePath, 0&, 0&)
     
     If ret <> 0 Then
-         Err.raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
+         Err.Raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
     End If
 End Sub
 
-Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raise As Boolean = True) As Dictionary
+Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal Raise As Boolean = True) As Dictionary
     Dim cmdMethod As String
     Dim cmdPath As String
     Dim cmdArgs As New Dictionary
@@ -2521,13 +2560,27 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
 
     client.Open cmdMethod, driverUrl_ & cmdPath
     
-    'set receiveTimeout to infinite to accommodate longer than 30 sec (default) pageloads
-    client.setTimeouts 0, 60000, 30000, 0
+    'Set a short 1s receiveTimeout when setting browser capabilities (assuming communication is only with local browser)
+    'otherwire leave it to 0 (infinite) to accommodate longer than 30 sec (default) pageloads
+    Dim isCapabilities As Boolean
+    If cmdArgs.Count > 0 Then If cmdArgs.keys(0) = "capabilities" Then isCapabilities = True
+    client.setTimeouts 0, 60000, 30000, IIf(isCapabilities, 3000, 0)
     
     If cmdMethod = "POST" Or cmdMethod = "PUT" Then
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
-        client.send jc.ConvertToJson(cmdArgs)  '
+        On Error GoTo Err
+        client.send jc.ConvertToJson(cmdArgs)
+        GoTo errEnd
+Err:    If Err.Number = -2147012894 Then
+            Err.Raise Err.Number, Err.Source, "Timeout in setting browser capabilities." & vbNewLine & vbNewLine _
+                        & "If you're trying to attach WebDriver to an existing istance of your Chrome/Edge browser," _
+                        & "restart your browser process(es) by adding command line argument " _
+                        & """--remote-debugging-port=9222"" (or different port number)", Err.HelpFile, Err.HelpContext
+        ElseIf Err.Number <> 0 Then
+            Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
+        End If
+errEnd: On Error GoTo 0
     Else
         client.send
     End If
@@ -2538,9 +2591,9 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
 
     Set response = jc.ParseJson(client.responseText)
     
-    If raise And isResponseError(response) Then 'raise error if occurs
+    If Raise And isResponseError(response) Then 'raise error if occurs
         Debug.Print getResponseErrorMessage(response)
-        Err.raise client.status, "WebDriver", getResponseErrorMessage(response)
+        Err.Raise client.status, "WebDriver", getResponseErrorMessage(response)
     End If
 
     Set execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
@@ -2588,7 +2641,7 @@ Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
 End Function
 
 Private Function rgbLongToString(ByVal rgbColor As Long) As String
-    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
+    If rgbColor < RGB(0, 0, 0) Or rgbColor > RGB(255, 255, 255) Then Err.Raise 1, "WebDriver", "Error: argument rgbColor out of range (0 to 16777215)"
     Dim r As Long
     Dim g As Long
     Dim b As Long
@@ -2602,7 +2655,7 @@ Private Function objToWebElements(elementOrElements As Object) As WebElements
     Select Case TypeName(elementOrElements)
         Case "WebElement": Set objToWebElements = New WebElements: objToWebElements.Add elementOrElements
         Case "WebElements": Set objToWebElements = elementOrElements
-        Case Else: Err.raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
+        Case Else: Err.Raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
 
@@ -2765,7 +2818,7 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
         str = Me.GetPageSource
     End Select
     
-    If Left$(str, 1) <> "<" Or Left$(str, 5) = "<html" Then Err.raise 1, "WebDriver", "Error: The page source is not XML format!"
+    If Left$(str, 1) <> "<" Or Left$(str, 5) = "<html" Then Err.Raise 1, "WebDriver", "Error: The page source is not XML format!"
     
     If prettyPrint Then str = formatXML(str)
     
@@ -2785,7 +2838,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
             If Me.IsPresent(By.ID, "rawdata-tab") Then
                 Me.FindElementByID("rawdata-tab").Click
             Else
-                Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+                Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
             End If
         End If
         
@@ -2798,7 +2851,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         If Me.IsPresent(By.tagName, "pre") Then
             str = Me.FindElementByTagName("pre").GetText
         Else
-            Err.raise 1, "WebDriver", "Error: The page source is not JSON format!"
+            Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
         End If
     End If
     
