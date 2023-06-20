@@ -79,3 +79,39 @@ Sub test_executeScriptAsync()
     driver.Shutdown
 End Sub
 
+Sub test_call_embedded_HTML_script()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim html As String
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    'create an html with a script that changes an element's text
+    html = "<!DOCTYPE html>" & _
+    "<html>" & _
+    "<body>" & _
+    "<p id='text'>Hello World!</p>" & _
+    "<script>" & _
+    "function doIt(){document.getElementById('text').innerHTML = 'New text from Script!';}" & _
+    "</script>" & _
+    "</body>" & _
+    "</html>"
+
+    driver.SaveStringToFile html, ".\snippet.html"
+
+    driver.NavigateToFile ".\snippet.html"
+    driver.Wait 2000
+    
+    'run the embedded script
+    driver.ExecuteScript "doIt();"
+    
+    driver.Wait 1000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+

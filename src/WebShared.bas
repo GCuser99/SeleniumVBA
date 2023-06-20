@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.1
+' SeleniumVBA v4.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -259,6 +259,7 @@ End Function
 
 Private Function vbaIsTrusted() As Boolean
     vbaIsTrusted = False
+    'Note: this may cause "Run-time Error 1004" if Tools->Options->Error Trapping is set to "Break on All Errors"
     On Error Resume Next
     vbaIsTrusted = (Application.VBE.VBProjects.Count) > 0
     On Error GoTo 0
@@ -414,4 +415,12 @@ Public Sub sleep(ByVal ms As Currency)
     End If
 End Sub
 
-
+Public Function Max(ParamArray numberList() As Variant) As Variant
+    Dim i As Integer
+    Max = numberList(LBound(numberList))
+    For i = LBound(numberList) + 1 To UBound(numberList)
+        If numberList(i) > Max Then
+            Max = numberList(i)
+        End If
+    Next i
+End Function

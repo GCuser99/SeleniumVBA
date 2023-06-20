@@ -7,9 +7,11 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 - Edge, Chrome, Firefox, and IE Mode browser automation support
 - MS Excel Add-in, MS Access DB, and [twinBASIC](https://twinbasic.com/preview.html) ActiveX DLL solutions available
 - A superset of Selenium's [WC3 WebDriver](https://w3c.github.io/webdriver/) commands - [over 350 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
-- Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
+- Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, CDP, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
+
+$\textcolor{green}{\textsf{What's New? ExecuteCDP method exposing Chrome DevTools Protocol - a low-level interface for browser interaction.}}$
 
 ## Setup
 
@@ -17,7 +19,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 Driver updates can also be programmatically invoked via the [WebDriverManager class](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview#webdrivermanager).
 
-To try the ActiveX DLL, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
+The ActiveX DLL solution requires no dependencies (such as .Net Framework). To try it, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
 
 ## SendKeys Example
 

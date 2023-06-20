@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.1
+' SeleniumVBA v4.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -370,7 +370,7 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
     Dim jc As New WebJsonConverter
     Dim resp As New Dictionary
     Dim url As String
-    Dim responseText As Variant
+    Dim respTxt As Variant
     Dim try As Long
     Dim searchOS As String
     Dim i As Long, j As Long
@@ -381,19 +381,19 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
     Select Case browser
     Case svbaBrowser.Edge
         url = "https://msedgedriver.azureedge.net/LATEST_STABLE"
-        responseText = requestData(url)
-        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
-        GetLatestDriverVersion = Replace$(responseText, vbNewLine, vbNullString)
+        respTxt = requestData(url)
+        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: " & respTxt: Exit Function
+        GetLatestDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
     Case svbaBrowser.Chrome
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
-        responseText = requestData(url)
-        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
-        GetLatestDriverVersion = responseText
+        respTxt = requestData(url)
+        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: " & respTxt: Exit Function
+        GetLatestDriverVersion = respTxt
     Case svbaBrowser.Firefox
         url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
-        responseText = requestData(url)
-        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
-        Set resp = jc.ParseJson(responseText)
+        respTxt = requestData(url)
+        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: " & respTxt: Exit Function
+        Set resp = jc.ParseJson(respTxt)
         'now search all
         'if os=64bit then search for win64 otherwise win32
         'below returns download url
@@ -410,9 +410,9 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
         GetLatestDriverVersion = resp("name")
     Case svbaBrowser.IE
         url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        responseText = requestData(url)
-        If responseText = "Release Not Found" Then GetLatestDriverVersion = "Error: " & responseText: Exit Function
-        Set col = jc.ParseJson(responseText)
+        respTxt = requestData(url)
+        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: " & respTxt: Exit Function
+        Set col = jc.ParseJson(respTxt)
         'search the release log until an IEDriveServer is found
         For j = 1 To col.Count
             Set json = col.Item(j)
@@ -441,7 +441,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
     Dim verMinor As String
     Dim verBuild As String
     Dim verSearch As String
-    Dim responseText As Variant
+    Dim respTxt As Variant
     Dim url As String
     Dim try As Integer
     
@@ -465,19 +465,19 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         Do While verMajor >= 75
             url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor & "_WINDOWS"
             
-            responseText = requestData(url)
+            respTxt = requestData(url)
             
-            If Left$(responseText, 5) = "Error" Then
-                GetCompatibleDriverVersion = responseText
+            If Left$(respTxt, 5) = "Error" Then
+                GetCompatibleDriverVersion = respTxt
                 Exit Function
             End If
             
-            If responseText <> "Release Not Found" Then Exit Do
+            If respTxt <> "Release Not Found" Then Exit Do
             
             verMajor = verMajor - 1
         Loop
         
-        GetCompatibleDriverVersion = Replace$(responseText, vbNewLine, vbNullString)
+        GetCompatibleDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
 
     Case svbaBrowser.Chrome
 
@@ -488,32 +488,32 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         'first see if we can find an exact match
         url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor & "." & verMinor & "." & verBuild
         
-        responseText = requestData(url)
+        respTxt = requestData(url)
         
-        If Left$(responseText, 5) = "Error" Then
-            GetCompatibleDriverVersion = responseText
+        If Left$(respTxt, 5) = "Error" Then
+            GetCompatibleDriverVersion = respTxt
             Exit Function
         End If
         
-        If responseText = "Release Not Found" Then
+        If respTxt = "Release Not Found" Then
             'if exact match failed, then maybe we have a Dev or Canary channel
             'so search for major version match, decrementing by one until success
 
             Do While verMajor >= 70
                 url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
-                responseText = requestData(url)
+                respTxt = requestData(url)
                 
-                If Left$(responseText, 5) = "Error" Then
-                    GetCompatibleDriverVersion = responseText
+                If Left$(respTxt, 5) = "Error" Then
+                    GetCompatibleDriverVersion = respTxt
                     Exit Function
                 End If
                 
-                If responseText <> "Release Not Found" Then Exit Do
+                If respTxt <> "Release Not Found" Then Exit Do
                 verMajor = verMajor - 1
             Loop
         End If
         
-        GetCompatibleDriverVersion = responseText
+        GetCompatibleDriverVersion = respTxt
         
     Case svbaBrowser.Firefox
         
@@ -523,15 +523,15 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         'to get the most recent driver version compatible with the installed browser
         url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
         
-        responseText = requestData(url)
+        respTxt = requestData(url)
         
-        If Left$(responseText, 5) = "Error" Then
-            GetCompatibleDriverVersion = responseText
+        If Left$(respTxt, 5) = "Error" Then
+            GetCompatibleDriverVersion = respTxt
             Exit Function
         End If
         
         'search the table for the first driver version entry (most recent) for a given browser version
-        htmlDoc.body.innerHTML = responseText
+        htmlDoc.body.innerHTML = respTxt
         Set table = htmlDoc.getElementsByTagName("table")(0)
         
         table.deleteTHead
@@ -750,9 +750,9 @@ Private Function requestData(ByVal url As String, Optional maxTries As Integer =
         
         On Error GoTo 0
         
-        Select Case client.status
+        Select Case client.Status
         Case 200
-            requestData = client.responseText
+            requestData = client.ResponseText
             Exit Function
         Case 404
             requestData = "Release Not Found"
@@ -764,12 +764,12 @@ Private Function requestData(ByVal url As String, Optional maxTries As Integer =
             'Don't exit loop - make another try to see if we can connect
             'RequestData = "Error: Cannot Connect to Server"
         Case Else 'an unexpected error
-            Debug.Print "Please report this error to developers: RequestData Status= " & client.status & ", " & "Response= " & client.responseText
-            requestData = "Error: Status= " & client.status & ", " & "Response= " & client.responseText
+            Debug.Print "Please report this error to developers: RequestData Status= " & client.Status & ", " & "Response= " & client.ResponseText
+            requestData = "Error: Status= " & client.Status & ", " & "Response= " & client.ResponseText
             Exit Function
         End Select
         
-        Debug.Print "try: ", try, client.status, client.responseText, url
+        Debug.Print "try: ", try, client.Status, client.ResponseText, url
     Next try
     'if here then had too many 12029/12031's
     requestData = "Error: Cannot Connect to Server"

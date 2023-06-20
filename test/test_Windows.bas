@@ -5,12 +5,14 @@ Option Private Module
 
 Sub test_windows1()
     Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
     Dim hnd1 As String, hnd2 As String, i As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
-    driver.OpenBrowser
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
+    driver.OpenBrowser caps
 
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 1000
@@ -49,13 +51,15 @@ End Sub
 
 Sub test_windows2()
     Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
     Dim mainWindow As String, whdls() As String
     Dim i As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
-    driver.OpenBrowser
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
+    driver.OpenBrowser caps
     
     driver.NavigateTo "http://demo.guru99.com/popup.php"
     

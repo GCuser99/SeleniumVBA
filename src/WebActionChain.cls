@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.1
+' SeleniumVBA v4.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -79,6 +79,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 'ClickAndHold           Holds down the left mouse button on an element
 'ClickContext           Performs a context-click (right click) on an element
 'CtrlKey                Sends a Control-[Key] sequence to focused element
+'CtrlShiftKey           Sends a Control-Shift-[Key] sequence to focused element
 'DoubleClick            Double-clicks an element
 'DragAndDrop            Holds down the left mouse button on the source element,
 '                       then moves to the target element and releases the mouse button
@@ -817,6 +818,43 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     Set ShiftKey = New WebActionChain
     Set ShiftKey.WebDriver = driver_
     Set ShiftKey.DataDictionary = data_
+End Function
+
+'@Description("Sends a Control-Shift-[Key] sequence to focused element")
+Public Function CtrlShiftKey(ByVal key As String, Optional element As WebElement) As WebActionChain
+Attribute CtrlShiftKey.VB_Description = "Sends a Control-Shift-[Key] sequence to focused element"
+    Dim inputChan As New Dictionary
+    Dim inputChans() As Variant
+    Dim actions() As Dictionary
+    
+    If Not element Is Nothing Then
+        Me.Click element  'get focus
+    End If
+
+    ReDim actions(0 To 6)
+    Set actions(0) = actionKeyDown("\ue009") 'control key
+    Set actions(1) = actionKeyDown("\ue008") 'shift key
+    Set actions(2) = actionKeyDown(key)
+    Set actions(3) = actionKeyUp(key)
+    Set actions(4) = actionKeyUp("\ue008")
+    Set actions(5) = actionKeyUp("\ue009")
+    Set actions(6) = actionPause
+
+    inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
+    inputChan.Add "type", "key"
+    inputChan.Add "actions", actions
+    
+    If data_.Exists("actions") Then
+        inputChans = data_.Item("actions")
+        data_.Item("actions") = appendInputChannel(inputChans, inputChan)
+    Else
+        data_.Add "actions", Array(inputChan)
+    End If
+    
+    'now set things up for next link in chain
+    Set CtrlShiftKey = New WebActionChain
+    Set CtrlShiftKey.WebDriver = driver_
+    Set CtrlShiftKey.DataDictionary = data_
 End Function
 
 '@Description("Scrolls to element position with optional x and y offsets")

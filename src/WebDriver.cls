@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.1
+' SeleniumVBA v4.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -79,6 +79,14 @@ Private driverDefaultPortChrome As Long
 Private driverDefaultPortEdge As Long
 Private driverDefaultPortFirefox As Long
 Private driverDefaultPortIE As Long
+
+Private curImplicitWait As Long
+Private curPageLoadTimeout As Long
+Private curScriptTimeout As Long
+
+Private Const sysImplicitWait As Long = 0
+Private Const sysPageLoadTimeout As Long = 300000
+Private Const sysScriptTimeout As Long = 30000
 
 'store original style of Highlighted elements to be able to UnHighlight them at a future time
 Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary
@@ -160,8 +168,8 @@ Private Type typCMD
     CMD_SET_WINDOW_RECT As Variant
     CMD_GET_WINDOW_RECT As Variant
     CMD_MAXIMIZE_WINDOW As Variant
-    CMD_GET_LOCATION As Variant
-    CMD_SET_LOCATION As Variant
+    CMD_GET_GEOLOCATION As Variant
+    CMD_SET_GEOLOCATION As Variant
     CMD_FULLSCREEN_WINDOW As Variant
     CMD_MINIMIZE_WINDOW As Variant
     CMD_SHUTDOWN As Variant
@@ -171,6 +179,9 @@ Private Type typCMD
     CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT As Variant
     CMD_GET_ELEMENT_ARIA_ROLE As Variant
     CMD_GET_ELEMENT_ARIA_LABEL As Variant
+    CMD_EXECUTE_CDP_COMMAND As Variant
+    CMD_SCREENSHOT_FULL As Variant
+    CMD_SCREENSHOT_FULL_FF As Variant
 End Type
 
 Private tCMD As typCMD
@@ -230,6 +241,10 @@ Private Sub Class_Initialize()
     driverDefaultPortEdge = CLng(readIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516))
     driverDefaultPortFirefox = CLng(readIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444))
     driverDefaultPortIE = CLng(readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555))
+    
+    curImplicitWait = CLng(readIniFileEntry(iniFilePath, "GENERAL", "implicit_wait", sysImplicitWait))
+    curScriptTimeout = CLng(readIniFileEntry(iniFilePath, "GENERAL", "script_timeout", sysScriptTimeout))
+    curPageLoadTimeout = CLng(readIniFileEntry(iniFilePath, "GENERAL", "page_load_timeout", sysPageLoadTimeout))
 End Sub
 
 Private Sub initCommands()
@@ -288,8 +303,8 @@ Private Sub initCommands()
         .CMD_SET_WINDOW_RECT = Array("POST", "/session/$sessionId/window/rect")
         .CMD_GET_WINDOW_RECT = Array("GET", "/session/$sessionId/window/rect")
         .CMD_MAXIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/maximize")
-        .CMD_GET_LOCATION = Array("GET", "/session/$sessionId/location")
-        .CMD_SET_LOCATION = Array("POST", "/session/$sessionId/location")
+        .CMD_GET_GEOLOCATION = Array("GET", "/session/$sessionId/location")
+        .CMD_SET_GEOLOCATION = Array("POST", "/session/$sessionId/location")
         .CMD_FULLSCREEN_WINDOW = Array("POST", "/session/$sessionId/window/fullscreen")
         .CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
         .CMD_SHUTDOWN = Array("GET", "/shutdown")
@@ -299,6 +314,9 @@ Private Sub initCommands()
         .CMD_FIND_ELEMENTS_FROM_SHADOW_ROOT = Array("POST", "/session/$sessionId/shadow/$sid/elements")
         .CMD_GET_ELEMENT_ARIA_ROLE = Array("GET", "/session/$sessionId/element/$id/computedrole")
         .CMD_GET_ELEMENT_ARIA_LABEL = Array("GET", "/session/$sessionId/element/$id/computedlabel")
+        .CMD_EXECUTE_CDP_COMMAND = Array("POST", "/session/$sessionId/$service/cdp/execute")
+        .CMD_SCREENSHOT_FULL = Array("GET", "/session/$sessionId/screenshot/full")
+        .CMD_SCREENSHOT_FULL_FF = Array("GET", "/session/$sessionId/moz/screenshot/full")
     End With
 End Sub
 
@@ -447,9 +465,26 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     
     DoEvents 'this is needed to prevent intermittent error if command window is not hidden or minimized
     
-    Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary))("value")
+    Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary), False, 10000)("value")
+
+    If resp.Exists("error") Then
+        Select Case resp("error")
+        Case "The operation timed out"
+            Err.Raise resp("errorNumber"), , "Timeout in setting browser capabilities." & vbNewLine & vbNewLine _
+                & "If you're trying to attach WebDriver to an existing instance of your Chrome/Edge browser," _
+                & "restart your browser process(es) by adding command line argument " _
+                & """--remote-debugging-port=9222"" (or different port number)", Err.HelpFile, Err.HelpContext
+        Case Else
+            Err.Raise resp("errorNumber"), , resp("message")
+        End Select
+    End If
     
     sessionId_ = resp("sessionId")
+    
+    'set timeouts if different from sys defaults
+    If curImplicitWait <> sysImplicitWait Then ImplicitWait = curImplicitWait
+    If curScriptTimeout <> sysScriptTimeout Then ScriptTimeout = curScriptTimeout
+    If curPageLoadTimeout <> sysPageLoadTimeout Then PageLoadTimeout = curPageLoadTimeout
 End Sub
 
 '@Description("Closes browser without terminating driver instance")
@@ -460,21 +495,22 @@ Attribute CloseBrowser.VB_Description = "Closes browser without terminating driv
 End Sub
 
 '@Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
-Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Variant, Optional ByVal raiseError As Boolean = True) As Boolean
+Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean
 Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage and returns true if no timeout or other error"
     Dim data As New Dictionary
     Dim resp As Dictionary
     Dim savTimeOutms As Long
     
     data.Add "url", url
-    If Not IsMissing(timeOutms) Then
-        savTimeOutms = PageLoadTimeout()
+    
+    If timeOutms <> -1 Then
+        savTimeOutms = curPageLoadTimeout
         If savTimeOutms <> timeOutms Then PageLoadTimeout = timeOutms
     End If
     
     Set resp = execute(tCMD.CMD_GET, data, raiseError)
 
-    If Not IsMissing(timeOutms) Then
+    If timeOutms <> -1 Then
         If savTimeOutms <> timeOutms Then PageLoadTimeout = savTimeOutms
     End If
     
@@ -487,13 +523,23 @@ Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage 
 End Function
 
 '@Description("Navigates browser to an html file of the specified file path")
-Public Sub NavigateToFile(ByVal htmlFilePath As String)
+Public Function NavigateToFile(ByVal htmlFilePath As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean
 Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of the specified file path"
     'input file must have html extension to be interpreted as a webpage
     'NavigateTo (tCMD.CMD_GET) will automatically discern whether the input is a file or url, even without the 'file:///'
     'So the only functional value of this method is to handle relative paths!
-    NavigateTo "file:///" & WebShared.getFullLocalPath(htmlFilePath, defaultIOFolder_)
-End Sub
+    Dim fso As New FileSystemObject
+    
+    htmlFilePath = WebShared.getFullLocalPath(htmlFilePath, defaultIOFolder_)
+    
+    If Not fso.FileExists(htmlFilePath) Then
+        Err.Raise 53, , "Error in NavigateToFile method: File not found"
+        NavigateToFile = False
+        Exit Function
+    End If
+    
+    NavigateToFile = NavigateTo("file:///" & WebShared.getFullLocalPath(htmlFilePath, defaultIOFolder_), timeOutms, raiseError)
+End Function
 
 '@Description("Finds the first element for a given selector and value")
 Public Function FindElement(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElement
@@ -863,7 +909,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         'Create the JS string for the highlighting SetAttribute
         Dim borderColorString As String, backgroundColorString As String
         If (borderSizePx = 0 Or borderColor = VBAcolors.Unchanged) And backgroundColor = VBAcolors.Unchanged Then
-            Err.Raise 1, "WebDriver", "Error: Highlight function used with no border and no background specified. Choose at least one or leave defaults."
+            Err.Raise 1, "WebDriver", "Error in SetHighlight method: no border and no background specified. Choose at least one or leave defaults."
         End If
         If borderSizePx > 0 And borderColor <> VBAcolors.Unchanged Then
             borderColorString = "border:" & CStr(borderSizePx) & "px solid " & rgbLongToString(borderColor)
@@ -904,11 +950,11 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
     End If
     Exit Sub
 ErrHnd:
-If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
-    Resume Next
-Else
-    With Err: Err.Raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
-End If
+    If Err.Number = 404 Then 'Forgiving only with 404 (Not Found) error types
+        Resume Next
+    Else
+        With Err: Err.Raise .Number, .Source, .Description, .HelpFile, .HelpContext: End With
+    End If
 End Sub
 
 '@Description("Highlights/unhighlights future found element(s) with color")
@@ -1205,19 +1251,101 @@ Attribute ExecuteScriptAsync.VB_Description = "Executes a java script asynchrono
     End If
 End Function
 
+'@Description("Executes a CDP command and returns a dictionary response. Pass command parameters with either a JSON string or a Dictionary object.")
+Public Function ExecuteCDP(ByVal command As String, Optional paramsJsonStringOrDictionary As Variant = "{}", Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
+Attribute ExecuteCDP.VB_Description = "Executes a CDP command and returns a dictionary response. Pass command parameters with either a JSON string or a Dictionary object."
+    Dim package As New Dictionary
+    Dim jc As New WebJsonConverter
+    Dim params As Dictionary
+    
+    Select Case TypeName(paramsJsonStringOrDictionary)
+    Case "Dictionary"
+        Set params = paramsJsonStringOrDictionary
+    Case "String"
+        Set params = jc.ParseJson(paramsJsonStringOrDictionary)
+    Case Else
+        Err.Raise 1, "WebDriver", "The ExecuteCDP method requires that argument paramsJsonStringOrDictionary by either a Dictionary object or a JSON string."
+    End Select
+    
+    'load up the send package dictionary
+    package.Add "cmd", command
+    package.Add "params", params
+
+    Select Case browser_
+    Case svbaBrowser.Edge
+        package.Add "service", "ms"
+    Case svbaBrowser.Chrome
+        package.Add "service", "goog"
+    Case Else
+        Err.Raise 1, "WebDriver", "The ExecuteCDP method can only be used with Edge and Chrome browsers."
+    End Select
+    
+    'Debug.Print jc.ConvertToJson(package, 4)
+    
+    'execute command and then let caller parse the result, including error if occurs
+    Set ExecuteCDP = execute(tCMD.CMD_EXECUTE_CDP_COMMAND, package, raiseError, receiveTimeout)
+End Function
+
+'@Description("Sends a command and parameters to the Selenium WebDriver and returns a dictionary response. Arguments (such as sessionId) in the command path must be preceeded by a $ character. If the command has parameters, pass either a JSON string or a Dictionary object.")
+Public Function ExecuteCmd(ByVal methodPOSTorGETorDELETE As String, ByVal commandPath As String, Optional paramsJsonStringOrDictionary As Variant = "{}", Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
+Attribute ExecuteCmd.VB_Description = "Sends a command and parameters to the Selenium WebDriver and returns a dictionary response. Arguments (such as sessionId) in the command path must be preceeded by a $ character. If the command has parameters, pass either a JSON string or a Dictionary object."
+    'this is useful for testing as-yet unwrapped WebDriver commands
+    Dim parameters As Dictionary
+    Dim driverCommand As Variant
+    Dim jc As New WebJsonConverter
+    
+    Select Case UCase(methodPOSTorGETorDELETE)
+    Case "POST", "GET", "DELETE"
+        'do nothing - it's all good
+    Case Else
+        Err.Raise 1, "WebDriver", "The ExecuteCmd method requires that the method argument be either ""POST"", ""GET"" or ""DELETE""."
+    End Select
+    
+    'qc command path
+    commandPath = Replace$(commandPath, ":", "$") 'some languages use ":" to denote a command path argument
+    commandPath = Replace$(commandPath, "\", "/") 'make sure using forward slashes in path
+    If Left$(commandPath, 1) <> "/" Then commandPath = "/" & commandPath 'and a leading forward slash
+    
+    'process the parameters
+    Select Case TypeName(paramsJsonStringOrDictionary)
+    Case "Dictionary"
+        Set parameters = paramsJsonStringOrDictionary
+    Case "String"
+        Set parameters = jc.ParseJson(paramsJsonStringOrDictionary)
+    Case Else
+        Err.Raise 1, "WebDriver", "The ExecuteCmd method requires that argument paramsJsonStringOrDictionary be either a Dictionary object or a JSON string."
+    End Select
+    
+    driverCommand = Array(methodPOSTorGETorDELETE, commandPath)
+    
+    'execute command and then let caller parse the result, including error if occurs
+    Set ExecuteCmd = execute(driverCommand, parameters, raiseError, receiveTimeout)
+End Function
+
 '@Description("Saves a screenshot of the active browser window to a file")
-Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png", Optional element As WebElement)
+Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png", Optional element As WebElement, Optional ByVal fullScreenShot As Boolean = False)
 Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active browser window to a file"
     Dim data As New Dictionary
     Dim pngstr As String
         
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     
-    If element Is Nothing Then
-        pngstr = execute(tCMD.CMD_SCREENSHOT, data)("value")
+    If fullScreenShot Then
+        Select Case browser_
+        Case svbaBrowser.Chrome, svbaBrowser.Edge
+            pngstr = execute(tCMD.CMD_SCREENSHOT_FULL, data)("value")
+        Case svbaBrowser.Firefox
+            pngstr = execute(tCMD.CMD_SCREENSHOT_FULL_FF, data)("value")
+        Case svbaBrowser.IE
+            Err.Raise 1, "WebCapabilities", "The SaveScreenShot method with argument fullScreenShot=True is not supported by the IE browser."
+        End Select
     Else
-        data.Add "id", element.elementId
-        pngstr = execute(tCMD.CMD_ELEMENT_SCREENSHOT, data)("value")
+        If element Is Nothing Then
+            pngstr = execute(tCMD.CMD_SCREENSHOT, data)("value")
+        Else
+            data.Add "id", element.elementId
+            pngstr = execute(tCMD.CMD_ELEMENT_SCREENSHOT, data)("value")
+        End If
     End If
     
     saveByteArrayToFile decodeBase64(pngstr), filePath
@@ -1275,7 +1403,7 @@ Attribute GetWindowHandles.VB_Description = "Returns all windows' handles as a s
     ReDim ret(baseArrayIdx To handles.Count - 1 + baseArrayIdx)
     For i = 1 To handles.Count   ' handles is Collection, not array
         ret(i - 1 + baseArrayIdx) = handles.Item(i)
-    Next
+    Next i
     
     GetWindowHandles = ret
 End Function
@@ -1428,6 +1556,7 @@ Attribute ImplicitWait.VB_Description = "Sets/Gets how long to wait for the elem
     Dim data As New Dictionary
     data.Add "implicit", milliseconds
     execute tCMD.CMD_SET_TIMEOUTS, data
+    curImplicitWait = milliseconds
 End Property
 
 Public Property Get ImplicitWait() As Long
@@ -1440,6 +1569,7 @@ Attribute PageLoadTimeout.VB_Description = "Sets/Gets the timeout limit used to 
     Dim data As New Dictionary
     data.Add "pageLoad", milliseconds
     execute tCMD.CMD_SET_TIMEOUTS, data
+    curPageLoadTimeout = milliseconds
 End Property
 
 Public Property Get PageLoadTimeout() As Long
@@ -1452,6 +1582,7 @@ Attribute ScriptTimeout.VB_Description = "Sets/Gets how long to wait to interrup
     Dim data As New Dictionary
     data.Add "script", milliseconds
     execute tCMD.CMD_SET_TIMEOUTS, data
+    curScriptTimeout = milliseconds
 End Property
 
 Public Property Get ScriptTimeout() As Long
@@ -1468,13 +1599,16 @@ End Sub
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
                             Optional ByRef elemFound As WebElement, Optional ByRef parentElement As WebElement) As Boolean
 Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element."
-    Dim timeout As Long
+    Dim savTimeout As Long
     Dim resp As Dictionary
     Dim data As Dictionary
     Dim vCMD As Variant
     
-    timeout = ImplicitWait()
-    If timeout <> ImplicitWaitMS Then ImplicitWait = ImplicitWaitMS
+    'check if desired implicit wait is different than what's already
+    ' set - if not then save what's already set and set a new wait time
+    savTimeout = curImplicitWait
+    If ImplicitWaitMS <> savTimeout Then ImplicitWait = ImplicitWaitMS
+    
     Set data = toSelector(by_, val)
     
     If Not parentElement Is Nothing Then
@@ -1492,7 +1626,9 @@ Attribute IsPresent.VB_Description = "Returns a boolean indicating if the elemen
         IsPresent = True
         Set elemFound = toWebElement(resp("value")(ELEMENT_KEY))
     End If
-    If timeout <> ImplicitWaitMS Then ImplicitWait = timeout
+    
+    'put back the saved implicit wait if needed
+    If ImplicitWaitMS <> savTimeout Then ImplicitWait = savTimeout
 End Function
 
 '@Description("Returns a boolean indicating if the element is enabled")
@@ -1516,6 +1652,12 @@ Public Function GetBrowserName() As String
 Attribute GetBrowserName.VB_Description = "Gets the browser name"
     GetBrowserName = WebShared.getBrowserNameString(browser_)
 End Function
+
+'@Description("Sends an alert to the active window.")
+Public Sub SendAlert(Optional ByVal alertText As String = vbNullString)
+Attribute SendAlert.VB_Description = "Sends an alert to the active window."
+    ExecuteScript ("alert('" & alertText & "');")
+End Sub
 
 '@Description("Gets the text of the active alert")
 Public Function GetAlertText() As String
@@ -1624,7 +1766,7 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     
     'insure that this function is being called in the correct order
     If browser_ = 0 Or sessionId_ <> vbNullString Then
-        Err.Raise 1, "WebDriver", "The ""CreateCapabilities"" Method must be invoked after the ""StartEdge"" or ""StartChrome"" Methods, and before ""OpenBrowser"" Method."
+        Err.Raise 1, "WebDriver", "The CreateCapabilities method must be invoked after the StartEdge or StartChrome Methods, and before OpenBrowser Method."
     End If
     
     'now initialize Capabilities
@@ -1682,12 +1824,12 @@ Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced t
     Set ScrollToElement = element
 End Function
 
-'@Description("Scrolls to the element")
+'@Description("Scrolls to the element specified")
 Public Function ScrollIntoView(element As WebElement, _
                     Optional enSpeed As ScrollIntoViewOptions_speed, _
                     Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
                     Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
-Attribute ScrollIntoView.VB_Description = "Scrolls to the element"
+Attribute ScrollIntoView.VB_Description = "Scrolls to the element specified"
     Dim script As String
     
     If enSpeed = 0 And enAlign_vert = 0 And enAlign_horiz = 0 Then
@@ -1855,7 +1997,7 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     'since only one browser per driver is allowed, this will return a collection of one
     'so lets return a more useful dictionary instead
     If browser_ = svbaBrowser.Firefox Then
-        Err.Raise 1, "WebDriver", "GetSessionsInfo not supported for Firefox WebDriver"
+        Err.Raise 1, "WebDriver", "GetSessionsInfo method not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
@@ -1969,7 +2111,7 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (
         DoEvents 'yield to other processes
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
-    Err.Raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to be ready."
+    Err.Raise 1, "WebDriver", "Error in WaitUntilReady method: maximum wait time exceeded while waiting for element to be ready."
 End Function
 
 '@Description("Waits until file is finished downloading")
@@ -2017,7 +2159,7 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
 MaxTimeExceeded:
-    Err.Raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for file download."
+    Err.Raise 1, "WebDriver", "Error in WaitForDownload method: maximum wait time exceeded while waiting for file download."
 End Sub
 
 '@Description("Waits until an element is not present anymore")
@@ -2049,7 +2191,7 @@ Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not pr
         DoEvents 'yield to other processes
     Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
     
-    Err.Raise 1, "WebDriver", "Error: maximum wait time exceeded while waiting for element to disappear."
+    Err.Raise 1, "WebDriver", "Error in WaitUntilNotPresent method: maximum wait time exceeded while waiting for element to disappear."
 End Sub
 
 '@Description("Returns the user agent string - must be called after OpenBrowser")
@@ -2058,7 +2200,7 @@ Attribute GetUserAgent.VB_Description = "Returns the user agent string - must be
     If sessionId_ <> vbNullString Then
         GetUserAgent = ExecuteScript("return navigator.userAgent;")
     Else
-        Err.Raise 1, "WebDriver", "GetUserAgent must be executed after OpenBrowser!"
+        Err.Raise 1, "WebDriver", "GetUserAgent method must be executed after OpenBrowser!"
     End If
 End Function
 
@@ -2069,7 +2211,11 @@ Attribute DefaultIOFolder.VB_Description = "Sets/Gets the default input/output f
 End Property
 
 Public Property Get DefaultIOFolder() As String
-    DefaultIOFolder = defaultIOFolder_
+    If defaultIOFolder_ = vbNullString Then
+        DefaultIOFolder = WebShared.getFullLocalPath(".\", defaultIOFolder_)
+    Else
+        DefaultIOFolder = defaultIOFolder_
+    End If
 End Property
 
 '@Description("Sets/Gets the default Selenium driver folder")
@@ -2158,7 +2304,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlTbl.innerHTML = table.GetOuterHTML
         Case Else 'report error
-            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.Raise 1, "WebDriver", "Error in TableToArray method: input object must be a table or tbody element."
         End Select
     Else
         'this is the work-around...
@@ -2168,7 +2314,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         Case "tbody"
             htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
         Case Else 'report error
-            Err.Raise 1, "WebDriver", "Error: input object to TableToArray method must be a table or tbody element."
+            Err.Raise 1, "WebDriver", "Error in TableToArray method: input object must be a table or tbody element."
         End Select
         
         Set htmlTbl = htmlDoc.body.Children(0)
@@ -2259,13 +2405,13 @@ Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
     location.Add "altitude", altitude
     location.Add "accuracy", accuracy
     data.Add "location", location
-    execute tCMD.CMD_SET_LOCATION, data
+    execute tCMD.CMD_SET_GEOLOCATION, data
 End Sub
 
 '@Description("Gets geolocation parameter values as a dictionay object")
 Public Function GetGeolocation() As Dictionary
 Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as a dictionay object"
-    Set GetGeolocation = execute(tCMD.CMD_GET_LOCATION, New Dictionary)("value")
+    Set GetGeolocation = execute(tCMD.CMD_GET_GEOLOCATION, New Dictionary)("value")
 End Function
 
 '@Description("Creates/updates the optional INI settings file - set keepExistingValues to False to reset existing settings to system defaults")
@@ -2308,10 +2454,17 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "# Valid values for command_window_style are vbHide (default), "
     entryCol.Add "# vbNormalFocus, vbMinimizedFocus, vbMaximizedFocus, vbNormalNoFocus,"
     entryCol.Add "# and vbMinimizedNoFocus."
+    entryCol.Add "# The system default values for implicit_wait, page_load_timeout, and"
+    entryCol.Add "# script_timeout are " & sysImplicitWait & ", " & sysPageLoadTimeout & ", and " & sysScriptTimeout & " ms respectively."
+    
     entryCol.Add " "
     entryCol.Add "driver_location_folder=" & readIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", "%USERPROFILE%\Downloads", useDefaultValue)
     entryCol.Add "default_io_folder=" & readIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString, useDefaultValue)
     entryCol.Add "command_window_style=" & readIniFileEntry(iniFilePath, "GENERAL", "command_window_style", "vbHide", useDefaultValue)
+    entryCol.Add " "
+    entryCol.Add "implicit_wait=" & readIniFileEntry(iniFilePath, "GENERAL", "implict_wait", sysImplicitWait, useDefaultValue)
+    entryCol.Add "page_load_timeout=" & readIniFileEntry(iniFilePath, "GENERAL", "page_load_timeout", sysPageLoadTimeout, useDefaultValue)
+    entryCol.Add "script_timeout=" & readIniFileEntry(iniFilePath, "GENERAL", "script_timeout", sysScriptTimeout, useDefaultValue)
     entryCol.Add " "
     
     entryCol.Add "[AUTO-DRIVER-UPDATE]"
@@ -2415,7 +2568,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Dim numUrlSections As Long
     
     url = element.GetAttribute(srcAttribute)
-    If url = vbNullString Then Err.Raise 1, "WebDriver", "Could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
+    If url = vbNullString Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
     'remove new line characters
     url = Replace$(Replace$(url, vbLf, ""), vbCr, "")
     
@@ -2517,7 +2670,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Else 'its a file path
         filePath = fileOrFolderPath
         If Not fso.FolderExists(fso.GetParentFolderName(filePath)) Then
-            Err.Raise 1, "WebDriver", "Specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
+            Err.Raise 1, "WebDriver", "Error in DownloadResource method: specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
         End If
     End If
     
@@ -2525,17 +2678,38 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     ret = UrlDownloadToFile(0&, StrPtr(url), StrPtr(filePath), 0&, 0&)
     
     If ret <> 0 Then
-         Err.Raise 1, "WebDriver", "Can not download from " & url & " to " & filePath
+         Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & url & " to " & filePath
     End If
 End Sub
 
-Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True) As Dictionary
+'@Description("Saves a base 64 encoded string to a file in binary format")
+Public Sub SaveBase64StringToFile(ByVal base64String As String, ByVal filePath As String)
+Attribute SaveBase64StringToFile.VB_Description = "Saves a base 64 encoded string to a file in binary format"
+    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    saveByteArrayToFile decodeBase64(base64String), filePath
+End Sub
+
+'@Description("Returns a fully qualified path for the input path")
+Public Function ResolvePath(ByVal pathToResolve As String) As String
+Attribute ResolvePath.VB_Description = "Returns a fully qualified path for the input path"
+    ResolvePath = WebShared.getFullLocalPath(pathToResolve, defaultIOFolder_)
+End Function
+
+'@Description("Returns the Id string of the specified element object - useful for testing purposes")
+Public Function GetElementId(element As WebElement) As String
+Attribute GetElementId.VB_Description = "Returns the Id string of the specified element object - useful for testing purposes"
+    GetElementId = element.elementId
+End Function
+
+Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
     Dim cmdMethod As String
     Dim cmdPath As String
     Dim cmdArgs As New Dictionary
     Dim parmKey As Variant
     Dim response As Dictionary
     Dim client As New MSXML2.ServerXMLHTTP60
+    Dim clientStatus As Long
+    Dim clientResponseText As String
     Dim jc As New WebJsonConverter
     
     cmdMethod = driverCommand(0)
@@ -2545,63 +2719,93 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
         Set parameters = New Dictionary
     End If
     
-    'Set session id
-    If Not parameters.Exists("sessionId") Then
-        parameters.Add "sessionId", sessionId_
-    End If
+    'insert session id into command path
+    If InStr(cmdPath, "$sessionId") > 0 Then cmdPath = Replace$(cmdPath, "$sessionId", sessionId_)
     
+    'process other command path and non-path parameters
     For Each parmKey In parameters.keys
         If InStr(cmdPath, "$" & parmKey) > 0 Then 'path parameter
             cmdPath = Replace$(cmdPath, "$" & parmKey, parameters(parmKey))
-        Else 'non-path parameter
+        Else
+            'non-path parameter - it's an argument
             cmdArgs.Add parmKey, parameters(parmKey)
         End If
     Next parmKey
     
-    'there are commands that don't require sessionId in path: tCMD.CMD_STATUS, tCMD.CMD_NEW_SESSION, tCMD.CMD_GET_ALL_SESSIONS, tCMD.CMD_SHUTDOWN
-    If cmdArgs.Exists("sessionId") Then cmdArgs.Remove "sessionId"
-    
     'Send request to selenium server
-
     client.Open cmdMethod, driverUrl_ & cmdPath
     
-    'Set a short 1s receiveTimeout when setting browser capabilities (assuming communication is only with local browser)
-    'otherwire leave it to 0 (infinite) to accommodate longer than 30 sec (default) pageloads
-    Dim isCapabilities As Boolean
-    If cmdArgs.Count > 0 Then If cmdArgs.keys(0) = "capabilities" Then isCapabilities = True
-    client.setTimeouts 0, 60000, 30000, IIf(isCapabilities, 3000, 0)
+    'check if the caller passed a receive timeout
+    If receiveTimeout = -1 Then
+        'set receiveTimeout (default 30 secs) to accommodate longest of
+        'WebDriver's current implicit waits, pageload and script timeouts
+        'see https://github.com/GCuser99/SeleniumVBA/issues/8
+        receiveTimeout = WebShared.Max(curImplicitWait, curPageLoadTimeout, curScriptTimeout, 29000) + 1000
+    End If
     
-    If cmdMethod = "POST" Or cmdMethod = "PUT" Then
+    'set the timeouts
+    client.setTimeouts 0, 60000, 30000, receiveTimeout
+    
+    On Error GoTo processErr
+    
+    Select Case UCase(cmdMethod)
+    Case "POST"
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
-        On Error GoTo Err
         client.send jc.ConvertToJson(cmdArgs)
-        GoTo errEnd
-Err:    If Err.Number = -2147012894 Then
-            Err.Raise Err.Number, Err.Source, "Timeout in setting browser capabilities." & vbNewLine & vbNewLine _
-                        & "If you're trying to attach WebDriver to an existing instance of your Chrome/Edge browser," _
-                        & "restart your browser process(es) by adding command line argument " _
-                        & """--remote-debugging-port=9222"" (or different port number)", Err.HelpFile, Err.HelpContext
-        ElseIf Err.Number <> 0 Then
-            Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
-        End If
-errEnd: On Error GoTo 0
-    Else
+    Case "GET", "DELETE"
         client.send
-    End If
+    Case Else
+        Err.Raise 1, "WebDriver", "WebDriver command method must be either ""POST"", ""GET"", or ""DELETE""."
+    End Select
 
     Do While client.readyState < 4
         DoEvents
     Loop
 
-    Set response = jc.ParseJson(client.responseText)
+    On Error GoTo 0
     
-    If raiseError And isResponseError(response) Then 'raise error if occurs
-        Debug.Print getResponseErrorMessage(response)
-        Err.Raise client.status, "WebDriver", getResponseErrorMessage(response)
+    clientResponseText = client.ResponseText
+    clientStatus = client.Status
+    
+    'handle known non-standard/buggy WebDriver responses...
+    If Left$(clientResponseText, 1) <> "{" And clientStatus = 405 Then
+        'http method not allowed - this one is not a properly formed json
+        'response from Firefox so modify it into a valid json string
+        'see https://github.com/mozilla/geckodriver/issues/1962
+        clientResponseText = "{'value':{'error':'" & clientResponseText & "','message':'" & _
+                clientResponseText & ": " & driverCommand(0) & " " & driverCommand(1) & "'}}"
+    End If
+    
+    'parse the response into a dictionary
+    Set response = jc.ParseJson(clientResponseText)
+
+    'check if it's a WebDriver error
+    If isResponseError(response) Then
+        If raiseError Then 'report to user now
+            Debug.Print getResponseErrorMessage(response)
+            Err.Raise clientStatus, "WebDriver", getResponseErrorMessage(response)
+        Else
+            response("value").Add "errorNumber", clientStatus
+        End If
     End If
 
-    Set execute = response 'Pass the response dictionary object - let caller parse info based on context, including error
+    Set execute = response 'let caller parse info based on context, including error
+    Exit Function
+    
+processErr:
+
+    If Err.Number <> 0 Then 'it's a communication error with WebDriver
+        If raiseError Then
+            Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
+        Else
+            'populate response with the error message
+            Set response = jc.ParseJson("{'value':{'error':'" & Err.Description & "','message':'" & Err.Description & _
+                        ": in an attempt to communicate with Selenium WebDriver'}}")
+            response("value").Add "errorNumber", Err.Number
+            Set execute = response 'let caller parse info based on context, including error
+        End If
+    End If
 End Function
 
 Private Function toWebElement(ByVal elementId As String) As WebElement
@@ -2674,18 +2878,17 @@ Private Function decodeBase64(ByVal strData As String) As Byte()
     decodeBase64 = domNode.nodeTypedValue
 End Function
 
-Private Sub saveByteArrayToFile(ByteArray() As Byte, ByVal filePath As String)
-  'Create Stream object
+Private Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
   Dim binaryStream As New ADODB.Stream
 
-  'Specify stream type - we want To save binary data.
+  'specify stream type - we want To save binary data.
   binaryStream.Type = adTypeBinary
   
-  'Open the stream And write binary data To the object
+  'open the stream And write binary data
   binaryStream.Open
-  binaryStream.Write ByteArray
+  binaryStream.Write bytearray
   
-  'Save binary data To disk
+  'save binary data To disk
   binaryStream.SaveToFile filePath, adSaveCreateOverWrite
   binaryStream.Close
 End Sub

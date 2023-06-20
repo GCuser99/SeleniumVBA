@@ -27,15 +27,19 @@ Sub test_shadowroot()
 End Sub
 
 Sub test_shadowroots_clear_browser_history()
+    'note that this will fail if browser set to incognito mode!!
     Dim driver As SeleniumVBA.WebDriver
     Dim webElem1 As SeleniumVBA.WebElement, webElem2 As SeleniumVBA.WebElement, webElem3 As SeleniumVBA.WebElement
     Dim webElem4 As SeleniumVBA.WebElement, webElem5 As SeleniumVBA.WebElement, webElem6 As SeleniumVBA.WebElement
     Dim clearData As SeleniumVBA.WebElement
+    Dim caps As SeleniumVBA.WebCapabilities
     
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome 'this is a chrome-only demo
-    driver.OpenBrowser
+    
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
+    driver.OpenBrowser caps
     
     'make some browsing history
     driver.NavigateTo "https://www.wikipedia.org/"
@@ -59,4 +63,3 @@ Sub test_shadowroots_clear_browser_history()
     driver.CloseBrowser
     driver.Shutdown
 End Sub
-

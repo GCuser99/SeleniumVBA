@@ -13,7 +13,7 @@ Sub test_invisible()
     driver.StartChrome
     
     'note that WebCapabilities object should be created after starting the driver (StartEdge, StartChrome, of StartFirefox methods)
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities()
     
     caps.RunInvisible 'makes browser run in invisible mode
 
@@ -46,7 +46,7 @@ Sub test_incognito()
     
     driver.StartEdge
     
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities()
     
     caps.RunIncognito
     
@@ -77,7 +77,7 @@ Sub test_user_profile()
     
     driver.StartEdge
     
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'this will create and populate a profile if it doesn't yet exist,
     'otherwise will use a previously created profile
@@ -103,7 +103,7 @@ Sub test_initialize_caps_from_file()
     
     driver.StartChrome
     
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'first lets set some preferred capabilities
     caps.RunIncognito
@@ -121,7 +121,7 @@ Sub test_initialize_caps_from_file()
     'now let's start again
     driver.StartChrome
     
-    Set caps = driver.CreateCapabilities()
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'load the saved capabilities into new instance of caps
     caps.LoadFromFile "chrome.json"
@@ -154,7 +154,7 @@ Sub test_unhandled_prompts()
     
     driver.StartChrome
     
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'try different settings here to see what happens with flow below
     caps.SetUnhandledPromptBehavior svbaAccept
@@ -180,9 +180,10 @@ Sub test_detach_browser()
     
     Set driver = SeleniumVBA.New_WebDriver
     
-    driver.CommandWindowStyle = vbNormalFocus
+    'for detach to function properly, must use either vbHide (Default) or vbMinimizedNoFocus
+    'driver.CommandWindowStyle = vbHide
     
-    driver.StartEdge
+    driver.StartChrome
     
     Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
@@ -204,6 +205,9 @@ End Sub
 
 Sub test_kiosk_printing()
     'this advanced test uses kiosk printing to save a webpage to pdf file (Chrome/Edge only)
+    'this example is here just to demonstrate capabilities - for a better way to print a
+    'webpage to a pdf file, use the PrintToPDF method of the WebDriver class (see test_Print)
+    
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
     Dim jc As SeleniumVBA.WebJsonConverter
@@ -301,7 +305,7 @@ Sub test_kiosk_printing()
 End Sub
 
 Sub test_remoteDebugger()
-    'this allows one to connect to an existing browser instance
+    'this allows one to connect to an existing Edge\Chrome browser instance
     Dim driver As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
     Dim caps As SeleniumVBA.WebCapabilities
@@ -313,9 +317,16 @@ Sub test_remoteDebugger()
     
     'must start the browser on the debugging port
     Set wshell = CreateObject("WScript.Shell")
+    
+    'first must kill edge\chrome processes
+    wshell.Run "taskkill /f /t /im chrome.exe", 0, True
+    'wshell.Run "taskkill /f /t /im msedge.exe", 0, True
+    
     wshell.Run "chrome.exe --remote-debugging-port=9222"
+    'wshell.Run "msedge.exe --remote-debugging-port=9222"
 
     driver.StartChrome
+    'driver.StartEdge
     
     Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
@@ -333,6 +344,60 @@ Sub test_remoteDebugger()
     driver.FindElement(By.ID, "searchInput").SendKeys keySeq
 
     driver.Wait 1500
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_geolocation_with_incognito()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    
+    Set driver = SeleniumVBA.New_WebDriver
+
+    driver.StartEdge
+    
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
+    
+    'this may be needed when running in incognito mode, or
+    'when default profile does not allow geolocation awareness
+    caps.SetGeolocationAware True
+
+    driver.OpenBrowser caps:=caps, incognito:=True
+    
+    'set the location
+    driver.SetGeolocation 41.1621429, -8.6219537
+    
+    driver.ImplicitWait = 5000
+  
+    driver.NavigateTo "https://whatmylocation.com/"
+    
+    'print the name/address of the location to immediate window
+    Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_set_user_agent()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    
+    Set driver = SeleniumVBA.New_WebDriver
+
+    driver.StartChrome
+    
+    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
+    
+    'update WebCapabilities UserArgent argument
+    caps.SetUserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    
+    driver.OpenBrowser caps, invisible:=True
+    
+    'to see a full list of headers navigate to https://www.httpbin.org/headers
+    driver.NavigateTo "https://www.whatismybrowser.com/detect/what-is-my-user-agent/"
+    
+    Debug.Print "Modfified User Agent: " & driver.FindElement(By.ID, "detected_value").GetText
     
     driver.CloseBrowser
     driver.Shutdown

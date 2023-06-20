@@ -4,6 +4,8 @@ Option Private Module
 '@folder("SeleniumVBA.Testing")
 
 Sub test_geolocation()
+    'if running in incognito mode, then consider setting SetGeolocationAware
+    'method of WebCapabilities object to True (see test_Capabilities module)
     Dim driver As SeleniumVBA.WebDriver
     
     Set driver = SeleniumVBA.New_WebDriver
@@ -15,7 +17,7 @@ Sub test_geolocation()
     driver.SetGeolocation 41.1621429, -8.6219537
   
     driver.NavigateTo "https://whatmylocation.com/"
-    driver.Wait 1000
+    driver.Wait 2000
     
     'print the name/address of the location to immediate window
     Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText

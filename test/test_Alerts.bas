@@ -28,10 +28,10 @@ Sub test_Alerts()
     
     Debug.Print "Is Alert Present: " & driver.IsAlertPresent
     Debug.Print "Alert Text: " & driver.GetAlertText
-    driver.AcceptAlert
+    If driver.IsAlertPresent Then driver.AcceptAlert
     
     Debug.Print "Alert Text: " & driver.GetAlertText
-    driver.AcceptAlert
+    If driver.IsAlertPresent Then driver.AcceptAlert
 
     driver.Wait 1000
     driver.CloseBrowser

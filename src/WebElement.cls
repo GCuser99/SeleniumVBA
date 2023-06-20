@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.1
+' SeleniumVBA v4.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -180,10 +180,10 @@ Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements tha
     Set FindElementsByPartialLinkText = driver_.FindElements(By.PartialLinkText, val, Me)
 End Function
 
-'@Description("Returns a boolean indicating if the element searched for by the selector is present")
+'@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element.")
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
                             Optional ByRef elemFound As WebElement) As Boolean
-Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element searched for by the selector is present"
+Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element."
     IsPresent = driver_.IsPresent(by_, val, ImplicitWaitMS, elemFound, Me)
 End Function
 
@@ -417,6 +417,7 @@ End Function
 Public Function ScrollIntoView(Optional enSpeed As ScrollIntoViewOptions_speed, _
                                Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
                                Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
+Attribute ScrollIntoView.VB_Description = "Scrolls to this element"
     Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz)
 End Function
 
@@ -467,6 +468,12 @@ Public Sub DownloadResource(ByVal srcAttribute As String, Optional ByVal fileOrF
 Attribute DownloadResource.VB_Description = "Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source"
     driver_.DownloadResource Me, srcAttribute, fileOrFolderPath
 End Sub
+
+'@Description("Returns the Element Id string - useful for testing purposes")
+Public Function GetElementId() As String
+Attribute GetElementId.VB_Description = "Returns the Element Id string - useful for testing purposes"
+    GetElementId = driver_.GetElementId(Me)
+End Function
 
 Private Sub Class_Terminate()
     Set driver_ = Nothing

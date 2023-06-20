@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.1
+' SeleniumVBA v4.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -189,8 +189,10 @@ Attribute RemoveControlNotification.VB_Description = "Removes control notificati
         Me.SetOption "useAutomationExtension", False
         'for msedge, you may be greeted with an unwanted "Sync your profile" dialog
         'to get rid of that, run in incognito mode
-    Case svbaBrowser.Firefox, svbaBrowser.IE
-        'no need to do anything
+    Case svbaBrowser.Firefox
+        Err.Raise 1, "WebCapabilities", "The RemoveControlNotification method is not supported by the Firefox browser."
+    Case svbaBrowser.IE
+        Err.Raise 1, "WebCapabilities", "The RemoveControlNotification method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -201,19 +203,23 @@ Attribute SetDetachBrowser.VB_Description = "Sets the detach option for Edge/Chr
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.SetOption "detach", val
-    Case svbaBrowser.Firefox, svbaBrowser.IE
-        'no need to do anything
+    Case svbaBrowser.Firefox
+        Err.Raise 1, "WebCapabilities", "The SetDetachBrowser method is not supported by the Firefox browser."
+    Case svbaBrowser.IE
+        Err.Raise 1, "WebCapabilities", "The SetDetachBrowser method is not supported by the IE browser."
     End Select
 End Sub
 
-'@Description("Sets the debuggerAddress option for Edge/Chrome")
+'@Description("Sets the Debugger Address option for Edge/Chrome needed to connect with an already existing browser")
 Public Sub SetDebuggerAddress(Optional ByVal val As String = "localhost:9222")
-Attribute SetDebuggerAddress.VB_Description = "Sets the debuggerAddress option for Edge/Chrome"
+Attribute SetDebuggerAddress.VB_Description = "Sets the Debugger Address option for Edge/Chrome needed to connect with an already existing browser"
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.SetOption "debuggerAddress", val
-    Case svbaBrowser.Firefox, svbaBrowser.IE
-        'no need to do anything
+    Case svbaBrowser.Firefox
+        Err.Raise 1, "WebCapabilities", "The SetDebuggerAddress method is not supported by the Firefox browser."
+    Case svbaBrowser.IE
+        Err.Raise 1, "WebCapabilities", "The SetDebuggerAddress method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -238,7 +244,7 @@ Attribute RunInvisible.VB_Description = "Runs headless argument mode"
     Case svbaBrowser.Firefox
         Me.AddArguments "--headless"
     Case svbaBrowser.IE
-        'not supported
+        Err.Raise 1, "WebCapabilities", "The RunInvisible method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -253,7 +259,16 @@ Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode"
     Case svbaBrowser.Firefox
         Me.AddArguments "-private"
     Case svbaBrowser.IE
-        'not supported
+        'see https://www.selenium.dev/documentation/ie_driver_server/
+        'for this to work, the following register key value must be set:
+        'Key: "Computer\HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\Main"
+        'Value "TabProcGrowth" set to REG_DWORD = 0
+        'WARNING - setting the above key value to 0 will slow sendkeys (similar to 64-bit driver problem)
+        'Me.SetOption "ie.forceCreateProcessApi", True
+        'Me.SetOption "ie.browserCommandLineSwitches", "-private"
+        'Me.SetOption "ie.ensureCleanSession", True
+        'the above did not work for GCUser99
+        Err.Raise 1, "WebCapabilities", "The RunIncognito method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -351,7 +366,25 @@ Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and 
         'Me.SetPreference "browser.download.useDownloadDir", True
         'Me.SetPreference "browser.download.viewableInternally.enabledTypes", ""
     Case svbaBrowser.IE
-        'no known way to do this
+        Err.Raise 1, "WebCapabilities", "The SetDownloadPrefs method is not supported by the IE browser."
+    End Select
+End Sub
+
+'@Description("Sets whether or not to allow geolocation awareness")
+Public Sub SetGeolocationAware(Optional ByVal aware As Boolean = True)
+Attribute SetGeolocationAware.VB_Description = "Sets whether or not to allow geolocation awareness"
+    'this may be required, for example, if using incognito mode and
+    'wanting navigated url to be aware of geolocation
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        Me.SetPreference "profile.managed_default_content_settings.geolocation", IIf(aware, 1, 2)
+        'Me.SetPreference "googlegeolocationaccess.enabled", aware
+        'Me.SetPreference "profile.default_content_setting_values.notifications", IIf(aware, 1, 2)
+        'Me.SetPreference "profile.default_content_setting_values.geolocation", IIf(aware, 1, 2)
+    Case svbaBrowser.Firefox
+        Err.Raise 1, "WebCapabilities", "The SetGeolocationAware method is not supported by the Firefox browser."
+    Case svbaBrowser.IE
+        Err.Raise 1, "WebCapabilities", "The SetGeolocationAware method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -394,7 +427,7 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
         
     filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
     
-    If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
+    If Not fso.FileExists(filePath) Then Err.Raise 53, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     Set data_ = jc.ParseJson(ts.ReadAll)

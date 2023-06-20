@@ -31,7 +31,9 @@ Instructions for referencing add-in versions of SeleniumVBA from another MS Exce
 
 ### ActiveX DLL Installation:
 
-For the ActiveX DLL, more detailed instructions on how to install and use the DLL will be presented during installation. The setup program, which was compiled using Inno Setup, will install and register the DLL, and copy test Excel, Access, and VBScript documents to the installation folder. After installation, be aware that when it is first called during a VBA session, SeleniumVBA will display a "twinBASIC" banner for 5 seconds. Subsequent calls during the session will not show the banner.  
+For the ActiveX DLL, more detailed instructions on how to install and use the DLL will be presented during installation. The setup program, which was compiled using Inno Setup, will install and register the DLL, and copy test Excel, Access, and VBScript documents to the installation folder. After installation, be aware that when it is first called during a VBA session, SeleniumVBA will display a "twinBASIC" banner for 5 seconds. Subsequent calls during the session will not show the banner.
+
+The ActiveX DLL solution requires no dependencies (such as .Net Framework).
 
 ### Advanced Customization - SeleniumVBA.ini File:
 

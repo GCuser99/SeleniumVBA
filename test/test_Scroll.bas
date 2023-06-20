@@ -38,7 +38,7 @@ Sub test_scroll_ops()
     
     driver.Wait 1000
     
-    'This will scroll the web page to end.
+    'This will scroll the webpage to end.
     driver.ScrollToBottom
     driver.Wait 1000
     

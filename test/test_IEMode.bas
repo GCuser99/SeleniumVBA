@@ -81,7 +81,9 @@ Sub test_action_chain_sendkeys()
     Set actions = driver.ActionChain
     
     'build the chain and then execute with Perform method
-    actions.MoveToElement(searchBox).Click 'this is not necessary with other browsers
+    'must get focus first!!
+    'actions.MoveToElement(searchBox).Click 'this is not necessary with other browsers
+    
     actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
     actions.SendKeys(keys.ReturnKey).Perform
 
@@ -212,7 +214,8 @@ Sub test_file_download2()
    
     driver.StartIE
     
-    'set the directory path for saving download to
+    'IE seems to have no way of directing the download location
+    '(defaults to downloads folder) and to specify "don't ask" on download
     Set caps = driver.CreateCapabilities
     caps.SetDownloadPrefs ".\"
     driver.OpenBrowser caps
@@ -221,7 +224,8 @@ Sub test_file_download2()
     driver.DeleteFiles ".\test.pdf"
     
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
-    driver.Wait 2000
+    
+    driver.WaitForDownload ".\test.pdf"
     
     driver.CloseBrowser
     driver.Shutdown

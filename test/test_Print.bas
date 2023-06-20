@@ -43,12 +43,8 @@ End Sub
 
 Sub test_screenshot()
     Dim driver As SeleniumVBA.WebDriver
-    Dim keys As SeleniumVBA.WebKeyboard
-    Dim caps As SeleniumVBA.WebCapabilities
-    Dim params As New Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
-    Set keys = SeleniumVBA.New_WebKeyboard
     
     'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
@@ -66,11 +62,30 @@ Sub test_screenshot()
     driver.Shutdown
 End Sub
 
+Sub test_screenshot_full()
+    Dim driver As SeleniumVBA.WebDriver
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://www.wikipedia.org/"
+    driver.Wait 1000
+    
+    driver.SaveScreenshot fullScreenShot:=True
+
+    driver.Wait 1000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
 Sub test_element_screenshot()
     Dim driver As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
-    Dim caps As SeleniumVBA.WebCapabilities
-    Dim params As New Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
     Set keys = SeleniumVBA.New_WebKeyboard
