@@ -3,7 +3,7 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 '@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.2
+' SeleniumVBA v4.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -49,6 +49,11 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 ' Set driver = Application.Run("'C:\path_to_addin\seleniumVBA.xlam'!New_WebDriver")'
 
 Option Explicit
+
+'new WebAlert should be instantiated from WebDriver.SwitchToAlert
+'Public Function New_WebAlert() As WebAlert
+'    Set New_WebAlert = New WebAlert
+'End Function
 
 '@Description("Instantiates a WebDriver object")
 Public Function New_WebDriver() As WebDriver

@@ -72,7 +72,7 @@ Sub test_executeScriptAsync()
     driver.ExecuteScriptAsync "var callback = arguments[arguments.length - 1]; setTimeout(function(){callback(alert('WAIT IS OVER!'))}, arguments[0]);", waitTime
     driver.Wait 2000
     
-    driver.AcceptAlert
+    driver.SwitchToAlert.Accept
     driver.Wait 1000
         
     driver.CloseBrowser

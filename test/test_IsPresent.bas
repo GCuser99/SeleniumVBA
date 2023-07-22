@@ -3,7 +3,7 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
     
-Sub test_isPresent()
+Sub test_IsPresent()
     Dim driver As SeleniumVBA.WebDriver
     Dim htmlStr As String
     Dim elem As SeleniumVBA.WebElement
@@ -51,7 +51,7 @@ Sub test_isPresent()
     driver.Shutdown
 End Sub
 
-Sub test_isPresent_wait()
+Sub test_IsPresent_wait()
     Dim driver As SeleniumVBA.WebDriver
     Dim html1 As String
     Dim html2 As String

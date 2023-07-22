@@ -96,43 +96,6 @@ Sub test_file_download()
     driver.Shutdown
 End Sub
 
-Sub test_Alerts()
-    'see https://www.guru99.com/alert-popup-handling-selenium.html
-    Dim driver As SeleniumVBA.WebDriver
-
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartFirefox
-    driver.OpenBrowser
-
-    driver.NavigateTo "http://demo.guru99.com/test/delete_customer.php"
-    
-    driver.Wait 1000
-    
-    Debug.Print "Is Alert Present: " & driver.IsAlertPresent
-                                
-    driver.FindElement(By.Name, "cusid").SendKeys "87654"
-    
-    driver.Wait 1000
-    
-    driver.FindElement(By.Name, "submit").Click
-    
-    driver.Wait 1000
-    
-    Debug.Print "Is Alert Present: " & driver.IsAlertPresent
-    Debug.Print "Alert Text: " & driver.GetAlertText
-    driver.AcceptAlert
-    
-    driver.Wait 'Firefox needs a nominal wait here - chrome and edge will fail with the wait
-    
-    Debug.Print "Alert Text: " & driver.GetAlertText
-    driver.AcceptAlert
-
-    driver.Wait 1000
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
 Sub test_print()
     Dim driver As SeleniumVBA.WebDriver
     Dim settings As SeleniumVBA.WebPrintSettings

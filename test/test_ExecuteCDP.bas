@@ -66,6 +66,8 @@ Sub test_cdp_enhanced_geolocation()
     driver.StartChrome 'Chrome and Edge only
     driver.OpenBrowser
     
+    driver.ImplicitWait = 2000
+    
     'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-setGeolocationOverride
     'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-clearGeolocationOverride
     
@@ -76,21 +78,29 @@ Sub test_cdp_enhanced_geolocation()
     
     driver.ExecuteCDP "Emulation.setGeolocationOverride", params
   
-    driver.NavigateTo "https://whatmylocation.com/"
-    driver.Wait 1000
+    driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
     
-    'print the name/address of the location to immediate window
-    Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText
+    driver.FindElementByXPath("//*[@id='content']/div/button").Click
+    
+    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    
+    driver.Wait 1000
     
     'now clear the override...
     driver.ExecuteCDP "Emulation.clearGeolocationOverride"
     
     'refresh the page...
     driver.Refresh
-    driver.Wait 1000
     
-    'print the name/address of the location to immediate window
-    Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText
+    driver.FindElementByXPath("//*[@id='content']/div/button").Click
+    
+    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    
+    driver.Wait 2000
+    
+    driver.FindElementByXPath("//*[@id='map-link']/a").Click
+    
+    driver.Wait 5000
     
     driver.CloseBrowser
     driver.Shutdown
@@ -166,10 +176,12 @@ Sub test_cdp_scripts()
     driver.NavigateToFile ".\snippet.html"
     
     driver.Wait 3000
-    If driver.IsAlertPresent Then driver.AcceptAlert 'CDP injected alert
     
-    driver.Wait 4000
-    If driver.IsAlertPresent Then driver.AcceptAlert 'embedded HTML load alert
+    driver.SwitchToAlert.Accept 'CDP injected alert
+    
+    driver.Wait 3000
+    
+    driver.SwitchToAlert.Accept 'embedded HTML load alert
     
     driver.Wait 2000
     

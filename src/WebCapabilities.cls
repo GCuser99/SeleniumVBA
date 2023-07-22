@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.2
+' SeleniumVBA v4.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -118,9 +118,9 @@ Attribute SetAcceptInsecureCerts.VB_Description = "Sets the acceptInsecureCerts 
     Me.SetCapability "acceptInsecureCerts", val
 End Sub
 
-'@Description("Sets the unhandledPromptBehavior capability")
+'@Description("Sets the unhandledPromptBehavior capability - defaults to dismiss and notify")
 Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
-Attribute SetUnhandledPromptBehavior.VB_Description = "Sets the unhandledPromptBehavior capability"
+Attribute SetUnhandledPromptBehavior.VB_Description = "Sets the unhandledPromptBehavior capability - defaults to dismiss and notify"
     Me.SetCapability "unhandledPromptBehavior", getAlertHandlingString(val)
 End Sub
 

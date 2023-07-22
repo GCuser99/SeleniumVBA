@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.2
+' SeleniumVBA v4.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -108,6 +108,12 @@ Attribute FindElementByCssSelector.VB_Description = "Finds the first element by 
     Set FindElementByCssSelector = driver_.FindElement(By.cssSelector, val, Me)
 End Function
 
+'@Description("Finds the first element by the specified css selector value")
+Public Function QuerySelector(ByVal val As String) As WebElement
+Attribute QuerySelector.VB_Description = "Finds the first element by the specified css selector value"
+    Set QuerySelector = driver_.FindElement(By.cssSelector, val, Me)
+End Function
+
 '@Description("Finds the first element by the specified link text value")
 Public Function FindElementByLinkText(ByVal val As String) As WebElement
 Attribute FindElementByLinkText.VB_Description = "Finds the first element by the specified link text value"
@@ -162,6 +168,12 @@ Attribute FindElementsByCssSelector.VB_Description = "Finds all elements that sa
     Set FindElementsByCssSelector = driver_.FindElements(By.cssSelector, val, Me)
 End Function
 
+'@Description("Finds all elements that satisfy the specified css selector value")
+Public Function QuerySelectorAll(ByVal val As String) As WebElements
+Attribute QuerySelectorAll.VB_Description = "Finds all elements that satisfy the specified css selector value"
+    Set QuerySelectorAll = driver_.FindElements(By.cssSelector, val, Me)
+End Function
+
 '@Description("Finds all elements that satisfy the specified link text value")
 Public Function FindElementsByLinkText(ByVal val As String) As WebElements
 Attribute FindElementsByLinkText.VB_Description = "Finds all elements that satisfy the specified link text value"
@@ -194,7 +206,7 @@ Attribute SetAttribute.VB_Description = "Sets the attribute of this element"
 End Sub
 
 '@Description("Sends a key sequence to this element")
-Public Sub SendKeys(ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = True)
+Public Sub SendKeys(ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = False)
 Attribute SendKeys.VB_Description = "Sends a key sequence to this element"
     driver_.SendKeys Me, keys, clearBeforeTyping
 End Sub
@@ -396,15 +408,20 @@ Attribute GetOuterHTML.VB_Description = "Gets the outer HTML of this element"
 End Function
 
 '@Description("Scrolls and set the focus to this element")
-Public Function SetFocus() As WebElement
+Public Function SetFocus(Optional ByVal preventScroll As Boolean = False, Optional ByVal focusVisible As Boolean = False) As WebElement
 Attribute SetFocus.VB_Description = "Scrolls and set the focus to this element"
-    Set SetFocus = driver_.SetFocus(Me)
+    Set SetFocus = driver_.SetFocus(Me, preventScroll, focusVisible)
 End Function
 
-'@Description("Sets the focus to this element without scrolling")
+'@Description("Sets the focus to this element without scrolling - DEPRECATED")
 Public Function SetFocusNoScroll() As WebElement
-Attribute SetFocusNoScroll.VB_Description = "Sets the focus to this element without scrolling"
+Attribute SetFocusNoScroll.VB_Description = "Sets the focus to this element without scrolling - DEPRECATED"
     Set SetFocusNoScroll = driver_.SetFocusNoScroll(Me)
+End Function
+
+'@Description(""Returns a boolean indicating if the element has the focus"")
+Public Function HasFocus() As Boolean
+    HasFocus = driver_.HasFocus(Me)
 End Function
 
 '@Description("Scrolls by an XY offset referenced to location of this element")
@@ -440,7 +457,7 @@ Attribute UploadFile.VB_Description = "Uploads the contents of a file to this el
 End Sub
 
 '@Description("Waits until this element is interactable (displayed)")
-Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS As Long = -1) As WebElement
+Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
 Attribute WaitUntilReady.VB_Description = "Waits until this element is interactable (displayed)"
     Set WaitUntilReady = driver_.WaitUntilReady(Me, maxWaitTimeMS)
 End Function

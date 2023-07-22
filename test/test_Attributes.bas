@@ -25,7 +25,7 @@ Sub test_element_attributes_and_properties()
     driver.Wait 1000
     
     'sends "John" to input box
-    driver.FindElementByID("the-input").SendKeys "John"
+    driver.FindElementByID("the-input").SendKeys "John", True
     
     'this gets the initial default attribute value "Sally"
     Debug.Print "value attribute:", driver.FindElementByID("the-input").GetAttribute("value")

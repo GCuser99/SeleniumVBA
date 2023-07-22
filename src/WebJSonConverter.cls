@@ -14,7 +14,7 @@ Attribute VB_Exposed = True
 ' The following changes were made by GCUser99 to Tim Hall's version:
 '    Converted from VBA standard module to class
 '    Removed Mac OS conditional compiles
-'    Modification to json_Encode so that special Selenium key codes are not escaped
+'    Modification to json_Encode so that special Selenium key codes are not escaped (json_Encode)
 '    Set default for UseDoubleForLargeNumbers option equal to True  -
 '    this is needed for large number strings that can occur with cookie values
 ' ==========================================================================
@@ -703,15 +703,13 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
         Case 34
             ' " -> 34 -> \"
             json_Char = "\"""
-        'Case 92
-        '    ' \ -> 92 -> \\
-        '    json_Char = "\\"
         Case 92
             ' \ -> 92 -> \\
             json_Char = "\\"
             If VBA.Len(json_Text) = 6 Then
-                If VBA.Mid$(json_Text, json_Index, 4) = "\ue0" Then
-                    json_Char = "\"         'Special key codes are not escaped.
+                If json_Text Like "\u[eE]0[0-5][0-9a-fA-F]" Then
+                    'special Selenium key codes are not escaped
+                    json_Char = "\"
                 End If
             End If
         Case 47

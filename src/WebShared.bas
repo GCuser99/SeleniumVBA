@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.2
+' SeleniumVBA v4.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -44,7 +44,7 @@ Option Explicit
 Option Private Module
 
 'for the Sleep procedure
-Private Declare PtrSafe Sub SleepWinAPI Lib "kernel32" Alias "Sleep" (ByVal milliseconds As Long)
+Public Declare PtrSafe Sub SleepWinAPI Lib "kernel32" Alias "Sleep" (ByVal milliseconds As Long)
 Public Declare PtrSafe Function GetFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (ByRef Frequency As Currency) As Long
 Public Declare PtrSafe Function GetTime Lib "kernel32" Alias "QueryPerformanceCounter" (ByRef counter As Currency) As Long
 
@@ -56,6 +56,8 @@ Private Declare PtrSafe Function FindWindowEx Lib "user32" Alias "FindWindowExW"
 Private Declare PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextW" (ByVal hWnd As LongPtr, ByVal lpString As LongPtr, ByVal cch As Long) As Long
 Private Declare PtrSafe Function GetWindowTextLength Lib "user32" Alias "GetWindowTextLengthW" (ByVal hWnd As LongPtr) As Long
 Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hWnd As LongPtr, lpdwProcessId As Long) As Long
+
+Private Declare PtrSafe Function GetForegroundWindow Lib "user32" () As LongPtr
 
 Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringW" (ByVal lpApplicationName As LongPtr, ByVal lpKeyName As LongPtr, ByVal lpDefault As LongPtr, lpReturnedString As Any, ByVal nSize As Long, ByVal lpFilename As LongPtr) As Long
 
@@ -380,10 +382,10 @@ Public Function enumTextToValue(ByVal enumText As String) As Long
 End Function
 
 Public Sub sleep(ByVal ms As Currency)
-'Enhanced sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
-'Better Sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
-'Uses "Currency" as a good-enough workaround to avoid the complexity of LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
-'Note: VBA.Timer ( + VBA.Date for midnight adjustment) and VBA.Now avoided for accuracy issues (10-15ms and occasionally even worse? see https://stackoverflow.com/questions/68767198/is-this-unstable-vba-timer-behavior-real-or-am-i-doing-something-wrong)
+    'Enhanced sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
+    'Better Sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
+    'Uses "Currency" as a good-enough workaround to avoid the complexity of LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
+    'Note: VBA.Timer ( + VBA.Date for midnight adjustment) and VBA.Now avoided for accuracy issues (10-15ms and occasionally even worse? see https://stackoverflow.com/questions/68767198/is-this-unstable-vba-timer-behavior-real-or-am-i-doing-something-wrong)
     Dim cTimeStart As Currency, cTimeEnd As Currency
     Dim dTimeElapsed As Currency, cTimeTarget As Currency
     Dim cApproxDelay As Currency
@@ -424,3 +426,78 @@ Public Function Max(ParamArray numberList() As Variant) As Variant
         End If
     Next i
 End Function
+
+Public Function AppActivate(ByVal partialWindowText As String, Optional ByVal Wait As Boolean = False) As Boolean
+    'The VBA.AppActivate throws an error if a match is not found
+    'This function wraps VBA's AppActivate but returns a boolean signifying whether the match was found
+    'which allows for looping until found
+    On Error GoTo winNotFound
+    VBA.AppActivate partialWindowText, Wait
+    AppActivate = True
+    Exit Function
+winNotFound:
+    AppActivate = False
+End Function
+
+Public Function IsActiveWindowVBIDE() As Boolean
+    'determines whether the VBDIDE is the active window or not
+    Dim winTitle As String
+    winTitle = String$(200, vbNullChar)
+    Call GetWindowText(GetForegroundWindow(), StrPtr(winTitle), 200)
+    IsActiveWindowVBIDE = Left$(winTitle, InStr(winTitle, vbNullChar) - 1) Like "Microsoft Visual Basic for Applications -*"
+End Function
+
+Public Function splitKeyString(ByVal keys As String) As Collection
+    'splits the input string into a collection of individual characters while interpreting
+    'each special key (eg \uE008) as a single character
+    Dim oRegExp As New VBScript_RegExp_55.RegExp
+    Dim matches As VBScript_RegExp_55.MatchCollection
+    Dim match As VBScript_RegExp_55.match
+    Dim chars As New Collection
+    Dim i As Long
+    Dim endMatchPosLast  As Long
+    Dim startMatchPos  As Long
+    Dim endMatchPos  As Long
+    Dim matchLength  As Long
+        
+    oRegExp.Global = True
+    oRegExp.Pattern = "\\u[eE]0([0-5][0-9a-fA-F])" 'Selenium WebDriver requires lower-case of the leading "u"
+    
+    Set matches = oRegExp.execute(keys)
+    
+    If matches.Count > 0 Then
+        'process Selenium WebDriver special key(s)
+        endMatchPosLast = 0
+        For Each match In matches
+            
+            startMatchPos = match.FirstIndex + 1 'regexp is zero-based so add 1
+            matchLength = match.Length
+            endMatchPos = startMatchPos + matchLength - 1
+            
+            If startMatchPos - 1 > endMatchPosLast Then
+                For i = endMatchPosLast + 1 To startMatchPos - 1
+                    'non-cord action
+                    chars.Add Mid$(keys, i, 1)
+                Next i
+            End If
+            
+            chars.Add match.Value
+            
+            endMatchPosLast = endMatchPos
+        Next match
+        
+        If Len(keys) > endMatchPosLast Then
+            For i = endMatchPosLast + 1 To Len(keys)
+                'non-cord action
+                chars.Add Mid$(keys, i, 1)
+            Next i
+        End If
+    Else
+        For i = 1 To Len(keys)
+            chars.Add Mid$(keys, i, 1)
+        Next i
+    End If
+    
+    Set splitKeyString = chars
+End Function
+

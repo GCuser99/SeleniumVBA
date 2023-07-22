@@ -443,7 +443,7 @@ Sub test_detach_browser()
 End Sub
 
 Sub test_print()
-    'Print method does not work for IE Mode (requires headless mode)
+    'Print method does not work for IE Mode
     
     Dim driver As SeleniumVBA.WebDriver
     Dim settings As SeleniumVBA.WebPrintSettings

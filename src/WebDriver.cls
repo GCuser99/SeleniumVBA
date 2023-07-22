@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.2
+' SeleniumVBA v4.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -87,6 +87,8 @@ Private curScriptTimeout As Long
 Private Const sysImplicitWait As Long = 0
 Private Const sysPageLoadTimeout As Long = 300000
 Private Const sysScriptTimeout As Long = 30000
+
+Private cleanupTempFiles As Boolean
 
 'store original style of Highlighted elements to be able to UnHighlight them at a future time
 Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary
@@ -490,7 +492,7 @@ End Sub
 '@Description("Closes browser without terminating driver instance")
 Public Sub CloseBrowser()
 Attribute CloseBrowser.VB_Description = "Closes browser without terminating driver instance"
-    execute tCMD.CMD_QUIT, New Dictionary
+    execute tCMD.CMD_QUIT
     sessionId_ = vbNullString
 End Sub
 
@@ -664,6 +666,12 @@ Attribute FindElementByCssSelector.VB_Description = "Finds the first element by 
     Set FindElementByCssSelector = FindElement(By.cssSelector, val, parentElement)
 End Function
 
+'@Description("Finds the first element by the specified css selector value")
+Public Function QuerySelector(ByVal val As String, Optional parentElement As WebElement) As WebElement
+Attribute QuerySelector.VB_Description = "Finds the first element by the specified css selector value"
+    Set QuerySelector = FindElement(By.cssSelector, val, parentElement)
+End Function
+
 '@Description("Finds the first element by the specified link text value")
 Public Function FindElementByLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElement
 Attribute FindElementByLinkText.VB_Description = "Finds the first element by the specified link text value"
@@ -718,6 +726,12 @@ Attribute FindElementsByCssSelector.VB_Description = "Finds all elements that sa
     Set FindElementsByCssSelector = FindElements(By.cssSelector, val, parentElement)
 End Function
 
+'@Description("Finds all elements that satisfy the specified css selector value")
+Public Function QuerySelectorAll(ByVal val As String, Optional parentElement As WebElement) As WebElements
+Attribute QuerySelectorAll.VB_Description = "Finds all elements that satisfy the specified css selector value"
+    Set QuerySelectorAll = FindElements(By.cssSelector, val, parentElement)
+End Function
+
 '@Description("Finds all elements that satisfy the specified link text value")
 Public Function FindElementsByLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElementsByLinkText.VB_Description = "Finds all elements that satisfy the specified link text value"
@@ -736,78 +750,191 @@ Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements tha
     Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
 End Function
 
-'@Description("Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys")
-Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = True)
-Attribute SendKeys.VB_Description = "Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys"
-    Dim data As New Dictionary
-    Dim chunk() As String
-    Dim chars() As String
-    
-    data.Add "id", element.elementId
-    If clearBeforeTyping = True Then execute tCMD.CMD_CLEAR_ELEMENT, data
-    
-    'split key sequence into chunks with special keys (pattern "\ue0*") by themselves
-    ReDim chunk(0 To Len(keys) - 1)
+'@Description("Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")
+Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
+Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows"
     Dim i As Long
-    i = -1
-    Do Until keys = vbNullString
-        Dim ipos As String
-        ipos = InStr(keys, "\ue0")
-        If ipos > 0 Then
-            If ipos > 1 Then 'text to left is chunk
-                i = i + 1
-                chunk(i) = Left$(keys, ipos - 1)
-            End If
-            'now process special key
-            i = i + 1
-            chunk(i) = Mid$(keys, ipos, 6)
-            keys = Right$(keys, Len(keys) - (ipos + 5))
-        Else
-            i = i + 1
-            chunk(i) = keys
-            keys = vbNullString
-        End If
-    Loop
+    Dim modKeys As Variant
+    Dim endMatchPos As Long
+    Dim startMatchPos As Long
+    Dim matchLength As Long
+    Dim endMatchPosLast As Long
+    Dim startTime As Long
+    Dim winActivated As Boolean
+    Dim sendPackage As New Collection
     
-    ReDim Preserve chunk(0 To i)
-    
-    'initialize param keys
-    data.Add "text", vbNullString
-    data.Add "value", vbNullString
-    
-    'loop through and send text chunks to target
-    For i = 0 To UBound(chunk)
-        If Left$(chunk(i), 4) = "\ue0" Then
-            ReDim chars(0 To 0)
-            chars(0) = chunk(i)
-        Else
-            ReDim chars(0 To Len(chunk(i)) - 1)
-            Dim j As Long
-            For j = 0 To Len(chunk(i)) - 1
-                chars(j) = Mid$(chunk(i), j + 1, 1)
-            Next j
-        End If
-        data("text") = chunk(i)
-        data("value") = chars
-        execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
-    Next i
-End Sub
-
-'@Description("Clicks the element")
-Public Sub Click(Optional element As WebElement)
-Attribute Click.VB_Description = "Clicks the element"
-    Dim data As New Dictionary
-    If Not element Is Nothing Then
-        data.Add "id", element.elementId
-        execute tCMD.CMD_CLICK_ELEMENT, data
+    'check if we have special keys
+    If Not keyString Like "*\[uU][eE]0[0-5][0-9a-fA-F]*" Then
+        'no special keys or chords
+        sendPackage.Add keyString
     Else
-        execute tCMD.CMD_CLICK, data
+        'search for chords, parse, and then map the input key sequence(s) to VBA/VBScript SendKeys format
+        Dim oRegExp As New VBScript_RegExp_55.RegExp
+        Dim matches As VBScript_RegExp_55.MatchCollection
+        Dim match As VBScript_RegExp_55.match
+        Dim modKeyString As String
+        
+        oRegExp.Global = True
+        oRegExp.Pattern = "((\\u[eE]00[89aA])+)(.*?)\\uE000"
+        
+        Set matches = oRegExp.execute(keyString)
+        
+        'check if we have cords
+        If matches.Count > 0 Then
+            'process cords and keys between cords
+            endMatchPosLast = 0
+            For Each match In matches
+                
+                startMatchPos = match.FirstIndex + 1 'regexp is zero-based so add 1
+                matchLength = match.Length
+                endMatchPos = startMatchPos + matchLength - 1
+                
+                If startMatchPos - 1 > endMatchPosLast Then
+                    'non-cord action
+                    sendPackage.Add osKeyMapper(Mid(keyString, endMatchPosLast + 1, startMatchPos - endMatchPosLast - 1))
+                End If
+                
+                'now do the cord action
+                'handle more than one modifier keys
+                modKeys = Split(match.SubMatches(0), "\u")
+                
+                modKeyString = vbNullString
+                'press the modifiers down
+                For i = 1 To UBound(modKeys)
+                    modKeyString = modKeyString & osKeyMapper("\u" & modKeys(i))
+                Next i
+                
+                sendPackage.Add modKeyString & "(" & osKeyMapper(match.SubMatches(2)) & ")"
+                
+                endMatchPosLast = endMatchPos
+            Next match
+            
+            If Len(keyString) > endMatchPosLast Then
+                'last non-cord action
+                sendPackage.Add osKeyMapper(Mid(keyString, endMatchPosLast + 1, Len(keyString) - endMatchPosLast))
+            End If
+        Else 'no cords so send keys in one call
+            sendPackage.Add osKeyMapper(keyString)
+        End If
+    End If
+    
+    If runOnSeparateThread Then
+        'create the vbs script file to run on a separate thread
+        Dim vbs As String
+        
+        vbs = "Set WshShell = WScript.CreateObject(""WScript.Shell"")" & vbCrLf
+        
+        'wait specified amount of time before executing script
+        If timeDelayMS > 0 Then
+            vbs = vbs & "WScript.Sleep " & timeDelayMS & vbCrLf
+        End If
+    
+        If windowTitle <> vbNullString Then
+            'user is after a particular window
+            If waitForWindow Then
+                vbs = vbs & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
+                vbs = vbs & "startTime = Timer()" & vbCrLf
+                vbs = vbs & "Do Until winActivated" & vbCrLf
+                vbs = vbs & vbTab & "WScript.Sleep 100" & vbCrLf
+                vbs = vbs & vbTab & "If 1000*(Timer()-startTime) > " & maxTimeToWaitMS & " Then Exit Do" & vbCrLf
+                vbs = vbs & vbTab & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
+                vbs = vbs & "Loop" & vbCrLf
+            Else
+                vbs = vbs & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
+            End If
+
+            vbs = vbs & "If winActivated Then" & vbCrLf
+            For i = 1 To sendPackage.Count
+                vbs = vbs & vbTab & "WshShell.SendKeys """ & sendPackage(i) & """, False" & vbCrLf
+            Next i
+            vbs = vbs & "End If" & vbCrLf
+        Else
+            'no window specified so send keys to active window
+            'unfortunately, there seems to be no means in VBScript of making sure we are not sending to the IDE
+            'in this case so hopefully user is not in debug mode
+            For i = 1 To sendPackage.Count
+                vbs = vbs & "WshShell.SendKeys """ & sendPackage(i) & """, False" & vbCrLf
+            Next i
+        End If
+        
+        'save the vbs string to user's temp file
+        Dim filePath As String
+        filePath = "%TEMP%\seleniumVBAtmp" & Timer() & ".vbs"
+        SaveStringToFile vbs, filePath
+        Shell "WScript """ & ResolvePath(filePath) & """ , vbNormalFocus"
+        
+        cleanupTempFiles = True
+    Else
+        'not running on separate thread, so use native VBA instead of VBSript
+        If timeDelayMS > 0 Then
+            WebShared.sleep timeDelayMS
+        End If
+        
+        If windowTitle <> vbNullString Then
+            If waitForWindow Then
+                winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
+                startTime = VBA.Timer()
+                Do Until winActivated
+                    WebShared.sleep 100
+                    If 1000 * (Timer() - startTime) > maxTimeToWaitMS Then Exit Do
+                    winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
+                Loop
+            Else
+                winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
+            End If
+            
+            If winActivated Then
+                For i = 1 To sendPackage.Count
+                    VBA.SendKeys sendPackage(i), False  'send the keys
+                Next i
+            End If
+        Else
+            'no window specified so send keys to active window
+            'but make sure we are not sending to the IDE!!!!
+            If Not IsActiveWindowVBIDE Then
+                For i = 1 To sendPackage.Count
+                    VBA.SendKeys sendPackage(i), False   'send the keys
+                Next i
+            End If
+        End If
     End If
 End Sub
 
-'@Description("Submits a form element")
-Public Sub Submit(element As WebElement)
-Attribute Submit.VB_Description = "Submits a form element"
+'@Description("Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys and chords")
+Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = False)
+Attribute SendKeys.VB_Description = "Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys and chords"
+    Dim data As New Dictionary
+    
+    data.Add "id", element.elementId
+    If clearBeforeTyping Then execute tCMD.CMD_CLEAR_ELEMENT, data
+    
+    If Not keys Like "*\u[eE]0[0-5][0-9a-fA-F]*" Then
+        'no special keys or chords so use the fast "normal" SendKeys command
+        data("text") = keys
+        Set data("value") = splitKeyString(keys)
+        execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
+    Else
+        'send the keys using the more advanced handling of the WebActionChain class
+        SetFocus element
+        ActionChain.SendKeys(keys).Perform
+    End If
+End Sub
+
+'@Description("Clicks the element. If element not specified, then clicks on the active element")
+Public Sub Click(Optional element As WebElement)
+Attribute Click.VB_Description = "Clicks the element. If element not specified, then clicks on the active element"
+    Dim data As New Dictionary
+    If Not element Is Nothing Then
+        data.Add "id", element.elementId
+    Else
+        data.Add "id", GetActiveElement.elementId
+    End If
+    execute tCMD.CMD_CLICK_ELEMENT, data
+End Sub
+
+'@Description("Submits a form element. If element not specified, then clicks on the active form element")
+Public Sub Submit(Optional element As WebElement)
+Attribute Submit.VB_Description = "Submits a form element. If element not specified, then clicks on the active form element"
     Click element
 End Sub
 
@@ -826,26 +953,26 @@ End Function
 '@Description("Simulates clicking the back arrow on the browser window")
 Public Sub GoBack()
 Attribute GoBack.VB_Description = "Simulates clicking the back arrow on the browser window"
-    execute tCMD.CMD_GO_BACK, New Dictionary
+    execute tCMD.CMD_GO_BACK
 End Sub
 
 '@Description("Simulates clicking the forward arrow on the browser window")
 Public Sub GoForward()
 Attribute GoForward.VB_Description = "Simulates clicking the forward arrow on the browser window"
-    execute tCMD.CMD_GO_FORWARD, New Dictionary
+    execute tCMD.CMD_GO_FORWARD
 End Sub
 
 '@Description("Refreshes the current url")
 Public Sub Refresh()
 Attribute Refresh.VB_Description = "Refreshes the current url"
-    execute tCMD.CMD_REFRESH, New Dictionary
+    execute tCMD.CMD_REFRESH
 End Sub
 
 '@Description("Returns the current url string")
 Public Function GetCurrentURL() As String
 Attribute GetCurrentURL.VB_Description = "Returns the current url string"
     Dim encodeURL As String
-    encodeURL = execute(tCMD.CMD_GET_CURRENT_URL, New Dictionary)("value")
+    encodeURL = execute(tCMD.CMD_GET_CURRENT_URL)("value")
     GetCurrentURL = ExecuteScript("return decodeURI('" & encodeURL & "')")
 End Function
 
@@ -854,7 +981,7 @@ Public Function GetActiveElement() As WebElement
 Attribute GetActiveElement.VB_Description = "Returns the active element"
     Dim elem As WebElement
     
-    Set elem = toWebElement(execute(tCMD.CMD_GET_ACTIVE_ELEMENT, New Dictionary)("value")(ELEMENT_KEY))
+    Set elem = toWebElement(execute(tCMD.CMD_GET_ACTIVE_ELEMENT)("value")(ELEMENT_KEY))
     
     If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elem
     
@@ -1325,7 +1452,6 @@ End Function
 '@Description("Saves a screenshot of the active browser window to a file")
 Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png", Optional element As WebElement, Optional ByVal fullScreenShot As Boolean = False)
 Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active browser window to a file"
-    Dim data As New Dictionary
     Dim pngstr As String
         
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
@@ -1333,16 +1459,17 @@ Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active brow
     If fullScreenShot Then
         Select Case browser_
         Case svbaBrowser.Chrome, svbaBrowser.Edge
-            pngstr = execute(tCMD.CMD_SCREENSHOT_FULL, data)("value")
+            pngstr = execute(tCMD.CMD_SCREENSHOT_FULL)("value")
         Case svbaBrowser.Firefox
-            pngstr = execute(tCMD.CMD_SCREENSHOT_FULL_FF, data)("value")
+            pngstr = execute(tCMD.CMD_SCREENSHOT_FULL_FF)("value")
         Case svbaBrowser.IE
             Err.Raise 1, "WebCapabilities", "The SaveScreenShot method with argument fullScreenShot=True is not supported by the IE browser."
         End Select
     Else
         If element Is Nothing Then
-            pngstr = execute(tCMD.CMD_SCREENSHOT, data)("value")
+            pngstr = execute(tCMD.CMD_SCREENSHOT)("value")
         Else
+            Dim data As New Dictionary
             data.Add "id", element.elementId
             pngstr = execute(tCMD.CMD_ELEMENT_SCREENSHOT, data)("value")
         End If
@@ -1380,14 +1507,13 @@ End Function
 '@Description("Returns the current webpage source as a string")
 Public Function GetPageSource() As String
 Attribute GetPageSource.VB_Description = "Returns the current webpage source as a string"
-    Dim data As New Dictionary
-    GetPageSource = execute(tCMD.CMD_GET_PAGE_SOURCE, data)("value")
+    GetPageSource = execute(tCMD.CMD_GET_PAGE_SOURCE)("value")
 End Function
 
 '@Description("Returns the active window's handle as a string")
 Public Function GetCurrentWindowHandle() As String
 Attribute GetCurrentWindowHandle.VB_Description = "Returns the active window's handle as a string"
-    GetCurrentWindowHandle = execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, New Dictionary)("value")
+    GetCurrentWindowHandle = execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE)("value")
 End Function
 
 '@Description("Returns all windows' handles as a string array")
@@ -1397,7 +1523,7 @@ Attribute GetWindowHandles.VB_Description = "Returns all windows' handles as a s
     Dim ret() As String
     Dim i As Integer
     
-    Set handles = execute(tCMD.CMD_GET_WINDOW_HANDLES, New Dictionary)("value")
+    Set handles = execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
     
     'To array of handles
     ReDim ret(baseArrayIdx To handles.Count - 1 + baseArrayIdx)
@@ -1446,13 +1572,13 @@ End Function
 Public Sub CloseWindow(Optional ByVal handleOrIndex As Variant)
 Attribute CloseWindow.VB_Description = "Closes the window of the specified index or handle string - if no window is specified, then the active window is closed"
     If Not IsMissing(handleOrIndex) Then SwitchToWindow handleOrIndex
-    execute tCMD.CMD_CLOSE, New Dictionary
+    execute tCMD.CMD_CLOSE
 End Sub
 
 '@Description("Returns a dictionary containing x, y, width, and height in screen pixels of the active window")
 Public Function GetWindowRect() As Dictionary
 Attribute GetWindowRect.VB_Description = "Returns a dictionary containing x, y, width, and height in screen pixels of the active window"
-    Set GetWindowRect = execute(tCMD.CMD_GET_WINDOW_RECT, New Dictionary)("value")
+    Set GetWindowRect = execute(tCMD.CMD_GET_WINDOW_RECT)("value")
 End Function
 
 '@Description("Sets the position and size in screen pixels for the active window")
@@ -1496,19 +1622,19 @@ End Sub
 '@Description("Maximize the active window")
 Public Sub MaximizeWindow()
 Attribute MaximizeWindow.VB_Description = "Maximize the active window"
-    execute tCMD.CMD_MAXIMIZE_WINDOW, New Dictionary
+    execute tCMD.CMD_MAXIMIZE_WINDOW
 End Sub
 
 '@Description("Sets the current window to full screen mode")
 Public Sub FullScreenWindow()
 Attribute FullScreenWindow.VB_Description = "Sets the current window to full screen mode"
-    execute tCMD.CMD_FULLSCREEN_WINDOW, New Dictionary
+    execute tCMD.CMD_FULLSCREEN_WINDOW
 End Sub
 
 '@Description("Minimize the active window")
 Public Sub MinimizeWindow()
 Attribute MinimizeWindow.VB_Description = "Minimize the active window"
-    execute tCMD.CMD_MINIMIZE_WINDOW, New Dictionary
+    execute tCMD.CMD_MINIMIZE_WINDOW
 End Sub
 
 '@Description("Switches focus to the frame element")
@@ -1541,7 +1667,7 @@ End Sub
 Public Sub SwitchToParentFrame()
 Attribute SwitchToParentFrame.VB_Description = "Switches focus to the active frame's parent"
     'if top-level frame then this switches to main document
-    execute tCMD.CMD_SWITCH_TO_PARENT_FRAME, New Dictionary
+    execute tCMD.CMD_SWITCH_TO_PARENT_FRAME
 End Sub
 
 '@Description("Returns the name of the active frame")
@@ -1560,7 +1686,7 @@ Attribute ImplicitWait.VB_Description = "Sets/Gets how long to wait for the elem
 End Property
 
 Public Property Get ImplicitWait() As Long
-    ImplicitWait = execute(tCMD.CMD_GET_TIMEOUTS, New Dictionary)("value")("implicit")
+    ImplicitWait = execute(tCMD.CMD_GET_TIMEOUTS)("value")("implicit")
 End Property
 
 '@Description("Sets/Gets the timeout limit used to interrupt a navigation attempt")
@@ -1573,7 +1699,7 @@ Attribute PageLoadTimeout.VB_Description = "Sets/Gets the timeout limit used to 
 End Property
 
 Public Property Get PageLoadTimeout() As Long
-    PageLoadTimeout = execute(tCMD.CMD_GET_TIMEOUTS, New Dictionary)("value")("pageLoad")
+    PageLoadTimeout = execute(tCMD.CMD_GET_TIMEOUTS)("value")("pageLoad")
 End Property
 
 '@Description("Sets/Gets how long to wait to interrupt a script that is being evaluated")
@@ -1586,7 +1712,7 @@ Attribute ScriptTimeout.VB_Description = "Sets/Gets how long to wait to interrup
 End Property
 
 Public Property Get ScriptTimeout() As Long
-    ScriptTimeout = execute(tCMD.CMD_GET_TIMEOUTS, New Dictionary)("value")("script")
+    ScriptTimeout = execute(tCMD.CMD_GET_TIMEOUTS)("value")("script")
 End Property
 
 '@Description("Pauses in-line execution for the specified number of milliseconds")
@@ -1653,48 +1779,69 @@ Attribute GetBrowserName.VB_Description = "Gets the browser name"
     GetBrowserName = WebShared.getBrowserNameString(browser_)
 End Function
 
-'@Description("Sends an alert to the active window.")
-Public Sub SendAlert(Optional ByVal alertText As String = vbNullString)
-Attribute SendAlert.VB_Description = "Sends an alert to the active window."
-    ExecuteScript ("alert('" & alertText & "');")
-End Sub
-
-'@Description("Gets the text of the active alert")
+'@Description("Gets the text prompt of the active alert - DEPRECATED")
 Public Function GetAlertText() As String
-Attribute GetAlertText.VB_Description = "Gets the text of the active alert"
-    GetAlertText = execute(tCMD.CMD_GET_ALERT_TEXT, New Dictionary)("value")
+Attribute GetAlertText.VB_Description = "Gets the text prompt of the active alert - DEPRECATED"
+    GetAlertText = execute(tCMD.CMD_GET_ALERT_TEXT)("value")
 End Function
 
-'@Description("Sends the specified text to the active alert")
+'@Description("Sends the specified text to the active prompt alert - DEPRECATED")
 Public Sub SetAlertText(ByVal alertText As String)
-Attribute SetAlertText.VB_Description = "Sends the specified text to the active alert"
+Attribute SetAlertText.VB_Description = "Sends the specified text to the active prompt alert - DEPRECATED"
     Dim data As New Dictionary
     data.Add "text", alertText
     execute tCMD.CMD_SET_ALERT_TEXT, data
 End Sub
 
-'@Description("Accepts the active alert")
+'@Description("Accepts the active alert. Specify an optional input text if th alert is of the prompt type. DEPRECATED.")
 Public Sub AcceptAlert()
-Attribute AcceptAlert.VB_Description = "Accepts the active alert"
-    execute tCMD.CMD_ACCEPT_ALERT, New Dictionary
+Attribute AcceptAlert.VB_Description = "Accepts the active alert. Specify an optional input text if th alert is of the prompt type. DEPRECATED."
+    execute tCMD.CMD_ACCEPT_ALERT
 End Sub
 
-'@Description("Dismisses the active alert")
+'@Description("Dismisses the active alert - DEPRECATED")
 Public Sub DismissAlert()
-Attribute DismissAlert.VB_Description = "Dismisses the active alert"
-    execute tCMD.CMD_DISMISS_ALERT, New Dictionary
+Attribute DismissAlert.VB_Description = "Dismisses the active alert - DEPRECATED"
+    execute tCMD.CMD_DISMISS_ALERT
 End Sub
 
-'@Description("Returns a boolean indicating whether an active alert is present")
-Public Function IsAlertPresent() As Boolean
-Attribute IsAlertPresent.VB_Description = "Returns a boolean indicating whether an active alert is present"
-    Dim resp As Dictionary
-    Set resp = execute(tCMD.CMD_GET_ALERT_TEXT, New Dictionary, False)
-    If isResponseError(resp) Then
-        IsAlertPresent = False
+'@Description("Waits for alert to show and then returns a WebAlert object for further handling")
+Public Function SwitchToAlert(Optional maxWaitTimeMS As Long = 10000) As WebAlert
+Attribute SwitchToAlert.VB_Description = "Waits for alert to show and then returns a WebAlert object for further handling"
+    If IsAlertPresent(maxWaitTimeMS) Then
+        Set SwitchToAlert = New WebAlert
+        Set SwitchToAlert.WebDriver = Me
     Else
-        IsAlertPresent = True
+        Err.Raise 1, , "Error in SwitchToAlert method: maxWaitTimeMS exceeded without detecting alert"
     End If
+End Function
+
+'@Description("Returns a boolean indicating whether an active alert is present - DEPRECATED")
+Public Function IsAlertPresent(Optional maxWaitTimeMS As Long = 0) As Boolean
+Attribute IsAlertPresent.VB_Description = "Returns a boolean indicating whether an active alert is present - DEPRECATED"
+    Dim resp As Dictionary
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
+    
+    GetTime timeStart 'in currency
+    
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
+    
+    Do
+        Set resp = execute(tCMD.CMD_GET_ALERT_TEXT, , False)
+        If Not isResponseError(resp) Then
+            IsAlertPresent = True
+            Exit Function
+        End If
+        
+        SleepWinAPI 50 'ms
+        DoEvents 'yield to other processes
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
+    
+    IsAlertPresent = False
 End Function
 
 '@Description("Clears the text field of the element")
@@ -1702,8 +1849,6 @@ Public Function Clear(element As WebElement) As WebElement
 Attribute Clear.VB_Description = "Clears the text field of the element"
     Dim data As New Dictionary
     data.Add "id", element.elementId
-    data.Add "text", vbNullString
-    data.Add "value", vbNullString
     execute tCMD.CMD_CLEAR_ELEMENT, data
     Set Clear = element
 End Function
@@ -1711,7 +1856,7 @@ End Function
 '@Description("Gets the active browser window's title")
 Public Function GetTitle() As String
 Attribute GetTitle.VB_Description = "Gets the active browser window's title"
-    GetTitle = execute(tCMD.CMD_GET_TITLE, New Dictionary)("value")
+    GetTitle = execute(tCMD.CMD_GET_TITLE)("value")
 End Function
 
 '@Description("Gets the shadow root hosted by the element")
@@ -1798,22 +1943,35 @@ Attribute CreateCookies.VB_Description = "Creates a cookies object - must be per
     Set CreateCookies = cookies
 End Function
 
-'@Description("Scrolls and set the focus to the element")
-Public Function SetFocus(element As WebElement) As WebElement
-Attribute SetFocus.VB_Description = "Scrolls and set the focus to the element"
-    Dim script As String
-    script = "arguments[0].focus({'preventScroll': arguments[1]})"
-    ExecuteScript script, element, 0  'Scroll
+'@Description("Sets the focus to the specified element")
+Public Function SetFocus(element As WebElement, Optional ByVal preventScroll As Boolean = False, Optional ByVal focusVisible As Boolean = False) As WebElement
+Attribute SetFocus.VB_Description = "Sets the focus to the specified element"
+    ExecuteScript "arguments[0].focus({'preventScroll': arguments[1],'focusVisible': arguments[2]})", element, preventScroll, focusVisible
     Set SetFocus = element
 End Function
 
-'@Description("Sets the focus to the element without scrolling")
+'@Description("Sets the focus to the element without scrolling - DEPRECATED")
 Public Function SetFocusNoScroll(element As WebElement) As WebElement
-Attribute SetFocusNoScroll.VB_Description = "Sets the focus to the element without scrolling"
+Attribute SetFocusNoScroll.VB_Description = "Sets the focus to the element without scrolling - DEPRECATED"
     Dim script As String
     script = "arguments[0].focus({'preventScroll': arguments[1]})"
-    ExecuteScript script, element, 1  'No Scroll
+    ExecuteScript script, element, 1  'No Scroll into view
     Set SetFocusNoScroll = element
+End Function
+
+'@Description(""Returns a boolean indicating if the specified element has the focus"")
+Public Function HasFocus(element As WebElement) As Boolean
+    Dim actElem As WebElement
+    'see https://stackoverflow.com/questions/497094/how-do-i-find-out-which-dom-element-has-the-focus/40873560#40873560
+    'get the active element of the current window
+    Set actElem = GetActiveElement()
+    HasFocus = False
+    If actElem.elementId = element.elementId Then
+        'check to make sure the document that contains active element has focus
+        If ExecuteScript("return document.hasFocus();") Then
+            HasFocus = True
+        End If
+    End If
 End Function
 
 '@Description("Scrolls by an XY offset referenced to location of the element")
@@ -1906,7 +2064,7 @@ Attribute GetAllCookies.VB_Description = "Returns the collection of cookies for 
     Dim resp As Collection
     Dim cookie As WebCookie
     Dim cookies As WebCookies
-    Set resp = execute(tCMD.CMD_GET_ALL_COOKIES, New Dictionary)("value")
+    Set resp = execute(tCMD.CMD_GET_ALL_COOKIES)("value")
     'Dim jc As New WebJSonConverter
     'Debug.Print jc.ConvertToJson(resp, 4)
     Set cookies = Me.CreateCookies
@@ -1958,11 +2116,13 @@ Public Sub SetCookie(cookie As WebCookie)
 Attribute SetCookie.VB_Description = "Sets a cookie object"
     Dim data As New Dictionary
     'value can take a number string greater than 15 digits
-    'need to set the following in JSonConverter else  will get an error on execute (see sendRequest):
+    'need to set the following in JSonConverter else will get an error on execute:
     'jc.OptionsUseDoubleForLargeNumbers = True
     If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
         data.Add "cookie", cookie.ToDictionary
         execute tCMD.CMD_ADD_COOKIE, data
+    Else
+        Err.Raise 1, , "Error in SetCookie method: cookie Name and Value properties must not be equal to vbNullString"
     End If
 End Sub
 
@@ -1978,7 +2138,7 @@ End Sub
 '@Description("Deletes all cookies")
 Public Sub DeleteAllCookies()
 Attribute DeleteAllCookies.VB_Description = "Deletes all cookies"
-    execute tCMD.CMD_DELETE_ALL_COOKIES, New Dictionary
+    execute tCMD.CMD_DELETE_ALL_COOKIES
 End Sub
 
 '@Description("Checks if the current url is equal to the specified url")
@@ -2021,7 +2181,7 @@ Attribute ActionChain.VB_Description = "Creates an initialized action chain obje
     Set ActionChain = New WebActionChain
     'pass a reference of the driver to each link
     Set ActionChain.WebDriver = Me
-    Set ActionChain.DataDictionary = New Dictionary
+    ActionChain.ResetActions
 End Function
 
 '@Description("Finds the first element in the shadow root for a given selector and value")
@@ -2078,118 +2238,89 @@ Attribute DragAndDrop.VB_Description = "Drags and drops the element to the speci
 End Sub
 
 '@Description("Waits until element is interactable (displayed)")
-Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = -1) As WebElement
+Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
 Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (displayed)"
-    'waits until element is interactable, returns the input element for further action
-    'if maxWaitTimeMS is positive, then throw error if limit is exceeded before IsDisplayed condition is met
     'see https://www.w3.org/TR/webdriver/#element-displayedness
-    Dim cTimeStart As Currency
-    Dim cTimeNow As Currency
-    Dim cMaxWaitTimeMS As Currency
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
     
-    Const loopDelay As Long = 50 'in ms
+    GetTime timeStart 'in currency
     
-    If maxWaitTimeMS >= 0 Then
-        GetTime cTimeStart
-        Static cPerSecond As Currency
-        If cPerSecond = 0 Then GetFrequency cPerSecond
-        cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
-    Else
-        'set up to run until IsDisplayed condition is met (no max time limit)
-        cMaxWaitTimeMS = 0
-        cTimeNow = 0
-    End If
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
+    
+    GetTime timeStart
     
     Do
         If element.IsDisplayed Then
             Set WaitUntilReady = element
             Exit Function
         End If
-        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
         
-        sleep loopDelay
+        SleepWinAPI 50 'ms
         DoEvents 'yield to other processes
-    Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
     
     Err.Raise 1, "WebDriver", "Error in WaitUntilReady method: maximum wait time exceeded while waiting for element to be ready."
 End Function
 
 '@Description("Waits until file is finished downloading")
-Public Sub WaitForDownload(ByVal filePath As String, Optional ByVal maxWaitTimeMS As Long = -1)
+Public Sub WaitForDownload(ByVal filePath As String, Optional ByVal maxWaitTimeMS As Long = 10000)
 Attribute WaitForDownload.VB_Description = "Waits until file is finished downloading"
     'adapted from WaitNewFile in https://github.com/florentbr/SeleniumBasic/tree/master/Examples/Excel
-    'if maxWaitTimeMS is positive, then throw error if limit is exceeded before file ready condition is met
     Dim fso As New FileSystemObject
-    Dim cTimeStart As Currency
-    Dim cTimeNow As Currency
-    Dim cMaxWaitTimeMS As Currency
-    
-    Const loopDelay As Long = 50 'in ms
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
     
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     
-    If maxWaitTimeMS >= 0 Then
-        GetTime cTimeStart 'gets current time
-        Static cPerSecond As Currency
-        If cPerSecond = 0 Then GetFrequency cPerSecond
-        cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
-    Else
-        'set up to run until file created and closed condition is met (no max time limit)
-        cMaxWaitTimeMS = 0
-        cTimeNow = 0
-    End If
+    GetTime timeStart 'in currency
+    
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
     
     'loop until file exists
     Do
         If fso.FileExists(filePath) Then Exit Do
-        sleep loopDelay
+        SleepWinAPI 50 'ms
         DoEvents 'yield to other processes
-        'check if max time as elapsed
-        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
-        If (cTimeNow - cTimeStart) > cMaxWaitTimeMS Then GoTo MaxTimeExceeded
+        GetTime timeNow
+        If timeNow > timeEnd Then GoTo MaxTimeExceeded
     Loop
     
     'the file exists but now make sure it is finished writing (closed)
     Do
         If FileClosed(filePath) Then Exit Sub
-        sleep loopDelay
+        SleepWinAPI 50 'ms
         DoEvents 'yield to other processes
-        'check if max time as elapsed
-        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
-    Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
     
 MaxTimeExceeded:
     Err.Raise 1, "WebDriver", "Error in WaitForDownload method: maximum wait time exceeded while waiting for file download."
 End Sub
 
 '@Description("Waits until an element is not present anymore")
-Public Sub WaitUntilNotPresent(by_ As By, ByVal val As String, Optional ByVal maxWaitTimeMS As Long = -1)
+Public Sub WaitUntilNotPresent(by_ As By, ByVal val As String, Optional ByVal maxWaitTimeMS As Long = 10000)
 Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not present anymore"
-    'if maxWaitTimeMS is positive, then throw error if limit is exceeded before not IsPresent condition is met
-    Dim cTimeStart As Currency
-    Dim cTimeNow As Currency
-    Dim cMaxWaitTimeMS As Currency
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
     
-    Const loopDelay As Long = 50 'in ms
+    GetTime timeStart 'in currency
     
-    If maxWaitTimeMS >= 0 Then
-        GetTime cTimeStart
-        Static cPerSecond As Currency
-        If cPerSecond = 0 Then GetFrequency cPerSecond
-        cMaxWaitTimeMS = CCur(maxWaitTimeMS) * (cPerSecond / 1000)
-    Else
-        'set up to run until not IsPresent condition is met (no max time limit)
-        cMaxWaitTimeMS = 0
-        cTimeNow = 0
-    End If
-    
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
+
     Do
         If Not IsPresent(by_, val) Then Exit Sub
-        If maxWaitTimeMS >= 0 Then GetTime cTimeNow
-        
-        sleep loopDelay
+        SleepWinAPI 50 'ms
         DoEvents 'yield to other processes
-    Loop Until (cTimeNow - cTimeStart) > cMaxWaitTimeMS
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
     
     Err.Raise 1, "WebDriver", "Error in WaitUntilNotPresent method: maximum wait time exceeded while waiting for element to disappear."
 End Sub
@@ -2411,7 +2542,7 @@ End Sub
 '@Description("Gets geolocation parameter values as a dictionay object")
 Public Function GetGeolocation() As Dictionary
 Attribute GetGeolocation.VB_Description = "Gets geolocation parameter values as a dictionay object"
-    Set GetGeolocation = execute(tCMD.CMD_GET_GEOLOCATION, New Dictionary)("value")
+    Set GetGeolocation = execute(tCMD.CMD_GET_GEOLOCATION)("value")
 End Function
 
 '@Description("Creates/updates the optional INI settings file - set keepExistingValues to False to reset existing settings to system defaults")
@@ -3130,7 +3261,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
     parentElem.innerHTML = str
 
     'disable scripts
-    Set elems = parentElem.querySelectorAll("script")
+    Set elems = parentElem.QuerySelectorAll("script")
     For i = 0 To elems.Length - 1
         If htmlDoc.documentMode >= 11 Then
             'these work in Office 365, but appear not to work on some 64-bit systems
@@ -3145,28 +3276,28 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Next i
 
     'disable redirects
-    Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
+    Set elems = parentElem.QuerySelectorAll("meta[http-equiv='refresh']")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "content", vbNullString
     Next i
     
     'disable src attributes
-    Set elems = parentElem.querySelectorAll("*[src]")
+    Set elems = parentElem.QuerySelectorAll("*[src]")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "src", vbNullString
     Next i
     
     'disable srcset attributes
-    Set elems = parentElem.querySelectorAll("*[srcset]")
+    Set elems = parentElem.QuerySelectorAll("*[srcset]")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "srcset", vbNullString
     Next i
     
     'disable href attributes
-    Set elems = parentElem.querySelectorAll("*[href]")
+    Set elems = parentElem.QuerySelectorAll("*[href]")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         If Not (elem.GetAttribute("href") Like "about:blank*") Then
@@ -3175,7 +3306,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Next i
     
     'disable rel attributes
-    Set elems = parentElem.querySelectorAll("*[rel]")
+    Set elems = parentElem.QuerySelectorAll("*[rel]")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "rel", vbNullString
@@ -3183,7 +3314,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
     
     'disable url() function in style elements
     If htmlDoc.documentMode >= 11 Then
-        Set elems = parentElem.querySelectorAll("style")
+        Set elems = parentElem.QuerySelectorAll("style")
         
         For i = 0 To elems.Length - 1
             Set elem = elems.Item(i)
@@ -3209,7 +3340,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
     End If
     
     'disable url() function in style attributes
-    Set elems = parentElem.querySelectorAll("[style*='url(']")
+    Set elems = parentElem.QuerySelectorAll("[style*='url(']")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         subStr = LCase$(elem.GetAttribute("style"))
@@ -3229,21 +3360,21 @@ Private Function sanitizeHTML(ByVal str As String) As String
     Next i
 
     'disable action attributes in form elements
-    Set elems = parentElem.querySelectorAll("form[action]")
+    Set elems = parentElem.QuerySelectorAll("form[action]")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "action", vbNullString
     Next i
     
     'disable as attributes equal to "script" in link elements
-    Set elems = parentElem.querySelectorAll("link[as='script']")
+    Set elems = parentElem.QuerySelectorAll("link[as='script']")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "as", vbNullString
     Next i
     
     'disable data attributes in object elements
-    Set elems = parentElem.querySelectorAll("object[data]")
+    Set elems = parentElem.QuerySelectorAll("object[data]")
     For i = 0 To elems.Length - 1
         Set elem = elems.Item(i)
         elem.SetAttribute "data", vbNullString
@@ -3253,7 +3384,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
     eventsArray = Array("onclick", "onload", "onoffline", "ononline", "onunload", "onpageshow", "onpagehide", "onerror", "onresize", "onhashchange", "onbeforeunload", "onpopstate", "onmessage")
     For j = 0 To UBound(eventsArray)
         eventStr = eventsArray(j)
-        Set elems = parentElem.querySelectorAll("*[" & eventStr & "]")
+        Set elems = parentElem.QuerySelectorAll("*[" & eventStr & "]")
         For i = 0 To elems.Length - 1
             Set elem = elems.Item(i)
             'can't use SetAttribute for on* event attributes so let's remove it instead
@@ -3448,3 +3579,121 @@ Private Function FileClosed(ByVal filePath As String) As Boolean
         FileClosed = False
     End If
 End Function
+
+Private Function osKeyMapper(ByVal keyString As String) As String
+    Dim oRegExp As New VBScript_RegExp_55.RegExp
+    Dim matches As VBScript_RegExp_55.MatchCollection
+    Dim match As VBScript_RegExp_55.match
+    Dim mappedValue As String
+
+    'make map array static
+    Static map(0 To 93) As String
+    Static initMap As Boolean
+
+    If Not initMap Then
+        'create lookup array where index corresponds to Hex value of Selenium special key
+        map(0) = vbNullChar
+        map(1) = "{BREAK}" 'Cancel key - OS-specific keystroke sequence that performs a cancel action ^break
+        map(2) = "{HELP}"
+        map(3) = "{BACKSPACE}"
+        map(4) = "{TAB}"
+        map(5) = "{CLEAR}"
+        map(6) = "{ENTER}" 'Return
+        map(7) = "{ENTER}"
+        map(8) = "+"
+        map(9) = "^"
+        map(10) = "%"
+        map(11) = "" 'The pause key
+        map(12) = "{ESCAPE}"
+        map(13) = Chr$(32) 'Space key
+        map(14) = "{PGUP}"
+        map(15) = "{PGDN}"
+        map(16) = "{END}"
+        map(17) = "{HOME}"
+        map(18) = "{LEFT} "
+        map(19) = "{UP} "
+        map(20) = "{RIGHT} "
+        map(21) = "{DOWN} "
+        map(22) = "{INSERT}"
+        map(23) = "{DELETE}"
+        map(24) = ";"
+        map(25) = "="
+        map(26) = "0"
+        map(27) = "1"
+        map(28) = "2"
+        map(29) = "3"
+        map(30) = "4"
+        map(31) = "5"
+        map(32) = "6"
+        map(33) = "7"
+        map(34) = "8"
+        map(35) = "9"
+        map(36) = "*"
+        map(37) = "+"
+        map(38) = ""
+        map(39) = "-"
+        map(40) = "."
+        map(41) = "/"
+        map(49) = "{F1}"
+        map(50) = "{F2}"
+        map(51) = "{F3}"
+        map(52) = "{F4}"
+        map(53) = "{F5}"
+        map(54) = "{F6}"
+        map(55) = "{F7}"
+        map(56) = "{F8}"
+        map(57) = "{F9}"
+        map(58) = "{F10}"
+        map(59) = "{F11}"
+        map(60) = "{F12}"
+        map(61) = "^{ESCAPE}" 'Meta or command key
+        map(64) = "" ' ZenkakuHankaku Key
+        map(80) = "+"
+        map(81) = "^"
+        map(82) = "%"
+        map(83) = "^{ESCAPE}" 'Meta or Command key
+        map(84) = "{PGUP}"
+        map(85) = "{PGDN}"
+        map(86) = "{END}"
+        map(87) = "{HOME}"
+        map(88) = "{LEFT} "
+        map(89) = "{UP} "
+        map(90) = "{RIGHT} "
+        map(91) = "{DOWN} "
+        map(92) = "{INSERT}"
+        map(93) = "{DELETE}"
+        initMap = True
+    End If
+
+    'escape keys corresponding to special VBA SendKeys chars with brackets {}
+    oRegExp.Global = True
+    oRegExp.Pattern = "([+^%~{}\[\]()])"
+    keyString = oRegExp.Replace(keyString, "{$1}")
+
+    'process Selenium WebDriver special keys
+    oRegExp.Pattern = "\\u[eE]0([0-5][0-9a-fA-F])"
+    Set matches = oRegExp.execute(keyString)
+    
+    If matches.Count > 0 Then
+        For Each match In matches
+            'get the index for the map array and return mapped value
+            mappedValue = map(CLng("&H" & match.SubMatches(0)))
+            If mappedValue = "" Then Err.Raise 1, , "Error in using SendKeysToOS - key " & match.Value & " not supported"
+            'replace match with mapped value
+            keyString = Replace(keyString, match.Value, mappedValue)
+        Next match
+    End If
+
+    osKeyMapper = keyString
+End Function
+
+Private Function timeMStoCurrency(ByVal milliseconds As Long) As Currency
+    Static perSecond As Currency
+    If perSecond = 0 Then GetFrequency perSecond
+    timeMStoCurrency = CCur(milliseconds) * (perSecond / 1000)
+End Function
+
+Private Sub Class_Terminate()
+    'delete temp files if they were created
+    If cleanupTempFiles Then DeleteFiles "%TEMP%\seleniumVBAtmp*.vbs"
+End Sub

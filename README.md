@@ -11,7 +11,12 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
 
-$\textcolor{green}{\textsf{What's New? ExecuteCDP method exposing Chrome DevTools Protocol - a low-level interface for browser interaction.}}$
+**What's New?**
+
+- Improved JavaScript Alert management with WebAlert class and SwitchToAlert method of WebDriver class
+- Advanced keys support including Chord and Repeat methods of the WebKeyboard class
+- Improved SendKeys and new SendKeysToOS methods - the later for sending key inputs to non-browser windows
+- ExecuteCDP method exposing Chrome DevTools Protocol - a low-level interface for browser interaction.
 
 ## Setup
 
@@ -34,7 +39,7 @@ Sub doSendKeys()
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 1000
     
-    keySeq = "This is COOKL!" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
+    keySeq = "This is COOKL!" & keys.Repeat(keys.LeftKey, 3) & keys.DeleteKey & keys.ReturnKey
     
     driver.FindElement(by.name, "q").SendKeys keySeq
     driver.Wait 2000

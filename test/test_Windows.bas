@@ -52,7 +52,8 @@ End Sub
 Sub test_windows2()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
-    Dim mainWindow As String, whdls() As String
+    Dim mainHnd As String
+    Dim allHnds() As String
     Dim i As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
@@ -69,12 +70,12 @@ Sub test_windows2()
     
     driver.FindElement(By.XPath, "//*[contains(@href,'popup.php')]").Click
     
-    mainWindow = driver.GetCurrentWindowHandle
-    whdls = driver.GetWindowHandles
+    mainHnd = driver.GetCurrentWindowHandle
+    allHnds = driver.GetWindowHandles
     
-    For i = 1 To UBound(whdls)
-        If whdls(i) <> mainWindow Then
-            driver.SwitchToWindow whdls(i)
+    For i = 1 To UBound(allHnds)
+        If allHnds(i) <> mainHnd Then
+            driver.SwitchToWindow allHnds(i)
             driver.Wait
             driver.FindElement(By.Name, "emailid").SendKeys "gaurav.3n@gmail.com"
             driver.Wait 2000
@@ -86,7 +87,7 @@ Sub test_windows2()
     Next i
     
     ' Switching to Parent window i.e Main Window.
-    driver.SwitchToWindow mainWindow
+    driver.SwitchToWindow mainHnd
     
     driver.Wait 2000
     

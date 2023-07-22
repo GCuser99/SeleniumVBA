@@ -13,15 +13,24 @@ Sub test_geolocation()
     driver.StartChrome 'Chrome and Edge only
     driver.OpenBrowser
     
+    driver.ImplicitWait = 2000
+    
     'set the location
     driver.SetGeolocation 41.1621429, -8.6219537
   
-    driver.NavigateTo "https://whatmylocation.com/"
+    driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
+    
+    driver.FindElementByXPath("//*[@id='content']/div/button").Click
+    
+    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    
     driver.Wait 2000
     
-    'print the name/address of the location to immediate window
-    Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText
+    driver.FindElementByXPath("//*[@id='map-link']/a").Click
+    
+    driver.Wait 5000
     
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+

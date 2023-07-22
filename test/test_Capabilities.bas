@@ -157,6 +157,7 @@ Sub test_unhandled_prompts()
     Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'try different settings here to see what happens with flow below
+    'defaults to dismiss and notify
     caps.SetUnhandledPromptBehavior svbaAccept
     
     driver.OpenBrowser caps
@@ -332,7 +333,6 @@ Sub test_remoteDebugger()
     
     'set debugger address to same port as browser
     caps.SetDebuggerAddress "localhost:9222"
-    'Debug.Print caps.ToJson
     
     driver.OpenBrowser caps
     
@@ -365,15 +365,22 @@ Sub test_geolocation_with_incognito()
 
     driver.OpenBrowser caps:=caps, incognito:=True
     
+    driver.ImplicitWait = 2000
+    
     'set the location
     driver.SetGeolocation 41.1621429, -8.6219537
-    
-    driver.ImplicitWait = 5000
   
-    driver.NavigateTo "https://whatmylocation.com/"
+    driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
     
-    'print the name/address of the location to immediate window
-    Debug.Print driver.FindElementByXPath("//*[@id='address']").GetText
+    driver.FindElementByXPath("//*[@id='content']/div/button").Click
+    
+    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    
+    driver.Wait 2000
+    
+    driver.FindElementByXPath("//*[@id='map-link']/a").Click
+    
+    driver.Wait 5000
     
     driver.CloseBrowser
     driver.Shutdown
