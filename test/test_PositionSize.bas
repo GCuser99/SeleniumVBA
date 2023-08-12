@@ -4,17 +4,16 @@ Option Private Module
 '@folder("SeleniumVBA.Testing")
 
 Sub test_position_size()
-    Dim driver As SeleniumVBA.WebDriver, webElem As SeleniumVBA.WebElement, rect As Dictionary
-    Dim url As String
+    Dim driver As SeleniumVBA.WebDriver
+    Dim webElem As SeleniumVBA.WebElement
+    Dim rect As Dictionary
 
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
-    
-    url = "https://www.wikipedia.org/"
 
-    driver.NavigateTo url
+    driver.NavigateTo "https://www.wikipedia.org/"
     Set webElem = driver.FindElement(By.ID, "searchInput")
 
     driver.Wait 500
@@ -22,20 +21,7 @@ Sub test_position_size()
     'SeleniumVBA uses the dictionary object to represent rectangle position and size
     Set rect = webElem.GetRect
     
-    Debug.Print rect("x"), rect("y"), rect("width"), rect("height")
-    
-    Set rect = driver.GetWindowRect
-    
-    Debug.Print rect("x"), rect("y"), rect("width"), rect("height")
-    
-    'driver.SetWindowSize , rect("height") / 2
-    'driver.SetWindowPosition , 200
-    
-    Set rect = driver.SetWindowRect(, 200, , rect("height") / 2)
-    
-    Debug.Print rect("x"), rect("y"), rect("width"), rect("height")
-    
-    driver.Wait 1000
+    Debug.Print "element position/size", rect("x"), rect("y"), rect("width"), rect("height")
 
     driver.CloseBrowser
     driver.Shutdown

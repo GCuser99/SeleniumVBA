@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -63,6 +63,7 @@ Private mReturnKey As String
 Private mEnterKey As String
 Private mShiftKey As String
 Private mControlKey As String
+Private mCtrlKey As String
 Private mAltKey As String
 Private mPauseKey As String
 Private mEscapeKey As String
@@ -114,9 +115,9 @@ Private mCtrlShiftKeys As String
 Private mAltShiftKeys As String
 Private mCtrlAltKeys As String
 
-'@Description("Returns the Null (\\uE000) key")
+'@Description("Returns the Null (\\uE000) key - triggers all previous modifiers used in the string to be released")
 Public Property Get NullKey() As String
-Attribute NullKey.VB_Description = "Returns the Null (\\uE000) key"
+Attribute NullKey.VB_Description = "Returns the Null (\\uE000) key - triggers all previous modifiers used in the string to be released"
     NullKey = mNullKey
 End Property
 '@Description("Returns the Cancel (\\uE001) key")
@@ -159,10 +160,15 @@ Public Property Get ShiftKey() As String
 Attribute ShiftKey.VB_Description = "Returns the Shift (\\uE008) key"
     ShiftKey = mShiftKey
 End Property
-'@Description("Returns the Control (\\uE009) key")
+'@Description("Returns the Control (\\uE009) key - DEPRECATED")
 Public Property Get ControlKey() As String
-Attribute ControlKey.VB_Description = "Returns the Control (\\uE009) key"
+Attribute ControlKey.VB_Description = "Returns the Control (\\uE009) key - DEPRECATED"
     ControlKey = mControlKey
+End Property
+'@Description("Returns the Ctrl (\\uE009) key")
+Public Property Get CtrlKey() As String
+Attribute CtrlKey.VB_Description = "Returns the Ctrl (\\uE009) key"
+    CtrlKey = mCtrlKey
 End Property
 '@Description("Returns the Alt (\\uE00a) key")
 Public Property Get AltKey() As String
@@ -428,11 +434,11 @@ Attribute Chord.VB_Description = "Returns modifier key(s) down, keys to send, mo
         Case mods(i) Like "\u[eE]00[89aA]"
             Chord = Chord & mods(i) 'we have a valid modifier
         Case Else
-            Err.Raise 1, , "Error in Chord method - valid modifier keys must be Shift, Control, Alt and/or Windows keys"
+            Err.Raise 1, , "Error in Chord method - valid modifier keys must be Shift, Control, and Alt keys"
         End Select
     Next i
     'combine modifiers and keys with a terminating null key
-    Chord = Chord & keysToSend & "\uE000"
+    Chord = Chord & keysToSend & NullKey
 End Function
 
 '@Description("Returns a string consisting of a sub-string repeated the specified number of times")
@@ -455,6 +461,7 @@ Private Sub Class_Initialize()
     mEnterKey = "\uE007"
     mShiftKey = "\uE008"
     mControlKey = "\uE009"
+    mCtrlKey = "\uE009"
     mAltKey = "\uE00a"
     mPauseKey = "\uE00b"
     mEscapeKey = "\uE00c"

@@ -7,12 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Attribute VB_Description = "This class is used to manage browser alerts"
-'@ModuleDescription "This class is used to manage browser alerts"
+Attribute VB_Description = "This class is used to manage browser alerts - must be instantiated using the SwitchToAlert method of the WebDriver class"
+'@ModuleDescription "This class is used to manage browser alerts - must be instantiated using the SwitchToAlert method of the WebDriver class"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -65,12 +65,12 @@ Attribute GetAlertText.VB_Description = "Returns the text prompt of the active a
     GetAlertText = driver_.execute(tCMD.CMD_GET_ALERT_TEXT)("value")
 End Function
 
-'@Description("Sends the specified text to the active prompt-type alert - Selenium special keys not allowed for alerts")
+'@Description("Sends the specified text to the active prompt-type alert - Selenium special keys not recognized for alerts")
 Public Function SendKeys(ByVal alertText As String) As WebAlert
-Attribute SendKeys.VB_Description = "Sends the specified text to the active prompt-type alert - Selenium special keys not allowed for alerts"
+Attribute SendKeys.VB_Description = "Sends the specified text to the active prompt-type alert - Selenium special keys not recognized for alerts"
     Dim data As New Dictionary
     If alertText Like "*\u[eE]0[0-5][0-9a-fA-F]*" Then
-        Err.Raise 1, , "Error in alert SendKeys method: special keys not allowed in the alertText argument."
+        Err.Raise 1, , "Error in alert SendKeys method: special keys not recognized in the alertText argument."
     End If
     data.Add "text", alertText
     driver_.execute tCMD.CMD_SET_ALERT_TEXT, data

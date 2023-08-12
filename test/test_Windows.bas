@@ -3,95 +3,248 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
 
-Sub test_windows1()
+Sub test_Selenium_way()
+    'this test follows the strategy recommended is Selenium's documentation, using window handles
+    'https://www.selenium.dev/documentation/webdriver/interactions/windows/#switching-windows-or-tabs
     Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-    Dim hnd1 As String, hnd2 As String, i As Integer
+    Dim mainHandle As String
+    Dim allHandles As Collection
+    Dim childHandle As String
+    Dim i As Long
+    
+    Set driver = SeleniumVBA.New_WebDriver
+        
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+        
+    'get the handle to the current active window
+    mainHandle = driver.ActiveWindow.Handle
+        
+    'spawn new window
+    driver.FindElementByCssSelector("#content > div > a").Click
+        
+    'note here that main window is still the active one from Selenium's perspective!!
+    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+        
+    'now get the collection of all open window handles
+    Set allHandles = driver.Windows.Handles
+        
+    'find the child window's handle by elimination
+    For i = 1 To allHandles.Count
+        If allHandles(i) <> mainHandle Then
+            childHandle = allHandles(i)
+            Exit For
+        End If
+    Next i
+        
+    'activate the child window and print title
+    driver.Windows(childHandle).Activate
+    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    
+    driver.Shutdown
+End Sub
+
+Sub test_windows_Selenium_way_with_oop_approach()
+    'this test follows the strategy recommended is Selenium's documentation, using window objects
+    'https://www.selenium.dev/documentation/webdriver/interactions/windows/#switching-windows-or-tabs
+    Dim driver As SeleniumVBA.WebDriver
+    Dim mainWindow As SeleniumVBA.WebWindow
+    Dim window As SeleniumVBA.WebWindow
     
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
-    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
-    driver.OpenBrowser caps
-
-    driver.NavigateTo "https://www.wikipedia.org/"
-    driver.Wait 1000
+    driver.OpenBrowser
     
-    hnd1 = driver.GetCurrentWindowHandle
-    hnd2 = driver.SwitchToNewWindow(svbaTab) 'this will create a new browser tab
-    'hnd2 = Driver.SwitchToNewWindow(svbaWindow) 'this will create a new browser window
+    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
     
-    driver.NavigateTo "https://en.wikipedia.org/wiki/Main_Page"
-    driver.Wait 1000
+    'get the current active window
+    Set mainWindow = driver.ActiveWindow
     
-    Debug.Print hnd2 & " is same as " & driver.GetCurrentWindowHandle
+    'spawn a new window
+    driver.FindElementByCssSelector("#content > div > a").Click
     
-    driver.SwitchToWindow hnd1
-    driver.Wait 1000
-    driver.SwitchToWindow hnd2
-    driver.Wait 1000
+    'note here that main window is still the active one from Selenium's perspective!!
+    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
     
-    Debug.Print "first window handle: " & driver.GetWindowHandles()(1)
-    Debug.Print "second window handle: " & driver.GetWindowHandles()(2)
+    'find and activate the child window and then print its title
+    For Each window In driver.Windows
+        If window.IsNotSameAs(mainWindow) Then
+            Debug.Print window.Activate.Title 'prints "New Window"
+            Exit For
+        End If
+    Next window
     
-    'can switch based on index too
-    For i = 1 To 5
-        driver.SwitchToWindow 1
-        driver.Wait 500
-        driver.SwitchToWindow 2
-        driver.Wait 500
-    Next i
-    
-    driver.CloseWindow
-    driver.Wait 1000
-
-    driver.CloseBrowser
     driver.Shutdown
 End Sub
 
-Sub test_windows2()
+Sub test_windows_SwitchToTitle()
+    'this test uses SwitchToTitle to shortcut the finding of the child window,
+    'without having to enumerate the windows collection
     Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-    Dim mainHnd As String
-    Dim allHnds() As String
-    Dim i As Integer
+    Dim mainWindow As SeleniumVBA.WebWindow
+    Dim childWindow As SeleniumVBA.WebWindow
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+    
+    'get the current active window
+    Set mainWindow = driver.ActiveWindow
+    
+    'spawn a new window
+    driver.FindElementByCssSelector("#content > div > a").Click
+    
+    'note here that main window is still the active one from Selenium's perspective!!
+    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    
+    Set childWindow = driver.Windows.SwitchToByTitle("New Window")
+    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    Debug.Print childWindow.Title 'prints "New Window"
+    
+    driver.Shutdown
+End Sub
+
+Sub test_windows_SwitchToNext()
+    'this test uses SwitchToNext to shortcut the finding of the child window,
+    'without having to enumerate the windows collection
+    Dim driver As SeleniumVBA.WebDriver
+    Dim mainWindow As SeleniumVBA.WebWindow
+    Dim childWindow As SeleniumVBA.WebWindow
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+    
+    'get the current active window
+    Set mainWindow = driver.ActiveWindow
+    
+    'spawn a new window
+    driver.FindElementByCssSelector("#content > div > a").Click
+    
+    'note here that main window is still the active one from Selenium's perspective!!
+    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    
+    'switch to the next open window in the collection AFTER the current active window
+    Set childWindow = driver.Windows.SwitchToNext
+    'Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    Debug.Print childWindow.Title 'prints "New Window"
+    
+    driver.Shutdown
+End Sub
+
+Sub test_windows_SwitchToNew()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim win1 As SeleniumVBA.WebWindow
+    Dim win2 As SeleniumVBA.WebWindow
+    Dim i As Long
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+    
+    'get the current active window
+    Set win1 = driver.ActiveWindow
+    
+    'open and activate a new Window-type window
+    Set win2 = driver.Windows.SwitchToNew(windowType:=svbaWindow)
+    'Set win2 = driver.Windows.SwitchToNew(windowType:=svbaTab) 'for Tab-type window
+    
+    driver.NavigateTo "http://google.com"
+    
+    For i = 1 To 5
+        Debug.Print win1.Activate.Title
+        Debug.Print win2.Activate.Title
+    Next i
+    
+    driver.Shutdown
+End Sub
+
+Sub test_windows_CloseIt()
+    'SeleniumVBA CloseIt method solves the activate-after-close problem
+    'see https://www.selenium.dev/documentation/webdriver/interactions/windows/#closing-a-window-or-tab
+    Dim driver As SeleniumVBA.WebDriver
+    Dim mainWindow As SeleniumVBA.WebWindow
+    Dim childWindow As SeleniumVBA.WebWindow
+    
+    Set driver = SeleniumVBA.New_WebDriver
+
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+    
+    'get the current active window
+    Set mainWindow = driver.ActiveWindow
+    
+    'spawn a new window
+    driver.FindElementByCssSelector("#content > div > a").Click
+    
+    'note here that main window is still the active one from Selenium's perspective!!
+    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    
+    Set childWindow = driver.Windows.SwitchToNext
+    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    
+    childWindow.CloseIt 'this automatically activates the mainWindow upon close
+    
+    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    Debug.Print mainWindow.Title 'prints "The Internet"
+    
+    driver.Shutdown
+End Sub
+
+Sub test_windows_state()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim winBounds As Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
-    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
-    driver.OpenBrowser caps
+    driver.OpenBrowser
     
-    driver.NavigateTo "http://demo.guru99.com/popup.php"
+    driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.MaximizeWindow
+    'get the current bounds dictionary object
+    Set winBounds = driver.ActiveWindow.Bounds
     
-    driver.Wait 2000
+    Debug.Print "current window position/size", winBounds("x"), winBounds("y"), winBounds("width"), winBounds("height")
     
-    driver.FindElement(By.XPath, "//*[contains(@href,'popup.php')]").Click
+    'maximize the window state
+    driver.ActiveWindow.Maximize
     
-    mainHnd = driver.GetCurrentWindowHandle
-    allHnds = driver.GetWindowHandles
+    'get the maximized bounds dictionary object
+    Set winBounds = driver.ActiveWindow.Bounds
     
-    For i = 1 To UBound(allHnds)
-        If allHnds(i) <> mainHnd Then
-            driver.SwitchToWindow allHnds(i)
-            driver.Wait
-            driver.FindElement(By.Name, "emailid").SendKeys "gaurav.3n@gmail.com"
-            driver.Wait 2000
-            driver.FindElement(By.Name, "btnLogin").Click
-            driver.Wait 2000
-            driver.CloseWindow
-            Exit For
-        End If
-    Next i
+    Debug.Print "maximized window position/size", winBounds("x"), winBounds("y"), winBounds("width"), winBounds("height")
     
-    ' Switching to Parent window i.e Main Window.
-    driver.SwitchToWindow mainHnd
+    'modify the position and size
+    winBounds("y") = 200
+    winBounds("height") = winBounds("height") / 2
     
-    driver.Wait 2000
+    'set the new window bounds
+    Set driver.ActiveWindow.Bounds = winBounds
     
-    driver.CloseBrowser
+    'these shortcut methods can be used to do above as well
+    'driver.ActiveWindow.SetSize height:=winBounds("height") / 2
+    'driver.ActiveWindow.SetPosition y:=200
+    
+    'get the modified bounds dictionary object
+    Set winBounds = driver.ActiveWindow.Bounds
+    
+    Debug.Print "modified window position/size", winBounds("x"), winBounds("y"), winBounds("width"), winBounds("height")
+    
     driver.Shutdown
 End Sub
 

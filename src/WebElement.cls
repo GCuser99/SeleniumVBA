@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -93,31 +93,31 @@ End Function
 '@Description("Finds the first element by the specified tag name value")
 Public Function FindElementByTagName(ByVal val As String) As WebElement
 Attribute FindElementByTagName.VB_Description = "Finds the first element by the specified tag name value"
-    Set FindElementByTagName = driver_.FindElement(By.tagName, val, Me)
+    Set FindElementByTagName = driver_.FindElement(By.TagName, val, Me)
 End Function
 
 '@Description("Finds the first element by the specified class name value")
 Public Function FindElementByClassName(ByVal val As String) As WebElement
 Attribute FindElementByClassName.VB_Description = "Finds the first element by the specified class name value"
-    Set FindElementByClassName = driver_.FindElement(By.className, val, Me)
+    Set FindElementByClassName = driver_.FindElement(By.ClassName, val, Me)
 End Function
 
 '@Description("Finds the first element by the specified css selector value")
 Public Function FindElementByCssSelector(ByVal val As String) As WebElement
 Attribute FindElementByCssSelector.VB_Description = "Finds the first element by the specified css selector value"
-    Set FindElementByCssSelector = driver_.FindElement(By.cssSelector, val, Me)
+    Set FindElementByCssSelector = driver_.FindElement(By.CssSelector, val, Me)
 End Function
 
 '@Description("Finds the first element by the specified css selector value")
 Public Function QuerySelector(ByVal val As String) As WebElement
 Attribute QuerySelector.VB_Description = "Finds the first element by the specified css selector value"
-    Set QuerySelector = driver_.FindElement(By.cssSelector, val, Me)
+    Set QuerySelector = driver_.FindElement(By.CssSelector, val, Me)
 End Function
 
 '@Description("Finds the first element by the specified link text value")
 Public Function FindElementByLinkText(ByVal val As String) As WebElement
 Attribute FindElementByLinkText.VB_Description = "Finds the first element by the specified link text value"
-    Set FindElementByLinkText = driver_.FindElement(By.linkText, val, Me)
+    Set FindElementByLinkText = driver_.FindElement(By.LinkText, val, Me)
 End Function
 
 '@Description("Finds the first element by the specified name value")
@@ -153,31 +153,31 @@ End Function
 '@Description("Finds all elements that satisfy the specified tag name value")
 Public Function FindElementsByTagName(ByVal val As String) As WebElements
 Attribute FindElementsByTagName.VB_Description = "Finds all elements that satisfy the specified tag name value"
-    Set FindElementsByTagName = driver_.FindElements(By.tagName, val, Me)
+    Set FindElementsByTagName = driver_.FindElements(By.TagName, val, Me)
 End Function
 
 '@Description("Finds all elements that satisfy the specified class name value")
 Public Function FindElementsByClassName(ByVal val As String) As WebElements
 Attribute FindElementsByClassName.VB_Description = "Finds all elements that satisfy the specified class name value"
-    Set FindElementsByClassName = driver_.FindElements(By.className, val, Me)
+    Set FindElementsByClassName = driver_.FindElements(By.ClassName, val, Me)
 End Function
 
 '@Description("Finds all elements that satisfy the specified css selector value")
 Public Function FindElementsByCssSelector(ByVal val As String) As WebElements
 Attribute FindElementsByCssSelector.VB_Description = "Finds all elements that satisfy the specified css selector value"
-    Set FindElementsByCssSelector = driver_.FindElements(By.cssSelector, val, Me)
+    Set FindElementsByCssSelector = driver_.FindElements(By.CssSelector, val, Me)
 End Function
 
 '@Description("Finds all elements that satisfy the specified css selector value")
 Public Function QuerySelectorAll(ByVal val As String) As WebElements
 Attribute QuerySelectorAll.VB_Description = "Finds all elements that satisfy the specified css selector value"
-    Set QuerySelectorAll = driver_.FindElements(By.cssSelector, val, Me)
+    Set QuerySelectorAll = driver_.FindElements(By.CssSelector, val, Me)
 End Function
 
 '@Description("Finds all elements that satisfy the specified link text value")
 Public Function FindElementsByLinkText(ByVal val As String) As WebElements
 Attribute FindElementsByLinkText.VB_Description = "Finds all elements that satisfy the specified link text value"
-    Set FindElementsByLinkText = driver_.FindElements(By.linkText, val, Me)
+    Set FindElementsByLinkText = driver_.FindElements(By.LinkText, val, Me)
 End Function
 
 '@Description("Finds all elements that satisfy the specified name value")
@@ -212,9 +212,9 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to this element"
 End Sub
 
 '@Description("Clicks this element")
-Public Sub Click()
+Public Sub Click(Optional ByVal modifierKeys As String)
 Attribute Click.VB_Description = "Clicks this element"
-    driver_.Click Me
+    driver_.Click Me, modifierKeys
 End Sub
 
 '@Description("Submits a form element")

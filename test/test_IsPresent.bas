@@ -39,7 +39,7 @@ Sub test_IsPresent()
     Debug.Print "child3 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child3']", 3000, elem)
     Debug.Print "child3 of parent2 reference is nothing:", elem Is Nothing
     
-    Set elems = driver.FindElements(By.cssSelector, "[id^='parent']")
+    Set elems = driver.FindElements(By.CssSelector, "[id^='parent']")
     
     For Each elem In elems
         Debug.Print "child1 of " & elem.GetAttribute("id") & " present:", elem.IsPresent(By.XPath, ".//div[@id = 'child1']")
@@ -88,7 +88,7 @@ Sub test_IsPresent_wait()
     driver.NavigateToFile ".\snippet1.html"
 
     'wait up to 20 secs for the div from the second html gets loaded
-    driver.IsPresent By.ID, "testDiv", 20000
+    Debug.Print driver.IsPresent(By.ID, "testDiv", 20000)
     
     driver.Wait 1500
         

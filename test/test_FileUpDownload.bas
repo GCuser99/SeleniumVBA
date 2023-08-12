@@ -115,7 +115,7 @@ Sub test_download_resource()
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
     driver.Wait 1000
 
-    Set element = driver.FindElement(By.cssSelector, "img[alt='SeleniumVBA'")
+    Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
     
     'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
     element.DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"

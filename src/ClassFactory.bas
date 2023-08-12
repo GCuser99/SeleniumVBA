@@ -3,7 +3,7 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 '@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -51,9 +51,11 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 Option Explicit
 
 'new WebAlert should be instantiated from WebDriver.SwitchToAlert
-'Public Function New_WebAlert() As WebAlert
-'    Set New_WebAlert = New WebAlert
-'End Function
+'new WebCapabilities should be instantiated from WebDriver.CreateCapabilities
+'new WebActionChain should be instantiated from WebDriver.Actions
+'new WebCookies should be instantiated from WebDriver.CreateCookies
+'new WebWindow should be instantiated from WebDriver.ActiveWindow or from one of the methods in WebWindows object
+'new WebWindows should be instantiated from WebDriver.Windows
 
 '@Description("Instantiates a WebDriver object")
 Public Function New_WebDriver() As WebDriver
@@ -79,21 +81,11 @@ Attribute New_WebElements.VB_Description = "Instantiates a WebElements object"
     Set New_WebElements = New WebElements
 End Function
 
-'new WebActionChain should be instantiated from WebDriver.Actions
-'Public Function New_WebActionChain() As WebActionChain
-'    Set New_WebActionChain = New WebActionChain
-'End Function
-
 '@Description("Instantiates a WebCookie object")
 Public Function New_WebCookie() As WebCookie
 Attribute New_WebCookie.VB_Description = "Instantiates a WebCookie object"
     Set New_WebCookie = New WebCookie
 End Function
-
-'new WebCookies should be instantiated from WebDriver.CreateCookies
-'Public Function New_WebCookies() As WebCookies
-'    Set New_WebCookies = New WebCookies
-'End Function
 
 '@Description("Instantiates a WebJsonConverter object - this is optional as this object is predeclared")
 Public Function New_WebJsonConverter() As WebJsonConverter
@@ -106,11 +98,6 @@ Public Function New_WebKeyboard() As WebKeyboard
 Attribute New_WebKeyboard.VB_Description = "Instantiates a WebKeyboard object - this is optional as this object is predeclared"
     Set New_WebKeyboard = New WebKeyboard
 End Function
-
-'new WebCapabilities should be instantiated from WebDriver.CreateCapabilities
-'Public Function New_WebCapabilities() As WebCapabilities
-'    Set New_WebCapabilities = New WebCapabilities
-'End Function
 
 '@Description("Instantiates a WebPrintSettings object")
 Public Function New_WebPrintSettings() As WebPrintSettings

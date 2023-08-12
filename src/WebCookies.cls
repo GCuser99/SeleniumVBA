@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -97,8 +97,6 @@ End Sub
 Public Property Get Item(ByVal cookieName As Variant) As WebCookie
 Attribute Item.VB_Description = "Returns the cookie of the provided name"
 Attribute Item.VB_UserMemId = 0
-    'Attribute Dictionary.VB_UserMemId = 0
-    'uncomment line above in text editor to make this the default property
     Set Item = colCookie.Item(cookieName)
 End Property
 

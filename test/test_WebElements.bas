@@ -22,7 +22,7 @@ Sub test_WebElements()
     driver.Wait 2000
         
     Set myTable = driver.FindElement(By.XPath, "/html/body/table/tbody")
-    Set rowsTable = myTable.FindElements(By.tagName, "tr")
+    Set rowsTable = myTable.FindElements(By.TagName, "tr")
     
     Debug.Print "Number of rows in table: " & rowsTable.Count
     Debug.Print "Item 1 of first row: " & rowsTable.Item(1).GetText
@@ -32,7 +32,7 @@ Sub test_WebElements()
     'can use the default Item property to iterate through the WebElements object
     For row = 1 To rowsTable.Count
         Set rowElem = rowsTable(row)
-        Set columnsRow = rowElem.FindElements(By.tagName, "td")
+        Set columnsRow = rowElem.FindElements(By.TagName, "td")
         For col = 1 To columnsRow.Count
             Set colElem = columnsRow(col)
             Debug.Print "Cell value of row number " & row & " and column number " & col & " is " & colElem.GetText
@@ -41,7 +41,7 @@ Sub test_WebElements()
     
     'can also use For Each syntax to do same ...
     For Each rowElem In rowsTable
-        Set columnsRow = rowElem.FindElements(By.tagName, "td")
+        Set columnsRow = rowElem.FindElements(By.TagName, "td")
         For Each colElem In columnsRow
             Debug.Print "Cell Value is " & colElem.GetText
         Next colElem

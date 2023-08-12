@@ -107,7 +107,7 @@ Sub test_Authentication()
         runOnSeparateThread:=False, _
         waitForWindow:=False
     
-    If driver.IsPresent(By.cssSelector, "#content > div > p", , elem) Then
+    If driver.IsPresent(By.CssSelector, "#content > div > p", , elem) Then
         Debug.Print elem.GetText
     End If
   

@@ -104,8 +104,9 @@ Sub test_Alerts()
 End Sub
 
 Sub test_Alerts2()
-    Dim driver As New WebDriver
-    Dim keys As New WebKeyboard
+    Dim driver As SeleniumVBA.WebDriver
+    
+    Set driver = SeleniumVBA.New_WebDriver
         
     driver.StartChrome
     driver.OpenBrowser
@@ -145,7 +146,7 @@ Sub test_Authentication()
     
     driver.NavigateTo "http://" & userName & ":" & pw & "@the-internet.herokuapp.com/basic_auth"
   
-    If driver.IsPresent(By.cssSelector, "#content > div > p", , elem) Then
+    If driver.IsPresent(By.CssSelector, "#content > div > p", , elem) Then
         Debug.Print elem.GetText
     End If
     

@@ -104,7 +104,7 @@ Sub test_shadowroot()
     driver.OpenBrowser
     driver.NavigateTo ("http://watir.com/examples/shadow_dom.html")
     
-    Set shadowHost = driver.FindElement(By.cssSelector, "#shadow_host")
+    Set shadowHost = driver.FindElement(By.CssSelector, "#shadow_host")
     
     'this returns "Command not found"
     Set shadowRootelem = shadowHost.GetShadowRoot()
@@ -157,7 +157,7 @@ Sub test_cookies()
 End Sub
 
 Sub test_Windows()
-    'SwitchToWindow does not switch in IE mode
+    'SwitchToWindow works in IE mode but does not bring switched-to windows into foreground
     'see https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/ie-mode?tabs=c-sharp
     'https://titusfortner.com/2022/09/28/edge-ie-mode.html
     Dim driver As SeleniumVBA.WebDriver
@@ -171,35 +171,20 @@ Sub test_Windows()
 
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 500
-    
-    hnd1 = driver.GetCurrentWindowHandle
-    hnd2 = driver.SwitchToNewWindow(svbaTab) 'this will create a new browser tab
-    'hnd2 = Driver.SwitchToNewWindow(svbaWindow) 'this will create a new browser window
-    
+
+    driver.Windows.SwitchToNew svbaTab 'this will create a new browser tab
+
+    driver.NavigateTo "https://www.news.google.com/"
     driver.Wait 500
     
-    driver.NavigateTo "https://news.google.com/"
-    driver.Wait 500
-    
-    Debug.Print hnd2 & " is same as " & driver.GetCurrentWindowHandle
-    
-    driver.SwitchToWindow hnd1
-    driver.Wait 500
-    driver.SwitchToWindow hnd2
-    driver.Wait 500
-    
-    Debug.Print "first window handle: " & driver.GetWindowHandles()(1)
-    Debug.Print "second window handle: " & driver.GetWindowHandles()(2)
-    
-    'can switch based on index too
-    For i = 1 To 5
-        driver.SwitchToWindow 1
-        driver.Wait 500
-        driver.SwitchToWindow 2
-        driver.Wait 500
+    'the following loop works, but does not bring switched-windows into foreground
+    For i = 1 To 10
+        Debug.Print driver.Windows(1).Activate.Title
+        Debug.Print driver.Windows(2).Activate.Title
     Next i
     
-    driver.CloseWindow
+    driver.ActiveWindow.CloseIt
+    driver.ActiveWindow.CloseIt
     driver.Wait 1000
 
     driver.CloseBrowser
@@ -319,7 +304,6 @@ Sub test_MultiSession_IE()
     
     driver1.Shutdown 'shuts down all instances listening to same port
     driver2.Shutdown 'this is needed if different port
-
 End Sub
 
 Sub test_invisible()
@@ -416,7 +400,7 @@ Sub test_user_profile()
 End Sub
 
 Sub test_detach_browser()
-    'use this if you want browser to remain open after shutdown clean-up - only for Chrome/Edge
+    'only for Chrome/Edge - not supported in IE mode
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
     

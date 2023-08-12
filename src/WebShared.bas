@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -105,7 +105,7 @@ Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal baseP
         End If
         
         'employ fso to make the conversion of relative path to absolute
-        savePath = CurDir()
+        savePath = CurDir$()
         SetCurrentDirectory StrPtr(basePath)
         getFullLocalPath = fso.GetAbsolutePathName(inputPath)
         SetCurrentDirectory StrPtr(savePath)
@@ -345,36 +345,36 @@ Public Function enumTextToValue(ByVal enumText As String) As Long
         enumTextToValue = VBA.val(enumText)
         Exit Function
     End If
-    Select Case LCase(enumText)
-    Case LCase("svbaNotCompatible")
+    Select Case LCase$(enumText)
+    Case LCase$("svbaNotCompatible")
         enumTextToValue = svbaCompatibility.svbaNotCompatible
-    Case LCase("svbaMajor")
+    Case LCase$("svbaMajor")
         enumTextToValue = svbaCompatibility.svbaMajor
-    Case LCase("svbaMinor")
+    Case LCase$("svbaMinor")
         enumTextToValue = svbaCompatibility.svbaMinor
-    Case LCase("svbaBuildMajor")
+    Case LCase$("svbaBuildMajor")
         enumTextToValue = svbaCompatibility.svbaBuildMajor
-    Case LCase("svbaExactMatch")
+    Case LCase$("svbaExactMatch")
         enumTextToValue = svbaCompatibility.svbaExactMatch
-    Case LCase("vbHide")
+    Case LCase$("vbHide")
         enumTextToValue = VbAppWinStyle.vbHide
-    Case LCase("vbMaximizedFocus")
+    Case LCase$("vbMaximizedFocus")
         enumTextToValue = VbAppWinStyle.vbMaximizedFocus
-    Case LCase("vbMinimizedFocus")
+    Case LCase$("vbMinimizedFocus")
         enumTextToValue = VbAppWinStyle.vbMinimizedFocus
-    Case LCase("vbMinimizedNoFocus")
+    Case LCase$("vbMinimizedNoFocus")
         enumTextToValue = VbAppWinStyle.vbMinimizedNoFocus
-    Case LCase("vbNormalFocus")
+    Case LCase$("vbNormalFocus")
         enumTextToValue = VbAppWinStyle.vbNormalFocus
-    Case LCase("vbNormalNoFocus")
+    Case LCase$("vbNormalNoFocus")
         enumTextToValue = VbAppWinStyle.vbNormalNoFocus
-    Case LCase("svbaLandscape")
+    Case LCase$("svbaLandscape")
         enumTextToValue = svbaOrientation.svbaLandscape
-    Case LCase("svbaPortrait")
+    Case LCase$("svbaPortrait")
         enumTextToValue = svbaOrientation.svbaPortrait
-    Case LCase("svbaCentimeters")
+    Case LCase$("svbaCentimeters")
         enumTextToValue = svbaUnits.svbaCentimeters
-    Case LCase("svbaInches")
+    Case LCase$("svbaInches")
         enumTextToValue = svbaUnits.svbaInches
     Case Else
         Err.Raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
@@ -443,7 +443,7 @@ Public Function IsActiveWindowVBIDE() As Boolean
     'determines whether the VBDIDE is the active window or not
     Dim winTitle As String
     winTitle = String$(200, vbNullChar)
-    Call GetWindowText(GetForegroundWindow(), StrPtr(winTitle), 200)
+    GetWindowText GetForegroundWindow(), StrPtr(winTitle), 200
     IsActiveWindowVBIDE = Left$(winTitle, InStr(winTitle, vbNullChar) - 1) Like "Microsoft Visual Basic for Applications -*"
 End Function
 
@@ -501,3 +501,20 @@ Public Function splitKeyString(ByVal keys As String) As Collection
     Set splitKeyString = chars
 End Function
 
+Public Function getResponseErrorMessage(resp As Dictionary) As String
+    getResponseErrorMessage = vbNullString
+    If TypeName(resp("value")) = "Dictionary" Then
+        If resp("value").Exists("error") Then
+            getResponseErrorMessage = resp("value")("message")
+        End If
+    End If
+End Function
+
+Public Function isResponseError(resp As Dictionary) As Boolean
+    isResponseError = False
+    If TypeName(resp("value")) = "Dictionary" Then
+        If resp("value").Exists("error") Then
+            isResponseError = True
+        End If
+    End If
+End Function

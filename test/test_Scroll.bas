@@ -34,7 +34,7 @@ Sub test_scroll_ops()
     driver.Wait 1000
     
     'this uses the WebElement ScrollIntoView method to scroll vertically to a WebElement
-    driver.FindElement(By.linkText, "Linux").ScrollIntoView
+    driver.FindElement(By.LinkText, "Linux").ScrollIntoView
     
     driver.Wait 1000
     
@@ -46,7 +46,7 @@ Sub test_scroll_ops()
     driver.Wait 1000
     
     'this uses the WebElement ScrollIntoView method to scroll horizontally to a WebElement
-    driver.FindElement(By.linkText, "VBScript").ScrollIntoView
+    driver.FindElement(By.LinkText, "VBScript").ScrollIntoView
     driver.Wait 1000
     
     driver.CloseBrowser

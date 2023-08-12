@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.3
+' SeleniumVBA v4.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -79,9 +79,9 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 'Click                  Clicks an element
 'ClickAndHold           Holds down the left mouse button on an element
 'ClickContext           Performs a context-click (right click) on an element
-'CtrlAltKey             Sends a Control-Alt-[Key] sequence to focused element
-'CtrlKey                Sends a Control-[Key] sequence to focused element
-'CtrlShiftKey           Sends a Control-Shift-[Key] sequence to focused element
+'CtrlAltKey             Sends a Ctrl-Alt-[Key] sequence to focused element
+'CtrlKey                Sends a Ctrl-[Key] sequence to focused element
+'CtrlShiftKey           Sends a Ctrl-Shift-[Key] sequence to focused element
 'DoubleClick            Double-clicks an element
 'DragAndDrop            Holds down the left mouse button on the source element,
 '                       then moves to the target element and releases the mouse button
@@ -447,14 +447,14 @@ Attribute DragAndDropToPosition.VB_Description = "Holds down the left mouse butt
     Set DragAndDropToPosition = Me
 End Function
 
-'@Description("Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt, and Shift)")
+'@Description("Sends a key press only, without releasing it. Should only be used with modifier keys (Ctrl, Alt, and Shift)")
 Public Function KeyDown(ByVal modifierKey As String, Optional element As WebElement) As WebActionChain
-Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it. Should only be used with modifier keys (Control, Alt, and Shift)"
+Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it. Should only be used with modifier keys (Ctrl, Alt, and Shift)"
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not modifierKey Like "\u[eE]00[89a]" Then Err.Raise 1, , "Error in KeyDown method - modifierKey must be either a single Control, Alt, or Shift key"
+    If Not modifierKey Like "\u[eE]00[89a]" Then Err.Raise 1, , "Error in KeyDown method - modifierKey must be either a single Ctrl, Alt, or Shift key"
     
     If Not element Is Nothing Then
         Me.SetFocus element
@@ -484,7 +484,7 @@ Attribute KeyUp.VB_Description = "Releases a modifier key"
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not modifierKey Like "\u[eE]00[89aA]" Then Err.Raise 1, , "Error in KeyUp method - modifierKey must be either a single Control, Alt, or Shift key"
+    If Not modifierKey Like "\u[eE]00[89aA]" Then Err.Raise 1, , "Error in KeyUp method - modifierKey must be either a single Ctrl, Alt, or Shift key"
     
     If Not element Is Nothing Then
         Me.SetFocus element
@@ -666,7 +666,7 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
         Me.SetFocus element
     End If
     
-    actions.Add actionKeyDown("\uE009") 'control key
+    actions.Add actionKeyDown("\uE009") 'Ctrl key
     actions.Add actionKeyDown("a")
     actions.Add actionKeyUp("a")
     actions.Add actionKeyUp("\uE009")
@@ -689,9 +689,9 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
     Set Clear = Me
 End Function
 
-'@Description("Sends a Control-[Key] sequence to focused element")
+'@Description("Sends a Ctrl-[Key] sequence to focused element")
 Public Function CtrlKey(ByVal key As String, Optional element As WebElement) As WebActionChain
-Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused element"
+Attribute CtrlKey.VB_Description = "Sends a Ctrl-[Key] sequence to focused element"
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions As New Collection
@@ -702,7 +702,7 @@ Attribute CtrlKey.VB_Description = "Sends a Control-[Key] sequence to focused el
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE009") 'control key
+    actions.Add actionKeyDown("\uE009") 'Ctrl key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
     actions.Add actionKeyUp("\uE009")
@@ -757,9 +757,9 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     Set ShiftKey = Me
 End Function
 
-'@Description("Sends a Control-Shift-[Key] sequence to focused element")
+'@Description("Sends a Ctrl-Shift-[Key] sequence to focused element")
 Public Function CtrlShiftKey(ByVal key As String, Optional element As WebElement) As WebActionChain
-Attribute CtrlShiftKey.VB_Description = "Sends a Control-Shift-[Key] sequence to focused element"
+Attribute CtrlShiftKey.VB_Description = "Sends a Ctrl-Shift-[Key] sequence to focused element"
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions As New Collection
@@ -770,7 +770,7 @@ Attribute CtrlShiftKey.VB_Description = "Sends a Control-Shift-[Key] sequence to
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE009") 'control key
+    actions.Add actionKeyDown("\uE009") 'Ctrl key
     actions.Add actionKeyDown("\uE008") 'shift key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
@@ -793,9 +793,9 @@ Attribute CtrlShiftKey.VB_Description = "Sends a Control-Shift-[Key] sequence to
     Set CtrlShiftKey = Me
 End Function
 
-'@Description("Sends a Control-Alt-[Key] sequence to focused element")
+'@Description("Sends a Ctrl-Alt-[Key] sequence to focused element")
 Public Function CtrlAltKey(ByVal key As String, Optional element As WebElement) As WebActionChain
-Attribute CtrlAltKey.VB_Description = "Sends a Control-Alt-[Key] sequence to focused element"
+Attribute CtrlAltKey.VB_Description = "Sends a Ctrl-Alt-[Key] sequence to focused element"
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions As New Collection
@@ -806,7 +806,7 @@ Attribute CtrlAltKey.VB_Description = "Sends a Control-Alt-[Key] sequence to foc
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE009") 'control key
+    actions.Add actionKeyDown("\uE009") 'Ctrl key
     actions.Add actionKeyDown("\uE00a") 'alt key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)

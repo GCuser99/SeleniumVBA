@@ -168,7 +168,7 @@ Sub test_unhandled_prompts()
     
     driver.Wait 2000
     
-    Debug.Print driver.GetTitle
+    Debug.Print driver.ActiveWindow.Title
     
     driver.CloseBrowser
     driver.Shutdown
@@ -294,12 +294,12 @@ Sub test_kiosk_printing()
     driver.Wait 1000
     
     'default print file name is based on webpage title
-    driver.DeleteFiles ".\" & driver.GetTitle & ".pdf"
+    driver.DeleteFiles ".\" & driver.ActiveWindow.Title & ".pdf"
 
     'now print the page
     driver.ExecuteScript ("window.print();")
     
-    driver.WaitForDownload ".\" & driver.GetTitle & ".pdf"
+    driver.WaitForDownload ".\" & driver.ActiveWindow.Title & ".pdf"
     
     driver.CloseBrowser
     driver.Shutdown

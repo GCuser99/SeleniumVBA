@@ -5,7 +5,7 @@ Option Private Module
 
 Sub test_table()
     Dim driver As SeleniumVBA.WebDriver
-    Dim v() As Variant, htmlStr As String
+    Dim htmlStr As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -39,7 +39,9 @@ End Sub
 
 Sub test_table_to_array()
     Dim driver As SeleniumVBA.WebDriver
-    Dim v() As Variant, htmlStr As String, i, j, k
+    Dim table() As Variant
+    Dim htmlStr As String
+    Dim i As Long, j As Long, k As Long
     
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -53,16 +55,16 @@ Sub test_table_to_array()
     
     driver.Wait 5000
     
-    v = driver.FindElement(By.ID, "mytable").TableToArray()
+    table = driver.FindElement(By.ID, "mytable").TableToArray()
     
     Debug.Print "With createSpanData=True (default):"
-    For i = 1 To UBound(v, 1)
-        If Not IsArray(v(i, 3)) Then
-            Debug.Print v(i, 1), v(i, 2), v(i, 3)
+    For i = 1 To UBound(table, 1)
+        If Not IsArray(table(i, 3)) Then
+            Debug.Print table(i, 1), table(i, 2), table(i, 3)
         Else
-            For j = 1 To UBound(v(i, 3), 1)
-                For k = 1 To UBound(v(i, 3), 2)
-                    Debug.Print v(i, 1), v(i, 2), v(i, 3)(j, k)
+            For j = 1 To UBound(table(i, 3), 1)
+                For k = 1 To UBound(table(i, 3), 2)
+                    Debug.Print table(i, 1), table(i, 2), table(i, 3)(j, k)
                 Next k
             Next j
         End If
@@ -70,17 +72,17 @@ Sub test_table_to_array()
     
     'now process table w/o creating span data
     
-    v = driver.FindElement(By.ID, "mytable").TableToArray(createSpanData:=False)
+    table = driver.FindElement(By.ID, "mytable").TableToArray(createSpanData:=False)
     
     Debug.Print ""
     Debug.Print "With createSpanData=False:"
-    For i = 1 To UBound(v, 1)
-        If Not IsArray(v(i, 3)) Then
-            Debug.Print v(i, 1), v(i, 2), v(i, 3)
+    For i = 1 To UBound(table, 1)
+        If Not IsArray(table(i, 3)) Then
+            Debug.Print table(i, 1), table(i, 2), table(i, 3)
         Else
-            For j = 1 To UBound(v(i, 3), 1)
-                For k = 1 To UBound(v(i, 3), 2)
-                    Debug.Print v(i, 1), v(i, 2), v(i, 3)(j, k)
+            For j = 1 To UBound(table(i, 3), 1)
+                For k = 1 To UBound(table(i, 3), 2)
+                    Debug.Print table(i, 1), table(i, 2), table(i, 3)(j, k)
                 Next k
             Next j
         End If
@@ -90,4 +92,23 @@ Sub test_table_to_array()
     driver.Shutdown
 End Sub
 
+Sub test_table_to_array_large()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim table() As Variant
+    
+    Set driver = SeleniumVBA.New_WebDriver
 
+    driver.StartEdge
+    driver.OpenBrowser
+    
+    driver.ImplicitWait = 2000
+    
+    driver.NavigateTo "https://the-internet.herokuapp.com/large"
+    
+    table = driver.FindElement(By.ID, "large-table").TableToArray(skipHeader:=True)
+    
+    Debug.Print "number of rows: " & UBound(table, 1), "number of columns: " & UBound(table, 2)
+
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub

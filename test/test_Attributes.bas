@@ -33,7 +33,7 @@ Sub test_element_attributes_and_properties()
     'this gets the current value of the input box, "John"
     Debug.Print "value property:", driver.FindElementByID("the-input").GetProperty("value")
     
-    'Note that after browser parses html, new proprties are created
+    'Note that after browser parses html, new properties are created
     Debug.Print "defaultValue property:", driver.FindElementByID("the-input").GetProperty("defaultValue")
     
     driver.Wait 1000
