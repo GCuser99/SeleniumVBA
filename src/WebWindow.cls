@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage the browser window"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.4
+' SeleniumVBA v4.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

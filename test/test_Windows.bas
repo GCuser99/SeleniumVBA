@@ -4,7 +4,7 @@ Option Private Module
 '@folder("SeleniumVBA.Testing")
 
 Sub test_Selenium_way()
-    'this test follows the strategy recommended is Selenium's documentation, using window handles
+    'this test follows the strategy recommended in Selenium's documentation, using window handles
     'https://www.selenium.dev/documentation/webdriver/interactions/windows/#switching-windows-or-tabs
     Dim driver As SeleniumVBA.WebDriver
     Dim mainHandle As String
@@ -47,7 +47,7 @@ Sub test_Selenium_way()
 End Sub
 
 Sub test_windows_Selenium_way_with_oop_approach()
-    'this test follows the strategy recommended is Selenium's documentation, using window objects
+    'this test follows the strategy recommended in Selenium's documentation, using window objects
     'https://www.selenium.dev/documentation/webdriver/interactions/windows/#switching-windows-or-tabs
     Dim driver As SeleniumVBA.WebDriver
     Dim mainWindow As SeleniumVBA.WebWindow
@@ -135,7 +135,7 @@ Sub test_windows_SwitchToNext()
     
     'switch to the next open window in the collection AFTER the current active window
     Set childWindow = driver.Windows.SwitchToNext
-    'Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
     Debug.Print childWindow.Title 'prints "New Window"
     
     driver.Shutdown

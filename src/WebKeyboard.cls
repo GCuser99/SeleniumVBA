@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.4
+' SeleniumVBA v4.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -115,9 +115,9 @@ Private mCtrlShiftKeys As String
 Private mAltShiftKeys As String
 Private mCtrlAltKeys As String
 
-'@Description("Returns the Null (\\uE000) key - triggers all previous modifiers used in the string to be released")
+'@Description("Returns the Null (\\uE000) key - triggers release of all previous modifiers used in the string")
 Public Property Get NullKey() As String
-Attribute NullKey.VB_Description = "Returns the Null (\\uE000) key - triggers all previous modifiers used in the string to be released"
+Attribute NullKey.VB_Description = "Returns the Null (\\uE000) key - triggers release of all previous modifiers used in the string"
     NullKey = mNullKey
 End Property
 '@Description("Returns the Cancel (\\uE001) key")

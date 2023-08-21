@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.4
+' SeleniumVBA v4.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -436,33 +436,10 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     If data_.Item("browserName") <> WebShared.getBrowserNameString(browser_) Then Err.Raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
 End Sub
 
-'@Description("Initializes capabilities object for Chrome browser")
-Public Sub InitializeForChrome()
-Attribute InitializeForChrome.VB_Description = "Initializes capabilities object for Chrome browser"
-    initializeFor svbaBrowser.Chrome
-End Sub
-
-'@Description("Initializes capabilities object for Edge browser")
-Public Sub InitializeForEdge()
-Attribute InitializeForEdge.VB_Description = "Initializes capabilities object for Edge browser"
-    initializeFor svbaBrowser.Edge
-End Sub
-
-'@Description("Initializes capabilities object for Firefox browser")
-Public Sub InitializeForFirefox()
-Attribute InitializeForFirefox.VB_Description = "Initializes capabilities object for Firefox browser"
-    initializeFor svbaBrowser.Firefox
-End Sub
-
-'@Description("Initializes capabilities object for Edge IE Mode browser")
-Public Sub InitializeForIE()
-Attribute InitializeForIE.VB_Description = "Initializes capabilities object for Edge IE Mode browser"
-    initializeFor svbaBrowser.IE
-End Sub
-
 '-------------------------------------------------------------------------
 ' Private helper methods
 '-------------------------------------------------------------------------
+
 Friend Sub initializeFor(ByVal browser As svbaBrowser)
     Set data_ = New Dictionary
     data_.Add "browserName", WebShared.getBrowserNameString(browser)

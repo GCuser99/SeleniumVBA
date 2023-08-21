@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.4
+' SeleniumVBA v4.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -390,8 +390,10 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
 
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
+        Dim platform As svbaPlatform
         'it's important to run these in silent mode so that if there is a problem, we don't get in the way of automation activity
-        mngr.AlignDriverWithBrowser browser_, driverPath, minDriverBrowserCompatibilityLevel, True
+        If browser_ = svbaBrowser.IE Then platform = svbaWin32 Else platform = svbaSystem
+        mngr.AlignDriverWithBrowser browser_, driverPath, minDriverBrowserCompatibilityLevel, True, platform
     End If
     
     If Not fso.FileExists(driverPath) Then

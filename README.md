@@ -6,7 +6,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 - Edge, Chrome, Firefox, and IE Mode browser automation support
 - MS Excel Add-in, MS Access DB, and [twinBASIC](https://twinbasic.com/preview.html) ActiveX DLL solutions available
-- A superset of Selenium's [WC3 WebDriver](https://w3c.github.io/webdriver/) commands - [over 400 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
+- A superset of Selenium's [W3C WebDriver](https://w3c.github.io/webdriver/) commands - [over 400 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, CDP, and Capabilities
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
@@ -25,7 +25,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 Driver updates can also be programmatically invoked via the [WebDriverManager class](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview#webdrivermanager).
 
-The ActiveX DLL solution requires no dependencies (such as .Net Framework). To try it, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
+The [twinBASIC](https://twinbasic.com/preview.html) ActiveX DLL solution requires no dependencies (such as .Net Framework). To try it, download and run the installer in the [dist folder](https://github.com/GCuser99/SeleniumVBA/tree/main/dist).
 
 ## SendKeys Example
 
@@ -42,7 +42,7 @@ Sub doSendKeys()
     
     keySeq = "This is COOKL!" & keys.Repeat(keys.LeftKey, 3) & keys.DeleteKey & keys.ReturnKey
     
-    driver.FindElement(by.name, "q").SendKeys keySeq
+    driver.FindElement(By.Name, "q").SendKeys keySeq
     driver.Wait 2000
     
     driver.CloseBrowser
@@ -90,7 +90,7 @@ Sub doActionChain()
     driver.NavigateTo "https://www.google.com/"
     driver.Wait 1000
     
-    Set elemSearch = driver.FindElement(by.name, "btnK")
+    Set elemSearch = driver.FindElement(By.Name, "btnK")
     
     Set actions = driver.ActionChain
     
