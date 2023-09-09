@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage browser alerts - must b
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -59,10 +59,10 @@ Private tCMD As typCMD
 
 Private driver_ As WebDriver
 
-'@Description("Returns the text prompt of the active alert")
-Public Function GetAlertText() As String
-Attribute GetAlertText.VB_Description = "Returns the text prompt of the active alert"
-    GetAlertText = driver_.execute(tCMD.CMD_GET_ALERT_TEXT)("value")
+'@Description("Returns the prompt text of the active alert")
+Public Function GetText() As String
+Attribute GetText.VB_Description = "Returns the prompt text of the active alert"
+    GetText = driver_.execute(tCMD.CMD_GET_ALERT_TEXT)("value")
 End Function
 
 '@Description("Sends the specified text to the active prompt-type alert - Selenium special keys not recognized for alerts")

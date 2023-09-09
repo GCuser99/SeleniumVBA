@@ -7,12 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Attribute VB_Description = "This class is used to manage the browser window"
-'@ModuleDescription "This class is used to manage the browser window"
+Attribute VB_Description = "This class is used to manage the browser window - must be instantiated WebDriver's ActiveWindow method, or through the WebWindows object"
+'@ModuleDescription "This class is used to manage the browser window - must be instantiated WebDriver's ActiveWindow method, or through the WebWindows object"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -83,11 +83,17 @@ Attribute Activate.VB_Description = "Activates this window"
         'save current active window's handle to try to activate later if/when this window is closed
         If activeHandle <> vbNullString Then previousActiveHandle = activeHandle
         'now activate this window
-        switchTo thisHandle
+        switchToWindow thisHandle
     End If
     
     'make chainable
     Set Activate = Me
+End Function
+
+'@Description("Activates this window")
+Public Function SwitchTo() As WebWindow
+Attribute SwitchTo.VB_Description = "Activates this window"
+    Set SwitchTo = Activate
 End Function
 
 '@Description("Returns a boolean value indicating whether this window is the active window")
@@ -133,14 +139,14 @@ Attribute CloseIt.VB_Description = "Closes this window"
         'save the active window handle for switching to later
         handleToSwitchTo = activeHandle
         'in order to close this window, it must be activated first
-        switchTo thisHandle
+        switchToWindow thisHandle
     End If
     
     'close the window now
     driver_.execute tCMD.CMD_CLOSE
     
     'activate the window to switch to after closing this window
-    If handleToSwitchTo <> vbNullString Then switchTo handleToSwitchTo
+    If handleToSwitchTo <> vbNullString Then switchToWindow handleToSwitchTo
 End Sub
 
 '@Description("Gets this window's browser title")
@@ -155,13 +161,13 @@ Attribute Title.VB_Description = "Gets this window's browser title"
     activeHandle = getCurrentActiveHandle()
     
     'activate this window if not the active one
-    If thisHandle <> activeHandle Then switchTo thisHandle
+    If thisHandle <> activeHandle Then switchToWindow thisHandle
     
     'get the window's title
     Title = driver_.execute(tCMD.CMD_GET_TITLE)("value")
         
     'put window active state back to where it was before this action
-    If thisHandle <> activeHandle Then switchTo activeHandle
+    If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Function
 
 '@Description("Sets/Returns a dictionary object specifying the x, y, width, and height of this window in screen pixels")
@@ -176,13 +182,13 @@ Attribute Bounds.VB_Description = "Sets/Returns a dictionary object specifying t
     activeHandle = getCurrentActiveHandle()
     
     'activate this window if not the active one
-    If thisHandle <> activeHandle Then switchTo thisHandle
+    If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'get window rectangle
     Set Bounds = driver_.execute(tCMD.CMD_GET_WINDOW_RECT)("value")
         
     'put window active state back to where it was before this action
-    If thisHandle <> activeHandle Then switchTo activeHandle
+    If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Property
 
 Public Property Set Bounds(windowBounds As Dictionary)
@@ -195,7 +201,7 @@ Public Property Set Bounds(windowBounds As Dictionary)
     activeHandle = getCurrentActiveHandle()
     
     'activate this window if not the active one
-    If thisHandle <> activeHandle Then switchTo thisHandle
+    If thisHandle <> activeHandle Then switchToWindow thisHandle
     
     'check if bounds dictionary is complete - if not then fill in the missing parameters
     With windowBounds
@@ -213,7 +219,7 @@ Public Property Set Bounds(windowBounds As Dictionary)
     driver_.execute tCMD.CMD_SET_WINDOW_RECT, windowBounds
         
     'put window active state back to where it was before this action
-    If thisHandle <> activeHandle Then switchTo activeHandle
+    If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Property
 
 '@Description("Sets the size for this window in screen pixels")
@@ -246,13 +252,13 @@ Attribute Maximize.VB_Description = "Maximize this window"
     activeHandle = getCurrentActiveHandle()
     
     'activate this window if not the active one
-    If thisHandle <> activeHandle Then switchTo thisHandle
+    If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'maximize the window
     driver_.execute tCMD.CMD_MAXIMIZE_WINDOW
         
      'put window active state back to where it was before this action
-    If thisHandle <> activeHandle Then switchTo activeHandle
+    If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Sub
 
 '@Description("Sets this window to full screen mode")
@@ -267,13 +273,13 @@ Attribute FullScreen.VB_Description = "Sets this window to full screen mode"
     activeHandle = getCurrentActiveHandle()
     
     'activate this window if not the active one
-    If thisHandle <> activeHandle Then switchTo thisHandle
+    If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'make window full-screen
     driver_.execute tCMD.CMD_FULLSCREEN_WINDOW
         
     'put window active state back to where it was before this action
-    If thisHandle <> activeHandle Then switchTo activeHandle
+    If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Sub
 
 '@Description("Minimize this window")
@@ -288,13 +294,13 @@ Attribute Minimize.VB_Description = "Minimize this window"
     activeHandle = getCurrentActiveHandle()
     
     'activate this window if not the active one
-    If thisHandle <> activeHandle Then switchTo thisHandle
+    If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'minimize the window
     driver_.execute tCMD.CMD_MINIMIZE_WINDOW
         
     'put window active state back to where it was before this action
-    If thisHandle <> activeHandle Then switchTo activeHandle
+    If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Sub
 
 '@Description("Returns boolean indicating whether the specified window is same as this window")
@@ -354,7 +360,7 @@ Private Function getCurrentActiveHandle() As String
     End If
 End Function
 
-Private Sub switchTo(ByVal winHandle As String)
+Private Sub switchToWindow(ByVal winHandle As String)
     'activate the window associated with specified handle
     If winHandle <> vbNullString Then
         Dim data As New Dictionary

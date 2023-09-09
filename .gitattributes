@@ -3,3 +3,4 @@
 *.bas text eol=crlf linguist-language=VBA
 *.cls text eol=crlf linguist-language=VBA
 *.frm linguist-language=VBA
+*.vbs text eol=crlf linguist-language=VBScript

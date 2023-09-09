@@ -30,7 +30,7 @@ Sub test_Alerts()
     'standard alert 1
     driver.FindElement(By.ID, "alert").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 1: " & .GetAlertText
+        Debug.Print "Alert prompt 1: " & .GetText
         .Accept
     End With
     Debug.Print "standard alert found and accepted"
@@ -38,7 +38,7 @@ Sub test_Alerts()
     'standard alert 2
     driver.FindElement(By.ID, "empty-alert").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 2: " & .GetAlertText
+        Debug.Print "Alert prompt 2: " & .GetText
         .Accept
     End With
     Debug.Print "empty alert found and accepted"
@@ -46,7 +46,7 @@ Sub test_Alerts()
     'input prompt alert 3
     driver.FindElement(By.ID, "prompt").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 3: " & .GetAlertText
+        Debug.Print "Alert prompt 3: " & .GetText
         .SendKeys "here is my response text to prompt"
         .Accept
     End With
@@ -55,7 +55,7 @@ Sub test_Alerts()
     'input prompt alert 4
     driver.FindElement(By.ID, "prompt-with-default").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 4: " & .GetAlertText
+        Debug.Print "Alert prompt 4: " & .GetText
         .SendKeys "here is my response text to prompt with default"
         .Accept
     End With
@@ -64,12 +64,12 @@ Sub test_Alerts()
     'input double prompt alerts 5 and 6
     driver.FindElement(By.ID, "double-prompt").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 5: " & .GetAlertText
+        Debug.Print "Alert prompt 5: " & .GetText
         .SendKeys "here is my response text to first of double prompt"
         .Accept
     End With
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 6: " & .GetAlertText
+        Debug.Print "Alert prompt 6: " & .GetText
         .SendKeys "here is my response text to second of double prompt"
         .Accept
     End With
@@ -82,7 +82,7 @@ Sub test_Alerts()
     'without the non-zero max wait, this will throw an error
     driver.FindElement(By.ID, "slow-alert").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 7: " & .GetAlertText
+        Debug.Print "Alert prompt 7: " & .GetText
         .Accept
     End With
     Debug.Print "slow alert found and accepted"
@@ -90,7 +90,7 @@ Sub test_Alerts()
     'a confirm alert 8
     driver.FindElement(By.ID, "confirm").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 8: " & .GetAlertText
+        Debug.Print "Alert prompt 8: " & .GetText
         .Accept
     End With
     Debug.Print "confirm alert found and dismissed"

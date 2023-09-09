@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -104,8 +104,7 @@ Attribute SetCapability.VB_Description = "Sets a generic capability"
         Set data_.Item("alwaysMatch")(key) = val
     Else
         If Left$(val, 1) = "[" Or Left$(val, 1) = "{" Then 'its a json string - try to parse
-            Dim jc As New WebJsonConverter
-            Set data_.Item("alwaysMatch")(key) = jc.ParseJson(val)
+            Set data_.Item("alwaysMatch")(key) = WebJsonConverter.ParseJson(val)
         Else 'its a string parameter
             data_.Item("alwaysMatch")(key) = val
         End If
@@ -139,8 +138,7 @@ Attribute SetOption.VB_Description = "Sets an option key/value"
             data_.Item("alwaysMatch")(browserOptionKey)(key) = val
         Else 'string
             If Left$(val, 1) = "[" Or Left$(val, 1) = "{" Then 'its a json string - try to parse
-                Dim jc As New WebJsonConverter
-                Set data_.Item("alwaysMatch")(browserOptionKey)(key) = jc.ParseJson(val)
+                Set data_.Item("alwaysMatch")(browserOptionKey)(key) = WebJsonConverter.ParseJson(val)
             Else 'its a string parameter
                 data_.Item("alwaysMatch")(browserOptionKey)(key) = val
             End If
@@ -331,8 +329,7 @@ Attribute SetPreference.VB_Description = "Sets an option preference key/value"
     Else
         If Left$(val, 1) = "[" Or Left$(val, 1) = "{" Then 'it's json string - try to parse
             'convert to dictionary or collection
-            Dim jc As New WebJsonConverter
-            Set data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = jc.ParseJson(val)
+            Set data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = WebJsonConverter.ParseJson(val)
         Else
             data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = val
         End If
@@ -403,8 +400,7 @@ End Function
 '@Description("Returns Json string for qc")
 Public Function ToJson() As String
 Attribute ToJson.VB_Description = "Returns Json string for qc"
-    Dim jc As New WebJsonConverter
-    ToJson = jc.ConvertToJson(data_, 4)
+    ToJson = WebJsonConverter.ConvertToJson(data_, 4)
 End Function
 
 '@Description("Saves the capabilities to file path")
@@ -423,14 +419,13 @@ Public Sub LoadFromFile(Optional ByVal filePath As String = ".\capabilities.json
 Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
-    Dim jc As New WebJsonConverter
         
     filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
     
     If Not fso.FileExists(filePath) Then Err.Raise 53, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
-    Set data_ = jc.ParseJson(ts.ReadAll)
+    Set data_ = WebJsonConverter.ParseJson(ts.ReadAll)
     ts.Close
     
     If data_.Item("browserName") <> WebShared.getBrowserNameString(browser_) Then Err.Raise 1, "WebCapabilities", "Browser name from file does not match browser name assigned to driver instance."
@@ -491,7 +486,7 @@ Private Sub addToOptionList(ByVal optionName As String, addList() As String)
     Dim j As Integer
     Dim i As Integer
 
-    'lists are represented as collections for caps initialized from LoadFromFile (via jc.ParseJson)
+    'lists are represented as collections for caps initialized from LoadFromFile (via WebJsonConverter.ParseJson)
     If IsObject(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
         Set parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
     Else 'starting from scratch
@@ -525,8 +520,7 @@ Private Function paramListToStringArray(parmList() As Variant) As String()
             k = k + UBound(parmList(i)) - LBound(parmList(i)) + 1
         Else
             If Left$(parmList(i), 1) = "[" Then  'its a json string - try to parse
-                Dim jc As New WebJsonConverter
-                k = k + jc.ParseJson(parmList(i)).Count
+                k = k + WebJsonConverter.ParseJson(parmList(i)).Count
             Else 'its a string parameter
                 k = k + 1
             End If
@@ -547,7 +541,7 @@ Private Function paramListToStringArray(parmList() As Variant) As String()
         Else
             If Left$(parmList(i), 1) = "[" Then  'its a json string
                 Dim col As Collection
-                Set col = jc.ParseJson(parmList(i))
+                Set col = WebJsonConverter.ParseJson(parmList(i))
                 For j = 1 To col.Count
                     k = k + 1
                     strlist(k) = col.Item(j)

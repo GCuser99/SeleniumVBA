@@ -136,7 +136,6 @@ End Sub
 
 Sub test_GetSessionInfo()
     Dim driver As SeleniumVBA.WebDriver
-    Dim jc As New WebJsonConverter
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -146,7 +145,7 @@ Sub test_GetSessionInfo()
     
     'firefox does not support "Get All Sessions" command
     
-    Debug.Print jc.ConvertToJson(driver.GetSessionsInfo, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(driver.GetSessionsInfo, 4)
     
     driver.Wait 1000
     driver.CloseBrowser

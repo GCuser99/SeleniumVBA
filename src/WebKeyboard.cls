@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -159,11 +159,6 @@ End Property
 Public Property Get ShiftKey() As String
 Attribute ShiftKey.VB_Description = "Returns the Shift (\\uE008) key"
     ShiftKey = mShiftKey
-End Property
-'@Description("Returns the Control (\\uE009) key - DEPRECATED")
-Public Property Get ControlKey() As String
-Attribute ControlKey.VB_Description = "Returns the Control (\\uE009) key - DEPRECATED"
-    ControlKey = mControlKey
 End Property
 '@Description("Returns the Ctrl (\\uE009) key")
 Public Property Get CtrlKey() As String
@@ -400,9 +395,9 @@ Public Property Get CommandKey() As String
 Attribute CommandKey.VB_Description = "Returns the Command (\\uE03d) key"
     CommandKey = mCommandKey
 End Property
-'@Description("Returns the Command (\\uE040) key")
+'@Description("Returns the Zenkaku to Hankaku (\\uE040) key for Japanese keyboard)")
 Public Property Get ZenkakuHankakuKey() As String
-Attribute ZenkakuHankakuKey.VB_Description = "Returns the Command (\\uE040) key"
+Attribute ZenkakuHankakuKey.VB_Description = "Returns the Zenkaku to Hankaku (\\uE040) key for Japanese keyboard)"
     ZenkakuHankakuKey = mZenkakuHankakuKey
 End Property
 '@Description("Returns the CtrlShift (\\uE009 + \\uE008) keys")

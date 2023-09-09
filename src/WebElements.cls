@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -53,12 +53,6 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 Option Explicit
 
 Private colWebElement As Collection
-
-Private driver_ As WebDriver
-
-Friend Property Set WebDriver(ByRef obj As WebDriver)
-    Set driver_ = obj
-End Property
 
 '@Description("Adds an element to the collection")
 Public Function Add(element As WebElement) As WebElement
@@ -110,7 +104,9 @@ notFound:
     Exists = False
 End Function
 
-Friend Sub RemoveAll()
+'@Description("Removes all member element objects from the collection")
+Public Sub RemoveAll()
+Attribute RemoveAll.VB_Description = "Removes all member element objects from the collection"
     Do While colWebElement.Count > 0
         colWebElement.Remove 1
     Loop
@@ -122,14 +118,21 @@ Public Function Highlight(Optional ByVal borderSizePx As Byte = 4, Optional ByVa
                      Optional ByVal ScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True) _
                      As WebElements
 Attribute Highlight.VB_Description = "Highlights this element collection with color"
-    driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, ScrollIntoView, unHighlightLast
+    Dim i As Long
+    colWebElement(1).Highlight borderSizePx, borderColor, backgroundColor, ScrollIntoView, unHighlightLast
+    For i = 2 To colWebElement.Count
+        colWebElement(i).Highlight borderSizePx, borderColor, backgroundColor, ScrollIntoView, False
+    Next i
     Set Highlight = Me
 End Function
 
 '@Description("Unhighlights this element collection")
 Public Sub UnHighlight()
 Attribute UnHighlight.VB_Description = "Unhighlights this element collection"
-    driver_.SetHighlight False, Me
+    Dim elem As WebElement
+    For Each elem In colWebElement
+        elem.UnHighlight
+    Next elem
 End Sub
 
 '@Enumerator

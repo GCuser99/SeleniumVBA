@@ -7,12 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Attribute VB_Description = "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
+Attribute VB_Description = "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree - must be instantiated using WebDriver's GetShadowRoot method"
 '@Exposed
-'@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree"
+'@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree - must be instantiated using WebDriver's GetShadowRoot method"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -88,4 +88,3 @@ Err:
             & IIf(Err.Number = 400, vbNewLine _
             & "XPath unsupported in shadow roots. Please convert your XPath into a different locator type and retry.", ""), Err.HelpFile, Err.HelpContext
 End Function
-

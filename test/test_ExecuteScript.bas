@@ -21,7 +21,7 @@ Sub test_executeScript()
     driver.ExecuteScript "window.location=arguments[0]", url
     
     driver.Wait 1000
-    driver.MaximizeWindow
+    driver.ActiveWindow.Maximize
     driver.Wait
     
     'ExecuteScript returns a WebElement object if script results in a WebElement object
@@ -46,11 +46,9 @@ Sub test_executeScriptAsync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
     Dim driver As SeleniumVBA.WebDriver
     Dim webElem As SeleniumVBA.WebElement
-    Dim jc As SeleniumVBA.WebJsonConverter
     Dim url As String, waitTime As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
-    Set jc = SeleniumVBA.New_WebJsonConverter
     
     'driver.CommandWindowStyle = vbNormalFocus
     

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -118,14 +118,13 @@ Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file pat
     Dim ts As TextStream
     Dim darray() As Dictionary
     Dim i As Long
-    Dim jc As New WebJsonConverter
     filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
         Set darray(i) = Me.Item(i).ToDictionary
     Next i
-    ts.Write jc.ConvertToJson(darray(), 4)
+    ts.Write WebJsonConverter.ConvertToJson(darray(), 4)
     ts.Close
 End Sub
 
@@ -137,7 +136,6 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
     Dim str As String
     Dim v As Collection
     Dim ck As WebCookie
-    Dim jc As New WebJsonConverter
     
     Me.RemoveAll
     
@@ -146,7 +144,7 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     str = ts.ReadAll
     ts.Close
-    Set v = jc.ParseJson(str)
+    Set v = WebJsonConverter.ParseJson(str)
     
     Dim i As Long
     For i = 1 To v.Count
@@ -170,7 +168,9 @@ Attribute NewEnum.VB_UserMemId = -4
     Set NewEnum = colCookie.[_NewEnum]
 End Function
 
-Friend Sub RemoveAll()
+'@Description("Removes all member cookie objects from the collection")
+Public Sub RemoveAll()
+Attribute RemoveAll.VB_Description = "Removes all member cookie objects from the collection"
     Do While colCookie.Count > 0
         colCookie.Remove 1
     Loop

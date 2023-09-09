@@ -38,8 +38,8 @@ Sub test_SendKeysToOS()
     Dim driver As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
     
-    Set driver = New WebDriver
-    Set keys = New WebKeyboard
+    Set driver = SeleniumVBA.New_WebDriver
+    Set keys = SeleniumVBA.New_WebKeyboard
     
     driver.StartChrome
     driver.OpenBrowser

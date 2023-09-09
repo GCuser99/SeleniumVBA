@@ -7,12 +7,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
-Attribute VB_Description = "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements"
-'@ModuleDescription "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements"
+Attribute VB_Description = "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements - must be instantiated using one of WebDriver's FindElement methods"
+'@ModuleDescription "This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements - must be instantiated using one of WebDriver's FindElement methods"
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -413,14 +413,9 @@ Attribute SetFocus.VB_Description = "Scrolls and set the focus to this element"
     Set SetFocus = driver_.SetFocus(Me, preventScroll, focusVisible)
 End Function
 
-'@Description("Sets the focus to this element without scrolling - DEPRECATED")
-Public Function SetFocusNoScroll() As WebElement
-Attribute SetFocusNoScroll.VB_Description = "Sets the focus to this element without scrolling - DEPRECATED"
-    Set SetFocusNoScroll = driver_.SetFocusNoScroll(Me)
-End Function
-
-'@Description(""Returns a boolean indicating if the element has the focus"")
+'@Description("Returns a boolean indicating if the element has the focus")
 Public Function HasFocus() As Boolean
+Attribute HasFocus.VB_Description = "Returns a boolean indicating if the element has the focus"
     HasFocus = driver_.HasFocus(Me)
 End Function
 

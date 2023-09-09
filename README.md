@@ -17,7 +17,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 - Improved JavaScript Alert management with WebAlert class and SwitchToAlert method of WebDriver class
 - Advanced keys support including Chord and Repeat methods of the WebKeyboard class
 - Improved SendKeys and new SendKeysToOS methods - the later for sending key inputs to non-browser windows
-- ExecuteCDP method exposing Chrome DevTools Protocol - a low-level interface for browser interaction.
+- ExecuteCDP method exposing [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) - a low-level interface for browser interaction.
 
 ## Setup
 

@@ -211,7 +211,6 @@ Sub test_kiosk_printing()
     
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
-    Dim jc As SeleniumVBA.WebJsonConverter
     Dim settings As New Dictionary
     Dim appState As New Dictionary
     Dim recentDestination As New Dictionary
@@ -219,7 +218,6 @@ Sub test_kiosk_printing()
     Dim mediaSizeOptions As New Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
-    Set jc = SeleniumVBA.New_WebJsonConverter
     
     driver.StartEdge
     
@@ -260,25 +258,26 @@ Sub test_kiosk_printing()
     'populate paper size options to choose from
     'for this to work, these size properties must match exactly (values and order specified) with chrome preference file in profile
     'C:\Users\[user]\AppData\Local\Google\Chrome\User Data\Default\Preferences
-    mediaSizeOptions.Add "A0", jc.ParseJson("{'height_microns':1189000,'name':'ISO_A0','width_microns':841000,'custom_display_name':'A0'}")
-    mediaSizeOptions.Add "A1", jc.ParseJson("{'height_microns':841000,'name':'ISO_A1','width_microns':594000,'custom_display_name':'A1'}")
-    mediaSizeOptions.Add "A2", jc.ParseJson("{'height_microns':594000,'name':'ISO_A2','width_microns':420000,'custom_display_name':'A2'}")
-    mediaSizeOptions.Add "A3", jc.ParseJson("{'height_microns':420000,'name':'ISO_A3','width_microns':297000,'custom_display_name':'A3'}")
-    mediaSizeOptions.Add "A4", jc.ParseJson("{'height_microns':297000,'name':'ISO_A4','width_microns':210000,'custom_display_name':'A4'}")
-    mediaSizeOptions.Add "A5", jc.ParseJson("{'height_microns':210000,'name':'ISO_A5','width_microns':148000,'custom_display_name':'A5'}")
-    mediaSizeOptions.Add "Letter", jc.ParseJson("{'height_microns':279400,'name':'NA_LETTER','width_microns':215900,'custom_display_name':'Letter'}")
-    mediaSizeOptions.Add "Legal", jc.ParseJson("{'height_microns':355600,'name':'NA_LEGAL','width_microns':215900,'custom_display_name':'Legal'}")
-    mediaSizeOptions.Add "Tabloid", jc.ParseJson("{'height_microns':431800,'name':'NA_LEDGER','width_microns':279400,'custom_display_name':'Tabloid'}")
-    
+    With SeleniumVBA.WebJsonConverter
+        mediaSizeOptions.Add "A0", .ParseJson("{'height_microns':1189000,'name':'ISO_A0','width_microns':841000,'custom_display_name':'A0'}")
+        mediaSizeOptions.Add "A1", .ParseJson("{'height_microns':841000,'name':'ISO_A1','width_microns':594000,'custom_display_name':'A1'}")
+        mediaSizeOptions.Add "A2", .ParseJson("{'height_microns':594000,'name':'ISO_A2','width_microns':420000,'custom_display_name':'A2'}")
+        mediaSizeOptions.Add "A3", .ParseJson("{'height_microns':420000,'name':'ISO_A3','width_microns':297000,'custom_display_name':'A3'}")
+        mediaSizeOptions.Add "A4", .ParseJson("{'height_microns':297000,'name':'ISO_A4','width_microns':210000,'custom_display_name':'A4'}")
+        mediaSizeOptions.Add "A5", .ParseJson("{'height_microns':210000,'name':'ISO_A5','width_microns':148000,'custom_display_name':'A5'}")
+        mediaSizeOptions.Add "Letter", .ParseJson("{'height_microns':279400,'name':'NA_LETTER','width_microns':215900,'custom_display_name':'Letter'}")
+        mediaSizeOptions.Add "Legal", .ParseJson("{'height_microns':355600,'name':'NA_LEGAL','width_microns':215900,'custom_display_name':'Legal'}")
+        mediaSizeOptions.Add "Tabloid", .ParseJson("{'height_microns':431800,'name':'NA_LEDGER','width_microns':279400,'custom_display_name':'Tabloid'}")
+    End With
     'add selected paper size defined above to appState object
     appState.Add "mediaSize", mediaSizeOptions("Legal")
 
     'print the appState object to immediate window for qc
-    'Debug.Print jc.ConvertToJson(appState, 4)
+    'Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(appState, 4)
     
     'this is the tricky part - we need to assign "appState" key of the settings object
     'to a json string - not a dictionary!!! So convert appstate to a string value...
-    settings.Add "appState", jc.ConvertToJson(appState)
+    settings.Add "appState", SeleniumVBA.WebJsonConverter.ConvertToJson(appState)
     
     'finally, set print settings and location to save pdf to
     caps.SetPreference "printing.print_preview_sticky_settings", settings

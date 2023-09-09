@@ -9,13 +9,11 @@ Option Private Module
 Sub test_cdp_enhanced_screenshot()
     'this demonstrates using the ExecuteCDP to perform a screenshot with enhanced user control
     Dim driver As SeleniumVBA.WebDriver
-    Dim jc As SeleniumVBA.WebJsonConverter
     Dim params As New Dictionary
     'Dim clipRect As New Dictionary
     Dim strB64 As String
     
     Set driver = SeleniumVBA.New_WebDriver
-    Set jc = SeleniumVBA.New_WebJsonConverter
     
     driver.StartEdge
     driver.OpenBrowser
@@ -40,7 +38,7 @@ Sub test_cdp_enhanced_screenshot()
     params.Add "fromSurface", True 'defaults to true
     params.Add "optimizeForSpeed", False 'defaults to false
     
-    Debug.Print jc.ConvertToJson(params, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(params, 4)
     
     'send the cdp command to the WebDriver and return "data" key of the response dictionary
     strB64 = driver.ExecuteCDP("Page.captureScreenshot", params)("value")("data")
@@ -213,7 +211,6 @@ End Sub
 
 Sub test_cdp_random_other_stuff()
     Dim driver As SeleniumVBA.WebDriver
-    Dim jc As New SeleniumVBA.WebJsonConverter
     Dim caps As SeleniumVBA.WebCapabilities
     Dim resp As Dictionary
 
@@ -233,7 +230,7 @@ Sub test_cdp_random_other_stuff()
     'use cdp get browser history
     'https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-getNavigationHistory
     Set resp = driver.ExecuteCDP("Page.getNavigationHistory")
-    Debug.Print jc.ConvertToJson(resp, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
     
     'use cdp reset browser history
     'https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-resetNavigationHistory
@@ -241,7 +238,7 @@ Sub test_cdp_random_other_stuff()
     
     'use cdp to confirm browser history was erased
     Set resp = driver.ExecuteCDP("Page.getNavigationHistory")
-    Debug.Print jc.ConvertToJson(resp, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
     
     'use cdp to clear and disable browser cache
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-enable
@@ -254,7 +251,7 @@ Sub test_cdp_random_other_stuff()
     'use cdp to get cookies
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-getCookies
     Set resp = driver.ExecuteCDP("Network.getCookies")
-    Debug.Print jc.ConvertToJson(resp, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
     Debug.Print resp("value")("cookies").Count
     
     'use cdp to clear cookies
@@ -263,7 +260,7 @@ Sub test_cdp_random_other_stuff()
     
     'use cdp to verify cookies are cleared
     Set resp = driver.ExecuteCDP("Network.getCookies")
-    Debug.Print jc.ConvertToJson(resp, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
     Debug.Print resp("value")("cookies").Count
     
     'use cdp to override UserAgent

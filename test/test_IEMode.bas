@@ -292,11 +292,11 @@ Sub test_MultiSession_IE()
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
     
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
 
     driver1.Wait 1000
     driver1.CloseBrowser
@@ -495,7 +495,6 @@ End Sub
 Sub test_GetSessionInfo()
     'this is provided to see a list of default capabilities for IE mode
     Dim driver As SeleniumVBA.WebDriver
-    Dim jc As New WebJsonConverter
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -503,7 +502,7 @@ Sub test_GetSessionInfo()
     
     driver.OpenBrowser
     
-    Debug.Print jc.ConvertToJson(driver.GetSessionsInfo, 4)
+    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(driver.GetSessionsInfo, 4)
     
     driver.Wait 1000
     driver.CloseBrowser

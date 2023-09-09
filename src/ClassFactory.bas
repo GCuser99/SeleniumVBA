@@ -3,7 +3,7 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 '@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -56,6 +56,8 @@ Option Explicit
 'new WebCookies should be instantiated from WebDriver.CreateCookies
 'new WebWindow should be instantiated from WebDriver.ActiveWindow or from one of the methods in WebWindows object
 'new WebWindows should be instantiated from WebDriver.Windows
+'new WebElement should be instantiated from WebDriver.FindElement*
+'new WebShadowRoot should be instantiated from WebDriver.GetWebShadowRoot
 
 '@Description("Instantiates a WebDriver object")
 Public Function New_WebDriver() As WebDriver
@@ -63,22 +65,16 @@ Attribute New_WebDriver.VB_Description = "Instantiates a WebDriver object"
     Set New_WebDriver = New WebDriver
 End Function
 
-'@Description("Instantiates a WebDriverManager object")
-Public Function New_WebDriverManager() As WebDriverManager
-Attribute New_WebDriverManager.VB_Description = "Instantiates a WebDriverManager object"
-    Set New_WebDriverManager = New WebDriverManager
-End Function
-
-'@Description("Instantiates a WebElement object")
-Public Function New_WebElement() As WebElement
-Attribute New_WebElement.VB_Description = "Instantiates a WebElement object"
-    Set New_WebElement = New WebElement
-End Function
-
 '@Description("Instantiates a WebElements object")
 Public Function New_WebElements() As WebElements
 Attribute New_WebElements.VB_Description = "Instantiates a WebElements object"
     Set New_WebElements = New WebElements
+End Function
+
+'@Description("Instantiates a WebDriverManager object")
+Public Function New_WebDriverManager() As WebDriverManager
+Attribute New_WebDriverManager.VB_Description = "Instantiates a WebDriverManager object"
+    Set New_WebDriverManager = New WebDriverManager
 End Function
 
 '@Description("Instantiates a WebCookie object")
@@ -103,10 +99,4 @@ End Function
 Public Function New_WebPrintSettings() As WebPrintSettings
 Attribute New_WebPrintSettings.VB_Description = "Instantiates a WebPrintSettings object"
     Set New_WebPrintSettings = New WebPrintSettings
-End Function
-
-'@Description("Instantiates a WebShadowRoot object")
-Public Function New_WebShadowRoot() As WebShadowRoot
-Attribute New_WebShadowRoot.VB_Description = "Instantiates a WebShadowRoot object"
-    Set New_WebShadowRoot = New WebShadowRoot
 End Function

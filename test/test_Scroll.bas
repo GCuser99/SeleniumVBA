@@ -16,7 +16,7 @@ Sub test_scroll_ops()
     driver.OpenBrowser
 
     driver.NavigateTo "http://demo.guru99.com/test/guru99home/"
-    driver.MaximizeWindow
+    driver.ActiveWindow.Maximize
     driver.Wait 1000
     
     'scroll down in increments of 50 pixels

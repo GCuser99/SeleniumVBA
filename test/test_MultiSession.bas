@@ -70,11 +70,11 @@ Sub test_MultiSession_Edge()
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
     
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
 
     driver1.Wait 1000
     driver1.CloseBrowser
@@ -135,11 +135,11 @@ Sub test_MultiSession_mix_Edge_Chrome()
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
     
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
 
     driver1.Wait 1000
     driver1.CloseBrowser
@@ -199,12 +199,12 @@ Sub test_MultiSession_Firefox()
     driver1.Wait 1000
     
     Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
     driver1.Wait 1000
     
-    Debug.Print "Alert Text: " & driver1.GetAlertText
-    driver1.AcceptAlert
+    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    driver1.SwitchToAlert.Accept
 
     driver1.Wait 1000
     driver1.CloseBrowser

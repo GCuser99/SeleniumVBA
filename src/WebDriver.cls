@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.5
+' SeleniumVBA v4.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -607,8 +607,6 @@ Attribute FindElements.VB_Description = "Finds all elements that satisfy the spe
     Next
 
     If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elems
-    
-    Set elems.WebDriver = Me
     
     Set FindElements = elems
 End Function
@@ -1426,14 +1424,13 @@ End Function
 Public Function ExecuteCDP(ByVal command As String, Optional paramsJsonStringOrDictionary As Variant = "{}", Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
 Attribute ExecuteCDP.VB_Description = "Executes a CDP command and returns a dictionary response. Pass command parameters with either a JSON string or a Dictionary object."
     Dim package As New Dictionary
-    Dim jc As New WebJsonConverter
     Dim params As Dictionary
     
     Select Case TypeName(paramsJsonStringOrDictionary)
     Case "Dictionary"
         Set params = paramsJsonStringOrDictionary
     Case "String"
-        Set params = jc.ParseJson(paramsJsonStringOrDictionary)
+        Set params = WebJsonConverter.ParseJson(paramsJsonStringOrDictionary)
     Case Else
         Err.Raise 1, "WebDriver", "The ExecuteCDP method requires that argument paramsJsonStringOrDictionary by either a Dictionary object or a JSON string."
     End Select
@@ -1451,8 +1448,6 @@ Attribute ExecuteCDP.VB_Description = "Executes a CDP command and returns a dict
         Err.Raise 1, "WebDriver", "The ExecuteCDP method can only be used with Edge and Chrome browsers."
     End Select
     
-    'Debug.Print jc.ConvertToJson(package, 4)
-    
     'execute command and then let caller parse the result, including error if occurs
     Set ExecuteCDP = execute(tCMD.CMD_EXECUTE_CDP_COMMAND, package, raiseError, receiveTimeout)
 End Function
@@ -1463,7 +1458,6 @@ Attribute ExecuteCmd.VB_Description = "Sends a command and parameters to the Sel
     'this is useful for testing as-yet unwrapped WebDriver commands
     Dim parameters As Dictionary
     Dim driverCommand As Variant
-    Dim jc As New WebJsonConverter
     
     Select Case UCase$(methodPOSTorGETorDELETE)
     Case "POST", "GET", "DELETE"
@@ -1482,7 +1476,7 @@ Attribute ExecuteCmd.VB_Description = "Sends a command and parameters to the Sel
     Case "Dictionary"
         Set parameters = paramsJsonStringOrDictionary
     Case "String"
-        Set parameters = jc.ParseJson(paramsJsonStringOrDictionary)
+        Set parameters = WebJsonConverter.ParseJson(paramsJsonStringOrDictionary)
     Case Else
         Err.Raise 1, "WebDriver", "The ExecuteCmd method requires that argument paramsJsonStringOrDictionary be either a Dictionary object or a JSON string."
     End Select
@@ -1553,133 +1547,6 @@ Public Function GetPageSource() As String
 Attribute GetPageSource.VB_Description = "Returns the current webpage source as a string"
     GetPageSource = execute(tCMD.CMD_GET_PAGE_SOURCE)("value")
 End Function
-
-'@Description("Returns the active window's handle as a string - DEPRECATED")
-Public Function GetCurrentWindowHandle() As String
-Attribute GetCurrentWindowHandle.VB_Description = "Returns the active window's handle as a string - DEPRECATED"
-    GetCurrentWindowHandle = execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE)("value")
-End Function
-
-'@Description("Returns all windows' handles as a string array - DEPRECATED")
-Public Function GetWindowHandles() As String()
-Attribute GetWindowHandles.VB_Description = "Returns all windows' handles as a string array - DEPRECATED"
-    Dim winHandles As Collection
-    Dim ret() As String
-    Dim i As Integer
-    
-    Set winHandles = execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
-    
-    'To array of handles
-    ReDim ret(baseArrayIdx To winHandles.Count - 1 + baseArrayIdx)
-    For i = 1 To winHandles.Count   ' handles is Collection, not array
-        ret(i - 1 + baseArrayIdx) = winHandles.Item(i)
-    Next i
-    
-    GetWindowHandles = ret
-End Function
-
-'@Description("Opens and activates a new window of the specified type - DEPRECATED")
-Public Function SwitchToNewWindow(Optional ByVal windowType As svbaWindowType = svbaTab) As String
-Attribute SwitchToNewWindow.VB_Description = "Opens and activates a new window of the specified type - DEPRECATED"
-    Dim data As New Dictionary
-    Dim hndl As String
-    Dim wtype As String
-    
-    If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
-    
-    data.Add "type", wtype 'tab or window
-    hndl = execute(tCMD.CMD_NEW_WINDOW, data)("value")("handle")
-    
-    SwitchToWindow hndl 'above just creates a new window - we still need to switch to it
-    
-    SwitchToNewWindow = hndl
-End Function
-
-'@Description("Activates the window of the specified index or handle string - DEPRECATED")
-Public Function SwitchToWindow(ByVal handleOrIndex As Variant) As String
-Attribute SwitchToWindow.VB_Description = "Activates the window of the specified index or handle string - DEPRECATED"
-    Dim hndl As String
-    Dim data As New Dictionary
-    If IsNumeric(handleOrIndex) Then
-        hndl = GetWindowHandles()(handleOrIndex)
-    Else
-        hndl = handleOrIndex
-    End If
-    
-    data.Add "handle", hndl
-    execute tCMD.CMD_SWITCH_TO_WINDOW, data
-    
-    SwitchToWindow = hndl
-End Function
-
-'@Description("Closes the window of the specified index or handle string - if no window is specified, then the active window is closed - DEPRECATED")
-Public Sub CloseWindow(Optional ByVal handleOrIndex As Variant)
-Attribute CloseWindow.VB_Description = "Closes the window of the specified index or handle string - if no window is specified, then the active window is closed - DEPRECATED"
-    If Not IsMissing(handleOrIndex) Then SwitchToWindow handleOrIndex
-    execute tCMD.CMD_CLOSE
-End Sub
-
-'@Description("Returns a dictionary containing x, y, width, and height in screen pixels of the active window - DEPRECATED")
-Public Function GetWindowRect() As Dictionary
-Attribute GetWindowRect.VB_Description = "Returns a dictionary containing x, y, width, and height in screen pixels of the active window - DEPRECATED"
-    Set GetWindowRect = execute(tCMD.CMD_GET_WINDOW_RECT)("value")
-End Function
-
-'@Description("Sets the position and size in screen pixels for the active window - DEPRECATED")
-Public Function SetWindowRect(Optional ByVal x As Variant, Optional ByVal y As Variant, Optional ByVal width As Variant, Optional ByVal height As Variant) As Dictionary
-Attribute SetWindowRect.VB_Description = "Sets the position and size in screen pixels for the active window - DEPRECATED"
-    Dim data As New Dictionary
-    Dim rect As Dictionary
-    Set rect = GetWindowRect
-    If IsMissing(width) Then width = rect("width")
-    If IsMissing(height) Then height = rect("height")
-    If IsMissing(x) Then x = rect("x")
-    If IsMissing(y) Then y = rect("y")
-    data.Add "x", x
-    data.Add "y", y
-    data.Add "width", width
-    data.Add "height", height
-    Set SetWindowRect = execute(tCMD.CMD_SET_WINDOW_RECT, data)("value")
-End Function
-
-'@Description("Sets the size in screen pixels for the active window - DEPRECATED")
-Public Sub SetWindowSize(Optional ByVal width As Variant, Optional ByVal height As Variant)
-Attribute SetWindowSize.VB_Description = "Sets the size in screen pixels for the active window - DEPRECATED"
-    Dim rect As Dictionary
-    Set rect = GetWindowRect
-    If IsMissing(width) Then width = rect("width")
-    If IsMissing(height) Then height = rect("height")
-    SetWindowRect rect("x"), rect("y"), width, height
-End Sub
-
-'@Description("Sets the position in screen pixels for the active window - DEPRECATED")
-Public Sub SetWindowPosition(Optional ByVal x As Variant, Optional ByVal y As Variant)
-Attribute SetWindowPosition.VB_Description = "Sets the position in screen pixels for the active window - DEPRECATED"
-    'returns dictionary with following keys x, y, width, height
-    Dim rect As Dictionary
-    Set rect = GetWindowRect
-    If IsMissing(x) Then x = rect("x")
-    If IsMissing(y) Then y = rect("y")
-    SetWindowRect x, y, rect("width"), rect("height")
-End Sub
-
-'@Description("Maximize the active window - DEPRECATED")
-Public Sub MaximizeWindow()
-Attribute MaximizeWindow.VB_Description = "Maximize the active window - DEPRECATED"
-    execute tCMD.CMD_MAXIMIZE_WINDOW
-End Sub
-
-'@Description("Sets the current window to full screen mode - DEPRECATED")
-Public Sub FullScreenWindow()
-Attribute FullScreenWindow.VB_Description = "Sets the current window to full screen mode - DEPRECATED"
-    execute tCMD.CMD_FULLSCREEN_WINDOW
-End Sub
-
-'@Description("Minimize the active window - DEPRECATED")
-Public Sub MinimizeWindow()
-Attribute MinimizeWindow.VB_Description = "Minimize the active window - DEPRECATED"
-    execute tCMD.CMD_MINIMIZE_WINDOW
-End Sub
 
 '@Description("Switches focus to the frame element")
 Public Sub SwitchToFrame(frameElement As WebElement)
@@ -1823,32 +1690,6 @@ Attribute GetBrowserName.VB_Description = "Gets the browser name"
     GetBrowserName = WebShared.getBrowserNameString(browser_)
 End Function
 
-'@Description("Gets the text prompt of the active alert - DEPRECATED")
-Public Function GetAlertText() As String
-Attribute GetAlertText.VB_Description = "Gets the text prompt of the active alert - DEPRECATED"
-    GetAlertText = execute(tCMD.CMD_GET_ALERT_TEXT)("value")
-End Function
-
-'@Description("Sends the specified text to the active prompt alert - DEPRECATED")
-Public Sub SetAlertText(ByVal alertText As String)
-Attribute SetAlertText.VB_Description = "Sends the specified text to the active prompt alert - DEPRECATED"
-    Dim data As New Dictionary
-    data.Add "text", alertText
-    execute tCMD.CMD_SET_ALERT_TEXT, data
-End Sub
-
-'@Description("Accepts the active alert. Specify an optional input text if th alert is of the prompt type. DEPRECATED.")
-Public Sub AcceptAlert()
-Attribute AcceptAlert.VB_Description = "Accepts the active alert. Specify an optional input text if th alert is of the prompt type. DEPRECATED."
-    execute tCMD.CMD_ACCEPT_ALERT
-End Sub
-
-'@Description("Dismisses the active alert - DEPRECATED")
-Public Sub DismissAlert()
-Attribute DismissAlert.VB_Description = "Dismisses the active alert - DEPRECATED"
-    execute tCMD.CMD_DISMISS_ALERT
-End Sub
-
 '@Description("Waits for alert to show and then returns a WebAlert object for further handling")
 Public Function SwitchToAlert(Optional maxWaitTimeMS As Long = 10000) As WebAlert
 Attribute SwitchToAlert.VB_Description = "Waits for alert to show and then returns a WebAlert object for further handling"
@@ -1895,12 +1736,6 @@ Attribute Clear.VB_Description = "Clears the text field of the element"
     data.Add "id", element.elementId
     execute tCMD.CMD_CLEAR_ELEMENT, data
     Set Clear = element
-End Function
-
-'@Description("Gets the active browser window's title - DEPRECATED")
-Public Function GetTitle() As String
-Attribute GetTitle.VB_Description = "Gets the active browser window's title - DEPRECATED"
-    GetTitle = execute(tCMD.CMD_GET_TITLE)("value")
 End Function
 
 '@Description("Gets the shadow root hosted by the element")
@@ -1992,15 +1827,6 @@ Public Function SetFocus(element As WebElement, Optional ByVal preventScroll As 
 Attribute SetFocus.VB_Description = "Sets the focus to the specified element"
     ExecuteScript "arguments[0].focus({'preventScroll': arguments[1],'focusVisible': arguments[2]})", element, preventScroll, focusVisible
     Set SetFocus = element
-End Function
-
-'@Description("Sets the focus to the element without scrolling - DEPRECATED")
-Public Function SetFocusNoScroll(element As WebElement) As WebElement
-Attribute SetFocusNoScroll.VB_Description = "Sets the focus to the element without scrolling - DEPRECATED"
-    Dim script As String
-    script = "arguments[0].focus({'preventScroll': arguments[1]})"
-    ExecuteScript script, element, 1  'No Scroll into view
-    Set SetFocusNoScroll = element
 End Function
 
 '@Description("Returns a boolean indicating if the specified element has the focus")
@@ -2110,8 +1936,6 @@ Attribute GetAllCookies.VB_Description = "Returns the collection of cookies for 
     Dim cookie As WebCookie
     Dim cookies As WebCookies
     Set resp = execute(tCMD.CMD_GET_ALL_COOKIES)("value")
-    'Dim jc As New WebJSonConverter
-    'Debug.Print jc.ConvertToJson(resp, 4)
     Set cookies = Me.CreateCookies
     Dim i As Long
     For i = 1 To resp.Count
@@ -2162,7 +1986,7 @@ Attribute SetCookie.VB_Description = "Sets a cookie object"
     Dim data As New Dictionary
     'value can take a number string greater than 15 digits
     'need to set the following in JSonConverter else will get an error on execute:
-    'jc.OptionsUseDoubleForLargeNumbers = True
+    'WebJsonConverter.OptionsUseDoubleForLargeNumbers = True
     If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
         data.Add "cookie", cookie.ToDictionary
         execute tCMD.CMD_ADD_COOKIE, data
@@ -2265,8 +2089,6 @@ Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the
     Next i
     
     If Not setHightlightFoundElems_Settings Is Nothing Then setHightlightFoundElems_exec elems
-    
-    Set elems.WebDriver = Me
     
     Set FindElementsFromShadowRoot = elems
 End Function
@@ -2540,8 +2362,7 @@ End Function
 Public Function PageToJSONObject() As Object
 Attribute PageToJSONObject.VB_Description = "Converts webpage to a json dictionary or collection object"
     'will return a dictionary or collection depending on json source
-    Dim jc As New WebJsonConverter
-    Set PageToJSONObject = jc.ParseJson(getJSONStringFromPage())
+    Set PageToJSONObject = WebJsonConverter.ParseJson(getJSONStringFromPage())
 End Function
 
 '@Description("Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact")
@@ -2920,7 +2741,6 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     Dim client As New MSXML2.ServerXMLHTTP60
     Dim clientStatus As Long
     Dim clientResponseText As String
-    Dim jc As New WebJsonConverter
     
     cmdMethod = driverCommand(0)
     cmdPath = driverCommand(1)
@@ -2962,7 +2782,7 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     Case "POST"
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
-        client.send jc.ConvertToJson(cmdArgs)
+        client.send WebJsonConverter.ConvertToJson(cmdArgs)
     Case "GET", "DELETE"
         client.send
     Case Else
@@ -2988,7 +2808,7 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     End If
     
     'parse the response into a dictionary
-    Set response = jc.ParseJson(clientResponseText)
+    Set response = WebJsonConverter.ParseJson(clientResponseText)
 
     'check if it's a WebDriver error
     If isResponseError(response) Then
@@ -3010,7 +2830,7 @@ processErr:
             Err.Raise Err.Number, Err.Source, Err.Description, Err.HelpFile, Err.HelpContext
         Else
             'populate response with the error message
-            Set response = jc.ParseJson("{'value':{'error':'" & Err.Description & "','message':'" & Err.Description & _
+            Set response = WebJsonConverter.ParseJson("{'value':{'error':'" & Err.Description & "','message':'" & Err.Description & _
                         ": in an attempt to communicate with Selenium WebDriver'}}")
             response("value").Add "errorNumber", Err.Number
             Set execute = response 'let caller parse info based on context, including error
@@ -3071,18 +2891,18 @@ Private Function decodeBase64(ByVal strData As String) As Byte()
 End Function
 
 Private Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
-  Dim binaryStream As New ADODB.Stream
+    Dim binaryStream As New ADODB.Stream
 
-  'specify stream type - we want To save binary data.
-  binaryStream.Type = adTypeBinary
+    'specify stream type - we want To save binary data.
+    binaryStream.Type = adTypeBinary
   
-  'open the stream And write binary data
-  binaryStream.Open
-  binaryStream.Write bytearray
+    'open the stream And write binary data
+    binaryStream.Open
+    binaryStream.Write bytearray
   
-  'save binary data To disk
-  binaryStream.SaveToFile filePath, adSaveCreateOverWrite
-  binaryStream.Close
+    'save binary data To disk
+    binaryStream.SaveToFile filePath, adSaveCreateOverWrite
+    binaryStream.Close
 End Sub
 
 Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
@@ -3216,10 +3036,11 @@ End Function
 
 Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
     Dim str As String
+    Dim elem As WebElement
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
-        If Me.IsPresent(By.XPath, "//*[@id='webkit-xml-viewer-source-xml']") Then
-            str = Me.FindElementByXPath("//*[@id='webkit-xml-viewer-source-xml']").GetInnerHTML
+        If Me.IsPresent(By.XPath, "//*[@id='webkit-xml-viewer-source-xml']", , elem) Then
+            str = elem.GetInnerHTML
         End If
     Case svbaBrowser.Firefox
         str = Me.GetPageSource
@@ -3234,35 +3055,48 @@ End Function
 
 Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
     Dim str As String
-    Dim jc As New WebJsonConverter
-    Dim j As Long
-    Dim i As Long
+    Dim elem As WebElement
     
-    If browser_ = svbaBrowser.Firefox Then
+    Select Case browser_
+    Case svbaBrowser.Firefox
         'check to see if preference "devtools.jsonview.enabled" = True (default)
         If Not Me.IsPresent(By.TagName, "pre") Then
             'Firefox using jsonview, so now click rawdata tab
-            If Me.IsPresent(By.ID, "rawdata-tab") Then
-                Me.FindElementByID("rawdata-tab").Click
+            If Me.IsPresent(By.ID, "rawdata-tab", , elem) Then
+                elem.Click
             Else
                 Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
             End If
         End If
         
         str = Me.FindElementByTagName("pre").GetText
-        
+
         'firefox returns a wrongly interpreted json if webpage source came from NavigateToFile *.json
         'GCUser99 has reported this bug - see https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
         str = fixFirefoxBug1797871(str)
-    Else
-        If Me.IsPresent(By.TagName, "pre") Then
-            str = Me.FindElementByTagName("pre").GetText
+    Case svbaBrowser.Chrome
+        If Me.IsPresent(By.TagName, "pre", , elem) Then
+            str = elem.GetText
         Else
             Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
         End If
-    End If
+    Case svbaBrowser.Edge
+        If Me.IsPresent(By.XPath, "/html/body/div[@hidden='true']", , elem) Then
+            'As of 9/2023 Edge browser defaults to Json viewer feature enabled
+            'edge://flags/#edge-json-viewer set to Default or Enabled
+            str = elem.GetInnerHTML
+        ElseIf Me.IsPresent(By.TagName, "pre", , elem) Then
+            'Json viewer is disabled
+            'edge://flags/#edge-json-viewer set to Disabled or caps.AddArguments "--disable-features=msEdgeJSONViewer"
+            str = elem.GetText
+        Else
+            Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
+        End If
+    Case svbaBrowser.IE
+        Err.Raise 1, "WebDriver", "IE driver cannot view JSON format"
+    End Select
     
-    If prettyPrint Then str = jc.ConvertToJson(jc.ParseJson(str), 4)
+    If prettyPrint Then str = WebJsonConverter.ConvertToJson(WebJsonConverter.ParseJson(str), 4)
     
     getJSONStringFromPage = str
 End Function
