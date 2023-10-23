@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.6
+' SeleniumVBA v4.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -79,7 +79,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '   The Align* methods have a runSilent input parameter that if set to True, will not throw any of the expected errors -
 '   this is used with the auto-check/install of the WebDriver Start* methods to make this feature as innocuous/stealth as possible.
 '   Relative driver paths are supported (e.g. ".\msedgedriver.exe").
-'   Use the DefaultDriverFolder property to specify a driver location other than the Downloads dir
+'   Use the DefaultDriverFolder property or the SeleniumVBA.ini file to specify a driver location other than the Downloads dir
 '   A different level of minimum version compatibility can be specified [svbaMajor, svbaMinor, svbaBuildMajor, svbaExactMatch].
 '   The default level is set for the Align* methods to svbaExactMatch, meaning that the most recent compatible release
 '   will be installed if it is not already. However, as an example, the setting for the auto-check in the Start method of
@@ -245,8 +245,8 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         End If
         
         If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
-            'the installed driver version is sufficiently different than the installed browser version
-            'so install it - note that currently only supporting win32 version
+            'the installed driver version is sufficiently different than
+            'the installed browser version, so install it
             DownloadAndInstallDriver browser, dverCompat, driverPath, platform
             dverInstalled = dverCompat
             respStr = "The latest " & getBrowserString(browser) & " Webdriver was installed."
@@ -284,6 +284,8 @@ End Function
 '@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver")
 Public Function AlignIEDriverWithBrowser(Optional ByVal driverPath As String = "IEdriverServer.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaWin32) As String
 Attribute AlignIEDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver"
+    'note that default platform for IE mode is win32 due to slow sendkeys issue of win64 version of driver
+    'see https://github.com/GCuser99/SeleniumVBA/discussions/10
     AlignIEDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.IE, driverPath, minCompatibilityLevel, runSilent, platform)
 End Function
 
@@ -735,7 +737,7 @@ End Sub
 Private Sub deleteDriver(ByVal driverPath As String)
     Dim fso As New FileSystemObject
     Dim driverFileName As String
-    'check if driver exists and if it does, make sure it isn't in use before overwrite
+    'check if driver exists and if it does, make sure it isn't in use before deleting
     driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
     driverFileName = fso.GetFileName(driverPath)
     If fso.FileExists(driverPath) Then

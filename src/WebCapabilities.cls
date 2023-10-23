@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.6
+' SeleniumVBA v4.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -200,6 +200,8 @@ Attribute SetDetachBrowser.VB_Description = "Sets the detach option for Edge/Chr
     'this sets whether browser is closed (false) or left open (true) when the driver is sent the shutdown command
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
+        If Not (driver_.CommandWindowStyle = vbHide Or driver_.CommandWindowStyle = vbMinimizedNoFocus) Then _
+            Err.Raise 1, "WebCapabilities", "The SetDetachBrowser method is not compatible with command window style - use vbHide or vbMinimizeNoFocus."
         Me.SetOption "detach", val
     Case svbaBrowser.Firefox
         Err.Raise 1, "WebCapabilities", "The SetDetachBrowser method is not supported by the Firefox browser."
@@ -219,6 +221,62 @@ Attribute SetDebuggerAddress.VB_Description = "Sets the Debugger Address option 
     Case svbaBrowser.IE
         Err.Raise 1, "WebCapabilities", "The SetDebuggerAddress method is not supported by the IE browser."
     End Select
+End Sub
+
+'@Description("Adds a list of experimental browser flags (edge://flags, chrome://flags). Flags must end in @0 (default), @1 (enable), or @2 (disable)")
+Public Sub AddLocalStateFlags(ParamArray flagsList() As Variant)
+Attribute AddLocalStateFlags.VB_Description = "Adds a list of experimental browser flags (edge://flags, chrome://flags). Flags must end in @0 (default), @1 (enable), or @2 (disable)"
+    Dim flags As Collection
+    Dim localState As New Dictionary
+    Dim browser As New Dictionary
+    Dim varry() As Variant
+    Dim addList() As String
+    Dim flag As String
+    varry = flagsList
+    addList = paramListToStringArray(varry)
+    
+    If browser_ <> Chrome And browser_ <> Edge Then Err.Raise 1, , "Error in SetLocalStateFlag - only valid for Edge and Chrome browsers."
+    
+    'build the enabled_labs_experiments structure if needed
+    If Not data_.Item("alwaysMatch")(browserOptionKey).Exists("localState") Then
+        browser.Add "enabled_labs_experiments", New Collection
+        localState.Add "browser", browser
+        SetOption "localState", localState
+    Else
+        If Not data_.Item("alwaysMatch")(browserOptionKey)("localState").Exists("browser") Then
+            browser.Add "enabled_labs_experiments", New Collection
+            data_.Item("alwaysMatch")(browserOptionKey)("localState").Add "browser", browser
+        Else
+            If Not data_.Item("alwaysMatch")(browserOptionKey)("localState")("browser").Exists("enabled_labs_experiments") Then
+                data_.Item("alwaysMatch")(browserOptionKey)("localState")("browser").Add "enabled_labs_experiments", New Collection
+            End If
+        End If
+    End If
+    
+    'get the current flags collection
+    Set flags = data_.Item("alwaysMatch")(browserOptionKey)("localState")("browser")("enabled_labs_experiments")
+    
+    'check if the flag already exists in the collection, and if so, remove it
+    Dim i As Long
+    Dim j As Long
+    For j = 1 To UBound(addList)
+        flag = addList(j)
+        For i = 1 To flags.Count
+            If Split(flags.Item(i), "@")(0) = Split(flag, "@")(0) Then
+                flags.Remove i
+                Exit For
+            End If
+        Next i
+    Next j
+    
+    'add the flags
+    'this does not guard against user specifying same flag twice
+    For j = 1 To UBound(addList)
+        flags.Add addList(j)
+    Next j
+
+    'reset the modified flags collection
+    Set data_.Item("alwaysMatch")(browserOptionKey)("localState")("browser")("enabled_labs_experiments") = flags
 End Sub
 
 '-------------------------------------------------------------------------

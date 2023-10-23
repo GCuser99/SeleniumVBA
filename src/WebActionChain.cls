@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.6
+' SeleniumVBA v4.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1189,7 +1189,6 @@ Private Function actionPointerMove(Optional ByVal x As Long = 0, Optional ByVal 
         elem.Add "element-6066-11e4-a52e-4f735466cecf", elementId
         action.Add "origin", elem
     End If
-    'action.Add "origin", elem
     
     action.Add "duration", duration 'Only applicable to 'pause' and 'pointerMove'.
     action.Add "x", x

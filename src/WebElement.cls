@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.6
+' SeleniumVBA v4.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -306,9 +306,9 @@ Attribute IsMultiSelect.VB_Description = "Returns a boolean indicating if this e
 End Function
 
 '@Description("Returns a boolean indicating if this dropdown option element is selected")
-Public Function IsSelected() As Boolean
+Public Function IsSelected(Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
 Attribute IsSelected.VB_Description = "Returns a boolean indicating if this dropdown option element is selected"
-    IsSelected = driver_.IsSelected(Me)
+    IsSelected = driver_.IsSelected(Me, maxWaitTimeMS)
 End Function
 
 '@Description("Selects a dropdown option element with the specified value attribute")
@@ -378,15 +378,15 @@ Attribute SwitchToFrame.VB_Description = "Switches to this frame element"
 End Sub
 
 '@Description("Returns a boolean indicating if this element is enabled")
-Public Function IsEnabled() As Boolean
+Public Function IsEnabled(Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
 Attribute IsEnabled.VB_Description = "Returns a boolean indicating if this element is enabled"
-    IsEnabled = driver_.IsEnabled(Me)
+    IsEnabled = driver_.IsEnabled(Me, maxWaitTimeMS)
 End Function
 
 '@Description("Returns a boolean indicating if this element is displayed")
-Public Function IsDisplayed() As Boolean
+Public Function IsDisplayed(Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
 Attribute IsDisplayed.VB_Description = "Returns a boolean indicating if this element is displayed"
-    IsDisplayed = driver_.IsDisplayed(Me)
+    IsDisplayed = driver_.IsDisplayed(Me, maxWaitTimeMS)
 End Function
 
 '@Description("Clears the text field of this element")

@@ -19,7 +19,7 @@ Sub test_select()
     
     fruits.SelectByVisibleText "Banana"
     driver.Wait
-    fruits.SelectByIndex 2 'Apple
+    fruits.SelectByIndex 2  'Apple
     driver.Wait
     fruits.SelectByValue "orange"
     driver.Wait
@@ -35,7 +35,8 @@ Sub test_select()
     driver.Wait
     
     Debug.Print fruits.GetSelectedOption.GetText 'Grape
-
+    Debug.Print driver.FindElementByCssSelector("option[value='grape']", fruits).IsSelected
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub

@@ -116,7 +116,7 @@ Sub test_cdp_enhanced_file_download()
     driver.StartChrome
     
     'set the directory path for saving download to
-    Set caps = driver.CreateCapabilities
+    Set caps = driver.CreateCapabilities()
     caps.SetDownloadPrefs "%USERPROFILE%\Desktop"
     driver.OpenBrowser caps
     
@@ -245,7 +245,7 @@ Sub test_cdp_random_other_stuff()
     driver.ExecuteCDP "Network.enable"
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-clearBrowserCache
     driver.ExecuteCDP "Network.clearBrowserCache"
-    'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-clearBrowserCache
+    'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setCacheDisabled
     driver.ExecuteCDP "Network.setCacheDisabled", "{'cacheDisabled':true}"
     
     'use cdp to get cookies

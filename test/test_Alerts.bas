@@ -91,7 +91,7 @@ Sub test_Alerts()
     driver.FindElement(By.ID, "confirm").Click
     With driver.SwitchToAlert
         Debug.Print "Alert prompt 8: " & .GetText
-        .Accept
+        .Dismiss
     End With
     Debug.Print "confirm alert found and dismissed"
     

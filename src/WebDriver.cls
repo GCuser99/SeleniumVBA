@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.6
+' SeleniumVBA v4.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -345,6 +345,10 @@ Attribute CommandWindowStyle.VB_Description = "Set the driver command window dis
     appWinStyle = style
 End Property
 
+Friend Property Get CommandWindowStyle() As VbAppWinStyle
+    CommandWindowStyle = appWinStyle
+End Property
+
 '@Description("Start an Edge driver")
 Public Sub StartEdge(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\edge.log")
 Attribute StartEdge.VB_Description = "Start an Edge driver"
@@ -452,6 +456,9 @@ Attribute Shutdown.VB_Description = "Shuts down all driver instances attached to
         If sessionId_ <> vbNullString Then CloseBrowser
         execute tCMD.CMD_SHUTDOWN
     End Select
+    
+    'need to set this global used by Highlight to nothing or else WebDriver class' terminate event may not fire
+    Set lastElems = Nothing
 End Sub
 
 '@Description("Opens browser instance with specified capabilities")
@@ -877,8 +884,11 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
         Dim filePath As String
         filePath = "%TEMP%\seleniumVBAtmp" & Timer() & ".vbs"
         SaveStringToFile vbs, filePath
+        
+        'launch the script!
         Shell "WScript """ & ResolvePath(filePath) & """ , vbNormalFocus"
         
+        'remember to clean up later on WebDriver terminate event
         cleanupTempFiles = True
     Else
         'not running on separate thread, so use native VBA instead of VBSript
@@ -906,7 +916,7 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
             End If
         Else
             'no window specified so send keys to active window
-            'but make sure we are not sending to the IDE!!!!
+            'but make sure we are not sending to the IDE if debugging!!!!
             If Not IsActiveWindowVBIDE Then
                 For i = 1 To sendPackage.Count
                     VBA.SendKeys sendPackage(i), False   'send the keys
@@ -1309,11 +1319,9 @@ Attribute DeSelectByVisibleText.VB_Description = "Deselects the dropdown option 
 End Sub
 
 '@Description("Returns a boolean indicating if the dropdown option element is selected")
-Public Function IsSelected(element As WebElement) As Boolean
+Public Function IsSelected(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
 Attribute IsSelected.VB_Description = "Returns a boolean indicating if the dropdown option element is selected"
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    IsSelected = execute(tCMD.CMD_IS_ELEMENT_SELECTED, data)("value")
+    IsSelected = waitForIsCommand(tCMD.CMD_IS_ELEMENT_SELECTED, element, maxWaitTimeMS)
 End Function
 
 '@Description("Returns a boolean indicating if the element is a multi-select dropdown")
@@ -1445,7 +1453,7 @@ Attribute ExecuteCDP.VB_Description = "Executes a CDP command and returns a dict
     Case svbaBrowser.Chrome
         package.Add "service", "goog"
     Case Else
-        Err.Raise 1, "WebDriver", "The ExecuteCDP method can only be used with Edge and Chrome browsers."
+        Err.Raise 405, "WebDriver", "The ExecuteCDP method can only be used with Edge and Chrome browsers."
     End Select
     
     'execute command and then let caller parse the result, including error if occurs
@@ -1501,7 +1509,7 @@ Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active brow
         Case svbaBrowser.Firefox
             pngstr = execute(tCMD.CMD_SCREENSHOT_FULL_FF)("value")
         Case svbaBrowser.IE
-            Err.Raise 1, "WebCapabilities", "The SaveScreenShot method with argument fullScreenShot=True is not supported by the IE browser."
+            Err.Raise 405, "WebCapabilities", "The SaveScreenShot method with argument fullScreenShot=True is not supported by the IE browser."
         End Select
     Else
         If element Is Nothing Then
@@ -1669,19 +1677,16 @@ Attribute IsPresent.VB_Description = "Returns a boolean indicating if the elemen
 End Function
 
 '@Description("Returns a boolean indicating if the element is enabled")
-Public Function IsEnabled(element As WebElement) As Boolean
+Public Function IsEnabled(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
 Attribute IsEnabled.VB_Description = "Returns a boolean indicating if the element is enabled"
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    IsEnabled = execute(tCMD.CMD_IS_ELEMENT_ENABLED, data)("value")
+    IsEnabled = waitForIsCommand(tCMD.CMD_IS_ELEMENT_ENABLED, element, maxWaitTimeMS)
 End Function
 
 '@Description("Returns a boolean indicating if the element is displayed")
-Public Function IsDisplayed(element As WebElement) As Boolean
+Public Function IsDisplayed(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
 Attribute IsDisplayed.VB_Description = "Returns a boolean indicating if the element is displayed"
-    Dim data As New Dictionary
-    data.Add "id", element.elementId
-    IsDisplayed = execute(tCMD.CMD_IS_ELEMENT_DISPLAYED, data)("value")
+    'see https://www.w3.org/TR/webdriver/#element-displayedness
+    IsDisplayed = waitForIsCommand(tCMD.CMD_IS_ELEMENT_DISPLAYED, element, maxWaitTimeMS)
 End Function
 
 '@Description("Gets the browser name")
@@ -2026,7 +2031,7 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     'since only one browser per driver is allowed, this will return a collection of one
     'so lets return a more useful dictionary instead
     If browser_ = svbaBrowser.Firefox Then
-        Err.Raise 1, "WebDriver", "GetSessionsInfo method not supported for Firefox WebDriver"
+        Err.Raise 405, "WebDriver", "GetSessionsInfo method not supported for Firefox WebDriver"
     End If
     Set GetSessionsInfo = execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
 End Function
@@ -2251,7 +2256,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
         Else
             strlist = Split(fileList(i), ",")
             For k = 0 To UBound(strlist)
-                On Error Resume Next 'file might not exists 'file might not exists
+                On Error Resume Next 'file might not exists
                 fso.DeleteFile WebShared.getFullLocalPath(strlist(k), defaultIOFolder_), True
                 On Error GoTo 0
             Next k
@@ -2732,6 +2737,24 @@ Attribute ActiveWindow.VB_Description = "Returns the active WebWindow object"
     Set ActiveWindow.WebDriver = Me
 End Function
 
+'@Description("Sets the default download folder path - for Edge and Chrome browsers only")
+Public Sub SetDownloadFolder(Optional ByVal folderPath As String = ".\")
+Attribute SetDownloadFolder.VB_Description = "Sets the default download folder path - for Edge and Chrome browsers only"
+    'redirect the download location AFTER capabilities have been set - can be called multiple times in same session!!
+    Dim params As New Dictionary
+    If browser_ = Firefox Or browser_ = IE Then
+        'GeckoDriver lack of support for cdp endpoint - https://groups.google.com/a/mozilla.org/g/dev-webdriver/c/DcYrCVCWMLU
+        Err.Raise 1, , "Error in SetDownloadFolder - this method can only be used with Edge and Chrome. Use WebCapabilities SetDownloadPrefs instead."
+    End If
+    'https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-setDownloadBehavior
+    params.Add "behavior", "allow" 'deny, allow, default
+    params.Add "downloadPath", ResolvePath(folderPath)
+    'Page. works but is deprecated as of 10/2023 - use Browser. once incognito issue is fixed
+    'https://github.com/GCuser99/SeleniumVBA/issues/87
+    'ExecuteCDP "Browser.setDownloadBehavior", params
+    ExecuteCDP "Page.setDownloadBehavior", params
+End Sub
+
 Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
     Dim cmdMethod As String
     Dim cmdPath As String
@@ -3120,7 +3143,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
 
     'This function renders html source "offline" by disabling dynamic content, while leaving the DOM tree intact.
     
-    'This following are disabled:
+    'The following are disabled:
     
     '- script elements
     '- url redirects
@@ -3586,6 +3609,33 @@ Private Function timeMStoCurrency(ByVal milliseconds As Long) As Currency
     Static perSecond As Currency
     If perSecond = 0 Then GetFrequency perSecond
     timeMStoCurrency = CCur(milliseconds) * (perSecond / 1000)
+End Function
+
+Private Function waitForIsCommand(cmd As Variant, element As WebElement, ByVal maxWaitTimeMS As Long) As Boolean
+    'this function used in IsDisplayed, IsEnabled, and IsSelected commands to facilitate optional max wait time
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
+    Dim data As New Dictionary
+
+    GetTime timeStart 'in currency
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
+    GetTime timeStart
+    
+    data.Add "id", element.elementId
+    
+    Do
+        If execute(cmd, data)("value") Then
+            waitForIsCommand = True
+            Exit Function
+        End If
+        
+        SleepWinAPI 50 'ms
+        DoEvents 'yield to other processes
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
+    waitForIsCommand = False
 End Function
 
 Private Sub Class_Terminate()

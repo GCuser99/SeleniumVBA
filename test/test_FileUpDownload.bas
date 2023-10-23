@@ -61,6 +61,8 @@ Sub test_file_download()
 
     driver.OpenBrowser caps
     
+    'driver.SetDownloadFolder ".\" 'for Edge and Chrome only - no need to set in capabilities
+        
     driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
     driver.Wait 500
     
