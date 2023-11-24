@@ -14,9 +14,10 @@ Attribute VB_Exposed = True
 ' The following changes were made by GCUser99 to Tim Hall's version:
 '    Converted from VBA standard module to class
 '    Removed Mac OS conditional compiles
-'    Modification to json_Encode so that special Selenium key codes are not escaped (json_Encode)
-'    Set default for UseDoubleForLargeNumbers option equal to True  -
-'    this is needed for large number strings that can occur with cookie values
+'    Added Property Get/Let's for Options
+'    Added Option ConvertUnicodeToEscapedString and set default to False
+'    That default option used in json_Encode so that Unicode characters (non-ascii) are
+'    not escaped, which is not required by WebDriver server
 ' ==========================================================================
 ' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
@@ -126,35 +127,41 @@ Private Type json_Options
 
     ' The solidus (/) is not required to be escaped, use this option to escape them as \/ in ConvertToJson
     EscapeSolidus As Boolean
+    
+    'Added by GCUser99 - default is not to convert, as WebDriver server can handle Unicode characters
+    ConvertUnicodeToEscapedString As Boolean
 End Type
 
-'Public JsonOptions As json_Options 'changed by GCUser99
 Private JsonOptions As json_Options
 
 Public Property Let OptionsUseDoubleForLargeNumbers(ByVal val As Boolean)
     JsonOptions.UseDoubleForLargeNumbers = val
 End Property
+Public Property Get OptionsUseDoubleForLargeNumbers() As Boolean
+   OptionsUseDoubleForLargeNumbers = JsonOptions.UseDoubleForLargeNumbers
+End Property
 
 Public Property Let OptionsAllowUnquotedKeys(ByVal val As Boolean)
     JsonOptions.AllowUnquotedKeys = val
+End Property
+Public Property Get OptionsAllowUnquotedKeys() As Boolean
+    OptionsAllowUnquotedKeys = JsonOptions.AllowUnquotedKeys
 End Property
 
 Public Property Let OptionsEscapeSolidus(ByVal val As Boolean)
     JsonOptions.EscapeSolidus = val
 End Property
-
-Public Property Get OptionsUseDoubleForLargeNumbers() As Boolean
-   OptionsUseDoubleForLargeNumbers = JsonOptions.UseDoubleForLargeNumbers
-End Property
-
-Public Property Get OptionsAllowUnquotedKeys() As Boolean
-    OptionsAllowUnquotedKeys = JsonOptions.AllowUnquotedKeys
-End Property
-
 Public Property Get OptionsEscapeSolidus() As Boolean
     OptionsEscapeSolidus = JsonOptions.EscapeSolidus
 End Property
 
+'Added by GCUser99
+Public Property Let OptionsConvertUnicodeToEscapedString(ByVal val As Boolean)
+    JsonOptions.ConvertUnicodeToEscapedString = val
+End Property
+Public Property Get OptionsConvertUnicodeToEscapedString() As Boolean
+    OptionsConvertUnicodeToEscapedString = JsonOptions.ConvertUnicodeToEscapedString
+End Property
 
 ' ============================================= '
 ' Public Methods
@@ -176,6 +183,7 @@ Public Function ParseJson(ByVal jsonString As String) As Object
     jsonString = VBA.Replace(VBA.Replace(VBA.Replace(jsonString, VBA.vbCr, ""), VBA.vbLf, ""), VBA.vbTab, "")
 
     json_SkipSpaces jsonString, json_Index
+    
     Select Case VBA.Mid$(jsonString, json_Index, 1)
     Case "{"
         Set ParseJson = json_ParseObject(jsonString, json_Index)
@@ -217,7 +225,7 @@ Public Function ConvertToJson(ByVal jsonValue As Variant, Optional ByVal Whitesp
     Dim json_PrettyPrint As Boolean
     Dim json_Indentation As String
     Dim json_InnerIndentation As String
-
+    
     json_LBound = -1
     json_UBound = -1
     json_IsFirstItem = True
@@ -236,7 +244,7 @@ Public Function ConvertToJson(ByVal jsonValue As Variant, Optional ByVal Whitesp
         ConvertToJson = """" & json_DateStr & """"
     Case VBA.vbString
         ' String (or large number encoded as string)
-        If Not JsonOptions.UseDoubleForLargeNumbers And json_StringIsLargeNumber(jsonValue) Then
+        If (Not JsonOptions.UseDoubleForLargeNumbers) And json_StringIsLargeNumber(jsonValue) Then
             ConvertToJson = jsonValue
         Else
             ConvertToJson = """" & json_Encode(jsonValue) & """"
@@ -685,7 +693,7 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
     Dim json_Buffer As String
     Dim json_BufferPosition As Long
     Dim json_BufferLength As Long
-
+    
     For json_Index = 1 To VBA.Len(json_Text)
         json_Char = VBA.Mid$(json_Text, json_Index, 1)
         json_AscCode = VBA.AscW(json_Char)
@@ -706,12 +714,6 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
         Case 92
             ' \ -> 92 -> \\
             json_Char = "\\"
-            If VBA.Len(json_Text) = 6 Then
-                If json_Text Like "\u[eE]0[0-5][0-9a-fA-F]" Then
-                    'special Selenium key codes are not escaped
-                    json_Char = "\"
-                End If
-            End If
         Case 47
             ' / -> 47 -> \/ (optional)
             If JsonOptions.EscapeSolidus Then
@@ -733,8 +735,10 @@ Private Function json_Encode(ByVal json_Text As Variant) As String
             ' tab -> 9 -> \t
             json_Char = "\t"
         Case 0 To 31, 127 To 65535
-            ' Non-ascii characters -> convert to 4-digit hex
-            json_Char = "\u" & VBA.Right$("0000" & VBA.Hex$(json_AscCode), 4)
+            If JsonOptions.ConvertUnicodeToEscapedString Then
+                ' Non-ascii characters -> convert to 4-digit hex
+                json_Char = "\u" & VBA.Right$("0000" & VBA.Hex$(json_AscCode), 4)
+            End If
         End Select
 
         json_BufferAppend json_Buffer, json_Char, json_BufferPosition, json_BufferLength
@@ -1054,9 +1058,3 @@ Private Function utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
     utc_SystemTimeToDate = DateSerial(utc_Value.utc_wYear, utc_Value.utc_wMonth, utc_Value.utc_wDay) + _
         TimeSerial(utc_Value.utc_wHour, utc_Value.utc_wMinute, utc_Value.utc_wSecond)
 End Function
-
-Private Sub Class_Initialize()
-    'added by GCUser99
-    Me.OptionsUseDoubleForLargeNumbers = True 'this is needed for large number strings that can occur with cookie values
-End Sub
-

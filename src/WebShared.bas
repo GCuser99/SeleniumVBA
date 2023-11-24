@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.7
+' SeleniumVBA v4.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -448,56 +448,12 @@ Public Function IsActiveWindowVBIDE() As Boolean
 End Function
 
 Public Function splitKeyString(ByVal keys As String) As Collection
-    'splits the input string into a collection of individual characters while interpreting
-    'each special key (eg \uE008) as a single character
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
-    Dim match As VBScript_RegExp_55.match
-    Dim chars As New Collection
+    'splits the input string into a collection of individual characters
     Dim i As Long
-    Dim endMatchPosLast  As Long
-    Dim startMatchPos  As Long
-    Dim endMatchPos  As Long
-    Dim matchLength  As Long
-        
-    oRegExp.Global = True
-    oRegExp.Pattern = "\\u[eE]0([0-5][0-9a-fA-F])" 'Selenium WebDriver requires lower-case of the leading "u"
-    
-    Set matches = oRegExp.execute(keys)
-    
-    If matches.Count > 0 Then
-        'process Selenium WebDriver special key(s)
-        endMatchPosLast = 0
-        For Each match In matches
-            
-            startMatchPos = match.FirstIndex + 1 'regexp is zero-based so add 1
-            matchLength = match.Length
-            endMatchPos = startMatchPos + matchLength - 1
-            
-            If startMatchPos - 1 > endMatchPosLast Then
-                For i = endMatchPosLast + 1 To startMatchPos - 1
-                    'non-cord action
-                    chars.Add Mid$(keys, i, 1)
-                Next i
-            End If
-            
-            chars.Add match.Value
-            
-            endMatchPosLast = endMatchPos
-        Next match
-        
-        If Len(keys) > endMatchPosLast Then
-            For i = endMatchPosLast + 1 To Len(keys)
-                'non-cord action
-                chars.Add Mid$(keys, i, 1)
-            Next i
-        End If
-    Else
-        For i = 1 To Len(keys)
-            chars.Add Mid$(keys, i, 1)
-        Next i
-    End If
-    
+    Dim chars As New Collection
+    For i = 1 To Len(keys)
+        chars.Add Mid$(keys, i, 1)
+    Next i
     Set splitKeyString = chars
 End Function
 
@@ -517,4 +473,32 @@ Public Function isResponseError(resp As Dictionary) As Boolean
             isResponseError = True
         End If
     End If
+End Function
+
+'this is used to convert an escaped unicode string (e.g. "\u00A9") into the
+'single (wide) character equiv. This conversion is required by WebJsonConverter.
+Public Function unEscapeUnicode(ByRef keyString As Variant) As String
+    Dim oRegExp As New VBScript_RegExp_55.RegExp
+    Dim matches As VBScript_RegExp_55.MatchCollection
+    Dim match As VBScript_RegExp_55.match
+    Dim unEscapedValue As String
+    
+    oRegExp.Global = True
+
+    'process escaped unicode
+    oRegExp.Pattern = "\\u([0-9a-fA-F]{4})"
+    Set matches = oRegExp.execute(keyString)
+    If matches.Count > 0 Then
+        For Each match In matches
+            unEscapedValue = ChrW$(val("&H" & match.SubMatches(0)))
+            'replace match with unescaped value
+            keyString = Replace(keyString, match.Value, unEscapedValue, Count:=1)
+        Next match
+    End If
+    unEscapeUnicode = keyString
+End Function
+
+'this is to replace AscW which outputs negative ascii code for unicode due to its integer return value
+Public Function AscWL(ByVal s As String) As Long
+    AscWL = CLng(AscW(s)) And &HFFFF&
 End Function

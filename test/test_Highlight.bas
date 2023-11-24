@@ -96,7 +96,7 @@ Sub test_highlight2()
     
     driver.NavigateToFile ".\snippet.html"
     
-    driver.ImplicitWait = 1000
+    driver.ImplicitMaxWait = 1000
     
     'split the table cells into two groups Red and Blue
     With driver.FindElements(By.TagName, "td")

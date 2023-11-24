@@ -64,7 +64,7 @@ Sub test_cdp_enhanced_geolocation()
     driver.StartChrome 'Chrome and Edge only
     driver.OpenBrowser
     
-    driver.ImplicitWait = 2000
+    driver.ImplicitMaxWait = 2000
     
     'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-setGeolocationOverride
     'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-clearGeolocationOverride

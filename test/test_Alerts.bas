@@ -23,7 +23,7 @@ Sub test_Alerts()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.ImplicitWait = 10000
+    driver.ImplicitMaxWait = 10000
     
     driver.NavigateTo "https://www.selenium.dev/selenium/web/alerts.html"
     
@@ -111,7 +111,7 @@ Sub test_Alerts2()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.ImplicitWait = 2000
+    driver.ImplicitMaxWait = 2000
     
     driver.NavigateTo "https://the-internet.herokuapp.com/javascript_alerts"
     
@@ -139,14 +139,14 @@ Sub test_Authentication()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.ImplicitWait = 10000
+    driver.ImplicitMaxWait = 10000
     
     userName = "admin"
     pw = "admin"
     
     driver.NavigateTo "http://" & userName & ":" & pw & "@the-internet.herokuapp.com/basic_auth"
   
-    If driver.IsPresent(By.CssSelector, "#content > div > p", , elem) Then
+    If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
         Debug.Print elem.GetText
     End If
     

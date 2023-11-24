@@ -15,7 +15,7 @@ Sub test_Sendkeys()
     
     driver.OpenBrowser
     
-    driver.ImplicitWait = 2000
+    driver.ImplicitMaxWait = 2000
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
@@ -93,7 +93,7 @@ Sub test_Authentication()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.ImplicitWait = 10000
+    driver.ImplicitMaxWait = 10000
     
     driver.NavigateTo "http://the-internet.herokuapp.com/basic_auth"
     
@@ -107,7 +107,7 @@ Sub test_Authentication()
         runOnSeparateThread:=False, _
         waitForWindow:=False
     
-    If driver.IsPresent(By.CssSelector, "#content > div > p", , elem) Then
+    If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
         Debug.Print elem.GetText
     End If
   

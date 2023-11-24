@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.7
+' SeleniumVBA v4.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -509,7 +509,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     sessionId_ = resp("sessionId")
     
     'set timeouts if different from sys defaults
-    If curImplicitWait <> sysImplicitWait Then ImplicitWait = curImplicitWait
+    If curImplicitWait <> sysImplicitWait Then ImplicitMaxWait = curImplicitWait
     If curScriptTimeout <> sysScriptTimeout Then ScriptTimeout = curScriptTimeout
     If curPageLoadTimeout <> sysPageLoadTimeout Then PageLoadTimeout = curPageLoadTimeout
 End Sub
@@ -777,7 +777,7 @@ End Function
 Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
 Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows"
     Dim i As Long
-    Dim modKeys As Variant
+    Dim modKeys As Collection
     Dim endMatchPos As Long
     Dim startMatchPos As Long
     Dim matchLength As Long
@@ -786,8 +786,11 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
     Dim winActivated As Boolean
     Dim sendPackage As New Collection
     
+    'replace possible escaped special key strings with single (wide) character equivalents
+    keyString = unEscapeUnicode(keyString)
+    
     'check if we have special keys
-    If Not keyString Like "*\u[eE]0[0-5][0-9a-fA-F]*" Then
+    If Not (keyString Like "*[" & ChrW$(&HE000&) & "-" & ChrW$(&HE05D&) & "]*") Then
         'no special keys or chords
         sendPackage.Add keyString
     Else
@@ -796,9 +799,9 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
         Dim matches As VBScript_RegExp_55.MatchCollection
         Dim match As VBScript_RegExp_55.match
         Dim modKeyString As String
-        
+
         oRegExp.Global = True
-        oRegExp.Pattern = "((\\u[eE]00[89aA])+)(.*?)\\uE000"
+        oRegExp.Pattern = "(([" & ChrW$(&HE008&) & "-" & ChrW$(&HE00A&) & "])+)(.*?)" & ChrW$(&HE000&)
         
         Set matches = oRegExp.execute(keyString)
         
@@ -816,15 +819,14 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
                     'non-cord action
                     sendPackage.Add osKeyMapper(Mid(keyString, endMatchPosLast + 1, startMatchPos - endMatchPosLast - 1))
                 End If
-                
                 'now do the cord action
                 'handle more than one modifier keys
-                modKeys = Split(match.SubMatches(0), "\u")
+                Set modKeys = splitKeyString(match.SubMatches(0))
                 
                 modKeyString = vbNullString
                 'press the modifiers down
-                For i = 1 To UBound(modKeys)
-                    modKeyString = modKeyString & osKeyMapper("\u" & modKeys(i))
+                For i = 1 To modKeys.Count
+                    modKeyString = modKeyString & osKeyMapper(modKeys(i))
                 Next i
                 
                 sendPackage.Add modKeyString & "(" & osKeyMapper(match.SubMatches(2)) & ")"
@@ -934,24 +936,18 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
     data.Add "id", element.elementId
     If clearBeforeTyping Then execute tCMD.CMD_CLEAR_ELEMENT, data
     
-    If Not keys Like "*\u[eE]0[0-5][0-9a-fA-F]*" Then
-        'no special keys or chords so use the fast "normal" SendKeys command
-        
-        'first check to make sure there are no modifiers already keyed-down - if so release
-        If modifierKeyStateDown Then
-            execute tCMD.CMD_CLEAR_ACTIONS  'remote-end clear key/pointer states
-            modifierKeyStateDown = False
-        End If
-
-        data("text") = keys
-        Set data("value") = splitKeyString(keys)
-        execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
-    Else
-        'send the keys using the more advanced handling of the WebActionChain class
-        'calling ActionChain clears key/pointer states on remote-end
-        SetFocus element
-        ActionChain.SendKeys(keys).Perform
+    'first check to make sure there are no modifiers already keyed-down - if so release
+    If modifierKeyStateDown Then
+        execute tCMD.CMD_CLEAR_ACTIONS  'remote-end clear key/pointer states
+        modifierKeyStateDown = False
     End If
+    
+    'replace possible escaped special key strings with single (wide) character equivalents
+    keys = unEscapeUnicode(keys)
+
+    data("text") = keys
+    Set data("value") = splitKeyString(keys)
+    execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
 End Sub
 
 '@Description("Clicks the element. If element not specified, then clicks on the active element")
@@ -1115,8 +1111,6 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
         Next
         'draft string (incomplete code) to highlight WebElements by single command:
         'ExecuteScript "arguments[0].setAttribute('style', arguments[1])", elements, finalString
-        'MsgBox maxYcoord
-        'Stop
     Else 'if UnHighlight
         For Each element In elements
             If SetHighlight_ElemsOrigStyle.Exists(element.elementId) Then
@@ -1596,14 +1590,25 @@ Attribute GetCurrentFrameName.VB_Description = "Returns the name of the active f
 End Function
 
 '@Description("Sets/Gets how long to wait for the element location strategy to complete when locating an element(s)")
-Public Property Let ImplicitWait(ByVal milliseconds As Long)
-Attribute ImplicitWait.VB_Description = "Sets/Gets how long to wait for the element location strategy to complete when locating an element(s)"
+Public Property Let ImplicitMaxWait(ByVal milliseconds As Long)
+Attribute ImplicitMaxWait.VB_Description = "Sets/Gets how long to wait for the element location strategy to complete when locating an element(s)"
     Dim data As New Dictionary
     data.Add "implicit", milliseconds
     execute tCMD.CMD_SET_TIMEOUTS, data
     curImplicitWait = milliseconds
 End Property
+Public Property Get ImplicitMaxWait() As Long
+    ImplicitMaxWait = execute(tCMD.CMD_GET_TIMEOUTS)("value")("implicit")
+End Property
 
+'@Description("DEPRECATED - use ImplicitMaxWait")
+Public Property Let ImplicitWait(ByVal milliseconds As Long)
+Attribute ImplicitWait.VB_Description = "DEPRECATED - use ImplicitMaxWait"
+    Dim data As New Dictionary
+    data.Add "implicit", milliseconds
+    execute tCMD.CMD_SET_TIMEOUTS, data
+    curImplicitWait = milliseconds
+End Property
 Public Property Get ImplicitWait() As Long
     ImplicitWait = execute(tCMD.CMD_GET_TIMEOUTS)("value")("implicit")
 End Property
@@ -1640,10 +1645,10 @@ Attribute Wait.VB_Description = "Pauses in-line execution for the specified numb
     WebShared.sleep milliseconds
 End Sub
 
-'@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element.")
+'@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and obtain a reference to the found element.")
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
-                            Optional ByRef elemFound As WebElement, Optional ByRef parentElement As WebElement) As Boolean
-Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element."
+                             Optional parentElement As WebElement, Optional ByRef elemFound As WebElement) As Boolean
+Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and obtain a reference to the found element."
     Dim savTimeout As Long
     Dim resp As Dictionary
     Dim data As Dictionary
@@ -1652,7 +1657,7 @@ Attribute IsPresent.VB_Description = "Returns a boolean indicating if the elemen
     'check if desired implicit wait is different than what's already
     ' set - if not then save what's already set and set a new wait time
     savTimeout = curImplicitWait
-    If ImplicitWaitMS <> savTimeout Then ImplicitWait = ImplicitWaitMS
+    If ImplicitWaitMS <> savTimeout Then ImplicitMaxWait = ImplicitWaitMS
     
     Set data = toSelector(by_, val)
     
@@ -1673,7 +1678,7 @@ Attribute IsPresent.VB_Description = "Returns a boolean indicating if the elemen
     End If
     
     'put back the saved implicit wait if needed
-    If ImplicitWaitMS <> savTimeout Then ImplicitWait = savTimeout
+    If ImplicitWaitMS <> savTimeout Then ImplicitMaxWait = savTimeout
 End Function
 
 '@Description("Returns a boolean indicating if the element is enabled")
@@ -1850,9 +1855,9 @@ Attribute HasFocus.VB_Description = "Returns a boolean indicating if the specifi
     End If
 End Function
 
-'@Description("Scrolls by an XY offset referenced to location of the element")
+'@Description("DEPRECATED - Use ScrollIntoView")
 Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
-Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced to location of the element"
+Attribute ScrollToElement.VB_Description = "DEPRECATED - Use ScrollIntoView"
     ScrollIntoView element
     ScrollBy xOffset, yOffset
     Set ScrollToElement = element
@@ -1860,9 +1865,10 @@ End Function
 
 '@Description("Scrolls to the element specified")
 Public Function ScrollIntoView(element As WebElement, _
-                    Optional enSpeed As ScrollIntoViewOptions_speed, _
-                    Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
-                    Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
+                    Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, _
+                    Optional ByVal enAlign_vert As ScrollIntoViewOptions_alignment = align_start, _
+                    Optional ByVal enAlign_horiz As ScrollIntoViewOptions_alignment = align_nearest, _
+                    Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
 Attribute ScrollIntoView.VB_Description = "Scrolls to the element specified"
     Dim script As String
     
@@ -1893,6 +1899,7 @@ Attribute ScrollIntoView.VB_Description = "Scrolls to the element specified"
         script = "arguments[0].scrollIntoView({ behavior: """ & sSpeed & """, block: """ & sAlign_vert & """, inline: """ & sAlign_horiz & """ });"
     End If
     ExecuteScript script, element
+    ScrollBy xOffset, yOffset
     Set ScrollIntoView = element
 End Function
 
@@ -1989,12 +1996,18 @@ End Sub
 Public Sub SetCookie(cookie As WebCookie)
 Attribute SetCookie.VB_Description = "Sets a cookie object"
     Dim data As New Dictionary
-    'value can take a number string greater than 15 digits
-    'need to set the following in JSonConverter else will get an error on execute:
-    'WebJsonConverter.OptionsUseDoubleForLargeNumbers = True
+    Dim saveSetting As Boolean
     If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
+        'value can take a number greater than 15 digits
+        'JSonConverter will by default convert a number >15 digits into a string
+        'which may cause an error in execute
+        'need to set the following in JSonConverter
+        'else will get an error on execute:
+        saveSetting = WebJsonConverter.OptionsUseDoubleForLargeNumbers
+        WebJsonConverter.OptionsUseDoubleForLargeNumbers = True
         data.Add "cookie", cookie.ToDictionary
         execute tCMD.CMD_ADD_COOKIE, data
+        WebJsonConverter.OptionsUseDoubleForLargeNumbers = saveSetting
     Else
         Err.Raise 1, , "Error in SetCookie method: cookie Name and Value properties must not be equal to vbNullString"
     End If
@@ -2725,7 +2738,7 @@ Attribute ActiveWindow.VB_Description = "Returns the active WebWindow object"
         If resp("value")("errorNumber") = 404 Then
             Err.Raise 404, , "Error in ActiveWindow method: There is no window currently active - a window must have been closed without switching to another window"
         Else
-            Err.Raise resp("value")("errorNumber"), , resp("value")("message")
+            Err.Raise resp.Item("value").Item("errorNumber"), , resp.Item("value").Item("message")
         End If
     Else
         activeHandle = resp("value")
@@ -3062,7 +3075,7 @@ Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = Fa
     Dim elem As WebElement
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
-        If Me.IsPresent(By.XPath, "//*[@id='webkit-xml-viewer-source-xml']", , elem) Then
+        If Me.IsPresent(By.XPath, "//*[@id='webkit-xml-viewer-source-xml']", , , elem) Then
             str = elem.GetInnerHTML
         End If
     Case svbaBrowser.Firefox
@@ -3085,7 +3098,7 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         'check to see if preference "devtools.jsonview.enabled" = True (default)
         If Not Me.IsPresent(By.TagName, "pre") Then
             'Firefox using jsonview, so now click rawdata tab
-            If Me.IsPresent(By.ID, "rawdata-tab", , elem) Then
+            If Me.IsPresent(By.ID, "rawdata-tab", , , elem) Then
                 elem.Click
             Else
                 Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
@@ -3098,17 +3111,17 @@ Private Function getJSONStringFromPage(Optional ByVal prettyPrint As Boolean = F
         'GCUser99 has reported this bug - see https://bugzilla.mozilla.org/show_bug.cgi?id=1797871
         str = fixFirefoxBug1797871(str)
     Case svbaBrowser.Chrome
-        If Me.IsPresent(By.TagName, "pre", , elem) Then
+        If Me.IsPresent(By.TagName, "pre", , , elem) Then
             str = elem.GetText
         Else
             Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
         End If
     Case svbaBrowser.Edge
-        If Me.IsPresent(By.XPath, "/html/body/div[@hidden='true']", , elem) Then
+        If Me.IsPresent(By.XPath, "/html/body/div[@hidden='true']", , , elem) Then
             'As of 9/2023 Edge browser defaults to Json viewer feature enabled
             'edge://flags/#edge-json-viewer set to Default or Enabled
             str = elem.GetInnerHTML
-        ElseIf Me.IsPresent(By.TagName, "pre", , elem) Then
+        ElseIf Me.IsPresent(By.TagName, "pre", , , elem) Then
             'Json viewer is disabled
             'edge://flags/#edge-json-viewer set to Disabled or caps.AddArguments "--disable-features=msEdgeJSONViewer"
             str = elem.GetText
@@ -3500,9 +3513,10 @@ End Function
 
 Private Function osKeyMapper(ByVal keyString As String) As String
     Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
-    Dim match As VBScript_RegExp_55.match
     Dim mappedValue As String
+    Dim i As Long
+    Dim key As String
+    Dim keyStringSave As String
 
     'make map array static
     Static map(0 To 93) As String
@@ -3518,9 +3532,9 @@ Private Function osKeyMapper(ByVal keyString As String) As String
         map(5) = "{CLEAR}"
         map(6) = "{ENTER}" 'Return
         map(7) = "{ENTER}"
-        map(8) = "+"
-        map(9) = "^"
-        map(10) = "%"
+        map(8) = "+" 'Shift
+        map(9) = "^" 'Ctrl
+        map(10) = "%" 'Alt
         map(11) = "" 'The pause key
         map(12) = "{ESCAPE}"
         map(13) = Chr$(32) 'Space key
@@ -3582,25 +3596,27 @@ Private Function osKeyMapper(ByVal keyString As String) As String
         map(93) = "{DELETE}"
         initMap = True
     End If
+    
+    'replace possible escaped special key strings with single (wide) character equivalents
+    keyString = unEscapeUnicode(keyString)
 
     'escape keys corresponding to special VBA SendKeys chars with brackets {}
     oRegExp.Global = True
     oRegExp.Pattern = "([+^%~{}\[\]()])"
     keyString = oRegExp.Replace(keyString, "{$1}")
-
-    'process Selenium WebDriver special keys
-    oRegExp.Pattern = "\\u[eE]0([0-5][0-9a-fA-F])"
-    Set matches = oRegExp.execute(keyString)
     
-    If matches.Count > 0 Then
-        For Each match In matches
-            'get the index for the map array and return mapped value
-            mappedValue = map(CLng("&H" & match.SubMatches(0)))
-            If mappedValue = vbNullString Then Err.Raise 1, , "Error in using SendKeysToOS - key " & match.Value & " not supported"
-            'replace match with mapped value
-            keyString = Replace(keyString, match.Value, mappedValue)
-        Next match
-    End If
+    'map potential Selenium special keys to VBA/VBScript Sendkeys counter-parts
+    keyStringSave = keyString
+    For i = 1 To Len(keyStringSave)
+        key = Mid$(keyStringSave, i, 1)
+        If AscWL(key) >= &HE000& And AscWL(key) <= &HE05D& Then
+            'we have a special key
+            mappedValue = map(AscWL(key) - &HE000&)
+            If mappedValue = vbNullString Then Err.Raise 1, , "Error in using SendKeysToOS - key " & "\u" & VBA.Right$("0000" & VBA.Hex$(AscW(key)), 4) & " not supported"
+            'replace Selenium special key occurance with mapped VBA/VBScript version
+            keyString = Replace(keyString, key, mappedValue, , 1)
+        End If
+    Next i
 
     osKeyMapper = keyString
 End Function

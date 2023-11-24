@@ -84,7 +84,7 @@ Sub test_file_download()
     driver.FindElementByID("accept-cookie-notification").Click
     driver.Wait 500
     
-    driver.FindElementByCssSelector(".icon-csv").ScrollToElement , -150
+    driver.FindElementByCssSelector(".icon-csv").ScrollIntoView yOffset:=-150
     driver.Wait 1000
     
     driver.FindElementByCssSelector(".icon-csv").Click

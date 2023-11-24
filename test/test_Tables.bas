@@ -101,7 +101,7 @@ Sub test_table_to_array_large()
     driver.StartEdge
     driver.OpenBrowser
     
-    driver.ImplicitWait = 2000
+    driver.ImplicitMaxWait = 2000
     
     driver.NavigateTo "https://the-internet.herokuapp.com/large"
     

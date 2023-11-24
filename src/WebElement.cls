@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.7
+' SeleniumVBA v4.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -192,11 +192,11 @@ Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements tha
     Set FindElementsByPartialLinkText = driver_.FindElements(By.PartialLinkText, val, Me)
 End Function
 
-'@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element.")
+'@Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and obtain a reference to the found element.")
 Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
                             Optional ByRef elemFound As WebElement) As Boolean
-Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and get a reference to the found element."
-    IsPresent = driver_.IsPresent(by_, val, ImplicitWaitMS, elemFound, Me)
+Attribute IsPresent.VB_Description = "Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and obtain a reference to the found element."
+    IsPresent = driver_.IsPresent(by_, val, ImplicitWaitMS, Me, elemFound)
 End Function
 
 '@Description("Sets the attribute of this element")
@@ -419,18 +419,19 @@ Attribute HasFocus.VB_Description = "Returns a boolean indicating if the element
     HasFocus = driver_.HasFocus(Me)
 End Function
 
-'@Description("Scrolls by an XY offset referenced to location of this element")
+'@Description("DEPRECATED - Use ScrollIntoView")
 Public Function ScrollToElement(Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
-Attribute ScrollToElement.VB_Description = "Scrolls by an XY offset referenced to location of this element"
+Attribute ScrollToElement.VB_Description = "DEPRECATED - Use ScrollIntoView"
     Set ScrollToElement = driver_.ScrollToElement(Me, xOffset, yOffset)
 End Function
 
 '@Description("Scrolls to this element")
-Public Function ScrollIntoView(Optional enSpeed As ScrollIntoViewOptions_speed, _
-                               Optional enAlign_vert As ScrollIntoViewOptions_alignment, _
-                               Optional enAlign_horiz As ScrollIntoViewOptions_alignment) As WebElement
+Public Function ScrollIntoView(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, _
+                               Optional ByVal enAlign_vert As ScrollIntoViewOptions_alignment = align_start, _
+                               Optional ByVal enAlign_horiz As ScrollIntoViewOptions_alignment = align_nearest, _
+                               Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
 Attribute ScrollIntoView.VB_Description = "Scrolls to this element"
-    Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz)
+    Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz, xOffset, yOffset)
 End Function
 
 '@Description("Gets the shadow root hosted by this element")

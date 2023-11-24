@@ -364,7 +364,7 @@ Sub test_geolocation_with_incognito()
 
     driver.OpenBrowser caps:=caps, incognito:=True
     
-    driver.ImplicitWait = 2000
+    driver.ImplicitMaxWait = 2000
     
     'set the location
     driver.SetGeolocation 41.1621429, -8.6219537

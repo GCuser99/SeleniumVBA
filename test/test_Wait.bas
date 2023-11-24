@@ -3,7 +3,7 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
 
-Sub test_ImplicitWait()
+Sub test_ImplicitMaxWait()
     Dim driver As SeleniumVBA.WebDriver
     Dim html1 As String
     Dim html2 As String
@@ -19,7 +19,7 @@ Sub test_ImplicitWait()
     timeDelay = 5000
     
     'set the implicit wait for finding element(s)
-    driver.ImplicitWait = timeDelay + 100
+    driver.ImplicitMaxWait = timeDelay + 100
     
     'create an html with an element of interest that waits to load a second html
 

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of WebWind
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.7
+' SeleniumVBA v4.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -242,7 +242,7 @@ Private Function getCurrentActiveHandle() As String
             getCurrentActiveHandle = vbNullString
         Else
             'an unexpected error occurred so report to user
-            Err.Raise resp("value")("errorNumber"), , resp("value")("message")
+            Err.Raise resp.Item("value").Item("errorNumber"), , resp.Item("value").Item("message")
         End If
     Else
         getCurrentActiveHandle = resp("value")

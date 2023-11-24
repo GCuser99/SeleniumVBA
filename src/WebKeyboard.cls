@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.7
+' SeleniumVBA v4.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -419,92 +419,86 @@ End Property
 '@Description("Returns modifier key(s) down, keys to send, modifier key(s) up sequence")
 Public Function Chord(ByVal modifierKeys As String, ByVal keysToSend As String) As String
 Attribute Chord.VB_Description = "Returns modifier key(s) down, keys to send, modifier key(s) up sequence"
-    Dim mods As Variant
-    Dim i As Long
+    modifierKeys = unEscapeUnicode(modifierKeys)
     'check if modifierKeys has only valid modifiers Shift, Ctrl, and/or Alt
-    mods = Split(modifierKeys, "\u")
-    For i = 1 To UBound(mods)
-        mods(i) = "\u" & mods(i)
-        Select Case True
-        Case mods(i) Like "\u[eE]00[89aA]"
-            Chord = Chord & mods(i) 'we have a valid modifier
-        Case Else
-            Err.Raise 1, , "Error in Chord method - valid modifier keys must be Shift, Control, and Alt keys"
-        End Select
-    Next i
-    'combine modifiers and keys with a terminating null key
-    Chord = Chord & keysToSend & NullKey
+    If Not (modifierKeys Like "*[!" & ChrW$(&HE008&) & "-" & ChrW$(&HE00A&) & "]*") Then
+        'combine modifiers and keys with a terminating null key
+        Chord = modifierKeys & unEscapeUnicode(keysToSend) & NullKey
+    Else
+        Err.Raise 1, , "Error in Chord method - valid modifier keys must be Shift, Control, and Alt keys"
+    End If
 End Function
 
 '@Description("Returns a string consisting of a sub-string repeated the specified number of times")
 Public Function Repeat(ByVal keyString As String, ByVal numberOfTimes As Long) As String
 Attribute Repeat.VB_Description = "Returns a string consisting of a sub-string repeated the specified number of times"
     Dim i As Long
+    keyString = unEscapeUnicode(keyString)
     For i = 1 To numberOfTimes
         Repeat = Repeat & keyString
     Next i
 End Function
 
 Private Sub Class_Initialize()
-    mNullKey = "\uE000"
-    mCancelKey = "\uE001"
-    mHelpKey = "\uE002"
-    mBackspaceKey = "\uE003"
-    mTabKey = "\uE004"
-    mClearKey = "\uE005"
-    mReturnKey = "\uE006"
-    mEnterKey = "\uE007"
-    mShiftKey = "\uE008"
-    mControlKey = "\uE009"
-    mCtrlKey = "\uE009"
-    mAltKey = "\uE00a"
-    mPauseKey = "\uE00b"
-    mEscapeKey = "\uE00c"
-    mSpaceKey = "\uE00d"
-    mPageUpKey = "\uE00e"
-    mPageDownKey = "\uE00f"
-    mEndKey = "\uE010"
-    mHomeKey = "\uE011"
-    mLeftKey = "\uE012"
-    mUpKey = "\uE013"
-    mRightKey = "\uE014"
-    mDownKey = "\uE015"
-    mInsertKey = "\uE016"
-    mDeleteKey = "\uE017"
-    mSemicolonKey = "\uE018"
-    mEqualsKey = "\uE019"
-    mNumpad0Key = "\uE01a"
-    mNumpad1Key = "\uE01b"
-    mNumpad2Key = "\uE01c"
-    mNumpad3Key = "\uE01d"
-    mNumpad4Key = "\uE01e"
-    mNumpad5Key = "\uE01f"
-    mNumpad6Key = "\uE020"
-    mNumpad7Key = "\uE021"
-    mNumpad8Key = "\uE022"
-    mNumpad9Key = "\uE023"
-    mMultiplyKey = "\uE024"
-    mAddKey = "\uE025"
-    mSeparatorKey = "\uE026"
-    mSubtractKey = "\uE027"
-    mDecimalKey = "\uE028"
-    mDivideKey = "\uE029"
-    mF1Key = "\uE031"
-    mF2Key = "\uE032"
-    mF3Key = "\uE033"
-    mF4Key = "\uE034"
-    mF5Key = "\uE035"
-    mF6Key = "\uE036"
-    mF7Key = "\uE037"
-    mF8Key = "\uE038"
-    mF9Key = "\uE039"
-    mF10Key = "\uE03a"
-    mF11Key = "\uE03b"
-    mF12Key = "\uE03c"
-    mMetaKey = "\uE03d"
-    mCommandKey = "\uE03d"
-    mZenkakuHankakuKey = "\uE040"
-    mCtrlShiftKeys = "\uE009" & "\uE008"
-    mAltShiftKeys = "\uE00a" & "\uE008"
-    mCtrlAltKeys = "\uE009" & "\uE00a"
+    mNullKey = ChrW$(&HE000&)
+    mCancelKey = ChrW$(&HE001&)
+    mHelpKey = ChrW$(&HE002&)
+    mBackspaceKey = ChrW$(&HE003&)
+    mTabKey = ChrW$(&HE004&)
+    mClearKey = ChrW$(&HE005&)
+    mReturnKey = ChrW$(&HE006&)
+    mEnterKey = ChrW$(&HE007&)
+    mShiftKey = ChrW$(&HE008&)
+    mControlKey = ChrW$(&HE009&)
+    mCtrlKey = ChrW$(&HE009&)
+    mAltKey = ChrW$(&HE00A&)
+    mPauseKey = ChrW$(&HE00B&)
+    mEscapeKey = ChrW$(&HE00C&)
+    mSpaceKey = ChrW$(&HE00D&)
+    mPageUpKey = ChrW$(&HE00E&)
+    mPageDownKey = ChrW$(&HE00F&)
+    mEndKey = ChrW$(&HE010&)
+    mHomeKey = ChrW$(&HE011&)
+    mLeftKey = ChrW$(&HE012&)
+    mUpKey = ChrW$(&HE013&)
+    mRightKey = ChrW$(&HE014&)
+    mDownKey = ChrW$(&HE015&)
+    mInsertKey = ChrW$(&HE016&)
+    mDeleteKey = ChrW$(&HE017&)
+    mSemicolonKey = ChrW$(&HE018&)
+    mEqualsKey = ChrW$(&HE019&)
+    mNumpad0Key = ChrW$(&HE01A&)
+    mNumpad1Key = ChrW$(&HE01B&)
+    mNumpad2Key = ChrW$(&HE01C&)
+    mNumpad3Key = ChrW$(&HE01D&)
+    mNumpad4Key = ChrW$(&HE01E&)
+    mNumpad5Key = ChrW$(&HE01F&)
+    mNumpad6Key = ChrW$(&HE020&)
+    mNumpad7Key = ChrW$(&HE021&)
+    mNumpad8Key = ChrW$(&HE022&)
+    mNumpad9Key = ChrW$(&HE023&)
+    mMultiplyKey = ChrW$(&HE024&)
+    mAddKey = ChrW$(&HE025&)
+    mSeparatorKey = ChrW$(&HE026&)
+    mSubtractKey = ChrW$(&HE027&)
+    mDecimalKey = ChrW$(&HE028&)
+    mDivideKey = ChrW$(&HE029&)
+    mF1Key = ChrW$(&HE031&)
+    mF2Key = ChrW$(&HE032&)
+    mF3Key = ChrW$(&HE033&)
+    mF4Key = ChrW$(&HE034&)
+    mF5Key = ChrW$(&HE035&)
+    mF6Key = ChrW$(&HE036&)
+    mF7Key = ChrW$(&HE037&)
+    mF8Key = ChrW$(&HE038&)
+    mF9Key = ChrW$(&HE039&)
+    mF10Key = ChrW$(&HE03A&)
+    mF11Key = ChrW$(&HE03B&)
+    mF12Key = ChrW$(&HE03C&)
+    mMetaKey = ChrW$(&HE03D&)
+    mCommandKey = ChrW$(&HE03D&)
+    mZenkakuHankakuKey = ChrW$(&HE040&)
+    mCtrlShiftKeys = ChrW$(&HE009&) & ChrW$(&HE008&)
+    mAltShiftKeys = ChrW$(&HE00A&) & ChrW$(&HE008&)
+    mCtrlAltKeys = ChrW$(&HE009&) & ChrW$(&HE00A&)
 End Sub

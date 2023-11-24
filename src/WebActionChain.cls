@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.7
+' SeleniumVBA v4.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -454,8 +454,9 @@ Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not modifierKey Like "\u[eE]00[89a]" Then Err.Raise 1, , "Error in KeyDown method - modifierKey must be either a single Ctrl, Alt, or Shift key"
-    
+    modifierKey = unEscapeUnicode(modifierKey)
+    If Not (AscWL(modifierKey) >= &HE008& And AscWL(modifierKey) <= &HE00A&) Then Err.Raise 1, , "Error in KeyDown method - modifierKey must be either a single Ctrl, Alt, or Shift key"
+        
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
@@ -484,7 +485,8 @@ Attribute KeyUp.VB_Description = "Releases a modifier key"
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not modifierKey Like "\u[eE]00[89aA]" Then Err.Raise 1, , "Error in KeyUp method - modifierKey must be either a single Ctrl, Alt, or Shift key"
+    modifierKey = unEscapeUnicode(modifierKey)
+    If Not (AscWL(modifierKey) >= &HE008& And AscWL(modifierKey) <= &HE00A&) Then Err.Raise 1, , "Error in KeyUp method - modifierKey must be either a single Ctrl, Alt, or Shift key"
     
     If Not element Is Nothing Then
         Me.SetFocus element
@@ -612,32 +614,35 @@ Attribute SendKeys.VB_Description = "Sends key sequence to current focused eleme
     Dim inputChan As New Dictionary
     Dim inputChans() As Variant
     Dim actions As New Collection
-    Dim charList As New Collection
+    'Dim charList As New Collection
     Dim i As Long
+    Dim key As String
     
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
     
-    Set charList = splitKeyString(keys)
-    For i = 1 To charList.Count
-        Select Case True
-        Case charList(i) Like "\u[eE]00[89aA]"
+    keys = unEscapeUnicode(keys)
+    
+    For i = 1 To Len(keys)
+        key = Mid$(keys, i, 1)
+        Select Case AscWL(key)
+        Case &HE008&, &HE009&, &HE00A&
             'Shift, Ctrl, or Alt modifier key - assume sticky key
-            actions.Add actionKeyDown(charList(i))
-        Case charList(i) Like "\u[eE]000"
+            actions.Add actionKeyDown(key)
+        Case &HE000&
             'null key - release all modifier keys - since we don't
             'keep track of key state use shotgun approach
-            actions.Add actionKeyUp("\uE008") 'shift
-            actions.Add actionKeyUp("\uE009") 'ctrl
-            actions.Add actionKeyUp("\uE00a") 'alt
+            actions.Add actionKeyUp(ChrW$(&HE008&)) 'shift
+            actions.Add actionKeyUp(ChrW$(&HE009&)) 'ctrl
+            actions.Add actionKeyUp(ChrW$(&HE00A&)) 'alt
         Case Else
             'normal key press down and up
-            actions.Add actionKeyDown(charList(i))
-            actions.Add actionKeyUp(charList(i))
+            actions.Add actionKeyDown(key)
+            actions.Add actionKeyUp(key)
         End Select
     Next i
-        
+    
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
@@ -666,12 +671,12 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
         Me.SetFocus element
     End If
     
-    actions.Add actionKeyDown("\uE009") 'Ctrl key
+    actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
     actions.Add actionKeyDown("a")
     actions.Add actionKeyUp("a")
-    actions.Add actionKeyUp("\uE009")
-    actions.Add actionKeyDown("\uE017") 'delete key
-    actions.Add actionKeyUp("\uE017")
+    actions.Add actionKeyUp(ChrW$(&HE009&))
+    actions.Add actionKeyDown(ChrW$(&HE017&)) 'delete key
+    actions.Add actionKeyUp(ChrW$(&HE017&))
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
@@ -696,16 +701,17 @@ Attribute CtrlKey.VB_Description = "Sends a Ctrl-[Key] sequence to focused eleme
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not ((Len(key) = 1) Or (key Like "\u[eE]0[0-5][0-9a-fA-F]")) Then Err.Raise 1, , "Error in CtrlKey method - input string must be a singular key representation"
+    key = unEscapeUnicode(key)
+    If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlKey method - input string must be a singular key representation"
     
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE009") 'Ctrl key
+    actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
-    actions.Add actionKeyUp("\uE009")
+    actions.Add actionKeyUp(ChrW$(&HE009&))
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
@@ -730,16 +736,17 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not ((Len(key) = 1) Or (key Like "\u[eE]0[0-5][0-9a-fA-F]")) Then Err.Raise 1, , "Error in ShiftKey method - input string must be a singular key representation"
+    key = unEscapeUnicode(key)
+    If Len(key) <> 1 Then Err.Raise 1, , "Error in ShiftKey method - input string must be a singular key representation"
 
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
     
-    actions.Add actionKeyDown("\uE008") 'shift key
+    actions.Add actionKeyDown(ChrW$(&HE008&)) 'shift key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
-    actions.Add actionKeyUp("\uE008")
+    actions.Add actionKeyUp(ChrW$(&HE008&))
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
@@ -764,18 +771,19 @@ Attribute CtrlShiftKey.VB_Description = "Sends a Ctrl-Shift-[Key] sequence to fo
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not ((Len(key) = 1) Or (key Like "\u[eE]0[0-5][0-9a-fA-F]")) Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
+    key = unEscapeUnicode(key)
+    If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
 
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE009") 'Ctrl key
-    actions.Add actionKeyDown("\uE008") 'shift key
+    actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
+    actions.Add actionKeyDown(ChrW$(&HE008&)) 'shift key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
-    actions.Add actionKeyUp("\uE008")
-    actions.Add actionKeyUp("\uE009")
+    actions.Add actionKeyUp(ChrW$(&HE008&))
+    actions.Add actionKeyUp(ChrW$(&HE009&))
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
@@ -800,18 +808,19 @@ Attribute CtrlAltKey.VB_Description = "Sends a Ctrl-Alt-[Key] sequence to focuse
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not ((Len(key) = 1) Or (key Like "\u[eE]0[0-5][0-9a-fA-F]")) Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
-
+    key = unEscapeUnicode(key)
+    If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlAltKey method - input string must be a singular key representation"
+    
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE009") 'Ctrl key
-    actions.Add actionKeyDown("\uE00a") 'alt key
+    actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
+    actions.Add actionKeyDown(ChrW$(&HE00A&)) 'alt key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
-    actions.Add actionKeyUp("\uE00a")
-    actions.Add actionKeyUp("\uE009")
+    actions.Add actionKeyUp(ChrW$(&HE00A&))
+    actions.Add actionKeyUp(ChrW$(&HE009&))
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain
@@ -836,18 +845,19 @@ Attribute AltShiftKey.VB_Description = "Sends a Alt-Shift-[Key] sequence to focu
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not ((Len(key) = 1) Or (key Like "\u[eE]0[0-5][0-9a-fA-F]")) Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
+    key = unEscapeUnicode(key)
+    If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
 
     If Not element Is Nothing Then
         Me.SetFocus element
     End If
 
-    actions.Add actionKeyDown("\uE00a") 'alt key
-    actions.Add actionKeyDown("\uE008") 'shift key
+    actions.Add actionKeyDown(ChrW$(&HE00A&)) 'alt key
+    actions.Add actionKeyDown(ChrW$(&HE008&)) 'shift key
     actions.Add actionKeyDown(key)
     actions.Add actionKeyUp(key)
-    actions.Add actionKeyUp("\uE008")
-    actions.Add actionKeyUp("\uE00a")
+    actions.Add actionKeyUp(ChrW$(&HE008&))
+    actions.Add actionKeyUp(ChrW$(&HE00A&))
     actions.Add actionPause
 
     inputChan.Add "id", "keyboardDevice" 'for a given device, this needs to be same for entire chain

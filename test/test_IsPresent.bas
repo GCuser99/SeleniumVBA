@@ -26,17 +26,17 @@ Sub test_IsPresent()
     
     driver.Wait 500
     
-    Debug.Print "does any child1 exist:", driver.IsPresent(By.XPath, "//div[@id = 'child1']", , elem)
+    Debug.Print "does any child1 exist:", driver.IsPresent(By.XPath, "//div[@id = 'child1']", elemFound:=elem)
     Debug.Print "first found child1 text:", elem.GetText
     
     Debug.Print "child1 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child1']")
     
     'waiting up to 3 secs for elem to be present
-    Debug.Print "child2 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child2']", 3000, elem)
+    Debug.Print "child2 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child2']", 3000, elemFound:=elem)
     Debug.Print "child2 of parent2 text:", elem.GetText
     
     'waiting up to 3 secs for elem to be present
-    Debug.Print "child3 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child3']", 3000, elem)
+    Debug.Print "child3 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child3']", 3000, elemFound:=elem)
     Debug.Print "child3 of parent2 reference is nothing:", elem Is Nothing
     
     Set elems = driver.FindElements(By.CssSelector, "[id^='parent']")
