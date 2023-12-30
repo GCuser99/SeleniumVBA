@@ -56,19 +56,24 @@ Private Type typCMD
     CMD_NEW_WINDOW As Variant
 End Type
 
+Private Enum SearchBy
+    byTitle
+    byUrl
+End Enum
+
 Private tCMD As typCMD
 
 '@Description("Opens, activates, and returns a new window of the specified type")
 Public Function SwitchToNew(Optional ByVal windowType As svbaWindowType = svbaTab) As WebWindow
 Attribute SwitchToNew.VB_Description = "Opens, activates, and returns a new window of the specified type"
     Dim win As New WebWindow
-    Dim data As New Dictionary
+    Dim Data As New Dictionary
     Dim wtype As String
     
     If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
     
-    data.Add "type", wtype 'tab or window
-    win.Handle = driver_.execute(tCMD.CMD_NEW_WINDOW, data)("value")("handle")
+    Data.Add "type", wtype 'tab or window
+    win.Handle = driver_.Execute(tCMD.CMD_NEW_WINDOW, Data)("value")("handle")
     
     Set win.WebDriver = driver_
     colWindows.Add win, win.Handle
@@ -82,11 +87,24 @@ End Function
 '@Description("Activates and returns the first window found after the active window with the specified (partial) window title text")
 Public Function SwitchToByTitle(ByVal titleText As String, Optional ByVal partialMatch As Boolean = True) As WebWindow
 Attribute SwitchToByTitle.VB_Description = "Activates and returns the first window found after the active window with the specified (partial) window title text"
+    Set SwitchToByTitle = switchToBy(byTitle, titleText, partialMatch)
+End Function
+
+'@Description("Activates and returns the first window found after the active window with the specified (partial) window url text")
+Public Function SwitchToByUrl(ByVal urlText As String, Optional ByVal partialMatch As Boolean = True) As WebWindow
+Attribute SwitchToByUrl.VB_Description = "Activates and returns the first window found after the active window with the specified (partial) window url text"
+    Set SwitchToByUrl = switchToBy(byUrl, urlText, partialMatch)
+End Function
+
+'@Description("Activates and returns the first window found after the active window with the specified (partial) window attribute text")
+Private Function switchToBy(by As SearchBy, ByVal Text As String, Optional ByVal partialMatch As Boolean = True) As WebWindow
+Attribute switchToBy.VB_Description = "Activates and returns the first window found after the active window with the specified (partial) window attribute text"
     Dim activeHandle As String
     Dim i As Long
     Dim pos As Long
+    Dim WndAttribValue As String
     
-    If partialMatch Then titleText = "*" & titleText & "*"
+    If partialMatch Then Text = "*" & Text & "*"
     
     'find the position of the currently activated window in the windows collection
     activeHandle = getCurrentActiveHandle
@@ -96,14 +114,20 @@ Attribute SwitchToByTitle.VB_Description = "Activates and returns the first wind
     'containing the specified title text - wrap to the beginning if needed
     For i = 1 To colWindows.Count
         If pos = colWindows.Count Then pos = 1 Else pos = pos + 1
-        If colWindows.Item(pos).Title Like titleText Then
+        Select Case by
+            Case SearchBy.byTitle
+                WndAttribValue = colWindows.Item(pos).Title
+            Case byUrl
+                WndAttribValue = colWindows.Item(pos).Url
+        End Select
+        If WndAttribValue Like Text Then
             colWindows.Item(pos).Activate
-            Set SwitchToByTitle = colWindows.Item(pos)
+            Set switchToBy = colWindows.Item(pos)
             Exit Function
         End If
     Next i
     
-    If SwitchToByTitle Is Nothing Then Err.Raise 404, , "Error in SwitchToByTitle method: Window with specified title text not found"
+    If switchToBy Is Nothing Then Err.Raise 404, , "Error in SwitchToBy method: Window with specified string not found"
 End Function
 
 '@Description("Activates and returns the first window found after the active one in the open windows collection")
@@ -153,6 +177,17 @@ Attribute Titles.VB_Description = "Returns the collection of open window titles"
     Set Titles = winTitles
 End Function
 
+'@Description("Returns the collection of open window urls")
+Public Function Urls() As Collection
+Attribute Urls.VB_Description = "Returns the collection of open window urls"
+    Dim winUrls As New Collection
+    Dim i As Long
+    For i = 1 To colWindows.Count
+        winUrls.Add colWindows.Item(i).Url
+    Next i
+    Set Urls = winUrls
+End Function
+
 '@Description("Refreshes the windows collection with all currently open windows")
 Public Sub Refresh()
 Attribute Refresh.VB_Description = "Refreshes the windows collection with all currently open windows"
@@ -160,7 +195,7 @@ Attribute Refresh.VB_Description = "Refreshes the windows collection with all cu
     Dim i As Long
     Dim winHandles As Collection
     RemoveAll
-    Set winHandles = driver_.execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
+    Set winHandles = driver_.Execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
     For i = 1 To winHandles.Count
         Set win = New WebWindow
         Set win.WebDriver = driver_
@@ -235,7 +270,7 @@ End Function
 Private Function getCurrentActiveHandle() As String
     Dim resp As Dictionary
     'get the active window handle if there is one
-    Set resp = driver_.execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, , False)
+    Set resp = driver_.Execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, , False)
     If isResponseError(resp) Then
         If resp("value")("errorNumber") = 404 Then
             'no window is currently active

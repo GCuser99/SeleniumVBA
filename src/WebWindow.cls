@@ -57,6 +57,7 @@ Private Type typCMD
     CMD_FULLSCREEN_WINDOW As Variant
     CMD_MINIMIZE_WINDOW As Variant
     CMD_GET_TITLE As Variant
+    CMD_GET_URL As Variant
     CMD_CLOSE  As Variant
     CMD_GET_WINDOW_HANDLES As Variant
 End Type
@@ -143,7 +144,7 @@ Attribute CloseIt.VB_Description = "Closes this window"
     End If
     
     'close the window now
-    driver_.execute tCMD.CMD_CLOSE
+    driver_.Execute tCMD.CMD_CLOSE
     
     'activate the window to switch to after closing this window
     If handleToSwitchTo <> vbNullString Then switchToWindow handleToSwitchTo
@@ -152,6 +153,18 @@ End Sub
 '@Description("Gets this window's browser title")
 Public Function Title() As String
 Attribute Title.VB_Description = "Gets this window's browser title"
+    Title = getAttribute(tCMD.CMD_GET_TITLE)
+End Function
+
+'@Description("Gets this window's url")
+Public Function Url() As String
+Attribute Url.VB_Description = "Gets this window's url"
+    Url = getAttribute(tCMD.CMD_GET_URL)
+End Function
+
+'@Description("Gets this window's attribute")
+Private Function getAttribute(AttribCMD As Variant) As String
+Attribute getAttribute.VB_Description = "Gets this window's attribute"
     Dim activeHandle As String
     
     'first check if this window is closed
@@ -163,8 +176,8 @@ Attribute Title.VB_Description = "Gets this window's browser title"
     'activate this window if not the active one
     If thisHandle <> activeHandle Then switchToWindow thisHandle
     
-    'get the window's title
-    Title = driver_.execute(tCMD.CMD_GET_TITLE)("value")
+    'get the window's attribute
+    getAttribute = driver_.Execute(AttribCMD)("value")
         
     'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
@@ -185,7 +198,7 @@ Attribute Bounds.VB_Description = "Sets/Returns a dictionary object specifying t
     If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'get window rectangle
-    Set Bounds = driver_.execute(tCMD.CMD_GET_WINDOW_RECT)("value")
+    Set Bounds = driver_.Execute(tCMD.CMD_GET_WINDOW_RECT)("value")
         
     'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
@@ -207,7 +220,7 @@ Public Property Set Bounds(windowBounds As Dictionary)
     With windowBounds
         If Not (.Exists("x") And .Exists("y") And .Exists("height") And .Exists("width")) Then
             Dim currentWinBounds As Dictionary
-            Set currentWinBounds = driver_.execute(tCMD.CMD_GET_WINDOW_RECT)("value")
+            Set currentWinBounds = driver_.Execute(tCMD.CMD_GET_WINDOW_RECT)("value")
             If Not .Exists("x") Then windowBounds.Add "x", currentWinBounds("x")
             If Not .Exists("y") Then windowBounds.Add "y", currentWinBounds("y")
             If Not .Exists("height") Then windowBounds.Add "height", currentWinBounds("height")
@@ -216,7 +229,7 @@ Public Property Set Bounds(windowBounds As Dictionary)
     End With
     
     'set the window bounds
-    driver_.execute tCMD.CMD_SET_WINDOW_RECT, windowBounds
+    driver_.Execute tCMD.CMD_SET_WINDOW_RECT, windowBounds
         
     'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
@@ -255,7 +268,7 @@ Attribute Maximize.VB_Description = "Maximize this window"
     If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'maximize the window
-    driver_.execute tCMD.CMD_MAXIMIZE_WINDOW
+    driver_.Execute tCMD.CMD_MAXIMIZE_WINDOW
         
      'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
@@ -276,7 +289,7 @@ Attribute FullScreen.VB_Description = "Sets this window to full screen mode"
     If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'make window full-screen
-    driver_.execute tCMD.CMD_FULLSCREEN_WINDOW
+    driver_.Execute tCMD.CMD_FULLSCREEN_WINDOW
         
     'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
@@ -297,7 +310,7 @@ Attribute Minimize.VB_Description = "Minimize this window"
     If thisHandle <> activeHandle Then switchToWindow thisHandle
         
     'minimize the window
-    driver_.execute tCMD.CMD_MINIMIZE_WINDOW
+    driver_.Execute tCMD.CMD_MINIMIZE_WINDOW
         
     'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
@@ -333,7 +346,7 @@ Private Function isClosed(ByVal winHandle As String, Optional ByRef winHandles A
     'determine if a window is closed, given its handle
     'optionally pass/return the handles collection for improved efficiency here and/or in caller
     Dim i As Long
-    If winHandles Is Nothing Then Set winHandles = driver_.execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
+    If winHandles Is Nothing Then Set winHandles = driver_.Execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
     isClosed = True
     For i = 1 To winHandles.Count
         If winHandles.Item(i) = winHandle Then
@@ -346,7 +359,7 @@ End Function
 Private Function getCurrentActiveHandle() As String
     Dim resp As Dictionary
     'get the active window handle if there is one
-    Set resp = driver_.execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, , False)
+    Set resp = driver_.Execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, , False)
     If isResponseError(resp) Then
         If resp("value")("errorNumber") = 404 Then
             'no window is currently active
@@ -363,9 +376,9 @@ End Function
 Private Sub switchToWindow(ByVal winHandle As String)
     'activate the window associated with specified handle
     If winHandle <> vbNullString Then
-        Dim data As New Dictionary
-        data.Add "handle", winHandle
-        driver_.execute tCMD.CMD_SWITCH_TO_WINDOW, data
+        Dim Data As New Dictionary
+        Data.Add "handle", winHandle
+        driver_.Execute tCMD.CMD_SWITCH_TO_WINDOW, Data
         'nominal delay to let finish loading on switch -
         'reduces chance of 500 unknown error: cannot determine loading status from no such window
         WebShared.sleep 50
@@ -382,6 +395,7 @@ Private Sub Class_Initialize()
         .CMD_MINIMIZE_WINDOW = Array("POST", "/session/$sessionId/window/minimize")
         .CMD_SWITCH_TO_WINDOW = Array("POST", "/session/$sessionId/window")
         .CMD_GET_TITLE = Array("GET", "/session/$sessionId/title")
+        .CMD_GET_URL = Array("GET", "/session/$sessionId/url")
         .CMD_CLOSE = Array("DELETE", "/session/$sessionId/window")
         .CMD_GET_WINDOW_HANDLES = Array("GET", "/session/$sessionId/window/handles")
     End With
