@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.8
+' SeleniumVBA v4.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -417,12 +417,6 @@ End Function
 Public Function HasFocus() As Boolean
 Attribute HasFocus.VB_Description = "Returns a boolean indicating if the element has the focus"
     HasFocus = driver_.HasFocus(Me)
-End Function
-
-'@Description("DEPRECATED - Use ScrollIntoView")
-Public Function ScrollToElement(Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
-Attribute ScrollToElement.VB_Description = "DEPRECATED - Use ScrollIntoView"
-    Set ScrollToElement = driver_.ScrollToElement(Me, xOffset, yOffset)
 End Function
 
 '@Description("Scrolls to this element")

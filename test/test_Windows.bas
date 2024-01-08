@@ -80,7 +80,7 @@ Sub test_windows_Selenium_way_with_oop_approach()
     driver.Shutdown
 End Sub
 
-Sub test_windows_SwitchToTitle()
+Sub test_windows_SwitchToByTitle()
     'this test uses SwitchToTitle to shortcut the finding of the child window,
     'without having to enumerate the windows collection
     Dim driver As SeleniumVBA.WebDriver
@@ -92,7 +92,7 @@ Sub test_windows_SwitchToTitle()
     driver.StartChrome
     driver.OpenBrowser
     
-    driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+    driver.NavigateTo "https://the-internet.herokuapp.com/windows"
     
     'get the current active window
     Set mainWindow = driver.ActiveWindow
@@ -106,6 +106,36 @@ Sub test_windows_SwitchToTitle()
     Set childWindow = driver.Windows.SwitchToByTitle("New Window")
     Debug.Print driver.ActiveWindow.Title 'prints "New Window"
     Debug.Print childWindow.Title 'prints "New Window"
+    
+    driver.Shutdown
+End Sub
+
+Sub test_windows_SwitchToByUrl()
+    'this test uses SwitchToTitle to shortcut the finding of the child window,
+    'without having to enumerate the windows collection
+    Dim driver As SeleniumVBA.WebDriver
+    Dim mainWindow As SeleniumVBA.WebWindow
+    Dim childWindow As SeleniumVBA.WebWindow
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://the-internet.herokuapp.com/windows"
+    
+    'get the current active window
+    Set mainWindow = driver.ActiveWindow
+    
+    'spawn a new window
+    driver.FindElementByCssSelector("#content > div > a").Click
+
+    'note here that main window is still the active one from Selenium's perspective!!
+    Debug.Print driver.ActiveWindow.Url 'prints "https://the-internet.herokuapp.com/windows"
+    
+    Set childWindow = driver.Windows.SwitchToByUrl("https://the-internet.herokuapp.com/windows/new")
+    Debug.Print driver.ActiveWindow.Url 'prints "https://the-internet.herokuapp.com/windows/new"
+    Debug.Print childWindow.Url 'prints "https://the-internet.herokuapp.com/windows/new"
     
     driver.Shutdown
 End Sub

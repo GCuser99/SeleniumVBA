@@ -632,7 +632,7 @@ Private Function json_ParseNumber(json_String As String, ByRef json_Index As Lon
             ' Fix: Parse -> String, Convert -> String longer than 15/16 characters containing only numbers and decimal points -> Number
             ' (decimal doesn't factor into significant digit count, so if present check for 15 digits + decimal = 16)
             json_IsLargeNumber = IIf(InStr(json_Value, "."), Len(json_Value) >= 17, Len(json_Value) >= 16)
-            If Not JsonOptions.UseDoubleForLargeNumbers And json_IsLargeNumber Then
+            If Not (JsonOptions.UseDoubleForLargeNumbers) And json_IsLargeNumber Then
                 json_ParseNumber = json_Value
             Else
                 ' VBA.Val does not use regional settings, so guard for comma is not needed

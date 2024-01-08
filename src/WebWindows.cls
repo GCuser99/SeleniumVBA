@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of WebWind
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.8
+' SeleniumVBA v4.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -67,13 +67,13 @@ Private tCMD As typCMD
 Public Function SwitchToNew(Optional ByVal windowType As svbaWindowType = svbaTab) As WebWindow
 Attribute SwitchToNew.VB_Description = "Opens, activates, and returns a new window of the specified type"
     Dim win As New WebWindow
-    Dim Data As New Dictionary
+    Dim data As New Dictionary
     Dim wtype As String
     
     If windowType = svbaTab Then wtype = "tab" Else wtype = "window"
     
-    Data.Add "type", wtype 'tab or window
-    win.Handle = driver_.Execute(tCMD.CMD_NEW_WINDOW, Data)("value")("handle")
+    data.Add "type", wtype 'tab or window
+    win.Handle = driver_.execute(tCMD.CMD_NEW_WINDOW, data)("value")("handle")
     
     Set win.WebDriver = driver_
     colWindows.Add win, win.Handle
@@ -97,14 +97,14 @@ Attribute SwitchToByUrl.VB_Description = "Activates and returns the first window
 End Function
 
 '@Description("Activates and returns the first window found after the active window with the specified (partial) window attribute text")
-Private Function switchToBy(by As SearchBy, ByVal Text As String, Optional ByVal partialMatch As Boolean = True) As WebWindow
+Private Function switchToBy(By As SearchBy, ByVal searchText As String, Optional ByVal partialMatch As Boolean = True) As WebWindow
 Attribute switchToBy.VB_Description = "Activates and returns the first window found after the active window with the specified (partial) window attribute text"
     Dim activeHandle As String
     Dim i As Long
     Dim pos As Long
     Dim WndAttribValue As String
     
-    If partialMatch Then Text = "*" & Text & "*"
+    If partialMatch Then searchText = "*" & searchText & "*"
     
     'find the position of the currently activated window in the windows collection
     activeHandle = getCurrentActiveHandle
@@ -114,13 +114,13 @@ Attribute switchToBy.VB_Description = "Activates and returns the first window fo
     'containing the specified title text - wrap to the beginning if needed
     For i = 1 To colWindows.Count
         If pos = colWindows.Count Then pos = 1 Else pos = pos + 1
-        Select Case by
+        Select Case By
             Case SearchBy.byTitle
                 WndAttribValue = colWindows.Item(pos).Title
             Case byUrl
                 WndAttribValue = colWindows.Item(pos).Url
         End Select
-        If WndAttribValue Like Text Then
+        If WndAttribValue Like searchText Then
             colWindows.Item(pos).Activate
             Set switchToBy = colWindows.Item(pos)
             Exit Function
@@ -195,7 +195,7 @@ Attribute Refresh.VB_Description = "Refreshes the windows collection with all cu
     Dim i As Long
     Dim winHandles As Collection
     RemoveAll
-    Set winHandles = driver_.Execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
+    Set winHandles = driver_.execute(tCMD.CMD_GET_WINDOW_HANDLES)("value")
     For i = 1 To winHandles.Count
         Set win = New WebWindow
         Set win.WebDriver = driver_
@@ -270,7 +270,7 @@ End Function
 Private Function getCurrentActiveHandle() As String
     Dim resp As Dictionary
     'get the active window handle if there is one
-    Set resp = driver_.Execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, , False)
+    Set resp = driver_.execute(tCMD.CMD_GET_CURRENT_WINDOW_HANDLE, , False)
     If isResponseError(resp) Then
         If resp("value")("errorNumber") = 404 Then
             'no window is currently active

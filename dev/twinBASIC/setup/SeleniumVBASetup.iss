@@ -1,4 +1,4 @@
-// This installer script references Bill Stewart's UninsIS DLL.
+// This installer script references Bill Stewart's UninsIS DLL version 1.5.0.
 // see https://github.com/Bill-Stewart/UninsIS
 // With this installer, the user can (re)install the DLL in a location
 // of their choice (DisableDirPage=no). If the user had already
@@ -23,10 +23,9 @@
 #define AppVersion GetVersionNumbersString(DLL64FilePath)
 // The following definition points to the path of 
 // Bill Stewart's UninsIS.dll
-#define UninstallDLLFilePath ".\UninsIS\UninsIS-1.0.1\UninsIS.dll"
+#define UninstallDLLFilePath ".\UninsIS\UninsIS-1.5.0\i386\UninsIS.dll"
 
 [Setup]
-
 AppId={{#AppGUID}
 AppName={#AppName}
 AppVersion={#AppVersion}
@@ -183,24 +182,31 @@ Function BoolToStr(const value: Boolean): String;
     If value Then Result := 'True' Else Result := 'False';
   End;
 
+// The following procedures are needed for UninsIS package
+
 // Import IsISPackageInstalled() function from UninsIS.dll at setup time
-Function DLLIsISPackageInstalled(AppId: string; Is64BitInstallMode,
+function DLLIsISPackageInstalled(AppId: string; Is64BitInstallMode,
   IsAdminInstallMode: DWORD): DWORD;
   external 'IsISPackageInstalled@files:UninsIS.dll stdcall setuponly';
 
 // Import CompareISPackageVersion() function from UninsIS.dll at setup time
-Function DLLCompareISPackageVersion(AppId, InstallingVersion: string;
-  Is64BitInstallMode, IsAdminInstallMode: DWORD): LongInt;
+function DLLCompareISPackageVersion(AppId, InstallingVersion: string;
+  Is64BitInstallMode, IsAdminInstallMode: DWORD): Integer;
   external 'CompareISPackageVersion@files:UninsIS.dll stdcall setuponly';
 
+// Import GetISPackageVersion() function from UninsIS.dll at setup time
+function DLLGetISPackageVersion(AppId, Version: string;
+  NumChars, Is64BitInstallMode, IsAdminInstallMode: DWORD): DWORD;
+  external 'GetISPackageVersion@files:UninsIS.dll stdcall setuponly';
+
 // Import UninstallISPackage() function from UninsIS.dll at setup time
-Function DLLUninstallISPackage(AppId: string; Is64BitInstallMode,
+function DLLUninstallISPackage(AppId: string; Is64BitInstallMode,
   IsAdminInstallMode: DWORD): DWORD;
   external 'UninstallISPackage@files:UninsIS.dll stdcall setuponly';
 
 // Wrapper for UninsIS.dll IsISPackageInstalled() function
 // Returns true if package is detected as installed, or false otherwise
-Function IsISPackageInstalled(): Boolean;
+function IsISPackageInstalled(): Boolean;
 begin
   result := DLLIsISPackageInstalled('{#AppGUID}',  // AppId
     DWORD(Is64BitInstallMode()),                   // Is64BitInstallMode
@@ -211,12 +217,38 @@ begin
     Log('UninsIS.dll - Package not detected as installed');
 end;
 
+// Wrapper for UninsIS.dll GetISPackageVersion() function
+function GetISPackageVersion(): string;
+var
+  NumChars: DWORD;
+  OutStr: string;
+begin
+  result := '';
+  // First call: Get number of characters needed for version string
+  NumChars := DLLGetISPackageVersion('{#AppGUID}',  // AppId
+    '',                                             // Version
+    0,                                              // NumChars
+    DWORD(Is64BitInstallMode()),                    // Is64BitInstallMode
+    DWORD(IsAdminInstallMode()));                   // IsAdminInstallMode
+  // Allocate string to receive output
+  SetLength(OutStr, NumChars);
+  // Second call: Get version number string
+  if DLLGetISPackageVersion('{#AppGUID}',  // AppID
+    OutStr,                                // Version
+    NumChars,                              // NumChars
+    DWORD(Is64BitInstallMode()),           // Is64BitInstallMode
+    DWORD(IsAdminInstallMode())) > 0 then  // IsAdminInstallMode
+  begin
+    result := OutStr;
+  end;
+end;
+
 // Wrapper for UninsIS.dll CompareISPackageVersion() function
 // Returns:
 // < 0 if version we are installing is < installed version
 // 0   if version we are installing is = installed version
 // > 0 if version we are installing is > installed version
-Function CompareISPackageVersion(): LongInt;
+function CompareISPackageVersion(): Integer;
 begin
   result := DLLCompareISPackageVersion('{#AppGUID}',  // AppId
     '{#AppVersion}',                                  // InstallingVersion
@@ -232,7 +264,7 @@ end;
 
 // Wrapper for UninsIS.dll UninstallISPackage() function
 // Returns 0 for success, non-zero for failure
-Function UninstallISPackage(): DWORD;
+function UninstallISPackage(): DWORD;
 begin
   result := DLLUninstallISPackage('{#AppGUID}',  // AppId
     DWORD(Is64BitInstallMode()),                 // Is64BitInstallMode
@@ -253,6 +285,13 @@ var alwaysUninstall: Boolean;
 begin
   // set alwaysUninstall to true if uninstall
   // should run regardless of version and location compare
+
+  // if IsISPackageInstalled() then
+  // begin
+  //  Version := GetISPackageVersion();
+  //  MsgBox('Package installed; version = ' + Version, mbInformation, MB_OK);
+  // end;
+
   alwaysUninstall := false;
   isDifferentLocation := false;
   isDifferentVersion := false;

@@ -6,19 +6,19 @@ Option Private Module
 Sub test_executeScript()
     Dim driver As SeleniumVBA.WebDriver
     Dim webElem As SeleniumVBA.WebElement
-    Dim url As String
+    Dim Url As String
 
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
     driver.OpenBrowser
 
-    url = "http://demo.guru99.com/test/guru99home/"
+    Url = "http://demo.guru99.com/test/guru99home/"
     
     'Navigate to url
     'arguments are specified in ParamArray list where first parameter value is associated
     'with arguments[0], second parameter value is associated with arguments[1], etc
-    driver.ExecuteScript "window.location=arguments[0]", url
+    driver.ExecuteScript "window.location=arguments[0]", Url
     
     driver.Wait 1000
     driver.ActiveWindow.Maximize
@@ -46,7 +46,7 @@ Sub test_executeScriptAsync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
     Dim driver As SeleniumVBA.WebDriver
     Dim webElem As SeleniumVBA.WebElement
-    Dim url As String, waitTime As Integer
+    Dim Url As String, waitTime As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -55,13 +55,13 @@ Sub test_executeScriptAsync()
     driver.StartEdge
     driver.OpenBrowser
     
-    url = "https://www.wikipedia.org/"
+    Url = "https://www.wikipedia.org/"
 
     waitTime = 3000
     
     If waitTime > 30000 Then driver.ScriptTimeout = 2 * waitTime '30000 is the default, so this isn't needed unless waitTime > 30 secs is needed
     
-    driver.NavigateTo url
+    driver.NavigateTo Url
         
     'Driver.ExecuteScriptAsync "window.setTimeout(arguments[arguments.length - 1], arguments[0]);", waitTime
     'Driver.ExecuteScriptAsync "window.setTimeout(arguments[1], arguments[0]);", waitTime 'this is equivalent

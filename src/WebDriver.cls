@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.8
+' SeleniumVBA v4.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -522,13 +522,13 @@ Attribute CloseBrowser.VB_Description = "Closes browser without terminating driv
 End Sub
 
 '@Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
-Public Function NavigateTo(ByVal url As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean
+Public Function NavigateTo(ByVal Url As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean
 Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage and returns true if no timeout or other error"
     Dim data As New Dictionary
     Dim resp As Dictionary
     Dim savTimeOutms As Long
     
-    data.Add "url", url
+    data.Add "url", Url
     
     If timeOutms <> -1 Then
         savTimeOutms = curPageLoadTimeout
@@ -955,6 +955,12 @@ Public Sub Click(Optional element As WebElement, Optional modifierKeys As String
 Attribute Click.VB_Description = "Clicks the element. If element not specified, then clicks on the active element"
     Dim data As New Dictionary
     
+    'first check to make sure there are no modifiers already keyed-down - if so release
+    If modifierKeyStateDown Then
+        execute tCMD.CMD_CLEAR_ACTIONS  'remote-end clear key/pointer states
+        modifierKeyStateDown = False
+    End If
+    
     If modifierKeys <> vbNullString Then
         'process modifier keys before the click
         Dim mods As Collection
@@ -962,11 +968,15 @@ Attribute Click.VB_Description = "Clicks the element. If element not specified, 
         Dim actions As WebActionChain
         Set actions = ActionChain
         
+        'replace possible escaped special key strings with single (wide) character equivalents
+        modifierKeys = unEscapeUnicode(modifierKeys)
+        
         Set mods = splitKeyString(modifierKeys)
         For i = 1 To mods.Count
             actions.KeyDown mods(i)
         Next i
         actions.Perform
+        
         'remember that we have a key-down state so it can be released later before any call to SendKeys
         '(can't release directly after click in this procedure as it would interfere with possible alert)
         modifierKeyStateDown = True
@@ -1601,18 +1611,6 @@ Public Property Get ImplicitMaxWait() As Long
     ImplicitMaxWait = execute(tCMD.CMD_GET_TIMEOUTS)("value")("implicit")
 End Property
 
-'@Description("DEPRECATED - use ImplicitMaxWait")
-Public Property Let ImplicitWait(ByVal milliseconds As Long)
-Attribute ImplicitWait.VB_Description = "DEPRECATED - use ImplicitMaxWait"
-    Dim data As New Dictionary
-    data.Add "implicit", milliseconds
-    execute tCMD.CMD_SET_TIMEOUTS, data
-    curImplicitWait = milliseconds
-End Property
-Public Property Get ImplicitWait() As Long
-    ImplicitWait = execute(tCMD.CMD_GET_TIMEOUTS)("value")("implicit")
-End Property
-
 '@Description("Sets/Gets the timeout limit used to interrupt a navigation attempt")
 Public Property Let PageLoadTimeout(ByVal milliseconds As Long)
 Attribute PageLoadTimeout.VB_Description = "Sets/Gets the timeout limit used to interrupt a navigation attempt"
@@ -1855,14 +1853,6 @@ Attribute HasFocus.VB_Description = "Returns a boolean indicating if the specifi
     End If
 End Function
 
-'@Description("DEPRECATED - Use ScrollIntoView")
-Public Function ScrollToElement(element As WebElement, Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
-Attribute ScrollToElement.VB_Description = "DEPRECATED - Use ScrollIntoView"
-    ScrollIntoView element
-    ScrollBy xOffset, yOffset
-    Set ScrollToElement = element
-End Function
-
 '@Description("Scrolls to the element specified")
 Public Function ScrollIntoView(element As WebElement, _
                     Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, _
@@ -1999,15 +1989,18 @@ Attribute SetCookie.VB_Description = "Sets a cookie object"
     Dim saveSetting As Boolean
     If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
         'value can take a number greater than 15 digits
-        'JSonConverter will by default convert a number >15 digits into a string
-        'which may cause an error in execute
-        'need to set the following in JSonConverter
+        'for some unknown reason, Selenium WebDriver does not
+        'like a number greater than 15 digits unless it is quoted
         'else will get an error on execute:
-        saveSetting = WebJsonConverter.OptionsUseDoubleForLargeNumbers
-        WebJsonConverter.OptionsUseDoubleForLargeNumbers = True
+        If IsNumeric(cookie.Value) Then
+            If Len(cookie.Value) > 15 Then
+                If Not (cookie.Value Like Chr$(34) & "*" & Chr$(34)) Then
+                    cookie.Value = Chr$(34) & cookie.Value & Chr$(34)
+                End If
+            End If
+        End If
         data.Add "cookie", cookie.ToDictionary
         execute tCMD.CMD_ADD_COOKIE, data
-        WebJsonConverter.OptionsUseDoubleForLargeNumbers = saveSetting
     Else
         Err.Raise 1, , "Error in SetCookie method: cookie Name and Value properties must not be equal to vbNullString"
     End If
@@ -2029,9 +2022,9 @@ Attribute DeleteAllCookies.VB_Description = "Deletes all cookies"
 End Sub
 
 '@Description("Checks if the current url is equal to the specified url")
-Public Function IsPageFound(ByVal url As String) As Boolean
+Public Function IsPageFound(ByVal Url As String) As Boolean
 Attribute IsPageFound.VB_Description = "Checks if the current url is equal to the specified url"
-    If GetCurrentURL() = url Then
+    If GetCurrentURL() = Url Then
         IsPageFound = True
     Else
         IsPageFound = False
@@ -2566,7 +2559,7 @@ End Sub
 '@Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")
 Public Sub DownloadResource(element As WebElement, ByVal srcAttribute As String, Optional ByVal fileOrFolderPath As String = ".\")
 Attribute DownloadResource.VB_Description = "Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source"
-    Dim url As String
+    Dim Url As String
     Dim baseUrl As String
     Dim srcMax As String
     Dim sizeMax As String
@@ -2585,15 +2578,15 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Dim numUpLevels As Long
     Dim numUrlSections As Long
     
-    url = element.GetAttribute(srcAttribute)
-    If url = vbNullString Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
+    Url = element.GetAttribute(srcAttribute)
+    If Url = vbNullString Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
     'remove new line characters
-    url = Replace$(Replace$(url, vbLf, ""), vbCr, "")
+    Url = Replace$(Replace$(Url, vbLf, ""), vbCr, "")
     
     If LCase$(srcAttribute) = "srcset" Then
         'if image then get the highest pixel density src possible
         'split the sources in srcset into an array
-        srcArray = Split(url, ", ")
+        srcArray = Split(Url, ", ")
         
         'initialize the maximum size and source
         sizeMax = vbNullString
@@ -2621,11 +2614,11 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         Next i
         
         'use the max found source
-        url = srcMax
+        Url = srcMax
     End If
     
     'handle relative path if applicable
-    If Left$(url, 4) <> "http" Then 'it is a relative path
+    If Left$(Url, 4) <> "http" Then 'it is a relative path
         'construct a full url from base url and the relative path
         Dim urlSections As Variant
         
@@ -2641,21 +2634,21 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         
         'determine relativity level (root, current, up(s))
         Select Case True
-        Case url Like "/*"
+        Case Url Like "/*"
             'root level
             urlLevel = 0
-        Case url Like "[!./]*", url Like "./*"
+        Case Url Like "[!./]*", Url Like "./*"
             'current level
             urlLevel = numUrlSections - 1
             'strip out the rel indicator
-            url = Replace$(url, "./", "")
-        Case url Like "../*"
+            Url = Replace$(Url, "./", "")
+        Case Url Like "../*"
             'up-levels
             'count how many up-levels
-            numUpLevels = UBound(Split(url, "../"))
+            numUpLevels = UBound(Split(Url, "../"))
             urlLevel = numUrlSections - 1 - numUpLevels
             'strip out the rel indicator(s)
-            url = Replace$(url, "../", "")
+            Url = Replace$(Url, "../", "")
         End Select
         
         'build the base url
@@ -2668,10 +2661,10 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         baseUrl = Replace$(baseUrl, "^^", "//")
         
         'make sure there is a slash between base url and relative url
-        If Right$(baseUrl, 1) <> "/" And Left$(url, 1) <> "/" Then baseUrl = baseUrl & "/"
+        If Right$(baseUrl, 1) <> "/" And Left$(Url, 1) <> "/" Then baseUrl = baseUrl & "/"
         
         'concat to calculate absolute url
-        url = baseUrl & url
+        Url = baseUrl & Url
     End If
     
     'now calculate the destination path
@@ -2681,7 +2674,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     'check if user gave a folder path or a file path
     If fso.FolderExists(fileOrFolderPath) Then 'its a folder path
         'file path inherits the name of the target url
-        fileName = fso.GetFileName(url)
+        fileName = fso.GetFileName(Url)
         'strip off query params if they exist
         'and cat with full path of user input
         filePath = fileOrFolderPath & "\" & Split(fileName, "?")(0)
@@ -2693,10 +2686,10 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     End If
     
     'download the url to file path
-    ret = UrlDownloadToFile(0&, StrPtr(url), StrPtr(filePath), 0&, 0&)
+    ret = UrlDownloadToFile(0&, StrPtr(Url), StrPtr(filePath), 0&, 0&)
     
     If ret <> 0 Then
-         Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & url & " to " & filePath
+         Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
     End If
 End Sub
 

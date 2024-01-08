@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.8
+' SeleniumVBA v4.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -366,29 +366,29 @@ End Function
 '@Description("Returns the latest Driver version")
 Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser, Optional ByVal channel As svbaChannel = svbaStable) As String
 Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver version"
-    Dim url As String
+    Dim Url As String
     Dim respTxt As Variant
     Dim json As Dictionary
     
     Select Case browser
     Case svbaBrowser.Edge
-        url = "https://msedgedriver.azureedge.net/LATEST_" & UCase(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
-        respTxt = requestData(url)
+        Url = "https://msedgedriver.azureedge.net/LATEST_" & UCase(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
+        respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
     Case svbaBrowser.Chrome
-        url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & UCase(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
-        respTxt = requestData(url)
+        Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & UCase(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
+        respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = respTxt
     Case svbaBrowser.Firefox
-        url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
-        respTxt = requestData(url)
+        Url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
+        respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = findLatestFirefoxVersion(respTxt)
     Case svbaBrowser.IE
-        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        respTxt = requestData(url)
+        Url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
+        respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = findLatestIEVersion(respTxt)
     End Select
@@ -403,7 +403,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
     Dim verMajor As String
     Dim browserBuild  As String
     Dim respTxt As Variant
-    Dim url As String
+    Dim Url As String
     
     'This function, if called from WebDriver class as part of auto-updater, needs to execution as silently
     'as possible - we don't want the non-mission-critical error in driver check/updating to get in the way of user
@@ -425,9 +425,9 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
 
         'search for major version, decrementing by one until success
         Do While verMajor >= 75
-            url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor & "_WINDOWS"
+            Url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor & "_WINDOWS"
             
-            respTxt = requestData(url)
+            respTxt = requestData(Url)
             
             If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
@@ -446,9 +446,9 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
             'use new api...
             'as of 8/22/2023, this special end-point was added that
             'shortcuts using latest-patch-versions-per-build end-point!!
-            url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & browserBuild
+            Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & browserBuild
             
-            respTxt = requestData(url)
+            respTxt = requestData(Url)
             
             If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
@@ -456,8 +456,8 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
                 'in theory, we should never get here, but just in case...
                 'if an exact match to the browser build was not found above, then
                 'search for the maximum version that is less than the specified browser build
-                url = "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build.json"
-                respTxt = requestData(url)
+                Url = "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build.json"
+                respTxt = requestData(Url)
                 
                 If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
                 
@@ -476,9 +476,9 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         Else
             'use old api
             'first see if we can find an exact build match
-            url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & browserBuild
+            Url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & browserBuild
             
-            respTxt = requestData(url)
+            respTxt = requestData(Url)
             
             If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
@@ -486,8 +486,8 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
                 'if exact build match failed, then maybe we have a Dev or Canary channel
                 'so search for major version match, decrementing by one until success
                 Do While verMajor >= 70
-                    url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
-                    respTxt = requestData(url)
+                    Url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
+                    respTxt = requestData(Url)
                     
                     If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
                     
@@ -504,9 +504,9 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         
         'the rules are different for Firefox driver - we must lookup the browser version in a compatibility matrix
         'to get the most recent driver version compatible with the installed browser
-        url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
+        Url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
         
-        respTxt = requestData(url)
+        respTxt = requestData(Url)
         
         If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
         
@@ -560,7 +560,7 @@ End Function
 '@Description("Downloads and installs the specified Driver version")
 Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVersion As String, Optional ByVal driverPath As Variant, Optional ByVal platform As svbaPlatform = svbaSystem)
 Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the specified Driver version"
-    Dim url As String
+    Dim Url As String
     Dim fso As New IWshRuntimeLibrary.FileSystemObject
     Dim shll As New Shell32.Shell
     Dim driverFolder As String
@@ -603,25 +603,25 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         driverBuild = filterVersionParts(driverVersion, 3)
         If compareVersions(driverBuild, "115.0.5763") >= 0 Then
             'use the new download api
-            url = "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/" & driverVersion & "/" & platformString & "/chromedriver-" & platformString & ".zip"
+            Url = "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/" & driverVersion & "/" & platformString & "/chromedriver-" & platformString & ".zip"
             tmpInstallZipPath = tmpInstallFolder & "chromedriver-" & platformString & ".zip"
             tmpZipDriverFilename = "chromedriver-" & platformString & "\chromedriver.exe"
             tmpInstallDriverpath = tmpInstallFolder & "chromedriver.exe"
         Else
             'use the old download api
             'no 64-bit version available for drivers before 115.0.5763
-            url = "https://chromedriver.storage.googleapis.com/" & driverVersion & "/chromedriver_win32.zip"
+            Url = "https://chromedriver.storage.googleapis.com/" & driverVersion & "/chromedriver_win32.zip"
             tmpInstallZipPath = tmpInstallFolder & "chromedriver_win32.zip"
             tmpZipDriverFilename = "chromedriver.exe"
             tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
         End If
     Case svbaBrowser.Edge
-        url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_" & platformString & ".zip"
+        Url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_" & platformString & ".zip"
         tmpInstallZipPath = tmpInstallFolder & "edgedriver_" & platformString & ".zip"
         tmpZipDriverFilename = "msedgedriver.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     Case svbaBrowser.Firefox
-        url = "https://github.com/mozilla/geckodriver/releases/download/v" & driverVersion & "/geckodriver-v" & driverVersion & "-" & platformString & ".zip"
+        Url = "https://github.com/mozilla/geckodriver/releases/download/v" & driverVersion & "/geckodriver-v" & driverVersion & "-" & platformString & ".zip"
         tmpInstallZipPath = tmpInstallFolder & "geckodriver-v" & driverVersion & "-" & platformString & ".zip"
         tmpZipDriverFilename = "geckodriver.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
@@ -635,14 +635,14 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         'even though ie driver version has 4 parts, repo release only takes 3
         driverVersion = filterVersionParts(driverVersion, 3)
          
-        url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        respTxt = requestData(url)
+        Url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
+        respTxt = requestData(Url)
         
         If respTxt = "Release Not Found" Then Exit Sub
         
-        url = findIEDownloadUrl(respTxt, driverVersion, platformString)
+        Url = findIEDownloadUrl(respTxt, driverVersion, platformString)
         
-        If url = vbNullString Then Exit Sub
+        If Url = vbNullString Then Exit Sub
             
         If platformString = "win32" Then
             tmpInstallZipPath = tmpInstallFolder & "IEDriverServer_Win32_" & driverVersion & ".zip"
@@ -661,7 +661,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         fso.CreateFolder tmpInstallFolder
     End If
     
-    UrlDownloadToFile 0&, StrPtr(url), StrPtr(tmpInstallZipPath), 0&, 0&
+    UrlDownloadToFile 0&, StrPtr(Url), StrPtr(tmpInstallZipPath), 0&, 0&
     
     'make sure driver zip file was created successfully
     If Not fso.FileExists(tmpInstallZipPath) Then
@@ -761,7 +761,7 @@ Private Function isProcessRunning(ByVal process As String) As Boolean
     End If
 End Function
 
-Private Function requestData(ByVal url As String, Optional maxTries As Long = 20) As Variant
+Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20) As Variant
     'see https://github.com/GCuser99/SeleniumVBA/discussions/29#discussioncomment-3673682
     Dim client As New MSXML2.XMLHTTP60
     Dim try As Long
@@ -770,7 +770,7 @@ Private Function requestData(ByVal url As String, Optional maxTries As Long = 20
     For try = 1 To maxTries
     
         On Error Resume Next
-        client.Open "GET", url, False
+        client.Open "GET", Url, False
         
         client.send
         
@@ -799,7 +799,7 @@ Private Function requestData(ByVal url As String, Optional maxTries As Long = 20
             Exit Function
         End Select
         
-        Debug.Print "try: ", try, client.Status, client.ResponseText, url
+        Debug.Print "try: ", try, client.Status, client.ResponseText, Url
     Next try
     'if here then had too many 12029/12031's
     requestData = "Error: Cannot Connect to Server"

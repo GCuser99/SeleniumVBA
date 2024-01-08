@@ -5,16 +5,16 @@ Option Private Module
 
 Sub test_PageToHTMLMethods()
     Dim driver As SeleniumVBA.WebDriver
-    Dim htmlDoc As HTMLDocument, url As String
+    Dim htmlDoc As HTMLDocument, Url As String
     
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
     driver.OpenBrowser
     
-    url = "https://it.wikipedia.org/wiki/Pagina_principale"
+    Url = "https://it.wikipedia.org/wiki/Pagina_principale"
     
-    driver.NavigateTo url
+    driver.NavigateTo Url
     driver.Wait 1000
     
     'use DOM to parse htmlDocument here if desired....
@@ -45,16 +45,16 @@ End Sub
 
 Sub test_PageToXMLMethods()
     Dim driver As SeleniumVBA.WebDriver
-    Dim xmlDoc As DOMDocument60, url As String
+    Dim xmlDoc As DOMDocument60, Url As String
 
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
     driver.OpenBrowser
 
-    url = "https://www.w3schools.com/xml/note.xml"
+    Url = "https://www.w3schools.com/xml/note.xml"
 
-    driver.NavigateTo url
+    driver.NavigateTo Url
     driver.Wait 500
     
     'save page to xml file
@@ -76,16 +76,16 @@ End Sub
 
 Sub test_PageToJSONMethods()
     Dim driver As SeleniumVBA.WebDriver
-    Dim json As Collection, url As String
+    Dim json As Collection, Url As String
 
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartEdge
     driver.OpenBrowser
 
-    url = "https://api.github.com/repos/gcuser99/seleniumVBA/releases"
+    Url = "https://api.github.com/repos/gcuser99/seleniumVBA/releases"
 
-    driver.NavigateTo url
+    driver.NavigateTo Url
     driver.Wait 1000
     
     'save page to json file
