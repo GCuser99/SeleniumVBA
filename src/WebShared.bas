@@ -218,7 +218,7 @@ Private Function activeVBAProjectFolderPath() As String
                             caption = Left$(caption, InStr(caption, vbNullChar) - 1)
                             'extract filename from the caption
                             Dim oRegex As New RegExp
-                            oRegex.Pattern = "^Microsoft Visual Basic[^-]* - (.*?)(?:| \[[^]]*\]) - \[[^]]*\]$"
+                            oRegex.Pattern = "^Microsoft Visual Basic[^-]*- (.*\.xl\w{1,2})(?:|(?:| -) \[.*\])$"
                             Dim regexRes As MatchCollection
                             Set regexRes = oRegex.execute(caption)
                             If regexRes.Count = 1 Then
