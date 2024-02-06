@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.9
+' SeleniumVBA v5.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -93,6 +93,12 @@ Public Enum svbaAlertHandling
     svbaAcceptAndNotify = 4
 End Enum
 
+Public Enum svbaPageLoadStrategy
+    svbaNormal = 0
+    svbaEager = 1
+    svbaNone = 2
+End Enum
+
 '-------------------------------------------------------------------------
 ' Capability Settings
 '-------------------------------------------------------------------------
@@ -115,6 +121,19 @@ End Sub
 Public Sub SetAcceptInsecureCerts(ByVal val As Boolean)
 Attribute SetAcceptInsecureCerts.VB_Description = "Sets the acceptInsecureCerts capability"
     Me.SetCapability "acceptInsecureCerts", val
+End Sub
+
+'@Description("Sets the pageLoadStrategy capability - defaults to normal")
+Public Sub SetPageLoadStrategy(ByVal val As svbaPageLoadStrategy)
+Attribute SetPageLoadStrategy.VB_Description = "Sets the pageLoadStrategy capability - defaults to normal"
+    Select Case val
+    Case svbaPageLoadStrategy.svbaNormal
+        Me.SetCapability "pageLoadStrategy", "normal"
+    Case svbaPageLoadStrategy.svbaEager
+        Me.SetCapability "pageLoadStrategy", "eager"
+    Case svbaPageLoadStrategy.svbaNone
+        Me.SetCapability "pageLoadStrategy", "none"
+    End Select
 End Sub
 
 '@Description("Sets the unhandledPromptBehavior capability - defaults to dismiss and notify")
@@ -395,17 +414,20 @@ Attribute SetPreference.VB_Description = "Sets an option preference key/value"
 End Sub
 
 '@Description("Sets auto-download preferences and directory path")
-Public Sub SetDownloadPrefs(Optional ByVal downloadDirectoryPath As String = ".\")
+Public Sub SetDownloadPrefs(Optional ByVal downloadFolderPath As String = ".\", _
+                            Optional ByVal promptForDownload As Boolean = False, _
+                            Optional ByVal disablePDFViewer As Boolean = True)
 Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and directory path"
-    downloadDirectoryPath = WebShared.getFullLocalPath(downloadDirectoryPath, driver_.DefaultIOFolder)
+                            
+    downloadFolderPath = WebShared.getFullLocalPath(downloadFolderPath, driver_.DefaultIOFolder)
 
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
-        Me.SetPreference "download.default_directory", downloadDirectoryPath
+        Me.SetPreference "download.default_directory", downloadFolderPath
         Me.SetPreference "download.directory_upgrade", True
-        Me.SetPreference "download.prompt_for_download", False 'false disables prompting user for download permission
         Me.SetPreference "safebrowsing.enabled", True
-        Me.SetPreference "plugins.always_open_pdf_externally", True 'instead of using the pdf viewer
+        Me.SetPreference "download.prompt_for_download", promptForDownload 'false disables prompting user for download permission
+        Me.SetPreference "plugins.always_open_pdf_externally", disablePDFViewer 'instead of using the pdf viewer
         'Me.SetPreference "safebrowsing.disable_download_protection", True
         'Me.SetPreference "profile.default_content_settings.popups", False '0
         'Me.SetPreference "profile.default_content_settings.javascript", True '1
@@ -414,8 +436,8 @@ Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and 
         'Me.SetPreference "profile.default_content_setting_values.automatic_downloads", True '1
     Case svbaBrowser.Firefox
         Me.SetPreference "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
-        Me.SetPreference "browser.download.dir", downloadDirectoryPath
-        Me.SetPreference "pdfjs.disabled", True  'disable the built-in PDF viewer
+        Me.SetPreference "browser.download.dir", downloadFolderPath
+        Me.SetPreference "pdfjs.disabled", disablePDFViewer  'disable the built-in PDF viewer
         'Me.SetPreference "browser.download.manager.showWhenStarting", False
         'Me.SetPreference "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
         'Me.SetPreference "browser.download.useDownloadDir", True

@@ -408,3 +408,28 @@ Sub test_set_user_agent()
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+
+Sub test_pageLoadStrategy()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    Dim keys As New WebKeyboard
+
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    
+    Set caps = driver.CreateCapabilities()
+    
+    'set pageLoadStrategy to desired mode
+    caps.SetPageLoadStrategy svbaEager
+
+    driver.OpenBrowser caps
+    
+    driver.NavigateTo "https://www.wikipedia.org/"
+    
+    'this will verify that pageLoadStrategy was set to desired value (Edge/Chrome only)
+    Debug.Print driver.GetSessionsInfo("capabilities")("pageLoadStrategy")
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub

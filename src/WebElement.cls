@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.9
+' SeleniumVBA v5.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -446,10 +446,22 @@ Attribute UploadFile.VB_Description = "Uploads the contents of a file to this el
     driver_.UploadFile Me, filePath
 End Sub
 
-'@Description("Waits until this element is interactable (displayed)")
+'@Description("Waits until this element is interactable (displayed) - DEPRECATED")
 Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
-Attribute WaitUntilReady.VB_Description = "Waits until this element is interactable (displayed)"
+Attribute WaitUntilReady.VB_Description = "Waits until this element is interactable (displayed) - DEPRECATED"
     Set WaitUntilReady = driver_.WaitUntilReady(Me, maxWaitTimeMS)
+End Function
+
+'@Description("Waits until this element is displayed (interactable)")
+Public Function WaitUntilDisplayed(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
+Attribute WaitUntilDisplayed.VB_Description = "Waits until this element is displayed (interactable)"
+    Set WaitUntilDisplayed = driver_.WaitUntilDisplayed(Me, maxWaitTimeMS)
+End Function
+
+'@Description("Waits until this element is not displayed (not interactable)")
+Public Function WaitUntilNotDisplayed(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
+Attribute WaitUntilNotDisplayed.VB_Description = "Waits until this element is not displayed (not interactable)"
+    Set WaitUntilNotDisplayed = driver_.WaitUntilNotDisplayed(Me, maxWaitTimeMS)
 End Function
 
 '@Description("Returns the parent of this element")
@@ -471,7 +483,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
 End Function
 
 '@Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")
-Public Sub DownloadResource(ByVal srcAttribute As String, Optional ByVal fileOrFolderPath As String = ".\")
+Public Sub DownloadResource(Optional ByVal srcAttribute As String = "src", Optional ByVal fileOrFolderPath As String = ".\")
 Attribute DownloadResource.VB_Description = "Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source"
     driver_.DownloadResource Me, srcAttribute, fileOrFolderPath
 End Sub

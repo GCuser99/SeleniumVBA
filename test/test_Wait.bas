@@ -46,13 +46,64 @@ Sub test_ImplicitMaxWait()
     'wait until the second html is loaded
     driver.FindElement By.ID, "here"
 
-    driver.Wait 1000
+    driver.Wait 500
         
     driver.CloseBrowser
     driver.Shutdown
 End Sub
 
-Sub test_WaitUntilReady()
+Sub test_WaitUntilDisplayed()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim elem As SeleniumVBA.WebElement
+    Dim html As String
+    Dim timeDelay As Long
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    timeDelay = 5000
+    
+    'create an html with a script to hide the display of an element
+    
+    html = "<!DOCTYPE html>" & _
+    "<html>" & _
+    "<body>" & _
+    "<div id='testDiv'>I'm ready now after " & timeDelay & " ms!</div>" & _
+    "<script>" & _
+    "  var content = document.getElementById('testDiv');" & _
+    "  content.style.display='none';" & _
+    "  setTimeout(function(){" & _
+    "    content.style.display='inline';" & _
+    "  }, " & timeDelay & ");" & _
+    "</script>" & _
+    "</body>" & _
+    "</html>"
+    
+    driver.SaveStringToFile html, ".\snippet.html"
+
+    driver.NavigateToFile ".\snippet.html"
+    
+    'find the "not displayed" element
+    Set elem = driver.FindElement(By.ID, "testDiv")
+    
+    Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
+    
+    'wait for it to display...
+    driver.WaitUntilDisplayed elem
+    
+    Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
+    
+    driver.Wait 500
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_WaitUntilNotDisplayed()
     Dim driver As SeleniumVBA.WebDriver
     Dim elem As SeleniumVBA.WebElement
     Dim html As String
@@ -72,12 +123,12 @@ Sub test_WaitUntilReady()
     html = "<!DOCTYPE html>" & _
     "<html>" & _
     "<body>" & _
-    "<div id='testDiv'>I'm ready now after " & timeDelay & " ms!</div>" & _
+    "<div id='testDiv'>I'm displayed for " & timeDelay & " ms...</div>" & _
     "<script>" & _
     "  var content = document.getElementById('testDiv');" & _
-    "  content.style.display='none';" & _
+    "  content.style.display='inline';" & _
     "  setTimeout(function(){" & _
-    "    content.style.display='block';" & _
+    "    content.style.display='none';" & _
     "  }, " & timeDelay & ");" & _
     "</script>" & _
     "</body>" & _
@@ -92,12 +143,15 @@ Sub test_WaitUntilReady()
     
     Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
     
-    'wait for it to display...
-    driver.WaitUntilReady elem
+    'wait for it to disappear...
+    driver.WaitUntilNotDisplayed elem
     
     Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
     
-    driver.Wait 1500
+    'WaitUntilNotDisplayed allows for method chaining too
+    'Debug.Print "Is displayed?:", driver.WaitUntilNotDisplayed(elem).IsDisplayed
+    
+    driver.Wait 500
     
     driver.CloseBrowser
     driver.Shutdown
@@ -143,7 +197,7 @@ Sub test_WaitUntilNotPresent()
     'wait until the second html is loaded
     driver.WaitUntilNotPresent By.ID, "testDiv"
 
-    driver.Wait 1000
+    driver.Wait 500
         
     driver.CloseBrowser
     driver.Shutdown
@@ -174,7 +228,7 @@ Sub test_WaitForDownload()
     driver.Shutdown
 End Sub
 
-Sub test_WaitUntilReady2()
+Sub test_WaitUntilDisplayed2()
     Dim driver As SeleniumVBA.WebDriver
     Dim searchButton As SeleniumVBA.WebElement
     
@@ -200,10 +254,12 @@ Sub test_WaitUntilReady2()
     
     'can place an explicit Wait here but another way is to use WaitUntilReady method
     'it returns the "ready" input element object so can use methods on same line
-    searchButton.WaitUntilReady().Click
+    searchButton.WaitUntilDisplayed().Click
     
     driver.Wait 500
     
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+
+

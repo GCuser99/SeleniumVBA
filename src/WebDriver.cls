@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.9
+' SeleniumVBA v5.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -2039,7 +2039,22 @@ Attribute GetSessionsInfo.VB_Description = "Returns a dictionary holding various
     If browser_ = svbaBrowser.Firefox Then
         Err.Raise 405, "WebDriver", "GetSessionsInfo method not supported for Firefox WebDriver"
     End If
-    Set GetSessionsInfo = execute(tCMD.CMD_GET_ALL_SESSIONS)("value")(1)
+    Dim sessions As Dictionary
+    Set sessions = execute(tCMD.CMD_GET_ALL_SESSIONS)
+    If sessions("value").Count <> 0 Then
+        'there may be more than one (legacy) sessions open - find the current one
+        Dim i As Long
+        For i = 1 To sessions("value").Count
+            If sessions("value")(i)("id") = sessionId_ Then
+                Set GetSessionsInfo = sessions("value")(i)
+                Exit Function
+            End If
+        Next i
+    End If
+    'No valid session currently
+    Set GetSessionsInfo = New Dictionary
+    GetSessionsInfo.Add "capabilities", New Dictionary
+    GetSessionsInfo.Add "id", "no open browser session exists"
 End Function
 
 '@Description("Returns a dictionary holding various info about the driver")
@@ -2118,9 +2133,9 @@ Attribute DragAndDrop.VB_Description = "Drags and drops the element to the speci
     ActionChain.DragAndDrop(sourceElement, targetElement).Perform
 End Sub
 
-'@Description("Waits until element is interactable (displayed)")
+'@Description("Waits until element is interactable (displayed) - DEPRECATED")
 Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
-Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (displayed)"
+Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (displayed) - DEPRECATED"
     'see https://www.w3.org/TR/webdriver/#element-displayedness
     Dim timeStart As Currency
     Dim timeEnd As Currency
@@ -2147,6 +2162,62 @@ Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (
     Err.Raise 1, "WebDriver", "Error in WaitUntilReady method: maximum wait time exceeded while waiting for element to be ready."
 End Function
 
+'@Description("Waits until element is displayed (interactable)")
+Public Function WaitUntilDisplayed(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
+Attribute WaitUntilDisplayed.VB_Description = "Waits until element is displayed (interactable)"
+    'see https://www.w3.org/TR/webdriver/#element-displayedness
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
+    
+    GetTime timeStart 'in currency
+    
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
+    
+    GetTime timeStart
+    
+    Do
+        If element.IsDisplayed Then
+            Set WaitUntilDisplayed = element
+            Exit Function
+        End If
+        
+        sleep 50  'ms
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
+    
+    Err.Raise 1, "WebDriver", "Error in WaitUntilDisplayed method: maximum wait time exceeded while waiting for element to be displayed."
+End Function
+
+'@Description("Waits until element is not displayed (not interactable)")
+Public Function WaitUntilNotDisplayed(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
+Attribute WaitUntilNotDisplayed.VB_Description = "Waits until element is not displayed (not interactable)"
+    'see https://www.w3.org/TR/webdriver/#element-displayedness
+    Dim timeStart As Currency
+    Dim timeEnd As Currency
+    Dim timeNow As Currency
+    
+    GetTime timeStart 'in currency
+    
+    'calculate time to quit in currency based on max time to wait in MS
+    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
+    
+    GetTime timeStart
+    
+    Do
+        If Not element.IsDisplayed Then
+            Set WaitUntilNotDisplayed = element
+            Exit Function
+        End If
+        
+        sleep 50  'ms
+        GetTime timeNow
+    Loop Until timeNow > timeEnd
+    
+    Err.Raise 1, "WebDriver", "Error in WaitUntilNotDisplayed method: maximum wait time exceeded while waiting for element to disappear."
+End Function
+
 '@Description("Waits until file is finished downloading")
 Public Sub WaitForDownload(ByVal filePath As String, Optional ByVal maxWaitTimeMS As Long = 10000)
 Attribute WaitForDownload.VB_Description = "Waits until file is finished downloading"
@@ -2166,8 +2237,8 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     'loop until file exists
     Do
         If fso.FileExists(filePath) Then Exit Do
-        SleepWinAPI 50 'ms
-        DoEvents 'yield to other processes
+        
+        sleep 50  'ms
         GetTime timeNow
         If timeNow > timeEnd Then GoTo MaxTimeExceeded
     Loop
@@ -2175,8 +2246,10 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     'the file exists but now make sure it is finished writing (closed)
     Do
         If FileClosed(filePath) Then Exit Sub
-        SleepWinAPI 50 'ms
-        DoEvents 'yield to other processes
+        
+        sleep 50  'ms
+        'SleepWinAPI 50 'ms
+        'DoEvents 'yield to other processes
         GetTime timeNow
     Loop Until timeNow > timeEnd
     
@@ -2198,8 +2271,8 @@ Attribute WaitUntilNotPresent.VB_Description = "Waits until an element is not pr
 
     Do
         If Not IsPresent(by_, val) Then Exit Sub
-        SleepWinAPI 50 'ms
-        DoEvents 'yield to other processes
+        
+        sleep 50  'ms
         GetTime timeNow
     Loop Until timeNow > timeEnd
     
@@ -2557,7 +2630,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
 End Sub
 
 '@Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")
-Public Sub DownloadResource(element As WebElement, ByVal srcAttribute As String, Optional ByVal fileOrFolderPath As String = ".\")
+Public Sub DownloadResource(element As WebElement, Optional ByVal srcAttribute As String = "src", Optional ByVal fileOrFolderPath As String = ".\")
 Attribute DownloadResource.VB_Description = "Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source"
     Dim Url As String
     Dim baseUrl As String
@@ -3640,8 +3713,7 @@ Private Function waitForIsCommand(cmd As Variant, element As WebElement, ByVal m
             Exit Function
         End If
         
-        SleepWinAPI 50 'ms
-        DoEvents 'yield to other processes
+        sleep 50  'ms
         GetTime timeNow
     Loop Until timeNow > timeEnd
     waitForIsCommand = False

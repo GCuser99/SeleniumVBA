@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v4.9
+' SeleniumVBA v5.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -26,7 +26,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal

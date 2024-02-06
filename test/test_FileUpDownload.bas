@@ -57,7 +57,8 @@ Sub test_file_download()
     'caps.SetPreference "download.prompt_for_download", False
     'caps.SetPreference "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
     
-    caps.SetDownloadPrefs ".\"  'this does the above in one line
+    'this does the above in one line
+    caps.SetDownloadPrefs downloadFolderPath:=".\", promptForDownload:=False, disablePDFViewer:=True
 
     driver.OpenBrowser caps
     
@@ -90,7 +91,7 @@ Sub test_file_download2()
     
     'set the directory path for saving download to
     Set caps = driver.CreateCapabilities
-    caps.SetDownloadPrefs ".\"
+    caps.SetDownloadPrefs downloadFolderPath:=".\"
     driver.OpenBrowser caps
     
     'delete legacy copy if it exists

@@ -104,6 +104,7 @@ Sub test_windows_SwitchToByTitle()
     Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
     
     Set childWindow = driver.Windows.SwitchToByTitle("New Window")
+    
     Debug.Print driver.ActiveWindow.Title 'prints "New Window"
     Debug.Print childWindow.Title 'prints "New Window"
     

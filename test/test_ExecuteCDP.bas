@@ -118,13 +118,16 @@ Sub test_cdp_enhanced_file_download()
     'set the directory path for saving download to
     Set caps = driver.CreateCapabilities()
     caps.SetDownloadPrefs "%USERPROFILE%\Desktop"
-    driver.OpenBrowser caps
+    driver.OpenBrowser caps:=caps ', incognito:=True
     
     'redirect the download location AFTER capabilities have been set!!
     'https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-setDownloadBehavior
     params.Add "behavior", "allow" 'deny, allow, default
     params.Add "downloadPath", driver.ResolvePath(".\")
+    'this one is marked experimental/deprecated but works with incognito
     driver.ExecuteCDP "Page.setDownloadBehavior", params
+    'this one is marked experimental but does not work with incognito (Chromium bug - see issues)
+    'driver.ExecuteCDP "Browser.setDownloadBehavior", params
     
     'delete legacy copy if it exists
     driver.DeleteFiles ".\test.pdf"
