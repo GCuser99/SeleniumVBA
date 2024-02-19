@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.0
+' SeleniumVBA v5.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -603,7 +603,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         driverBuild = filterVersionParts(driverVersion, 3)
         If compareVersions(driverBuild, "115.0.5763") >= 0 Then
             'use the new download api
-            Url = "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/" & driverVersion & "/" & platformString & "/chromedriver-" & platformString & ".zip"
+            Url = "https://storage.googleapis.com/chrome-for-testing-public/" & driverVersion & "/" & platformString & "/chromedriver-" & platformString & ".zip"
             tmpInstallZipPath = tmpInstallFolder & "chromedriver-" & platformString & ".zip"
             tmpZipDriverFilename = "chromedriver-" & platformString & "\chromedriver.exe"
             tmpInstallDriverpath = tmpInstallFolder & "chromedriver.exe"

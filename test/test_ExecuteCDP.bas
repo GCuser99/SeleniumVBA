@@ -277,3 +277,58 @@ Sub test_cdp_random_other_stuff()
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+
+'https://www.selenium.dev/documentation/webdriver/bidirectional/chrome_devtools/cdp_endpoint/#basic-authentication
+Sub test_cdp_authentication()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim userName As String
+    Dim pw As String
+    Dim params As Dictionary
+    Dim authString As String
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.ImplicitMaxWait = 10000
+    
+    driver.NavigateTo "https://jigsaw.w3.org/HTTP/"
+    
+    userName = "guest"
+    pw = "guest"
+    
+    'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-enable
+    driver.ExecuteCDP "Network.enable"
+
+    'build authorization string
+    authString = "Basic " & EncodeBase64(userName & ":" & pw)
+    
+    'build the CDP parameter dictionary
+    Set params = New Dictionary
+    params.Add "headers", New Dictionary
+    params("headers").Add "authorization", authString
+    
+    'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setExtraHTTPHeaders
+    driver.ExecuteCDP "Network.setExtraHTTPHeaders", params
+    
+    driver.FindElement(By.LinkText, "Basic Authentication test").Click
+    
+    driver.Wait 1000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+'https://stackoverflow.com/questions/169907/how-do-i-base64-encode-a-string-efficiently-using-excel-vba
+Private Function EncodeBase64(text As String) As String
+    Dim bytes() As Byte
+    Dim domDoc As Object
+    Dim domElem As Object
+    bytes = StrConv(text, vbFromUnicode)
+    Set domDoc = CreateObject("MSXML2.DOMDocument")
+    Set domElem = domDoc.createElement("b64")
+    domElem.DataType = "bin.base64"
+    domElem.nodeTypedValue = bytes
+    EncodeBase64 = Replace(domElem.text, vbLf, "")
+End Function

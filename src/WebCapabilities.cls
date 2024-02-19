@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.0
+' SeleniumVBA v5.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -428,6 +428,7 @@ Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and 
         Me.SetPreference "safebrowsing.enabled", True
         Me.SetPreference "download.prompt_for_download", promptForDownload 'false disables prompting user for download permission
         Me.SetPreference "plugins.always_open_pdf_externally", disablePDFViewer 'instead of using the pdf viewer
+        'Me.SetPreference "browser.set_download_behavior", "allow"
         'Me.SetPreference "safebrowsing.disable_download_protection", True
         'Me.SetPreference "profile.default_content_settings.popups", False '0
         'Me.SetPreference "profile.default_content_settings.javascript", True '1
