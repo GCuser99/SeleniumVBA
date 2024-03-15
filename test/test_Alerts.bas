@@ -128,28 +128,3 @@ Sub test_Alerts2()
     driver.Shutdown
 End Sub
 
-Sub test_Authentication()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim elem As SeleniumVBA.WebElement
-    Dim userName As String
-    Dim pw As String
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartChrome
-    driver.OpenBrowser
-    
-    driver.ImplicitMaxWait = 10000
-    
-    userName = "admin"
-    pw = "admin"
-    
-    driver.NavigateTo "http://" & userName & ":" & pw & "@the-internet.herokuapp.com/basic_auth"
-  
-    If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
-        Debug.Print elem.GetText
-    End If
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub

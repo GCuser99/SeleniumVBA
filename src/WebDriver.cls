@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.1
+' SeleniumVBA v5.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -2132,35 +2132,6 @@ Public Sub DragAndDrop(sourceElement As WebElement, targetElement As WebElement)
 Attribute DragAndDrop.VB_Description = "Drags and drops the element to the specified target element"
     ActionChain.DragAndDrop(sourceElement, targetElement).Perform
 End Sub
-
-'@Description("Waits until element is interactable (displayed) - DEPRECATED")
-Public Function WaitUntilReady(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
-Attribute WaitUntilReady.VB_Description = "Waits until element is interactable (displayed) - DEPRECATED"
-    'see https://www.w3.org/TR/webdriver/#element-displayedness
-    Dim timeStart As Currency
-    Dim timeEnd As Currency
-    Dim timeNow As Currency
-    
-    GetTime timeStart 'in currency
-    
-    'calculate time to quit in currency based on max time to wait in MS
-    timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
-    
-    GetTime timeStart
-    
-    Do
-        If element.IsDisplayed Then
-            Set WaitUntilReady = element
-            Exit Function
-        End If
-        
-        SleepWinAPI 50 'ms
-        DoEvents 'yield to other processes
-        GetTime timeNow
-    Loop Until timeNow > timeEnd
-    
-    Err.Raise 1, "WebDriver", "Error in WaitUntilReady method: maximum wait time exceeded while waiting for element to be ready."
-End Function
 
 '@Description("Waits until element is displayed (interactable)")
 Public Function WaitUntilDisplayed(element As WebElement, Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement

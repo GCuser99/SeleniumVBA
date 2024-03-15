@@ -60,7 +60,7 @@ Sub doFileDownload()
     
     'set the directory path for saving download to
     Set caps = driver.CreateCapabilities
-    caps.SetDownloadPrefs ".\"
+    caps.SetDownloadPrefs downloadFolderPath:=".\"
     driver.OpenBrowser caps
     
     'delete legacy copy if it exists

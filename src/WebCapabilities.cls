@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.1
+' SeleniumVBA v5.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

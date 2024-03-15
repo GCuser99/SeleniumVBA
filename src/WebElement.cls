@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.1
+' SeleniumVBA v5.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -445,12 +445,6 @@ Public Sub UploadFile(ByVal filePath As String)
 Attribute UploadFile.VB_Description = "Uploads the contents of a file to this element"
     driver_.UploadFile Me, filePath
 End Sub
-
-'@Description("Waits until this element is interactable (displayed) - DEPRECATED")
-Public Function WaitUntilReady(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
-Attribute WaitUntilReady.VB_Description = "Waits until this element is interactable (displayed) - DEPRECATED"
-    Set WaitUntilReady = driver_.WaitUntilReady(Me, maxWaitTimeMS)
-End Function
 
 '@Description("Waits until this element is displayed (interactable)")
 Public Function WaitUntilDisplayed(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
