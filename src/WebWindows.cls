@@ -117,7 +117,7 @@ Attribute switchToBy.VB_Description = "Activates and returns the first window fo
         Select Case By
             Case SearchBy.byTitle
                 WndAttribValue = colWindows.Item(pos).Title
-            Case byUrl
+            Case SearchBy.byUrl
                 WndAttribValue = colWindows.Item(pos).Url
         End Select
         If WndAttribValue Like searchText Then
