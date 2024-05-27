@@ -382,9 +382,9 @@ Public Function enumTextToValue(ByVal enumText As String) As Long
 End Function
 
 Public Sub sleep(ByVal ms As Currency)
-    'Enhanced sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
-    'Better Sleep proc. featuring <0.0% CPU usage, DoEvents, accuracy +-<10ms
-    'Uses "Currency" as a good-enough workaround to avoid the complexity of LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
+    'Enhanced sleep proc. featuring <0.0% CPU usage, DoEvents, precision +-<10ms
+    'Better Sleep proc. featuring <0.0% CPU usage, DoEvents, precision +-<10ms
+    'Uses "Currency" as a good-enough workaround to avoid the complexity of a LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
     'Note: VBA.Timer ( + VBA.Date for midnight adjustment) and VBA.Now avoided for accuracy issues (10-15ms and occasionally even worse? see https://stackoverflow.com/questions/68767198/is-this-unstable-vba-timer-behavior-real-or-am-i-doing-something-wrong)
     Dim cTimeStart As Currency, cTimeEnd As Currency
     Dim dTimeElapsed As Currency, cTimeTarget As Currency
