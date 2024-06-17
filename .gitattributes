@@ -1,5 +1,54 @@
-* text=auto
-*.bas text eol=crlf linguist-language=VBA
-*.cls text eol=crlf linguist-language=VBA
-*.frm text eol=crlf linguist-language=VBA
-*.vbs text eol=crlf linguist-language=VBScript
+# modified from https://github.com/DecimalTurn/VBA-on-GitHub/tree/main
+
+# By default, auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# VBA extensions - Prevent LF normalization
+*.[bB][aA][sS] -text diff linguist-language=VBA
+*.[cC][lL][sS] -text diff linguist-language=VBA
+*.[fF][rR][mM] -text diff linguist-language=VBA
+
+# VBA extensions - Mark as binary
+*.[fF][rR][xX] binary
+
+# VBS extensions - Prevent LF normalization
+*.[vV][bB][sS] -text diff linguist-language=VBScript
+
+# twinBASIC extensions  - Prevent LF normalization
+*.[tT][wW][iI][nN] -text diff
+*.[tT][bB][fF][oO][rR][mM] -text diff
+*.[jJ][sS][oO][nN] -text diff
+
+# twinBASIC extensions  - Mark as binary
+*.[tT][wW][iI][nN][pP][rR][oO][jJ]  binary
+
+# Inno Setup extension  - Prevent LF normalization
+*.[iI][sS][sS] -text diff
+
+# ini file extension  - Prevent LF normalization
+*.[iI][nN][iI] -text diff
+                    
+# Excel documents (xlam, xlsm)
+*.[xX][lL][aA][mM] binary
+*.[xX][lL][sS][mM] binary
+              
+# Access documents (accdb)
+*.[aA][cC][cC][dD][bB] binary
+
+# Word documents  (rtf)
+*.[rR][tT][fF] diff=astextplain
+
+# Images            
+*.[jJ][pP][gG] binary
+*.[pP][nN][gG] binary
+*.[bB][mM][pP] binary
+*.[gG][iI][fF] binary
+*.[iI][cC][oO] binary
+
+# Executables
+*.[eE][xX][eE] binary
+*.[dD][lL][lL] binary
+
+# Other
+*.[pP][dD][fF] diff=astextplain
+
