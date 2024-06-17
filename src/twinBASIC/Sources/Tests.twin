@@ -1,0 +1,612 @@
+Private Module Tests
+
+    Sub test_Authentication()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim elem As SeleniumVBA.WebElement
+        Dim creds As String
+        Dim keys As SeleniumVBA.WebKeyboard
+    
+        Set driver = SeleniumVBA.New_WebDriver
+        Set keys = SeleniumVBA.New_WebKeyboard
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 10000
+    
+        driver.NavigateTo "http://the-internet.herokuapp.com/basic_auth"
+    
+        'no need to run on a separate thread in this case as the login popup does
+        'not block execution while waiting for user response...
+        creds = "admin" & keys.TabKey & "admin" & keys.EnterKey 'username and password
+        driver.SendKeysToOS _
+            keyString:=creds, _
+            timeDelayMS:=0, _
+            windowTitle:="", _
+            runOnSeparateThread:=False, _
+            waitForWindow:=False
+    
+        If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
+            Debug.Print elem.GetText
+        End If
+  
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_error()
+        Dim driver As WebDriver
+        Dim keys As WebKeyboard
+        Dim keySeq As String
+    
+        Set driver = New WebDriver
+        Set keys = New WebKeyboard
+
+        driver.StartEdge
+    
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+    
+        driver.NavigateTo "https://www.wikipedia.org/"
+    
+        keySeq = "Leonardo da VinJci" & keys.Repeat(keys.LeftKey, 3) & keys.DeleteKey & keys.ReturnKey
+        On Error Resume Next
+        driver.FindElement(By.ID, "searchInput1").SendKeys keySeq
+
+        driver.Wait 1500
+        Debug.Print "got here"
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_Sendkeys()
+        Dim driver As WebDriver
+        Dim keys As WebKeyboard
+        Dim keySeq As String
+    
+        Set driver = New WebDriver
+        Set keys = New WebKeyboard
+
+        driver.StartEdge
+    
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+    
+        driver.NavigateTo "https://www.wikipedia.org/"
+    
+        keySeq = "Leonardo da VinJci" & keys.Repeat(keys.LeftKey, 3) & keys.DeleteKey & keys.ReturnKey
+    
+        driver.FindElement(By.ID, "searchInput").SendKeys keySeq
+
+        driver.Wait 1500
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_table_to_array_large()
+        Dim driver As WebDriver
+        Dim table() As Variant
+    
+        Set driver = New WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+    
+        driver.NavigateTo "https://the-internet.herokuapp.com/large"
+    
+        table = driver.FindElement(By.ID, "large-table").TableToArray(skipHeader:=True)
+    
+        Debug.Print "number of rows: " & UBound(table, 1), "number of columns: " & UBound(table, 2)
+
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_updateDrivers()
+        'this checks if driver is installed, or if installed driver is compatibile
+        'with installed browser, and then if needed, installs an updated driver
+        Dim mngr As WebDriverManager
+    
+        Set mngr = New WebDriverManager
+    
+        'mngr.DefaultDriverFolder = [your binary folder path here] 'defaults to Downloads dir
+    
+        MsgBox mngr.AlignEdgeDriverWithBrowser()
+        MsgBox mngr.AlignChromeDriverWithBrowser()
+        MsgBox mngr.AlignFirefoxDriverWithBrowser()
+        MsgBox mngr.AlignIEDriverWithBrowser()
+    End Sub
+    
+    Sub test_file_download()
+        Dim driver As WebDriver
+        Dim caps As WebCapabilities
+    
+        Set driver = New WebDriver
+   
+        driver.StartChrome
+    
+        'set the directory path for saving download to
+        Set caps = driver.CreateCapabilities
+        caps.SetDownloadPrefs downloadFolderPath:=".\"
+        driver.OpenBrowser caps
+    
+        'delete legacy copy if it exists
+        driver.DeleteFiles ".\test.pdf"
+    
+        driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
+    
+        driver.WaitForDownload ".\test.pdf"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_PageToHTMLMethods()
+        Dim driver As WebDriver
+        Dim htmlDoc As HTMLDocument, Url As String
+    
+        Set driver = New WebDriver
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        Url = "https://it.wikipedia.org/wiki/Pagina_principale"
+    
+        driver.NavigateTo Url
+        driver.Wait 1000
+    
+        'use DOM to parse htmlDocument here if desired....
+        'html DOM can much faster than Selenium if complicated parse is needed
+        Set htmlDoc = driver.PageToHTMLDoc(sanitize:=False)
+        Debug.Print htmlDoc.body.ChildNodes.Length
+    
+        'save raw page to html file
+        driver.PageToHTMLFile "source_raw.html", sanitize:=False
+    
+        'note that santization leaves DOM tree intact
+        Set htmlDoc = driver.PageToHTMLDoc(sanitize:=True)
+        Debug.Print htmlDoc.body.ChildNodes.Length
+    
+        'save sanitized page to html file
+        driver.PageToHTMLFile "source_sanitized.html", sanitize:=True
+    
+        'this is much faster because santization disables "online" dynamic elements
+        driver.NavigateToFile "source_sanitized.html"
+        driver.Wait 1000
+    
+        'uncomment the following to see how long it takes to render unsanitized html file - be patient!
+        'driver.NavigateToFile "source_raw.html"
+        'driver.Wait 1000
+    
+        driver.Shutdown
+    End Sub
+    
+    Sub test_Alerts()
+        'NOTES: As of July 2023, Chrome and Edge have a ("WontFix") reported bug where sending text to
+        'a prompt alert via SwitchToAlert.SendKeys does not display in the text input
+        'field but otherwise does work as shown in this demo. It has been classified as a "display-only issue".
+        'see https://bugs.chromium.org/p/chromedriver/issues/detail?id=1120#c11
+    
+        'Also be aware - the only WebDriver commands that should be executed between the show Alert event
+        '(e.g. after Click) and SwitchToAlert.Accept/Dismiss are Wait, SwitchToAlert.GetAlertText, and
+        'SwitchToAlert.SendKeys - other commands executed in the time interval while waiting for user
+        'response could interfere with Alert interaction.
+        '
+        'The SwitchToAlert waits until the alert shows, up to a maximum time specified by the maxWaitTimeMS
+        'argument (default 10000 ms). See slow alert test in this procedure below for an example.
+        Dim driver As WebDriver
+    
+        Set driver = New WebDriver
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 10000
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/alerts.html"
+    
+        'standard alert 1
+        driver.FindElement(By.ID, "alert").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 1: " & .GetText
+            .Accept
+        End With
+        Debug.Print "standard alert found and accepted"
+    
+        'standard alert 2
+        driver.FindElement(By.ID, "empty-alert").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 2: " & .GetText
+            .Accept
+        End With
+        Debug.Print "empty alert found and accepted"
+    
+        'input prompt alert 3
+        driver.FindElement(By.ID, "prompt").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 3: " & .GetText
+            .SendKeys "here is my response text to prompt"
+            .Accept
+        End With
+        Debug.Print driver.FindElement(By.ID, "text").GetText
+    
+        'input prompt alert 4
+        driver.FindElement(By.ID, "prompt-with-default").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 4: " & .GetText
+            .SendKeys "here is my response text to prompt with default"
+            .Accept
+        End With
+        Debug.Print driver.FindElement(By.ID, "text").GetText
+    
+        'input double prompt alerts 5 and 6
+        driver.FindElement(By.ID, "double-prompt").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 5: " & .GetText
+            .SendKeys "here is my response text to first of double prompt"
+            .Accept
+        End With
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 6: " & .GetText
+            .SendKeys "here is my response text to second of double prompt"
+            .Accept
+        End With
+        'note that this first GetText must be performed after the second alert above
+        'so that it does not interfere with that alert!!
+        Debug.Print driver.FindElement(By.ID, "text1").GetText
+        Debug.Print driver.FindElement(By.ID, "text2").GetText
+    
+        'test for a delayed alert 7
+        'without the non-zero max wait, this will throw an error
+        driver.FindElement(By.ID, "slow-alert").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 7: " & .GetText
+            .Accept
+        End With
+        Debug.Print "slow alert found and accepted"
+    
+        'a confirm alert 8
+        driver.FindElement(By.ID, "confirm").Click
+        With driver.SwitchToAlert
+            Debug.Print "Alert prompt 8: " & .GetText
+            .Dismiss
+        End With
+        Debug.Print "confirm alert found and dismissed"
+    
+        driver.Wait 1000
+        driver.GoBack
+        driver.Wait 1000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_windows_SwitchToNext()
+        'this test uses SwitchToNext to shortcut the finding of the child window,
+        'without having to enumerate the windows collection
+        Dim driver As WebDriver
+        Dim mainWindow As WebWindow
+        Dim childWindow As WebWindow
+    
+        Set driver = New WebDriver
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.NavigateTo "http://the-internet.herokuapp.com/windows"
+    
+        'get the current active window
+        Set mainWindow = driver.ActiveWindow
+    
+        'spawn a new window
+        driver.FindElementByCssSelector("#content > div > a").Click
+    
+        'note here that main window is still the active one from Selenium's perspective!!
+        Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    
+        'switch to the next open window in the collection AFTER the current active window
+        Set childWindow = driver.Windows.SwitchToNext
+        Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+        Debug.Print childWindow.Title 'prints "New Window"
+    
+        driver.Shutdown
+    End Sub
+    
+    Sub test_action_chain()
+        Dim driver As WebDriver, actions As WebActionChain
+        Dim from1 As WebElement, to1 As WebElement
+        Dim from2 As WebElement, to2 As WebElement
+        Dim from3 As WebElement, to3 As WebElement
+        Dim from4 As WebElement, to4 As WebElement
+        Dim elem As WebElement
+    
+        Set driver = New WebDriver
+    
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
+    
+        driver.Wait 500
+    
+        Set from1 = driver.FindElement(By.XPath, "//*[@id='credit2']/a")
+        Set to1 = driver.FindElement(By.XPath, "//*[@id='bank']/li")
+    
+        Set from2 = driver.FindElement(By.XPath, "//*[@id='credit1']/a")
+        Set to2 = driver.FindElement(By.XPath, "//*[@id='loan']/li")
+    
+        Set from3 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+        Set to3 = driver.FindElement(By.XPath, "//*[@id='amt7']/li")
+    
+        Set from4 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
+        Set to4 = driver.FindElement(By.XPath, "//*[@id='amt8']/li")
+    
+        driver.Wait 500
+    
+        Set actions = driver.ActionChain
+        actions.ScrollBy , 500
+        actions.DragAndDrop from1, to1
+        actions.DragAndDrop from2, to2
+        actions.DragAndDrop from3, to3
+        actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton
+        actions.Perform 'do all the actions defined above
+    
+        driver.Wait 1000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_highlight2()
+        Dim driver As WebDriver
+        Dim elemsBlue As WebElements
+        Dim elemsRed As WebElements
+        Dim htmlStr As String, i As Long
+    
+        Set driver = New WebDriver
+        Set elemsBlue = New WebElements
+        Set elemsRed = New WebElements
+
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        htmlStr = "<html><body><table border='1' id='mytable'>" _
+        & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
+        & "<tr><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td></tr>" _
+        & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
+        & "<tr><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td></tr>" _
+        & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
+        & "</table></body></html>"
+    
+        driver.SaveStringToFile htmlStr, ".\snippet.html"
+    
+        driver.NavigateToFile ".\snippet.html"
+    
+        driver.ImplicitMaxWait = 1000
+    
+        'split the table cells into two groups Red and Blue
+        With driver.FindElements(By.TagName, "td")
+            For i = 1 To .Count
+                If i Mod 2 = 0 Then
+                    'ordinal position in collection is even
+                    elemsBlue.Add .Item(i)
+                Else
+                    'ordinal position in collection is odd
+                    elemsRed.Add .Item(i)
+                End If
+            Next i
+        End With
+    
+        driver.Wait 1500
+    
+        'highlight the Blue group
+        elemsBlue.Highlight borderSizePx:=2, borderColor:=Blue, ScrollIntoView:=False
+    
+        driver.Wait 1500
+    
+        'highlight the Red group
+        elemsRed.Highlight borderSizePx:=2, borderColor:=Red, ScrollIntoView:=False, unHighlightLast:=False
+    
+        driver.Wait 1500
+    
+        'unhighlight the Blue group
+        elemsBlue.UnHighlight
+    
+        driver.Wait 1500
+    
+        'unhighlight the Red group
+        elemsRed.UnHighlight
+    
+        driver.Wait 1500
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_cdp_enhanced_geolocation()
+        'this demonstrates using the ExecuteCDP to manage geolocation with enhanced user control
+        'even if the default profile is set to hide geolocation info, this will override that,
+        'unlike SetGeolocation method of WebDriver class...
+        Dim driver As WebDriver
+        Dim params As New Dictionary
+    
+        Set driver = New WebDriver
+
+        driver.StartChrome 'Chrome and Edge only
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+    
+        'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-setGeolocationOverride
+        'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-clearGeolocationOverride
+    
+        'set the override location
+        params.Add "latitude", 41.1621429
+        params.Add "longitude", -8.6219537
+        params.Add "accuracy", 100
+    
+        driver.ExecuteCDP "Emulation.setGeolocationOverride", params
+  
+        driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
+    
+        driver.FindElementByXPath("//*[@id='content']/div/button").Click
+    
+        Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    
+        driver.Wait 1000
+    
+        'now clear the override...
+        driver.ExecuteCDP "Emulation.clearGeolocationOverride"
+    
+        'refresh the page...
+        driver.Refresh
+    
+        driver.FindElementByXPath("//*[@id='content']/div/button").Click
+    
+        Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    
+        driver.Wait 2000
+    
+        driver.FindElementByXPath("//*[@id='map-link']/a").Click
+    
+        driver.Wait 5000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_WaitUntilNotPresent()
+        Dim driver As WebDriver
+        Dim html1 As String
+        Dim html2 As String
+        Dim timeDelay As Long
+    
+        Set driver = New WebDriver
+    
+        'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        timeDelay = 5000
+    
+        'create an html with an element of interest that waits to load a second html
+
+        html1 = "<!DOCTYPE html>" & _
+        "<html>" & _
+        "<script>" & _
+        "function calling(){" & _
+        "      setTimeout(""location.replace('snippet2.html')""," & timeDelay & ");" & _
+        "}" & _
+        "</script>" & _
+        "<body onLoad=""calling();"">" & _
+        "<div id='testDiv'>I'm present!</div>" & _
+        "</body>" & _
+        "</html>"
+
+        'create the second html to be loaded by first
+        html2 = "<!DOCTYPE html><html><body><div>I'm gone after " & timeDelay & " ms!</div></body></html>"
+    
+        driver.SaveStringToFile html1, ".\snippet1.html"
+        driver.SaveStringToFile html2, ".\snippet2.html"
+
+        driver.NavigateToFile ".\snippet1.html"
+    
+        'wait until the second html is loaded
+        driver.WaitUntilNotPresent By.ID, "testDiv"
+
+        driver.Wait 500
+        
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_PageToXMLMethods()
+        Dim driver As WebDriver
+        Dim xmlDoc As DOMDocument60, Url As String
+
+        Set driver = New WebDriver
+    
+        driver.StartEdge
+        driver.OpenBrowser
+
+        Url = "https://www.w3schools.com/xml/note.xml"
+
+        driver.NavigateTo Url
+        driver.Wait 500
+    
+        'save page to xml file
+        driver.PageToXMLFile "test.xml"
+    
+        'load up an xml document for further processing
+        Set xmlDoc = driver.PageToXMLDoc
+    
+        Debug.Print xmlDoc.selectSingleNode("//heading").text
+        
+        'read the test file back into browser
+        driver.NavigateToFile "test.xml"
+    
+        driver.Wait 2000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+
+    Sub test_PageToJSONMethods()
+        Dim driver As WebDriver
+        Dim json As Collection, Url As String
+
+        Set driver = New WebDriver
+    
+        driver.StartEdge
+        driver.OpenBrowser
+
+        Url = "https://api.github.com/repos/gcuser99/seleniumVBA/releases"
+
+        driver.NavigateTo Url
+        driver.Wait 1000
+    
+        'save page to json file
+        driver.PageToJSONFile "test.json"
+    
+        'load up a json object for further processing
+        Set json = driver.PageToJSONObject
+        Debug.Print json(1)("url")
+        
+        'read the test file back into browser
+        driver.NavigateToFile "test.json"
+    
+        driver.Wait 2000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_download_resource()
+        'this test uses the DownloadResource method of the WebElement class to download the src to an img element
+        Dim driver As WebDriver
+        Dim element As WebElement
+
+        Set driver = New WebDriver
+
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
+        driver.Wait 1000
+
+        Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
+    
+        'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
+        element.DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+      
+End Module

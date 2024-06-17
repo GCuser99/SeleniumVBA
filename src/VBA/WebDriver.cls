@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -426,9 +426,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     
     processID = Shell(commandStr, appWinStyle)
 
-    If processID = 0 Then
-        Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
-    End If
+    If processID = 0 Then Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     
     'store WebDriver url value for later use
     driverUrl_ = "http://localhost:" & localHostPort
@@ -482,13 +480,8 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
         End If
     End If
     
-    If invisible Then
-        caps.RunInvisible
-    End If
-    
-    If incognito Then
-        caps.RunIncognito
-    End If
+    If invisible Then caps.RunInvisible
+    If incognito Then caps.RunIncognito
     
     DoEvents 'this is needed to prevent intermittent error if command window is not hidden or minimized
     
@@ -537,9 +530,7 @@ Attribute NavigateTo.VB_Description = "Navigates browser to a specified webpage 
     
     Set resp = execute(tCMD.CMD_GET, data, raiseError)
 
-    If timeOutms <> -1 Then
-        If savTimeOutms <> timeOutms Then PageLoadTimeout = savTimeOutms
-    End If
+    If timeOutms <> -1 And timeOutms <> savTimeOutms Then PageLoadTimeout = savTimeOutms
     
     If isResponseError(resp) Then
         NavigateTo = False
@@ -850,9 +841,7 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
         vbs = "Set WshShell = WScript.CreateObject(""WScript.Shell"")" & vbCrLf
         
         'wait specified amount of time before executing script
-        If timeDelayMS > 0 Then
-            vbs = vbs & "WScript.Sleep " & timeDelayMS & vbCrLf
-        End If
+        If timeDelayMS > 0 Then vbs = vbs & "WScript.Sleep " & timeDelayMS & vbCrLf
     
         If windowTitle <> vbNullString Then
             'user is after a particular window
@@ -894,9 +883,7 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
         cleanupTempFiles = True
     Else
         'not running on separate thread, so use native VBA instead of VBSript
-        If timeDelayMS > 0 Then
-            WebShared.sleep timeDelayMS
-        End If
+        If timeDelayMS > 0 Then WebShared.sleep timeDelayMS
         
         If windowTitle <> vbNullString Then
             If waitForWindow Then
@@ -1077,7 +1064,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
     
     Set elements = objToWebElements(elementOrElements)
 
-    If onOffSwitch = True Then
+    If onOffSwitch Then
         If lastElems Is Nothing Then Set lastElems = New WebElements
         If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Scripting.Dictionary
 
@@ -1215,11 +1202,7 @@ Attribute GetAriaRole.VB_Description = "Gets the Arial role of the element"
     
     data.Add "id", element.elementId
     Set resp = execute(tCMD.CMD_GET_ELEMENT_ARIA_ROLE, data)
-    If IsNull(resp("value")) Then
-        GetAriaRole = vbNullString
-    Else
-        GetAriaRole = resp("value")
-    End If
+    If Not IsNull(resp("value")) Then GetAriaRole = resp("value")
 End Function
 
 '@Description("Gets the Arial label of the element")
@@ -1230,11 +1213,7 @@ Attribute GetAriaLabel.VB_Description = "Gets the Arial label of the element"
     
     data.Add "id", element.elementId
     Set resp = execute(tCMD.CMD_GET_ELEMENT_ARIA_LABEL, data)
-    If IsNull(resp("value")) Then
-        GetAriaLabel = vbNullString
-    Else
-        GetAriaLabel = resp("value")
-    End If
+    If Not IsNull(resp("value")) Then GetAriaLabel = resp("value")
 End Function
 
 '@Description("Gets the tag name of the element")
@@ -1251,9 +1230,7 @@ Attribute SelectByValue.VB_Description = "Selects a dropdown option element with
     Dim elem As WebElement
     
     Set elem = FindElement(By.TagName, "option[value =" & """" & val & """" & "]", element)
-    If Not IsSelected(elem) Then
-        elem.Click
-    End If
+    If Not IsSelected(elem) Then elem.Click
 End Sub
 
 '@Description("Selects a dropdown option element with the specified visible text")
@@ -1262,9 +1239,7 @@ Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option elemen
     Dim elem As WebElement
 
     Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
-    If Not IsSelected(elem) Then
-        elem.Click
-    End If
+    If Not IsSelected(elem) Then elem.Click
 End Sub
 
 '@Description("Returns all selected option elements for the specified dropdown element")
@@ -1306,9 +1281,7 @@ Attribute DeSelectByValue.VB_Description = "Deselects the dropdown option elemen
     Dim elem As WebElement
 
     Set elem = FindElement(By.CssSelector, "option[value =" & """" & val & """" & "]", element)
-    If IsSelected(elem) Then
-        elem.Click
-    End If
+    If IsSelected(elem) Then elem.Click
 End Sub
 
 '@Description("Deselects the dropdown option element having the specified visible text")
@@ -1317,9 +1290,7 @@ Attribute DeSelectByVisibleText.VB_Description = "Deselects the dropdown option 
     Dim elem As WebElement
     
     Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
-    If IsSelected(elem) Then
-        elem.Click
-    End If
+    If IsSelected(elem) Then elem.Click
 End Sub
 
 '@Description("Returns a boolean indicating if the dropdown option element is selected")
@@ -1536,9 +1507,7 @@ Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a sp
     
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
     
-    If Not settings Is Nothing Then
-        Set data = settings.ToDictionary
-    End If
+    If Not settings Is Nothing Then Set data = settings.ToDictionary
     
     pdfstr = execute(tCMD.CMD_PRINT_PAGE, data)("value")
 
@@ -1844,12 +1813,9 @@ Attribute HasFocus.VB_Description = "Returns a boolean indicating if the specifi
     'see https://stackoverflow.com/questions/497094/how-do-i-find-out-which-dom-element-has-the-focus/40873560#40873560
     'get the active element of the current window
     Set actElem = GetActiveElement()
-    HasFocus = False
     If actElem.elementId = element.elementId Then
         'check to make sure the document that contains active element has focus
-        If ExecuteScript("return document.hasFocus();") Then
-            HasFocus = True
-        End If
+        HasFocus = ExecuteScript("return document.hasFocus();")
     End If
 End Function
 
@@ -2024,11 +1990,7 @@ End Sub
 '@Description("Checks if the current url is equal to the specified url")
 Public Function IsPageFound(ByVal Url As String) As Boolean
 Attribute IsPageFound.VB_Description = "Checks if the current url is equal to the specified url"
-    If GetCurrentURL() = Url Then
-        IsPageFound = True
-    Else
-        IsPageFound = False
-    End If
+    IsPageFound = (GetCurrentURL() = Url)
 End Function
 
 '@Description("Returns a dictionary holding various info about the session")
@@ -2354,7 +2316,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         'FEATURE_BROWSER_EMULATION registry key setting.
         Set htmlTbl = htmlDoc.createElement("table")
         
-        Select Case table.GetTagName
+        Select Case LCase(table.GetTagName)
         Case "table"
             htmlTbl.innerHTML = table.GetInnerHTML
         Case "tbody"
@@ -2364,7 +2326,7 @@ Attribute TableToArray.VB_Description = "Returns an array holding the text value
         End Select
     Else
         'this is the work-around...
-        Select Case table.GetTagName
+        Select Case LCase(table.GetTagName)
         Case "table"
             htmlDoc.body.innerHTML = table.GetOuterHTML
         Case "tbody"
@@ -2732,9 +2694,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     'download the url to file path
     ret = UrlDownloadToFile(0&, StrPtr(Url), StrPtr(filePath), 0&, 0&)
     
-    If ret <> 0 Then
-         Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
-    End If
+    If ret <> 0 Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
 End Sub
 
 '@Description("Saves a base 64 encoded string to a file in binary format")
@@ -2818,9 +2778,7 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     cmdMethod = driverCommand(0)
     cmdPath = driverCommand(1)
     
-    If parameters Is Nothing Then
-        Set parameters = New Dictionary
-    End If
+    If parameters Is Nothing Then Set parameters = New Dictionary
     
     'insert session id into command path
     If InStr(cmdPath, "$sessionId") > 0 Then cmdPath = Replace$(cmdPath, "$sessionId", sessionId_)
@@ -3005,9 +2963,7 @@ Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Inte
     
     For Each objDriver In objDriverList
         If port > 0 Then
-            If InStr(objDriver.commandLine, CStr(port)) = 0 Then
-                GoTo 10
-            End If
+            If InStr(objDriver.commandLine, CStr(port)) = 0 Then GoTo 10
         End If
         Set objParentList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE ProcessID = '" & objDriver.ParentProcessId & "'")
         If objParentList.Count > 0 Then
@@ -3287,7 +3243,6 @@ Private Function sanitizeHTML(ByVal str As String) As String
         For i = 0 To elems.Length - 1
             Set elem = elems.Item(i)
             subStr = LCase$(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
-            
             foundOne = False
             ipos1 = InStr(1, subStr, "url(")
             Do While ipos1
@@ -3300,10 +3255,7 @@ Private Function sanitizeHTML(ByVal str As String) As String
                 foundOne = True
                 DoEvents
             Loop
-            
-            If foundOne Then
-                elem.innerHTML = subStr
-            End If
+            If foundOne Then elem.innerHTML = subStr
         Next i
     End If
     
@@ -3418,7 +3370,7 @@ Private Function fixFirefoxBug1797871(ByVal str As String) As String
         j = -2
         For i = 0 To UBound(bytes) - 1 Step 2
             'strip out nulls (double zeros) and black-diamond question marks
-            If Not (bytes(i) = 0 And bytes(i + 1) = 0) And Not (bytes(i) = 253 And bytes(i + 1) = 255) Then
+            If (bytes(i) <> 0 Or bytes(i + 1) <> 0) And (bytes(i) <> 253 Or bytes(i + 1) <> 255) Then
                 j = j + 2
                 bytes(j) = bytes(i)
                 bytes(j + 1) = bytes(i + 1)
@@ -3541,11 +3493,7 @@ Private Function FileClosed(ByVal filePath As String) As Boolean
     Dim fso As New FileSystemObject
     On Error Resume Next
     fso.MoveFile filePath, filePath
-    If Err.Number = 0 Then
-        FileClosed = True
-    Else
-        FileClosed = False
-    End If
+    FileClosed = (Err.Number = 0)
 End Function
 
 Private Function osKeyMapper(ByVal keyString As String) As String
@@ -3650,7 +3598,7 @@ Private Function osKeyMapper(ByVal keyString As String) As String
             'we have a special key
             mappedValue = map(AscWL(key) - &HE000&)
             If mappedValue = vbNullString Then Err.Raise 1, , "Error in using SendKeysToOS - key " & "\u" & VBA.Right$("0000" & VBA.Hex$(AscW(key)), 4) & " not supported"
-            'replace Selenium special key occurance with mapped VBA/VBScript version
+            'replace Selenium special key occurrence with mapped VBA/VBScript version
             keyString = Replace(keyString, key, mappedValue, , 1)
         End If
     Next i

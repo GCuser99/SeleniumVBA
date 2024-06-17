@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -664,11 +664,7 @@ Private Function createFolderPath(ByVal folderPath As String) As Boolean
  
     'recursively create the parent folder, then if successful create the top folder.
     If createFolderPath(fso.GetParentFolderName(folderPath)) Then
-        If fso.CreateFolder(folderPath) Is Nothing Then
-            createFolderPath = False
-        Else
-            createFolderPath = True
-        End If
+        createFolderPath = Not (fso.CreateFolder(folderPath) Is Nothing)
     Else
         createFolderPath = False
     End If

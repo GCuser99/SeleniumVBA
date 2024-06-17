@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -185,6 +185,5 @@ Private Sub Class_Initialize()
 End Sub
 
 Private Sub Class_Terminate()
-    RemoveAll
     Set colCookie = Nothing
 End Sub

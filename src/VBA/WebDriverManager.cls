@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -533,25 +533,37 @@ End Function
 
 '@Description("Returns the installed Browser version")
 Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser) As String
-Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Browser version"
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim regkey As String
+    Dim regKeyAlt As String
     Dim resp As String
     
+    'Notes for FF - when first installed using the FF installer only the HKLM key exists - but a subsequent update from the browser creates the HKCU version as well
+    'HKEY_CURRENT_USER\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion
+    'also, if running in 32-bit tB IDE the HKLM version redirects to potentially non-existent:
+    'HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Mozilla\Mozilla Firefox\CurrentVersion
+    'but the HKCU version works
+
     Select Case browser
     Case svbaBrowser.Chrome
         regkey = "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon\version"
+        regKeyAlt = "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Google\Update\Clients\{8A69D345-D564-463c-AFF1-A69D9E530F96}\pv"
     Case svbaBrowser.Edge, svbaBrowser.IE
         regkey = "HKEY_CURRENT_USER\Software\Microsoft\Edge\BLBeacon\version"
+        regKeyAlt = "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}\pv"
     Case svbaBrowser.Firefox
-        regkey = "HKEY_CURRENT_USER\Software\Mozilla\Mozilla Firefox\CurrentVersion"
+        regkey = "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion"
+        regKeyAlt = "HKEY_CURRENT_USER\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion"
     End Select
-    
+
     'this throws error if key doesnt exist - report back to caller if browser isn't installed
     On Error Resume Next
     resp = wsh.RegRead(regkey)
     If Err.Number <> 0 Then
-        resp = "Error: " & getBrowserString(browser) & " Browser Not Installed"
+        'try again with the alternate key
+        Err.Clear
+        resp = wsh.RegRead(regKeyAlt)
+        If Err.Number <> 0 Then resp = "Error: " & getBrowserString(browser) & " Browser Not Installed"
     End If
 
     GetInstalledBrowserVersion = resp
@@ -754,11 +766,7 @@ Private Function isProcessRunning(ByVal process As String) As Boolean
     Set objServices = GetObject("winmgmts:")
     Set objProcessList = objServices.ExecQuery("select * from win32_process where name='" & process & "'")
     
-    If objProcessList.Count > 0 Then
-        isProcessRunning = True
-    Else
-        isProcessRunning = False
-    End If
+    isProcessRunning = (objProcessList.Count > 0)
 End Function
 
 Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20) As Variant

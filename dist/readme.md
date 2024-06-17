@@ -2,7 +2,7 @@
 
 This repository folder makes available 3 different SeleniumVBA solutions, depending on user requirements:
 
-- **An MS Excel Add-in called SeleniumVBA.xlam.** This file contains all of the source and test modules and can optionally be called from another Excel workbook.
+- **An MS Excel Workbook called SeleniumVBA.xlsm.** This file contains all of the source and test modules and can optionally be changed to an Addin (.xlam) so that it can be called from another Excel workbook.
 - **An MS Access database called SeleniumVBA.accdb.** Like the Excel version, this file contains all of the source and test modules and can optionally be called from another MS Access database.
 - **An ActiveX DLL called SeleniumVBA_win64.dll/SeleniumVBA_win32.dll.** This DLL can be installed and registered using the SeleniumVBADLLSetup.exe setup program. Once installed, the SeleniumVBA code library can be referenced by your VBA projects in either MS Excel, MS Access, or MS VBScript to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (in Beta) [twinBASIC](https://twinbasic.com) compiler.
 
@@ -12,19 +12,21 @@ Below is a table showing the compatibility for each solution with various versio
 
 |Solution|<= Office 2007|Office 2010|Office 2013|Office 2016|Office 2019|Office 365|
 | ---------------- | ------------- | ------------- |------------- |------------- |------------- |------------- |
-|Excel Add-in|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
+|Excel Workbook|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 |Access DB|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 |ActiveX DLL*|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 
 *the [twinBASIC](https://twinbasic.com) ActiveX DLL can be called from MS VBScript, as well as MS Excel and MS Access
 
-### Excel Add-in and Access DB Installation:
+### Excel Workbook and Access DB Installation:
 
 The Excel and Access solutions are self-contained - they include both source code and test routines. However, it is also possible to reference these solutions externally from another Excel/Access document.
 
+In cases where the intent is to run SeleniumVBA from multiple Workbooks and the user cannot or wishes not to install the DLL solution, it may make sense to convert the Workbook solution to an Addin. To change the Excel Workbook (.xlsm) to an Addin (.xlam), open the workbook, go to the Microsoft VBA IDE. In the Project Viewer, click on ThisWorkbook, and then scroll down to the IsAddin property in the Properties Window. Change the property value to True, and then save the Workbook to the Addin type of ".xlam". The resulting Addin code library can now be referenced from other Excel Workbooks. 
+
 Instructions for referencing add-in versions of SeleniumVBA from another MS Excel/Access document:
 
-1) Open your Excel (or Access) macro project that will reference the add-in (for testing, just copy-paste some of the macro examples provided in the test_* modules of SeleniumVBA.xlam)
+1) Open your Excel (or Access) macro project that will reference the add-in (for testing, just copy-paste some of the macro examples provided in the test_* modules of SeleniumVBA.xlsm)
 2) In the Visual Basic for Applications window, select a code module, then click on Tools tab, References.
 3) On the References Dialog, click on Browse, select Microsoft Excel Files (or Microsoft Access Files) as File Type, then browse to the add-in folder location and select the add-in.
 4) Save the Excel (or Access) macro project.

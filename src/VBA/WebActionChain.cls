@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -102,7 +102,6 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 'SetFocus               Sets the focus on the given element
 'ShiftKey               Sends a Shift-[Key] sequence to focused element
 'Wait                   Pause all inputs for the specified duration in milliseconds
-
 
 Option Explicit
 
@@ -457,9 +456,7 @@ Attribute KeyDown.VB_Description = "Sends a key press only, without releasing it
     modifierKey = unEscapeUnicode(modifierKey)
     If Not (AscWL(modifierKey) >= &HE008& And AscWL(modifierKey) <= &HE00A&) Then Err.Raise 1, , "Error in KeyDown method - modifierKey must be either a single Ctrl, Alt, or Shift key"
         
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
     
     actions.Add actionKeyDown(modifierKey)
     
@@ -488,9 +485,7 @@ Attribute KeyUp.VB_Description = "Releases a modifier key"
     modifierKey = unEscapeUnicode(modifierKey)
     If Not (AscWL(modifierKey) >= &HE008& And AscWL(modifierKey) <= &HE00A&) Then Err.Raise 1, , "Error in KeyUp method - modifierKey must be either a single Ctrl, Alt, or Shift key"
     
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
 
     actions.Add actionKeyUp(modifierKey)
     
@@ -618,9 +613,7 @@ Attribute SendKeys.VB_Description = "Sends key sequence to current focused eleme
     Dim i As Long
     Dim key As String
     
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
     
     keys = unEscapeUnicode(keys)
     
@@ -667,9 +660,7 @@ Attribute Clear.VB_Description = "Clears the focused element's text field"
     Dim inputChans() As Variant
     Dim actions As New Collection
     
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
     
     actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
     actions.Add actionKeyDown("a")
@@ -704,9 +695,7 @@ Attribute CtrlKey.VB_Description = "Sends a Ctrl-[Key] sequence to focused eleme
     key = unEscapeUnicode(key)
     If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlKey method - input string must be a singular key representation"
     
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
 
     actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
     actions.Add actionKeyDown(key)
@@ -739,9 +728,7 @@ Attribute ShiftKey.VB_Description = "Sends a Shift-[Key] sequence to focused ele
     key = unEscapeUnicode(key)
     If Len(key) <> 1 Then Err.Raise 1, , "Error in ShiftKey method - input string must be a singular key representation"
 
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
     
     actions.Add actionKeyDown(ChrW$(&HE008&)) 'shift key
     actions.Add actionKeyDown(key)
@@ -774,9 +761,7 @@ Attribute CtrlShiftKey.VB_Description = "Sends a Ctrl-Shift-[Key] sequence to fo
     key = unEscapeUnicode(key)
     If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
 
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
 
     actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
     actions.Add actionKeyDown(ChrW$(&HE008&)) 'shift key
@@ -811,9 +796,7 @@ Attribute CtrlAltKey.VB_Description = "Sends a Ctrl-Alt-[Key] sequence to focuse
     key = unEscapeUnicode(key)
     If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlAltKey method - input string must be a singular key representation"
     
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
 
     actions.Add actionKeyDown(ChrW$(&HE009&)) 'Ctrl key
     actions.Add actionKeyDown(ChrW$(&HE00A&)) 'alt key
@@ -848,9 +831,7 @@ Attribute AltShiftKey.VB_Description = "Sends a Alt-Shift-[Key] sequence to focu
     key = unEscapeUnicode(key)
     If Len(key) <> 1 Then Err.Raise 1, , "Error in CtrlShiftKey method - input string must be a singular key representation"
 
-    If Not element Is Nothing Then
-        Me.SetFocus element
-    End If
+    If Not element Is Nothing Then Me.SetFocus element
 
     actions.Add actionKeyDown(ChrW$(&HE00A&)) 'alt key
     actions.Add actionKeyDown(ChrW$(&HE008&)) 'shift key

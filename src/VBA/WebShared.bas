@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -160,15 +160,15 @@ End Function
 
 Private Function isPathRelative(ByVal sPath As String) As Boolean
     'PathIsRelative interprets a properly formed url as relative, so add a check for url too
-    If PathIsRelative(StrPtr(sPath)) = 1 And PathIsURL(StrPtr(sPath)) = 0 Then isPathRelative = True Else isPathRelative = False
+    isPathRelative = (PathIsRelative(StrPtr(sPath)) = 1 And PathIsURL(StrPtr(sPath)) = 0)
 End Function
 
 Private Function isPathHTTPS(ByVal sPath As String) As Boolean
-    If VBA.Left$(sPath, 8) = "https://" Then isPathHTTPS = True Else isPathHTTPS = False
+    isPathHTTPS = (VBA.Left$(sPath, 8) = "https://")
 End Function
 
 Private Function isPathUrl(ByVal sPath As String) As Boolean
-    If PathIsURL(StrPtr(sPath)) = 1 Then isPathUrl = True Else isPathUrl = False
+    isPathUrl = (PathIsURL(StrPtr(sPath)) = 1)
 End Function
 
 Private Function isArrayInitialized(ByRef arry() As Variant) As Boolean
@@ -176,7 +176,7 @@ Private Function isArrayInitialized(ByRef arry() As Variant) As Boolean
 End Function
 
 Private Function activeVBAProjectFolderPath() As String
-    'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
+    'This returns the calling code project's parent document path. If caller is from a project that references the SeleniumVBA Add-in
     'then this returns the path to the caller, not the Add-in (unless they are the same).
     'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
     'may not be the caller's intended target if it resides in a different project.
@@ -184,57 +184,94 @@ Private Function activeVBAProjectFolderPath() As String
     Dim oApp As Object
     
     Set oApp = Application 'late bound needed for cross-app compatibility
-    
     Select Case oApp.Name
     Case "Microsoft Excel"
-        Dim sRespType As String
-        sRespType = TypeName(oApp.Caller)
-        If sRespType <> "Error" Then 'eg. if launched by a formula or a shape button in a worksheet
+        'first check if programatic access to vba is trusted - if so, then this works for all tested cases - then we are done
+        If vbaIsTrusted Then
+            Set fso = New FileSystemObject
+            'below will return an error if active project's host doc has not yet been saved (has no valid path yet)
+            On Error Resume Next
+            activeVBAProjectFolderPath = fso.GetParentFolderName(oApp.VBE.ActiveVBProject.fileName)
+            If Err.Number > 0 Then Err.Raise 1, , "Error: unable to get the active Caller path - make sure the parent document has been saved."
+            On Error GoTo 0
+            Exit Function
+        End If
+        
+        'handle vba-is-not-trusted cases
+        
+        'test if procedure was launched by a formula, shape button, or form control (not ActiveX) embedded in a worksheet
+        If TypeName(oApp.Caller) <> "Error" Then
+            'found embedded forumla, shape, or form control
             activeVBAProjectFolderPath = oApp.ActiveWorkbook.Path
-        Else 'if launched in the VBE
-            If vbaIsTrusted Then
-                'below will return an error if active project's host doc has not yet been saved, even if access trusted
-                Set fso = New FileSystemObject
-                On Error Resume Next
-                activeVBAProjectFolderPath = fso.GetParentFolderName(oApp.VBE.ActiveVBProject.fileName)
-                On Error GoTo 0
-            Else 'if Excel security setting "Trust access to the VBA project object model" is not enabled
-                Dim ThisAppProcessID As Long
-                GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
-                Do 'search for this VBE window
-                    Dim hWnd As LongPtr
-                    Dim lpszClass As String
-                    lpszClass = "wndclass_desked_gsk"
-                    hWnd = FindWindowEx(0, hWnd, StrPtr(lpszClass), 0&)
-                    If hWnd > 0 Then
-                        Dim WndProcessID As Long
-                        GetWindowThreadProcessId hWnd, WndProcessID
-                        If ThisAppProcessID = WndProcessID Then
-                            'get its caption
-                            Dim bufferLen As Long, caption As String, result As Long
-                            bufferLen = GetWindowTextLength(hWnd)
-                            caption = String$(bufferLen + 1, vbNullChar)
-                            result = GetWindowText(hWnd, StrPtr(caption), bufferLen + 1)
-                            caption = Left$(caption, InStr(caption, vbNullChar) - 1)
-                            'extract filename from the caption
-                            Dim oRegex As New RegExp
-                            oRegex.Pattern = "^Microsoft Visual Basic[^-]*- (.*\.xl\w{1,2})(?:|(?:| -) \[.*\])$"
-                            Dim regexRes As MatchCollection
-                            Set regexRes = oRegex.execute(caption)
-                            If regexRes.Count = 1 Then
-                                Dim sFilename As String
-                                sFilename = regexRes.Item(0).SubMatches(0)
-                                'this returns vbNullString if workbook has not been saved yet
-                                activeVBAProjectFolderPath = oApp.Workbooks(sFilename).Path
-                            Else
-                                Err.Raise 1, , "Error: unable to extract filename from VBE window caption. Check the extraction regex."
-                            End If
+            If activeVBAProjectFolderPath = vbNullString Then Err.Raise 1, , "Error: unable to get the active Caller path - make sure the parent document has been saved."
+            Exit Function
+        End If
+        
+        'handle cases where:
+        '1) procedure launched in the VBE (Run)
+        '2) procedure launched by clicking a worksheet-embedded ActiveX control with VBE window having been opened previously
+        Dim ThisAppProcessID As Long
+        GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
+        
+        Do 'search for an open VBE window
+            Dim hWnd As LongPtr
+            Dim lpszClass As String
+            lpszClass = "wndclass_desked_gsk"
+            hWnd = FindWindowEx(0, hWnd, StrPtr(lpszClass), 0&)
+            If hWnd > 0 Then
+                Dim WndProcessID As Long
+                GetWindowThreadProcessId hWnd, WndProcessID
+                
+                If ThisAppProcessID = WndProcessID Then
+                    'get window caption
+                    Dim bufferLen As Long, caption As String, result As Long
+                    bufferLen = GetWindowTextLength(hWnd)
+                    caption = String$(bufferLen + 1, vbNullChar)
+                    result = GetWindowText(hWnd, StrPtr(caption), bufferLen + 1)
+                    caption = Left$(caption, InStr(caption, vbNullChar) - 1)
+                    'extract filename from the caption
+                    Dim oRegex As New RegExp
+                    oRegex.Pattern = "^Microsoft Visual Basic[^-]*- (.*\.xl\w{1,2})(?:|(?:| -) \[.*\])$"
+                    Dim regexRes As MatchCollection
+                    Set regexRes = oRegex.execute(caption)
+                    If regexRes.Count = 1 Then
+                        'found vbe window and succesfully parsed caption
+                        Dim sFilename As String
+                        sFilename = regexRes.Item(0).SubMatches(0)
+                        'the following returns vbNullString if workbook has not been saved (has no valid path yet)
+                        activeVBAProjectFolderPath = oApp.Workbooks(sFilename).Path
+                        If activeVBAProjectFolderPath = vbNullString Then Err.Raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
+                        Exit Function
+                    Else
+                        'handle edge case where embedded ActiveX control is caller and VBE window open but "uninitialized"
+                        'this edge case happens under the following conditions:
+
+                        '1) caller is a worksheet-embedded ActiveX button (not a form control)
+                        '2) caller workbook is opened, user opens VBE, but then closes without running or editing
+                        '3) user clicks on button causing a control event to initiate SeleniumVBA procedure
+
+                        'detect open but "uninitialized" VBE window looking for a pattern like this:
+                        'Microsoft Visual Basic for Applications - [Module1 (Code)]
+                        oRegex.Pattern = "^Microsoft Visual Basic[^-]*- \[.*\]$"
+                        If oRegex.test(caption) Then
+                            'found embedded ActiveX control with open but uninitialized VBE window
+                            'the uninitialized VBE window was found so done with loop - finish processing this case after exiting loop
+                            Exit Do
+                        Else
+                            Err.Raise 1, , "Error: unable to extract filename from VBE window caption. Please report caption to developers." & vbCrLf & vbCrLf & "Caption:" & vbCrLf & vbCrLf & caption
                         End If
                     End If
-                Loop Until hWnd = 0
+                End If
             End If
+        Loop Until hWnd = 0
+
+        If oApp.ActiveWorkbook.Path <> vbNullString Then
+            'by elimination, user clicked embedded ActiveX control with either not opened or an opened but uninitialized VBE window
+            activeVBAProjectFolderPath = oApp.ActiveWorkbook.Path
+        Else
+            Err.Raise 1, , "Error: unable to get the active Caller path - make sure the parent document has been saved."
         End If
-        If activeVBAProjectFolderPath = vbNullString Then Err.Raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
+        
     Case "Microsoft Access"
         Dim strPath As String
     
@@ -263,7 +300,7 @@ Private Function vbaIsTrusted() As Boolean
     vbaIsTrusted = False
     'Note: this may cause "Run-time Error 1004" if Tools->Options->Error Trapping is set to "Break on All Errors"
     On Error Resume Next
-    vbaIsTrusted = (Application.VBE.VBProjects.Count) > 0
+    vbaIsTrusted = (Application.VBE.VBProjects.Count > 0)
     On Error GoTo 0
 End Function
 
@@ -384,7 +421,7 @@ End Function
 Public Sub sleep(ByVal ms As Currency)
     'Enhanced sleep proc. featuring <0.0% CPU usage, DoEvents, precision +-<10ms
     'Better Sleep proc. featuring <0.0% CPU usage, DoEvents, precision +-<10ms
-    'Uses "Currency" as a good-enough workaround to avoid the complexity of LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
+    'Uses "Currency" as a good-enough workaround to avoid the complexity of a LARGE_INTEGER (see https://stackoverflow.com/a/31387007)
     'Note: VBA.Timer ( + VBA.Date for midnight adjustment) and VBA.Now avoided for accuracy issues (10-15ms and occasionally even worse? see https://stackoverflow.com/questions/68767198/is-this-unstable-vba-timer-behavior-real-or-am-i-doing-something-wrong)
     Dim cTimeStart As Currency, cTimeEnd As Currency
     Dim dTimeElapsed As Currency, cTimeTarget As Currency
@@ -421,9 +458,7 @@ Public Function Max(ParamArray numberList() As Variant) As Variant
     Dim i As Integer
     Max = numberList(LBound(numberList))
     For i = LBound(numberList) + 1 To UBound(numberList)
-        If numberList(i) > Max Then
-            Max = numberList(i)
-        End If
+        If numberList(i) > Max Then Max = numberList(i)
     Next i
 End Function
 
@@ -458,21 +493,14 @@ Public Function splitKeyString(ByVal keys As String) As Collection
 End Function
 
 Public Function getResponseErrorMessage(resp As Dictionary) As String
-    getResponseErrorMessage = vbNullString
     If TypeName(resp("value")) = "Dictionary" Then
-        If resp("value").Exists("error") Then
-            getResponseErrorMessage = resp("value")("message")
-        End If
+        If resp("value").Exists("error") Then getResponseErrorMessage = resp("value")("message")
     End If
 End Function
 
 Public Function isResponseError(resp As Dictionary) As Boolean
     isResponseError = False
-    If TypeName(resp("value")) = "Dictionary" Then
-        If resp("value").Exists("error") Then
-            isResponseError = True
-        End If
-    End If
+    If TypeName(resp("value")) = "Dictionary" Then isResponseError = resp("value").Exists("error")
 End Function
 
 'this is used to convert an escaped unicode string (e.g. "\u00A9") into the

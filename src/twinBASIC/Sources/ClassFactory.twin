@@ -1,0 +1,42 @@
+[COMCreatable(True)]
+[PredeclaredId(True)]
+[Hidden(False)]
+[Description("This class is used for compatibility with the VBA version of SeleniumVBA - use New instead to instantiate if using the ActiveX DLL")]
+Public Class ClassFactory
+
+    [Description("Instantiates a WebDriver object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebDriver() As WebDriver
+        Set New_WebDriver = New WebDriver
+    End Function
+
+    [Description("Instantiates a WebElements object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebElements() As WebElements
+         Set New_WebElements = New WebElements
+    End Function
+ 
+    [Description("Instantiates a WebDriverManager object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebDriverManager() As WebDriverManager
+         Set New_WebDriverManager = New WebDriverManager
+    End Function
+
+    [Description("Instantiates a WebKeyboard object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebKeyboard() As WebKeyboard
+         Set New_WebKeyboard = New WebKeyboard
+    End Function
+
+    [Description("Instantiates a WebCookie object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebCookie() As WebCookie
+         Set New_WebCookie = New WebCookie
+    End Function
+
+    [Description("Instantiates a WebPrintSettings object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebPrintSettings() As WebPrintSettings
+         Set New_WebPrintSettings = New WebPrintSettings
+    End Function
+
+    [Description("Instantiates a WebJsonConverter object - for compatibility with VBA version of SeleniumVBA - use standard New keyword instead")]
+    Public Function New_WebJsonConverter() As WebJsonConverter
+        Set New_WebJsonConverter = New WebJsonConverter
+    End Function
+
+End Class

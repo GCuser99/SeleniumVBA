@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage the browser window - mu
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.2
+' SeleniumVBA v5.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -270,7 +270,7 @@ Attribute Maximize.VB_Description = "Maximize this window"
     'maximize the window
     driver_.execute tCMD.CMD_MAXIMIZE_WINDOW
         
-     'put window active state back to where it was before this action
+    'put window active state back to where it was before this action
     If thisHandle <> activeHandle Then switchToWindow activeHandle
 End Sub
 
@@ -319,13 +319,13 @@ End Sub
 '@Description("Returns boolean indicating whether the specified window is same as this window")
 Public Function IsSameAs(win As WebWindow) As Boolean
 Attribute IsSameAs.VB_Description = "Returns boolean indicating whether the specified window is same as this window"
-    If win.Handle = thisHandle Then IsSameAs = True Else IsSameAs = False
+    IsSameAs = (win.Handle = thisHandle)
 End Function
 
 '@Description("Returns boolean indicating whether the specified window is not the same as this window")
 Public Function IsNotSameAs(win As WebWindow) As Boolean
 Attribute IsNotSameAs.VB_Description = "Returns boolean indicating whether the specified window is not the same as this window"
-    If win.Handle = thisHandle Then IsNotSameAs = False Else IsNotSameAs = True
+    IsNotSameAs = (win.Handle <> thisHandle)
 End Function
 
 Friend Property Set WebDriver(ByRef obj As WebDriver)

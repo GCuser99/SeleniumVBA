@@ -1,0 +1,326 @@
+Private Module Utils
+
+    ' ==========================================================================
+    ' SeleniumVBA v5.3
+    '
+    ' A Selenium wrapper for browser automation developed for MS Office VBA
+    '
+    ' https://github.com/GCuser99/SeleniumVBA/tree/main
+    '
+    ' Contact Info:
+    '
+    ' https://github.com/6DiegoDiego9
+    ' https://github.com/GCUser99
+    ' ==========================================================================
+    ' MIT License
+    '
+    ' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    '
+    ' Permission is hereby granted, free of charge, to any person obtaining a copy
+    ' of this software and associated documentation files (the "Software"), to deal
+    ' in the Software without restriction, including without limitation the rights
+    ' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    ' copies of the Software, and to permit persons to whom the Software is
+    ' furnished to do so, subject to the following conditions:
+    '
+    ' The above copyright notice and this permission notice shall be included in all
+    ' copies or substantial portions of the Software.
+    '
+    ' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    ' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    ' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    ' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    ' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    ' SOFTWARE.
+    ' ==========================================================================
+
+    Option Private Module
+    Option Explicit
+
+    'Windows Dev Library Declarations (not needed if using reference to WDL Package)
+    '/*
+    Private Declare PtrSafe Function GetCurrentProcessId Lib "kernel32" () As Long
+    Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hwnd As LongPtr, Optional lpdwProcessId As Long) As Long
+    Private DeclareWide PtrSafe Function FindWindowEx Lib "user32" Alias "FindWindowExW" (ByVal hwndParent As LongPtr, ByVal hWndChildAfter As LongPtr, ByVal lpszClass As String, ByVal lpszWindow As String) As LongPtr
+    Private DeclareWide PtrSafe Function IIDFromString Lib "ole32" (ByVal lpsz As String, lpiid As UUID) As Long
+    Private Declare PtrSafe Function AccessibleObjectFromWindow Lib "oleacc" (ByVal hwnd As LongPtr, ByVal dwId As Long, riid As UUID, ppvObject As Any) As Long
+
+    Private DeclareWide PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextW" (ByVal hWnd As LongPtr, ByVal lpString As String, ByVal nMaxCount As Long) As Long
+    Private DeclareWide PtrSafe Function GetWindowTextLength Lib "user32" Alias "GetWindowTextLengthW" (ByVal hwnd As LongPtr) As Long
+
+    Private Const IIDSTR_IDispatch As String = "{00020400-0000-0000-C000-000000000046}"
+    Private Const OBJID_NATIVEOM As Long = &HFFFFFFF0
+
+    Private Type UUID
+        Data1 As Long
+        Data2 As Integer
+        Data3 As Integer
+        Data4(7) As Byte
+    End Type
+    '*/
+
+    'adapted from:
+    'http://exceldevelopmentplatform.blogspot.com/2019/01/vba-code-to-get-excel-word-powerpoint.html
+    'https://codereview.stackexchange.com/questions/268498/collecting-all-instances-of-an-office-application-excel-powerpoint-word
+    Public Function callerApplicationObject() As Object
+        Dim pid As Long
+        Dim obj As Object
+
+        'get the calling application process id
+        pid = GetCurrentProcessId()
+
+        'Check if we have an Excel application
+        Set obj = findAO(pid, Array("XLMAIN", "XLDESK", "EXCEL7"))
+        If obj IsNot Nothing Then
+            Set callerApplicationObject = obj
+            Exit Function
+        End If
+    
+        'Check if we have an Access application
+        Set obj = findAO(pid, Array("OMAIN"))
+        If obj IsNot Nothing Then
+            Set callerApplicationObject = obj
+            Exit Function
+        End If
+    
+        /* Our app is not designed to work in PPT and Word so we don't need to check for below
+        'Check if we have an PowerPoint application
+        Set obj = findAO(pid, Array("PPTFrameClass", "MDIClient", "mdiClass"))
+        If obj IsNot Nothing Then
+            Set callerApplicationObject = obj
+            Exit Function
+        End If
+
+        'Check if we have an Word application
+        Set obj = findAO(pid, Array("OpusApp", "_WwF", "_WwB", "_WwG"))
+        If obj IsNot Nothing Then
+            Set callerApplicationObject = obj
+            Exit Function
+        End If
+        */
+    End Function
+
+    Private Function findAO(ByVal targetPid As Long, winTree As Variant) As Object
+        Dim obj As Object
+        Dim hwndMain As LongPtr
+        Dim hwndChild As LongPtr
+        Dim hwndParent As LongPtr
+        Dim i As Long
+        Dim iid As UUID
+        Dim thisPid As Long
+        Dim className As String
+        Dim foundIt As Boolean
+
+        className = winTree(LBound(winTree)) 'top level class name
+    
+        'find top-level window that matches current PID
+        Do While TryGetNextWindowHwnd(className, hwndMain, outNextHwnd:= hwndMain)
+            Call GetWindowThreadProcessId(hwndMain, thisPid)
+            If thisPid = targetPid Then foundIt = True: Exit Do
+        Loop
+    
+        If Not foundIt Then Exit Function
+    
+        'now drill down levels to find the handle of the application window
+        hwndParent = hwndMain
+        'in case of ms access, the "tree" has already been processed (only one level)
+        hwndChild = hwndMain
+        For i = LBound(winTree) + 1 To UBound(winTree)
+            className = winTree(i)
+            hwndChild = FindWindowEx(hwndParent, 0&, className, vbNullString)
+            hwndParent = hwndChild
+        Next i
+    
+        'construct iid that will be used in call to AccessibleObjectFromWindow
+        Call IIDFromString(IIDSTR_IDispatch, iid)
+            
+        If AccessibleObjectFromWindow(hwndChild, OBJID_NATIVEOM, iid, obj) = 0& Then
+            Set findAO = obj.Application
+        End If
+    End Function
+
+    'from Greedo's review in second link shown above
+    Private Function TryGetNextWindowHwnd(ByVal className As String, ByVal prevHWnd As LongPtr, ByRef outNextHWnd As LongPtr) As Boolean
+        outNextHWnd = FindWindowEx(0&, prevHWnd, className, vbNullString)
+        TryGetNextWindowHwnd = (outNextHWnd <> 0&)
+    End Function
+
+    Private Function activeVBAProjectFolderPathExcel(ByRef oApp As Object) As String
+        'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
+        'then this returns the path to the caller, not the Add-in (unless they are the same).
+        'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
+        'may not be the caller's intended target if it resides in a different project.
+    
+        'first check if programatic access to vba is trusted - if so, then this works for all tested cases - then we are done
+        If vbaIsTrusted(oApp) Then
+            Dim fso As FileSystemObject
+            Set fso = New FileSystemObject
+            'below will return an error if active project's host doc has not yet been saved (has no valid path yet)
+            On Error Resume Next
+            activeVBAProjectFolderPathExcel = fso.GetParentFolderName(oApp.VBE.ActiveVBProject.fileName)
+            If Err.Number > 0 Then Err.Raise 1, , "Error: unable to get the active Caller path - make sure the parent document has been saved."
+            On Error GoTo 0
+            Exit Function
+        End If
+        
+        'handle vba-is-not-trusted cases...
+        
+        'test if procedure was launched by a formula, shape button, or form control (not ActiveX) embedded in a worksheet
+        If TypeName(oApp.Caller) <> "Error" Then
+            'found embedded forumla, shape, or form control
+            activeVBAProjectFolderPathExcel = oApp.ActiveWorkbook.Path
+            If activeVBAProjectFolderPathExcel = vbNullString Then Err.Raise 1, , "Error: unable to get the active Caller path - make sure the parent document has been saved."
+            Exit Function
+        End If
+        
+        'handle cases where:
+        '1) procedure launched in the VBE (Run)
+        '2) procedure launched by clicking a worksheet-embedded ActiveX control with VBE window having been opened previously
+        Dim ThisAppProcessID As Long
+        GetWindowThreadProcessId oApp.hWnd, ThisAppProcessID
+        
+        Do 'search for an open VBE window
+            Dim hWnd As LongPtr
+            Dim lpszClass As String
+            lpszClass = "wndclass_desked_gsk"
+            hWnd = FindWindowEx(0, hWnd, StrPtr(lpszClass), 0&)
+            If hWnd > 0 Then
+                Dim WndProcessID As Long
+                GetWindowThreadProcessId hWnd, WndProcessID
+                
+                If ThisAppProcessID = WndProcessID Then
+                    'get window caption
+                    Dim bufferLen As Long, caption As String, result As Long
+                    bufferLen = GetWindowTextLength(hWnd)
+                    caption = String$(bufferLen + 1, vbNullChar)
+                    result = GetWindowText(hWnd, StrPtr(caption), bufferLen + 1)
+                    caption = Left$(caption, InStr(caption, vbNullChar) - 1)
+                    'extract filename from the caption
+                    Dim oRegex As New RegExp
+                    oRegex.Pattern = "^Microsoft Visual Basic[^-]*- (.*\.xl\w{1,2})(?:|(?:| -) \[.*\])$"
+                    Dim regexRes As MatchCollection
+                    Set regexRes = oRegex.Execute(caption)
+                    If regexRes.Count = 1 Then
+                        'found vbe window and succesfully parsed caption
+                        Dim sFilename As String
+                        sFilename = regexRes.Item(0).SubMatches(0)
+                        'the following returns vbNullString if workbook has not been saved (has no valid path yet)
+                        activeVBAProjectFolderPathExcel = oApp.Workbooks(sFilename).Path
+                        If activeVBAProjectFolderPathExcel = vbNullString Then Err.Raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
+                        Exit Function
+                    Else
+                        'handle edge case where embedded ActiveX control is caller and VBE window open but "uninitialized"
+                        'this edge case happens under the following conditions:
+
+                        '1) caller is a worksheet-embedded ActiveX button (not a form control)
+                        '2) caller workbook is opened, user opens VBE, but then closes without running or editing
+                        '3) user clicks on button causing a control event to initiate SeleniumVBA procedure
+
+                        'detect open but "uninitialized" VBE window looking for a pattern like this:
+                        'Microsoft Visual Basic for Applications - [Module1 (Code)]
+                        oRegex.Pattern = "^Microsoft Visual Basic[^-]*- \[.*\]$"
+                        If oRegex.Test(caption) Then
+                            'found embedded ActiveX control with open but uninitialized VBE window
+                            'the uninitialized VBE window was found so done with loop - finish processing this case after exiting loop
+                            Exit Do
+                        Else
+                            Err.Raise 1, , "Error: unable to extract filename from VBE window caption. Please report caption text to developers." & vbCrLf & vbCrLf & "Caption:" & vbCrLf & vbCrLf & caption
+                        End If
+                    End If
+                End If
+            End If
+        Loop Until hWnd = 0
+
+        If oApp.ActiveWorkbook.Path <> vbNullString Then
+            'by elimination, user clicked embedded ActiveX control with either no opened or an opened but uninitialized VBE window
+            activeVBAProjectFolderPathExcel = oApp.ActiveWorkbook.Path
+        Else
+            Err.Raise 1, , "Error: unable to get the active Caller path - make sure the parent document has been saved."
+        End If
+    End Function
+
+    Private Function vbaIsTrusted(ByRef oApp As Object) As Boolean
+        'Dim oApp As Object
+        'Set oApp = CallerApplicationObject
+        vbaIsTrusted = False
+        On Error Resume Next
+        vbaIsTrusted = (oApp.VBE.VBProjects.Count > 0)
+        On Error GoTo 0
+    End Function
+
+    Private Function activeVBAProjectFolderPathAccess(ByRef oApp As Object) As String
+        'This returns the calling code project's parent document path. So if caller is from a project that references the SeleniumVBA Add-in
+        'then this returns the path to the caller, not the Add-in (unless they are the same).
+        'But be aware that if qc'ing this routine in Debug mode, the path to this SeleniumVBA project will be returned, which
+        'may not be the caller's intended target if it resides in a different project.
+        Dim strPath As String
+
+        strPath = vbNullString
+    
+        'if the parent document holding the active vba project has not yet been saved, then Application.VBE.ActiveVBProject.Filename
+        'will throw an error so trap and report below...
+    
+        On Error Resume Next
+        strPath = oApp.VBE.ActiveVBProject.fileName
+        On Error GoTo 0
+    
+        If strPath <> vbNullString Then
+            Dim fso As New FileSystemObject
+            strPath = fso.GetParentFolderName(strPath)
+            activeVBAProjectFolderPathAccess = strPath
+        Else
+            Err.Raise 1, "tBUtils", "Error: Attempting to reference a folder/file path relative to the parent document location of this active code project - save the parent document first."
+        End If
+    End Function
+
+    Public Function activeVBAProjectFolderPath() As String
+        Dim oApp As Object
+        Set oApp = callerApplicationObject
+    
+        If oApp Is Nothing Then
+            'then in the twin basic ide?
+            activeVBAProjectFolderPath = thisLibFolderPath
+            Exit Function
+        End If
+    
+        Select Case oApp.Name
+        Case "Microsoft Excel"
+            activeVBAProjectFolderPath = activeVBAProjectFolderPathExcel(oApp)
+        Case "Microsoft Access"
+            activeVBAProjectFolderPath = activeVBAProjectFolderPathAccess(oApp)
+        Case Else
+            Err.Raise 1, "tBUtils", "Error: The caller application is not supported."
+        End Select
+    End Function
+
+    Public Function thisLibFolderPath() As String
+        thisLibFolderPath = App.Path
+    End Function
+
+    'https://support.microsoft.com/en-us/topic/wd2000-vba-function-to-check-whether-file-or-document-is-open-14683be7-3fe7-c2b0-49a2-b27f628b4a1e
+    Public Function FileClosed(ByVal filePath As String) As Boolean
+        FileClosed = True
+        On Error Resume Next
+        'If the file is already opened by another process,
+        'and the specified type of access is not allowed,
+        'the Open operation fails and an error occurs.
+        Open filePath For Binary Access Read Write Lock Read Write As #1
+        Close #1
+        'If an error occurs, the document is currently open.
+        'Display the error number and description.
+        'Debug.Print "Error #" & Str(Err.Number) & " - " & Err.Description
+        FileClosed = (Err.Number = 0)
+        Err.Clear
+    End Function
+
+    Public Sub saveByteArrayToFile(byteArray() As Byte, ByVal filePath As String)
+        Dim fp As Long, fso As New FileSystemObject
+        If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
+        fp = FreeFile
+        Open filePath For Binary Access Write As #fp
+        Put #fp, 1, byteArray
+        Close #fp
+    End Sub
+    
+End Module

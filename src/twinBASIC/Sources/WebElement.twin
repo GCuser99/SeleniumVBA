@@ -1,0 +1,419 @@
+[COMCreatable(False)]
+[PredeclaredId(False)]
+[Hidden(False)]
+[Description("This class provides a mechanism to represent webpage HTML elements as objects and perform various actions on the related elements - must be instantiated using one of WebDriver's FindElement methods")]
+Public Class WebElement
+
+    ' ==========================================================================
+    ' SeleniumVBA v5.3
+    '
+    ' A Selenium wrapper for browser automation developed for MS Office VBA
+    '
+    ' https://github.com/GCuser99/SeleniumVBA/tree/main
+    '
+    ' Contact Info:
+    '
+    ' https://github.com/6DiegoDiego9
+    ' https://github.com/GCUser99
+    '
+    ' Based originally on uezo's TinySeleniumVBA with extensive changes/additions
+    ' ==========================================================================
+    ' MIT License
+    '
+    ' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
+    '
+    ' Permission is hereby granted, free of charge, to any person obtaining a copy
+    ' of this software and associated documentation files (the "Software"), to deal
+    ' in the Software without restriction, including without limitation the rights
+    ' to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    ' copies of the Software, and to permit persons to whom the Software is
+    ' furnished to do so, subject to the following conditions:
+    '
+    ' The above copyright notice and this permission notice shall be included in all
+    ' copies or substantial portions of the Software.
+    '
+    ' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    ' IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    ' FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    ' AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    ' LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    ' OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    ' SOFTWARE.
+    ' ==========================================================================
+
+    Option Explicit
+
+    Private driver_ As WebDriver
+    Private elementId_ As String
+
+    Friend Property Set driver(objWebDriver As WebDriver)
+        Set driver_ = objWebDriver
+    End Property
+
+    Friend Property Let elementId(ByVal val As String)
+        elementId_ = val
+    End Property
+
+    Friend Property Get elementId() As String
+        elementId = elementId_
+    End Property
+
+    [Description("Saves a screenshot of this element")]
+    Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png")
+        driver_.SaveScreenshot filePath, Me
+    End Sub
+
+    [Description("Finds the first element for a given selector and value")]
+    Public Function FindElement(by_ As By, ByVal val As String) As WebElement
+        Set FindElement = driver_.FindElement(by_, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified selector and value")]
+    Public Function FindElements(by_ As By, ByVal val As String) As WebElements
+        Set FindElements = driver_.FindElements(by_, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified id value")]
+    Public Function FindElementByID(ByVal val As String) As WebElement
+        Set FindElementByID = driver_.FindElement(By.ID, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified tag name value")]
+    Public Function FindElementByTagName(ByVal val As String) As WebElement
+        Set FindElementByTagName = driver_.FindElement(By.TagName, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified class name value")]
+    Public Function FindElementByClassName(ByVal val As String) As WebElement
+        Set FindElementByClassName = driver_.FindElement(By.ClassName, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified css selector value")]
+    Public Function FindElementByCssSelector(ByVal val As String) As WebElement
+        Set FindElementByCssSelector = driver_.FindElement(By.CssSelector, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified css selector value")]
+    Public Function QuerySelector(ByVal val As String) As WebElement
+        Set QuerySelector = driver_.FindElement(By.CssSelector, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified link text value")]
+    Public Function FindElementByLinkText(ByVal val As String) As WebElement
+        Set FindElementByLinkText = driver_.FindElement(By.LinkText, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified name value")]
+    Public Function FindElementByName(ByVal val As String) As WebElement
+        Set FindElementByName = driver_.FindElement(By.Name, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified partial link text value")]
+    Public Function FindElementByPartialLinkText(ByVal val As String) As WebElement
+        Set FindElementByPartialLinkText = driver_.FindElement(By.PartialLinkText, val, Me)
+    End Function
+
+    [Description("Finds the first element by the specified xpath query value")]
+    Public Function FindElementByXPath(ByVal val As String) As WebElement
+        Set FindElementByXPath = driver_.FindElement(By.XPath, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified xpath query value")]
+    Public Function FindElementsByXPath(ByVal val As String) As WebElements
+        Set FindElementsByXPath = driver_.FindElements(By.XPath, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified id value")]
+    Public Function FindElementsByID(ByVal val As String) As WebElements
+        Set FindElementsByID = driver_.FindElements(By.ID, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified tag name value")]
+    Public Function FindElementsByTagName(ByVal val As String) As WebElements
+        Set FindElementsByTagName = driver_.FindElements(By.TagName, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified class name value")]
+    Public Function FindElementsByClassName(ByVal val As String) As WebElements
+        Set FindElementsByClassName = driver_.FindElements(By.ClassName, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified css selector value")]
+    Public Function FindElementsByCssSelector(ByVal val As String) As WebElements
+        Set FindElementsByCssSelector = driver_.FindElements(By.CssSelector, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified css selector value")]
+    Public Function QuerySelectorAll(ByVal val As String) As WebElements
+        Set QuerySelectorAll = driver_.FindElements(By.CssSelector, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified link text value")]
+    Public Function FindElementsByLinkText(ByVal val As String) As WebElements
+        Set FindElementsByLinkText = driver_.FindElements(By.LinkText, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified name value")]
+    Public Function FindElementsByName(ByVal val As String) As WebElements
+        Set FindElementsByName = driver_.FindElements(By.Name, val, Me)
+    End Function
+
+    [Description("Finds all elements that satisfy the specified partial link text value")]
+    Public Function FindElementsByPartialLinkText(ByVal val As String) As WebElements
+        Set FindElementsByPartialLinkText = driver_.FindElements(By.PartialLinkText, val, Me)
+    End Function
+
+    [Description("Returns a boolean indicating if the element is present. User can optionally set an implicit wait, and obtain a reference to the found element.")]
+    Public Function IsPresent(by_ As By, ByVal val As String, Optional ByVal ImplicitWaitMS As Long = 0, _
+                                Optional ByRef elemFound As WebElement) As Boolean
+        IsPresent = driver_.IsPresent(by_, val, ImplicitWaitMS, Me, elemFound)
+    End Function
+
+    [Description("Sets the attribute of this element")]
+    Public Sub SetAttribute(ByVal attrName As String, ByVal val As String)
+        driver_.SetAttribute Me, attrName, val
+    End Sub
+
+    [Description("Sends a key sequence to this element")]
+    Public Sub SendKeys(ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = False)
+        driver_.SendKeys Me, keys, clearBeforeTyping
+    End Sub
+
+    [Description("Clicks this element")]
+    Public Sub Click(Optional ByVal modifierKeys As String)
+        driver_.Click Me, modifierKeys
+    End Sub
+
+    [Description("Submits a form element")]
+    Public Sub Submit()
+        driver_.Submit Me
+    End Sub
+
+    [Description("Gets the text of this element - set optional visibleOnly to False to return text whether hidden or not")]
+    Public Function GetText(Optional ByVal visibleOnly As Boolean = True) As String
+        GetText = driver_.GetText(Me, visibleOnly)
+    End Function
+
+    [Description("Gets the property state of this element, such as the value of an input box - if the property does not exist, then it returns vbNullString")]
+    Public Function GetProperty(ByVal propName As String) As String
+        GetProperty = driver_.GetProperty(propName, Me)
+    End Function
+
+    [Description("Returns a boolean indicating if this element has the specified property")]
+    Public Function HasProperty(ByVal propName As String) As Boolean
+        HasProperty = driver_.HasProperty(propName, Me)
+    End Function
+
+    [Description("Gets the Tag name of this element")]
+    Public Function GetTagName() As String
+        GetTagName = driver_.GetTagName(Me)
+    End Function
+
+    [Description("Returns a dictionary containing x, y, width, height of this element")]
+    Public Function GetRect() As Dictionary
+        Set GetRect = driver_.GetRect(Me)
+    End Function
+
+    [Description("Gets the specified CSS property of this element")]
+    Public Function GetCSSProperty(ByVal propName As String) As String
+        GetCSSProperty = driver_.GetCSSProperty(propName, Me)
+    End Function
+
+    [Description("Returns a boolean indicating if this element has the specified attribute")]
+    Public Function HasAttribute(ByVal attrName As String) As Boolean
+        HasAttribute = driver_.HasAttribute(attrName, Me)
+    End Function
+
+    [Description("Gets the specified attribute of this element")]
+    Public Function GetAttribute(ByVal attrName As String) As String
+        GetAttribute = driver_.GetAttribute(attrName, Me)
+    End Function
+
+    [Description("Gets the Arial label of this element")]
+    Public Function GetAriaLabel() As String
+        GetAriaLabel = driver_.GetAriaLabel(Me)
+    End Function
+
+    [Description("Gets the Arial role of this element")]
+    Public Function GetAriaRole() As String
+        GetAriaRole = driver_.GetAriaRole(Me)
+    End Function
+
+    [Description("Highlights with color this element")]
+    Public Function Highlight(Optional ByVal borderSizePx As Byte = 4, Optional ByVal borderColor As VBAcolors = Blue, _
+                         Optional ByVal backgroundColor As VBAcolors = VBAcolors.Unchanged, _
+                         Optional ByVal bScrollIntoView As Boolean = True, Optional ByVal unHighlightLast As Boolean = True) _
+                         As WebElement
+        driver_.SetHighlight True, Me, borderSizePx, borderColor, backgroundColor, bScrollIntoView, unHighlightLast
+        Set Highlight = Me
+    End Function
+
+    [Description("Unhighlights this element")]
+    Public Sub UnHighlight()
+        driver_.SetHighlight False, Me
+    End Sub
+
+    [Description("Returns a boolean indicating if this element is a multi-select dropdown")]
+    Public Function IsMultiSelect() As Boolean
+        IsMultiSelect = driver_.IsMultiSelect(Me)
+    End Function
+
+    [Description("Returns a boolean indicating if this dropdown option element is selected")]
+    Public Function IsSelected(Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
+        IsSelected = driver_.IsSelected(Me, maxWaitTimeMS)
+    End Function
+
+    [Description("Selects a dropdown option element with the specified value attribute")]
+    Public Sub SelectByValue(ByVal val As String)
+        driver_.SelectByValue val, Me
+    End Sub
+
+    [Description("Selects a dropdown option element with the specified visible text")]
+    Public Sub SelectByVisibleText(ByVal text As String)
+        driver_.SelectByVisibleText text, Me
+    End Sub
+
+    [Description("Selects a dropdown option element with the specified index")]
+    Public Sub SelectByIndex(ByVal index As Integer)
+        driver_.SelectByIndex index, Me
+    End Sub
+
+    [Description("Returns all selected dropdown option elements")]
+    Public Function GetAllSelectedOptions() As WebElements
+        Set GetAllSelectedOptions = driver_.GetAllSelectedOptions(Me)
+    End Function
+
+    [Description("Returns the first selected dropdown option element")]
+    Public Function GetSelectedOption() As WebElement
+        Set GetSelectedOption = driver_.GetSelectedOption(Me)
+    End Function
+
+    [Description("Selects all multi-select dropdown option elements")]
+    Public Sub SelectAll()
+        driver_.SelectAll Me
+    End Sub
+
+    [Description("Deselects all dropdown option elements")]
+    Public Sub DeSelectAll()
+        driver_.DeSelectAll Me
+    End Sub
+
+    [Description("Deselects the dropdown option element having the specified value attribute")]
+    Public Sub DeSelectByValue(ByVal val As String)
+        driver_.DeSelectByValue val, Me
+    End Sub
+
+    [Description("Deselects the dropdown option element having the specified visible text")]
+    Public Sub DeSelectByVisibleText(ByVal text As String)
+        driver_.DeSelectByVisibleText text, Me
+    End Sub
+
+    [Description("Deselects a dropdown option element with the specified index")]
+    Public Sub DeSelectByIndex(ByVal index As Integer)
+        driver_.DeSelectByIndex index, Me
+    End Sub
+
+    [Description("Switches to this frame element")]
+    Public Sub SwitchToFrame()
+        driver_.SwitchToFrame Me
+    End Sub
+
+    [Description("Returns a boolean indicating if this element is enabled")]
+    Public Function IsEnabled(Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
+        IsEnabled = driver_.IsEnabled(Me, maxWaitTimeMS)
+    End Function
+
+    [Description("Returns a boolean indicating if this element is displayed")]
+    Public Function IsDisplayed(Optional ByVal maxWaitTimeMS As Long = 0) As Boolean
+        IsDisplayed = driver_.IsDisplayed(Me, maxWaitTimeMS)
+    End Function
+
+    [Description("Clears the text field of this element")]
+    Public Function Clear() As WebElement
+        Set Clear = driver_.Clear(Me)
+    End Function
+
+    [Description("Gets the inner HTML of this element")]
+    Public Function GetInnerHTML() As String
+        GetInnerHTML = driver_.GetInnerHTML(Me)
+    End Function
+
+    [Description("Gets the outer HTML of this element")]
+    Public Function GetOuterHTML() As String
+        GetOuterHTML = driver_.GetOuterHTML(Me)
+    End Function
+
+    [Description("Scrolls and set the focus to this element")]
+    Public Function SetFocus(Optional ByVal preventScroll As Boolean = False, Optional ByVal focusVisible As Boolean = False) As WebElement
+        Set SetFocus = driver_.SetFocus(Me, preventScroll, focusVisible)
+    End Function
+
+    [Description("Returns a boolean indicating if the element has the focus")]
+    Public Function HasFocus() As Boolean
+        HasFocus = driver_.HasFocus(Me)
+    End Function
+
+    [Description("Scrolls to this element")]
+    Public Function ScrollIntoView(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, _
+                                   Optional ByVal enAlign_vert As ScrollIntoViewOptions_alignment = align_start, _
+                                   Optional ByVal enAlign_horiz As ScrollIntoViewOptions_alignment = align_nearest, _
+                                   Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
+        Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz, xOffset, yOffset)
+    End Function
+
+    [Description("Gets the shadow root hosted by this element")]
+    Public Function GetShadowRoot() As WebShadowRoot
+        Set GetShadowRoot = driver_.GetShadowRoot(Me)
+    End Function
+
+    [Description("Drags and drops this element to the specified target element")]
+    Public Sub DragAndDrop(targetElement As WebElement)
+        driver_.DragAndDrop Me, targetElement
+    End Sub
+
+    [Description("Uploads the contents of a file to this element")]
+    Public Sub UploadFile(ByVal filePath As String)
+        driver_.UploadFile Me, filePath
+    End Sub
+
+    [Description("Waits until this element is displayed (interactable)")]
+    Public Function WaitUntilDisplayed(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
+        Set WaitUntilDisplayed = driver_.WaitUntilDisplayed(Me, maxWaitTimeMS)
+    End Function
+
+    [Description("Waits until this element is not displayed (not interactable)")]
+    Public Function WaitUntilNotDisplayed(Optional ByVal maxWaitTimeMS As Long = 10000) As WebElement
+        Set WaitUntilNotDisplayed = driver_.WaitUntilNotDisplayed(Me, maxWaitTimeMS)
+    End Function
+
+    [Description("Returns the parent of this element")]
+    Public Function GetParentElement() As WebElement
+        Set GetParentElement = driver_.GetParentElement(Me)
+    End Function
+
+    [Description("Returns the direct descendant child elements of this element")]
+    Public Function GetChildElements() As WebElements
+        Set GetChildElements = driver_.GetChildElements(Me)
+    End Function
+
+    [Description("Returns an array holding the text values from a table or tbody element")]
+    Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+        TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter, createSpanData)
+    End Function
+
+    [Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")]
+    Public Sub DownloadResource(Optional ByVal srcAttribute As String = "src", Optional ByVal fileOrFolderPath As String = ".\")
+        driver_.DownloadResource Me, srcAttribute, fileOrFolderPath
+    End Sub
+
+    [Description("Returns the Element Id string - useful for testing purposes")]
+    Public Function GetElementId() As String
+        GetElementId = driver_.GetElementId(Me)
+    End Function
+
+    Private Sub Class_Terminate()
+        Set driver_ = Nothing
+    End Sub
+    
+End Class
