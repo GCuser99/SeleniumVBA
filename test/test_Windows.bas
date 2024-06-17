@@ -192,6 +192,12 @@ Sub test_windows_SwitchToNew()
     Set win2 = driver.Windows.SwitchToNew(windowType:=svbaWindow)
     'Set win2 = driver.Windows.SwitchToNew(windowType:=svbaTab) 'for Tab-type window
     
+    'Note: creating new windowType:=svbaTab while using incognito mode will throw an error
+    'see issue https://github.com/GCuser99/SeleniumVBA/issues/56
+    'a work-around is to use the following instead:
+    'driver.ExecuteScript "window.open('', '_blank')" 'creates the new tab
+    'Set win2 = driver.Windows.SwitchToByUrl("about:blank") 'switches to new tab
+    
     driver.NavigateTo "http://google.com"
     
     For i = 1 To 5

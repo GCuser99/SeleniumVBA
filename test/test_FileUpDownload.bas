@@ -108,7 +108,7 @@ End Sub
 Sub test_download_resource()
     'this test uses the DownloadResource method of the WebElement class to download the src to an img element
     Dim driver As SeleniumVBA.WebDriver
-    Dim element As WebElement
+    Dim element As SeleniumVBA.WebElement
 
     Set driver = SeleniumVBA.New_WebDriver
 
