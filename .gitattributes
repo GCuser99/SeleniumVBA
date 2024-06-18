@@ -15,7 +15,7 @@
 *.[vV][bB][sS] -text diff linguist-language=VBScript
 
 # twinBASIC extensions  - Prevent LF normalization
-*.[tT][wW][iI][nN] -text diff
+*.[tT][wW][iI][nN] -text diff linguist-language=VBScript
 *.[tT][bB][fF][oO][rR][mM] -text diff
 *.[jJ][sS][oO][nN] -text diff
 
