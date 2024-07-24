@@ -454,7 +454,7 @@ Public Function ConvertToJson(ByVal jsonValue As Variant, Optional ByVal Whitesp
         ConvertToJson = json_BufferToString(json_Buffer, json_BufferPosition)
     Case VBA.vbInteger, VBA.vbLong, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency, VBA.vbDecimal
         ' Number (use decimals for numbers)
-        ConvertToJson = VBA.Replace(jsonValue, ",", ".")
+        ConvertToJson = VBA.Replace(jsonValue, Application.International(xlDecimalSeparator), ".")
     Case Else
         ' vbEmpty, vbError, vbDataObject, vbByte, vbUserDefinedType
         ' Use VBA's built-in to-string
