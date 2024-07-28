@@ -19,6 +19,7 @@ Attribute VB_Exposed = True
 '    That default option used in json_Encode so that Unicode characters (non-ascii) are
 '    not escaped, which is not required by WebDriver server
 '    improved json_StringIsLargeNumber logic using Regexp to handle non-number strings like 123E45678901234567
+'    Changed the way numbers are converted to String in ConvertToJson to handle system decimal separators that are not "."
 ' ==========================================================================
 ' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
@@ -454,7 +455,12 @@ Public Function ConvertToJson(ByVal jsonValue As Variant, Optional ByVal Whitesp
         ConvertToJson = json_BufferToString(json_Buffer, json_BufferPosition)
     Case VBA.vbInteger, VBA.vbLong, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency, VBA.vbDecimal
         ' Number (use decimals for numbers)
-        ConvertToJson = VBA.Replace(jsonValue, Application.International(xlDecimalSeparator), ".")
+        ' Changed by @6DiegoDiego9 and @GCuser99 to handle system decimal separators other than "," and "."
+        If DecimalSep <> "." Then
+            ConvertToJson = VBA.Replace$(jsonValue, DecimalSep, ".")
+        Else
+            ConvertToJson = VBA.CStr$(jsonValue)
+        End If
     Case Else
         ' vbEmpty, vbError, vbDataObject, vbByte, vbUserDefinedType
         ' Use VBA's built-in to-string
@@ -467,6 +473,11 @@ End Function
 ' ============================================= '
 ' Private Functions
 ' ============================================= '
+
+'https://www.vbforums.com/showthread.php?640664-RESOLVED-Decimal-separator
+Private Function DecimalSep() As String
+    DecimalSep = Format$(0, ".")
+End Function
 
 Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Scripting.Dictionary
     Dim json_Key As String

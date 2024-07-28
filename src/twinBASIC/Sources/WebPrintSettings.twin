@@ -5,7 +5,7 @@
 Public Class WebPrintSettings
 
     ' ==========================================================================
-    ' SeleniumVBA v5.3
+    ' SeleniumVBA v5.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -171,6 +171,7 @@ Public Class WebPrintSettings
         Dim data As New Dictionary
     
         Dim ufact As Single
+        'Note: Selenium WebDriver assumes incoming dimensions are in centimeters
         If mUnits = svbaInches Then ufact = 2.54 Else ufact = 1
     
         margins.Add "bottom", mMarginBottom * ufact

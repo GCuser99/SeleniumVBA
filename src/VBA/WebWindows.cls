@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of WebWind
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.3
+' SeleniumVBA v5.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -104,6 +104,11 @@ Attribute switchToBy.VB_Description = "Activates and returns the first window fo
     Dim pos As Long
     Dim WndAttribValue As String
     
+    'decode url search string to force apples-to-apples compare
+    If By = SearchBy.byUrl Then searchText = driver_.decodeUrl(searchText)
+    
+    searchText = LCase$(searchText) 'for case-insensitive compare
+    
     If partialMatch Then searchText = "*" & searchText & "*"
     
     'find the position of the currently activated window in the windows collection
@@ -116,9 +121,10 @@ Attribute switchToBy.VB_Description = "Activates and returns the first window fo
         If pos = colWindows.Count Then pos = 1 Else pos = pos + 1
         Select Case By
             Case SearchBy.byTitle
-                WndAttribValue = colWindows.Item(pos).Title
+                WndAttribValue = LCase$(colWindows.Item(pos).Title)
             Case SearchBy.byUrl
-                WndAttribValue = colWindows.Item(pos).Url
+                'decode url string to force apples-to-apples compare
+                WndAttribValue = LCase$(colWindows.Item(pos).Url(decode:=True))
         End Select
         If WndAttribValue Like searchText Then
             colWindows.Item(pos).Activate
@@ -178,12 +184,12 @@ Attribute Titles.VB_Description = "Returns the collection of open window titles"
 End Function
 
 '@Description("Returns the collection of open window urls")
-Public Function Urls() As Collection
+Public Function Urls(Optional ByVal decode As Boolean = False) As Collection
 Attribute Urls.VB_Description = "Returns the collection of open window urls"
     Dim winUrls As New Collection
     Dim i As Long
     For i = 1 To colWindows.Count
-        winUrls.Add colWindows.Item(i).Url
+        winUrls.Add colWindows.Item(i).Url(decode)
     Next i
     Set Urls = winUrls
 End Function

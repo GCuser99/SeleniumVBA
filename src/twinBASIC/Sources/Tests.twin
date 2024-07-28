@@ -1,5 +1,94 @@
 Private Module Tests
+    
+    'https://www.vbforums.com/showthread.php?640664-RESOLVED-Decimal-separator
+    'Computer\HKEY_CURRENT_USER\Control Panel\International
+    'https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/aa733561(v=vs.60)?redirectedfrom=MSDN
+    
+    Sub TestDecimalSeparator()
+        Dim num As Double
+        num = 1000.1
+        Debug.Print "My decimal separator is: " & DecimalSep()
+        If DecimalSep <> "." Then
+            Debug.Print "My number converted to String: " & Replace$(num, DecimalSep, ".")
+        Else
+            Debug.Print "My number converted to String: " & CStr(num)
+        End If
+    End Sub
 
+    Private Function DecimalSep() As String
+        'this works
+        DecimalSep = Format$(0, ".")
+    End Function
+    
+    Sub test_url_encoding()
+        Dim driver As WebDriver
+        Dim urlEncoded As String
+        Dim urlDecoded As String
+    
+        Set driver = New WebDriver
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://www.mozilla.org/?x=%D1%88%D0%B5%D0%BB%D0%BB%D1%8B"
+    
+        '****************************************************************************************************
+        'test retrieving both the encoded and decoded version of the current url
+        urlEncoded = driver.GetCurrentUrl()
+        urlDecoded = driver.GetCurrentUrl(decode:=True)
+    
+        '****************************************************************************************************
+        'test if IsPageFound is encoding agnostic
+        Debug.Print "is page found using decoded url: " & driver.IsPageFound(urlDecoded)
+        Debug.Print "is page found using encoded url: " & driver.IsPageFound(urlEncoded)
+    
+        '****************************************************************************************************
+        'spawn a new window
+        driver.Windows.SwitchToNew svbaTab
+
+        Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url
+    
+        '****************************************************************************************************
+        'test if SwitchToByUrl is encoding agnostic and test Window.Url method
+        driver.Windows.SwitchToByUrl urlDecoded
+    
+        Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url()
+        Debug.Print "the active window's decoded url: " & driver.ActiveWindow.Url(decode:=True)
+    
+        driver.Windows.SwitchToByUrl "about:blank"
+        driver.Windows.SwitchToByUrl urlEncoded
+    
+        Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url()
+        Debug.Print "the active window's decoded url: " & driver.ActiveWindow.Url(decode:=True)
+    
+        '****************************************************************************************************
+        'test Windows.Urls method
+        Dim urlCol As Collection, urlString As Variant
+    
+        Set urlCol = driver.Windows.Urls()
+        For Each urlString In urlCol
+            Debug.Print "encoded window url: " & urlString
+        Next urlString
+    
+        Set urlCol = driver.Windows.Urls(decode:=True)
+        For Each urlString In urlCol
+            Debug.Print "encoded window url: " & urlString
+        Next urlString
+    
+        driver.Shutdown
+    End Sub
+    
+    Sub test_settings()
+        Dim driver As SeleniumVBA.WebDriver
+    
+        Set driver = SeleniumVBA.New_WebDriver
+
+        'this creates a new SeleniumVBA.ini file if one does not exist
+        'or refreshes/updates while keeping valid entries of an existing one
+        'to set the ini file entries to system default values, use keepExistingValues:=False
+        driver.CreateSettingsFile keepExistingValues:=True
+    End Sub
+    
     Sub test_Authentication()
         Dim driver As SeleniumVBA.WebDriver
         Dim elem As SeleniumVBA.WebElement

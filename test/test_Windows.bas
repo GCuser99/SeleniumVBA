@@ -112,7 +112,7 @@ Sub test_windows_SwitchToByTitle()
 End Sub
 
 Sub test_windows_SwitchToByUrl()
-    'this test uses SwitchToTitle to shortcut the finding of the child window,
+    'this test uses SwitchToUrl to shortcut the finding of the child window,
     'without having to enumerate the windows collection
     Dim driver As SeleniumVBA.WebDriver
     Dim mainWindow As SeleniumVBA.WebWindow
@@ -285,3 +285,60 @@ Sub test_windows_state()
     driver.Shutdown
 End Sub
 
+Sub test_url_encoding()
+    Dim driver As WebDriver
+    Dim urlEncoded As String
+    Dim urlDecoded As String
+    
+    Set driver = New WebDriver
+    
+    driver.StartChrome
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://www.mozilla.org/?x=%D1%88%D0%B5%D0%BB%D0%BB%D1%8B"
+    
+    '****************************************************************************************************
+    'test retrieving both the encoded and decoded version of the current url
+    urlEncoded = driver.GetCurrentUrl()
+    urlDecoded = driver.GetCurrentUrl(decode:=True)
+    
+    '****************************************************************************************************
+    'test if IsPageFound is encoding agnostic
+    Debug.Print "is page found using decoded url: " & driver.IsPageFound(urlDecoded)
+    Debug.Print "is page found using encoded url: " & driver.IsPageFound(urlEncoded)
+    
+    '****************************************************************************************************
+    'spawn a new window
+    driver.Windows.SwitchToNew svbaTab
+
+    Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url
+    
+    '****************************************************************************************************
+    'test if SwitchToByUrl is encoding agnostic and test Window.Url method
+    driver.Windows.SwitchToByUrl urlDecoded
+    
+    Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url()
+    Debug.Print "the active window's decoded url: " & driver.ActiveWindow.Url(decode:=True)
+    
+    driver.Windows.SwitchToByUrl "about:blank"
+    driver.Windows.SwitchToByUrl urlEncoded
+    
+    Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url()
+    Debug.Print "the active window's decoded url: " & driver.ActiveWindow.Url(decode:=True)
+    
+    '****************************************************************************************************
+    'test Windows.Urls method
+    Dim urlCol As Collection, urlString As Variant
+    
+    Set urlCol = driver.Windows.Urls()
+    For Each urlString In urlCol
+        Debug.Print "encoded window url: " & urlString
+    Next urlString
+    
+    Set urlCol = driver.Windows.Urls(decode:=True)
+    For Each urlString In urlCol
+        Debug.Print "encoded window url: " & urlString
+    Next urlString
+    
+    driver.Shutdown
+End Sub

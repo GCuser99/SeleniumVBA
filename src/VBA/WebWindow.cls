@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage the browser window - mu
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.3
+' SeleniumVBA v5.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -157,9 +157,10 @@ Attribute Title.VB_Description = "Gets this window's browser title"
 End Function
 
 '@Description("Gets this window's url")
-Public Function Url() As String
+Public Function Url(Optional ByVal decode As Boolean = False) As String
 Attribute Url.VB_Description = "Gets this window's url"
-    Url = getWindowAttribute(tCMD.CMD_GET_URL)
+    Url = getWindowAttribute(tCMD.CMD_GET_URL) 'this returns the encoded url
+    If decode Then Url = driver_.decodeUrl(Url)
 End Function
 
 '@Description("Gets this window's attribute")

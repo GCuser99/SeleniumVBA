@@ -5,7 +5,7 @@
 Public Class WebWindows
 
     ' ==========================================================================
-    ' SeleniumVBA v5.3
+    ' SeleniumVBA v5.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -93,6 +93,11 @@ Public Class WebWindows
         Dim pos As Long
         Dim WndAttribValue As String
     
+        'decode url search string for apples-to-apples compare
+        If By = SearchBy.byUrl Then searchText = driver_.decodeUrl(searchText)
+    
+        searchText = LCase$(searchText) 'for case-insensitive compare
+    
         If partialMatch Then searchText = "*" & searchText & "*"
     
         'find the position of the currently activated window in the windows collection
@@ -105,9 +110,10 @@ Public Class WebWindows
             If pos = colWindows.Count Then pos = 1 Else pos = pos + 1
             Select Case By
                 Case SearchBy.byTitle
-                    WndAttribValue = colWindows.Item(pos).Title
+                    WndAttribValue = LCase$(colWindows.Item(pos).Title)
                 Case SearchBy.byUrl
-                    WndAttribValue = colWindows.Item(pos).Url
+                    'decode url string for apples-to-apples compare
+                    WndAttribValue = LCase$(colWindows.Item(pos).Url(decode:=True))
             End Select
             If WndAttribValue Like searchText Then
                 colWindows.Item(pos).Activate
@@ -163,11 +169,11 @@ Public Class WebWindows
     End Function
 
     [Description("Returns the collection of open window urls")]
-    Public Function Urls() As Collection
+    Public Function Urls(Optional ByVal decode As Boolean = False) As Collection
         Dim winUrls As New Collection
         Dim i As Long
         For i = 1 To colWindows.Count
-            winUrls.Add colWindows.Item(i).Url
+            winUrls.Add colWindows.Item(i).Url(decode)
         Next i
         Set Urls = winUrls
     End Function

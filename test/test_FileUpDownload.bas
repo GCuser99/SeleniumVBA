@@ -67,8 +67,8 @@ Sub test_file_download()
     driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
     driver.Wait 500
     
-    driver.FindElementByID("accept-cookie-notification").Click
-    driver.Wait 500
+    'driver.FindElementByID("accept-cookie-notification").Click
+    'driver.Wait 500
     
     driver.FindElementByCssSelector(".icon-csv").ScrollIntoView yOffset:=-150
     driver.Wait 1000

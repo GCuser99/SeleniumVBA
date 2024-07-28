@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.3
+' SeleniumVBA v5.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -180,7 +180,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             End If
         
             'check if we have an error and then take appropriate action
-            If Left$(dverCompat, 5) = "Error" Then
+            If dverCompat Like "Error*" Then
                 If runSilent Then 'don't throw the error - just report back to caller
                     AlignDriverWithBrowser = dverCompat
                     Exit Function
@@ -212,7 +212,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         End If
                  
         'check if we have an error and then take appropriate action
-        If Left$(dverCompat, 5) = "Error" Then
+        If dverCompat Like "Error*" Then
             If runSilent Then 'don't throw the error - just report back to caller
                 AlignDriverWithBrowser = dverCompat
                 Exit Function
@@ -235,7 +235,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         dverCompat = GetLatestDriverVersion(browser)
                  
         'check if we have an error and then take appropriate action
-        If Left$(dverCompat, 5) = "Error" Then
+        If dverCompat Like "Error*" Then
             If runSilent Then 'don't throw the error - just report back to caller
                 AlignDriverWithBrowser = dverCompat
                 Exit Function
@@ -429,7 +429,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
             
             respTxt = requestData(Url)
             
-            If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
+            If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
             If respTxt <> "Release Not Found" Then Exit Do
             
@@ -450,7 +450,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
             
             respTxt = requestData(Url)
             
-            If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
+            If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
             If respTxt = "Release Not Found" Then
                 'in theory, we should never get here, but just in case...
@@ -459,7 +459,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
                 Url = "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build.json"
                 respTxt = requestData(Url)
                 
-                If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
+                If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
                 
                 GetCompatibleDriverVersion = findLatestChromeVersionFromBuild(respTxt, browserBuild)
                 Exit Function
@@ -480,7 +480,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
             
             respTxt = requestData(Url)
             
-            If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
+            If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
             If respTxt = "Release Not Found" Then
                 'if exact build match failed, then maybe we have a Dev or Canary channel
@@ -489,7 +489,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
                     Url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
                     respTxt = requestData(Url)
                     
-                    If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
+                    If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
                     
                     If respTxt <> "Release Not Found" Then Exit Do
                     verMajor = verMajor - 1
@@ -508,7 +508,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         
         respTxt = requestData(Url)
         
-        If Left$(respTxt, 5) = "Error" Then GetCompatibleDriverVersion = respTxt: Exit Function
+        If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
         
         'search the table for the first driver version entry (most recent) for a given browser version
         htmlDoc.body.innerHTML = respTxt
@@ -533,6 +533,7 @@ End Function
 
 '@Description("Returns the installed Browser version")
 Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser) As String
+Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Browser version"
     Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim regkey As String
     Dim regKeyAlt As String

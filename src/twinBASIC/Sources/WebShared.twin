@@ -1,7 +1,7 @@
 Private Module WebShared
 
     ' ==========================================================================
-    ' SeleniumVBA v5.3
+    ' SeleniumVBA v5.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -229,38 +229,22 @@ Private Module WebShared
             Exit Function
         End If
         Select Case LCase$(enumText)
-        Case LCase$("svbaNotCompatible")
-            enumTextToValue = svbaCompatibility.svbaNotCompatible
-        Case LCase$("svbaMajor")
-            enumTextToValue = svbaCompatibility.svbaMajor
-        Case LCase$("svbaMinor")
-            enumTextToValue = svbaCompatibility.svbaMinor
-        Case LCase$("svbaBuildMajor")
-            enumTextToValue = svbaCompatibility.svbaBuildMajor
-        Case LCase$("svbaExactMatch")
-            enumTextToValue = svbaCompatibility.svbaExactMatch
-        Case LCase$("vbHide")
-            enumTextToValue = VbAppWinStyle.vbHide
-        Case LCase$("vbMaximizedFocus")
-            enumTextToValue = VbAppWinStyle.vbMaximizedFocus
-        Case LCase$("vbMinimizedFocus")
-            enumTextToValue = VbAppWinStyle.vbMinimizedFocus
-        Case LCase$("vbMinimizedNoFocus")
-            enumTextToValue = VbAppWinStyle.vbMinimizedNoFocus
-        Case LCase$("vbNormalFocus")
-            enumTextToValue = VbAppWinStyle.vbNormalFocus
-        Case LCase$("vbNormalNoFocus")
-            enumTextToValue = VbAppWinStyle.vbNormalNoFocus
-        Case LCase$("svbaLandscape")
-            enumTextToValue = svbaOrientation.svbaLandscape
-        Case LCase$("svbaPortrait")
-            enumTextToValue = svbaOrientation.svbaPortrait
-        Case LCase$("svbaCentimeters")
-            enumTextToValue = svbaUnits.svbaCentimeters
-        Case LCase$("svbaInches")
-            enumTextToValue = svbaUnits.svbaInches
-        Case Else
-            Err.Raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
+        Case "svbanotcompatible": enumTextToValue = svbaCompatibility.svbaNotCompatible
+        Case "svbamajor": enumTextToValue = svbaCompatibility.svbaMajor
+        Case "svbaminor": enumTextToValue = svbaCompatibility.svbaMinor
+        Case "svbabuildmajor": enumTextToValue = svbaCompatibility.svbaBuildMajor
+        Case "svbaexactmatch": enumTextToValue = svbaCompatibility.svbaExactMatch
+        Case "vbhide": enumTextToValue = VbAppWinStyle.vbHide
+        Case "vbmaximizedfocus": enumTextToValue = VbAppWinStyle.vbMaximizedFocus
+        Case "vbminimizedfocus": enumTextToValue = VbAppWinStyle.vbMinimizedFocus
+        Case "vbminimizednofocus": enumTextToValue = VbAppWinStyle.vbMinimizedNoFocus
+        Case "vbnormalfocus": enumTextToValue = VbAppWinStyle.vbNormalFocus
+        Case "vbnormalnofocus": enumTextToValue = VbAppWinStyle.vbNormalNoFocus
+        Case "svbalandscape": enumTextToValue = svbaOrientation.svbaLandscape
+        Case "svbaportrait": enumTextToValue = svbaOrientation.svbaPortrait
+        Case "svbacentimeters": enumTextToValue = svbaUnits.svbaCentimeters
+        Case "svbainches": enumTextToValue = svbaUnits.svbaInches
+        Case Else: Err.Raise 1, "WebShared", "Settings file enum value " & enumText & " not recognized"
         End Select
     End Function
 

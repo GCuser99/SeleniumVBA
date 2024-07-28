@@ -6,8 +6,10 @@ Option Private Module
 'this test module contains tests that fail in IE Mode
 'see following discussion link for limitations:
 'https://github.com/GCuser99/SeleniumVBA/discussions/10#discussion-4123927
-'also see:
-'https://jimevansmusic.blogspot.com/2014/09/screenshots-sendkeys-and-sixty-four.html
+
+'ATTENTION:
+'To use Edge IE Mode in Windows 11 - see https://github.com/GCuser99/SeleniumVBA/wiki#getting-started
+'Read section "Notes on using Edge IE Mode in Windows 11"
 
 Sub test_action_chain()
     Dim driver As SeleniumVBA.WebDriver

@@ -1,34 +1,34 @@
-# modified from https://github.com/DecimalTurn/VBA-on-GitHub/tree/main
+# modified from https://github.com/DecimalTurn/VBA-on-GitHub
+# read the excellent writeup there!
 
-# By default, auto detect text files and perform LF normalization
-* text=auto eol=lf
-
-# VBA code (bas, cls, frm) - Prevent LF normalization
+# VBA code (bas, cls, frm) - prevent LF normalization
 *.[bB][aA][sS] -text diff linguist-language=VBA
 *.[cC][lL][sS] -text diff linguist-language=VBA
 *.[fF][rR][mM] -text diff linguist-language=VBA
 
-# VBA form (frx) - Mark as binary
+# VBA UserForm (frx)
 *.[fF][rR][xX] binary
 
-# VBS - Prevent LF normalization
-*.[vV][bB][sS] -text diff linguist-language=VBScript
-
-# twinBASIC code (twin, tbform) - Prevent LF normalization
+# twinBASIC native class/module (twin) - prevent LF normalization
 *.[tT][wW][iI][nN] -text diff linguist-language=VBA
+
+# twinBASIC native form (tbform) - prevent LF normalization
 *.[tT][bB][fF][oO][rR][mM] -text diff linguist-language=JSON
 
-# twinBASIC Resources (json, xml) - Prevent LF normalization
+# twinBASIC resources (json, xml) - prevent LF normalization
 *.[jJ][sS][oO][nN] -text diff
 *.[xX][mM][lL] -text diff
 
-# twinBASIC Project (twinproject)  - Mark as binary
-*.[tT][wW][iI][nN][pP][rR][oO][jJ]  binary
+# twinBASIC project (twinproj)
+*.[tT][wW][iI][nN][pP][rR][oO][jJ] binary
 
-# Inno Setup (iss)  - Prevent LF normalization
+# VBS - prevent LF normalization
+*.[vV][bB][sS] -text diff linguist-language=VBScript
+
+# Inno Setup (iss) - prevent LF normalization
 *.[iI][sS][sS] -text diff
 
-# Ini file  - Prevent LF normalization
+# INI file - prevent LF normalization
 *.[iI][nN][iI] -text diff
                     
 # Excel documents (xlam, xlsm)

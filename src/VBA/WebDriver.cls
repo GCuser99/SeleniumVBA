@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.3
+' SeleniumVBA v5.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1014,11 +1014,15 @@ Attribute Refresh.VB_Description = "Refreshes the current url"
 End Sub
 
 '@Description("Returns the current url string")
-Public Function GetCurrentURL() As String
-Attribute GetCurrentURL.VB_Description = "Returns the current url string"
-    Dim encodeURL As String
-    encodeURL = execute(tCMD.CMD_GET_CURRENT_URL)("value")
-    GetCurrentURL = ExecuteScript("return decodeURI('" & encodeURL & "')")
+Public Function GetCurrentUrl(Optional ByVal decode As Boolean = False) As String
+Attribute GetCurrentUrl.VB_Description = "Returns the current url string"
+    Dim encodedUrl As String
+    encodedUrl = execute(tCMD.CMD_GET_CURRENT_URL)("value")
+    If decode Then
+        GetCurrentUrl = decodeUrl(encodedUrl)
+    Else
+        GetCurrentUrl = encodedUrl
+    End If
 End Function
 
 '@Description("Returns the active element")
@@ -1990,7 +1994,8 @@ End Sub
 '@Description("Checks if the current url is equal to the specified url")
 Public Function IsPageFound(ByVal Url As String) As Boolean
 Attribute IsPageFound.VB_Description = "Checks if the current url is equal to the specified url"
-    IsPageFound = (GetCurrentURL() = Url)
+    'normalize before compare
+    IsPageFound = (LCase$(GetCurrentUrl(decode:=True)) = LCase$(decodeUrl(Url)))
 End Function
 
 '@Description("Returns a dictionary holding various info about the session")
@@ -2283,9 +2288,13 @@ Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
     filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    On Error GoTo ErrHnd
     Set ts = fso.CreateTextFile(filePath, True, formatUnicode16)
     ts.Write val
     ts.Close
+    Exit Sub
+ErrHnd:
+    Err.Raise 1, , "Error in SaveStringToFile: Could not save string to file path " & filePath & " - please check that a valid file path was specified and that you have write permissions."
 End Sub
 
 '@Description("Returns the parent of element")
@@ -2629,7 +2638,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         Dim urlSections As Variant
         
         'get the current url path
-        curUrl = GetCurrentURL
+        curUrl = GetCurrentUrl(decode:=False)
         
         'strip off query params if they exist
         curUrl = Split(curUrl, "?")(0)
@@ -3636,6 +3645,10 @@ Private Function waitForIsCommand(cmd As Variant, element As WebElement, ByVal m
         GetTime timeNow
     Loop Until timeNow > timeEnd
     waitForIsCommand = False
+End Function
+
+Friend Function decodeUrl(ByVal encodedUrl As String) As String
+    decodeUrl = ExecuteScript("return decodeURI('" & encodedUrl & "')")
 End Function
 
 Private Sub Class_Terminate()
