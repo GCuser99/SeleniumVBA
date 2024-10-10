@@ -412,8 +412,9 @@ End Sub
 Sub test_pageLoadStrategy()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
-    Dim keys As New WebKeyboard
-
+    Dim keys As SeleniumVBA.WebKeyboard
+    
+    Set keys = SeleniumVBA.New_WebKeyboard
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
@@ -429,6 +430,30 @@ Sub test_pageLoadStrategy()
     
     'this will verify that pageLoadStrategy was set to desired value (Edge/Chrome only)
     Debug.Print driver.GetSessionsInfo("capabilities")("pageLoadStrategy")
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+Sub test_addExtensions()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    
+    Set caps = driver.CreateCapabilities()
+    
+    'this will add a local crx file extension(s)
+    caps.AddExtensions "[path to local crx file]"
+    
+    'use this alternative to add an extension from Chrome's User Data extensions directory
+    'caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\abcdefghijklmnopqrstuvwxyzabcdef\2.3.1_0"
+
+    driver.OpenBrowser caps
+    
+    driver.NavigateTo "https://www.wikipedia.org/"
     
     driver.CloseBrowser
     driver.Shutdown

@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v5.4
+    ' SeleniumVBA v5.5
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -2761,16 +2761,6 @@ Public Class WebDriver
             Case "WebElements": Set objToWebElements = elementOrElements
             Case Else: Err.Raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
         End Select
-    End Function
-
-    Private Function decodeBase64(ByVal strData As String) As Byte()
-        Dim domDoc As New MSXML2.DOMDocument60
-        Dim domNode As MSXML2.IXMLDOMElement
-        'create node with type of base 64 and decode
-        Set domNode = domDoc.createElement("b64")
-        domNode.dataType = "bin.base64"
-        domNode.text = strData
-        decodeBase64 = domNode.nodeTypedValue
     End Function
 
     Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)

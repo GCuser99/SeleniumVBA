@@ -449,8 +449,8 @@ Public Class WebJsonConverter
         Case VBA.vbInteger, VBA.vbLong, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency, VBA.vbDecimal
             ' Number (use decimals for numbers)
             ' Changed by @6DiegoDiego9 and @GCuser99 to handle system decimal separators other than "," and "."
-            If DecimalSep <> "." Then
-                ConvertToJson = VBA.Replace$(jsonValue, DecimalSep, ".")
+            If DecimalSep() <> "." Then
+                ConvertToJson = VBA.Replace$(jsonValue, DecimalSep(), ".")
             Else
                 ConvertToJson = VBA.CStr$(jsonValue)
             End If

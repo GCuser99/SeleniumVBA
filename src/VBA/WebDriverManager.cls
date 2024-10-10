@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.4
+' SeleniumVBA v5.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -507,6 +507,8 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         Url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
         
         respTxt = requestData(Url)
+        
+        If respTxt = "Release Not Found" Then respTxt = "Error - Release Not Found"
         
         If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
         
@@ -1015,19 +1017,15 @@ Private Function compareVersions(ByVal ver1 As String, ByVal ver2 As String) As 
     ver1parts = Split(ver1, ".")
     ver2parts = Split(ver2, ".")
     
-    'compare each part until unequal
+    'compare each part until unequal, return 1 if ver1 > ver2, -1 otherwise
     For i = 0 To UBound(ver1parts)
         If CInt(ver1parts(i)) <> CInt(ver2parts(i)) Then
-            If CInt(ver1parts(i)) > CInt(ver2parts(i)) Then
-                compareVersions = 1
-                Exit Function
-            Else
-                compareVersions = -1
-                Exit Function
-            End If
+            compareVersions = Sgn(CInt(ver1parts(i)) - CInt(ver2parts(i)))
+            Exit Function
         End If
     Next i
     
+    'if we get here, then must be equal
     compareVersions = 0
 End Function
 

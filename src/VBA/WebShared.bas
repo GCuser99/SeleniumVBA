@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.4
+' SeleniumVBA v5.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -513,4 +513,57 @@ End Function
 'this is to replace AscW which outputs negative ascii code for unicode due to its integer return value
 Public Function AscWL(ByVal s As String) As Long
     AscWL = CLng(AscW(s)) And &HFFFF&
+End Function
+
+Public Function decodeBase64(ByVal strData As String) As Byte()
+    Dim domDoc As New MSXML2.DOMDocument60
+    Dim domNode As MSXML2.IXMLDOMElement
+    'create node with type of base 64 and decode
+    Set domNode = domDoc.createElement("b64")
+    domNode.DataType = "bin.base64"
+    domNode.text = strData
+    decodeBase64 = domNode.nodeTypedValue
+End Function
+
+Public Function encodeBase64(bytes() As Byte) As String
+    Dim domDoc As New MSXML2.DOMDocument60
+    Dim domNode As MSXML2.IXMLDOMElement
+    'create node with type of base 64 and encode
+    Set domNode = domDoc.createElement("b64")
+    domNode.DataType = "bin.base64"
+    domNode.nodeTypedValue = bytes
+    encodeBase64 = domNode.text
+End Function
+
+Public Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
+    Dim binaryStream As New ADODB.Stream
+
+    'specify stream type - we want to save binary data.
+    binaryStream.Type = adTypeBinary
+  
+    'open the stream And write binary data
+    binaryStream.Open
+    binaryStream.Write bytearray
+  
+    'save binary data To disk
+    binaryStream.SaveToFile filePath, adSaveCreateOverWrite
+    binaryStream.Close
+End Sub
+
+Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
+    Dim binaryStream As New ADODB.Stream
+    Dim bytearray() As Byte
+
+    'specify stream type - we want to read binary data.
+    binaryStream.Type = adTypeBinary
+  
+    'open the stream
+    binaryStream.Open
+    
+    'load and read binary data from disk
+    binaryStream.LoadFromFile filePath
+    bytearray = binaryStream.Read
+  
+    binaryStream.Close
+    readByteArrayFromFile = bytearray
 End Function

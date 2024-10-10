@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v5.4
+    ' SeleniumVBA v5.5
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -322,5 +322,16 @@ Private Module Utils
         Put #fp, 1, byteArray
         Close #fp
     End Sub
+    
+    Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
+        Dim fp As Long, fso As New FileSystemObject
+        Dim byteArray() As Byte
+        fp = FreeFile
+        Open filePath For Binary Access Read As #fp
+        ReDim byteArray(1 To LOF(fp))
+        Get #fp, 1, byteArray
+        Close #fp
+        readByteArrayFromFile = byteArray
+    End Function
     
 End Module

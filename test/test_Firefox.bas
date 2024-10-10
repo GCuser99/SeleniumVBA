@@ -72,7 +72,7 @@ Sub test_file_download()
     
     Set caps = driver.CreateCapabilities
     
-    caps.SetDownloadPrefs
+    caps.SetDownloadPrefs downloadFolderPath:=".\", promptForDownload:=False, disablePDFViewer:=True
     
     Debug.Print caps.ToJson
 
@@ -81,16 +81,15 @@ Sub test_file_download()
     driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
     driver.Wait 500
     
-    driver.FindElementByID("accept-cookie-notification").Click
-    driver.Wait 500
+    'driver.FindElementByID("accept-cookie-notification").Click
+    'driver.Wait 500
     
     driver.FindElementByCssSelector(".icon-csv").ScrollIntoView yOffset:=-150
     driver.Wait 1000
     
     driver.FindElementByCssSelector(".icon-csv").Click
-    'driver.FindElementByCssSelector(".icon-pdf").Click
     
-    driver.Wait 4000
+    driver.WaitForDownload ".\BrowserStack - List of devices to test on.csv"
             
     driver.CloseBrowser
     driver.Shutdown

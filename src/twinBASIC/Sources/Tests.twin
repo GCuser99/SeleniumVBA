@@ -1,8 +1,28 @@
 Private Module Tests
     
-    'https://www.vbforums.com/showthread.php?640664-RESOLVED-Decimal-separator
-    'Computer\HKEY_CURRENT_USER\Control Panel\International
-    'https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/aa733561(v=vs.60)?redirectedfrom=MSDN
+    Sub test_addExtensions()
+        Dim driver As WebDriver
+        Dim caps As WebCapabilities
+    
+        Set driver = New WebDriver
+    
+        driver.StartChrome
+    
+        Set caps = driver.CreateCapabilities()
+    
+        'this will add a local crx file extension(s)
+        caps.AddExtensions "[path to local crx file]"
+    
+        'use this alternative to add an extension from Chrome's User Data extensions directory
+        'caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\abcdefghijklmnopqrstuvwxyzabcdef\2.3.1_0"
+
+        driver.OpenBrowser caps
+    
+        driver.NavigateTo "https://www.wikipedia.org/"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
     
     Sub TestDecimalSeparator()
         Dim num As Double
@@ -72,7 +92,7 @@ Private Module Tests
     
         Set urlCol = driver.Windows.Urls(decode:=True)
         For Each urlString In urlCol
-            Debug.Print "encoded window url: " & urlString
+            Debug.Print "decoded window url: " & urlString
         Next urlString
     
         driver.Shutdown

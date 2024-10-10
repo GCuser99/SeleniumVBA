@@ -337,7 +337,7 @@ Sub test_url_encoding()
     
     Set urlCol = driver.Windows.Urls(decode:=True)
     For Each urlString In urlCol
-        Debug.Print "encoded window url: " & urlString
+        Debug.Print "decoded window url: " & urlString
     Next urlString
     
     driver.Shutdown

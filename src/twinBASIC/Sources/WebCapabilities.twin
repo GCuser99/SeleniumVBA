@@ -5,7 +5,7 @@
 Public Class WebCapabilities
 
     ' ==========================================================================
-    ' SeleniumVBA v5.4
+    ' SeleniumVBA v5.5
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -170,8 +170,19 @@ Public Class WebCapabilities
     [Description("Adds a list of option extensions")]
     Public Sub AddExtensions(ParamArray addList() As Variant)
         Dim varry() As Variant
+        Dim pathList() As String
+        Dim extList() As String
+        Dim i As Long
+        Dim fso As New FileSystemObject
+    
         varry = addList
-        addToOptionList "extensions", paramListToStringArray(varry)
+        pathList = paramListToStringArray(varry)
+        ReDim extList(1 To UBound(pathList))
+        For i = 1 To UBound(pathList)
+            If Not fso.FileExists(pathList(i)) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & pathList(i) & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
+            extList(i) = encodeBase64(readByteArrayFromFile(pathList(i)))
+        Next i
+        addToOptionList "extensions", extList
     End Sub
 
     [Description("Sets the path to the browser executable in a non-standard location")]

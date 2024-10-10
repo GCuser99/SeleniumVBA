@@ -120,7 +120,7 @@ Sub test_CDP_BasicAuthentication()
     driver.ExecuteCDP "Network.enable"
 
     'build authorization string
-    authString = "Basic " & EncodeBase64(userName & ":" & pw)
+    authString = "Basic " & encodeBase64(userName & ":" & pw)
     
     'build the CDP parameter dictionary
     Set params = New Dictionary
@@ -139,7 +139,7 @@ Sub test_CDP_BasicAuthentication()
 End Sub
 
 'https://stackoverflow.com/questions/169907/how-do-i-base64-encode-a-string-efficiently-using-excel-vba
-Private Function EncodeBase64(text As String) As String
+Private Function encodeBase64(text As String) As String
     Dim bytes() As Byte
     Dim domDoc As Object
     Dim domElem As Object
@@ -148,5 +148,5 @@ Private Function EncodeBase64(text As String) As String
     Set domElem = domDoc.createElement("b64")
     domElem.DataType = "bin.base64"
     domElem.nodeTypedValue = bytes
-    EncodeBase64 = Replace(domElem.text, vbLf, "")
+    encodeBase64 = Replace(domElem.text, vbLf, "")
 End Function

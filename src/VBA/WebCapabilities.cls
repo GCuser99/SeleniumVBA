@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.4
+' SeleniumVBA v5.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -185,8 +185,19 @@ End Sub
 Public Sub AddExtensions(ParamArray addList() As Variant)
 Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     Dim varry() As Variant
+    Dim pathList() As String
+    Dim extList() As String
+    Dim i As Long
+    Dim fso As New FileSystemObject
+    
     varry = addList
-    addToOptionList "extensions", paramListToStringArray(varry)
+    pathList = paramListToStringArray(varry)
+    ReDim extList(1 To UBound(pathList))
+    For i = 1 To UBound(pathList)
+        If Not fso.FileExists(pathList(i)) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & pathList(i) & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
+        extList(i) = encodeBase64(readByteArrayFromFile(pathList(i)))
+    Next i
+    addToOptionList "extensions", extList
 End Sub
 
 '@Description("Sets the path to the browser executable in a non-standard location")
@@ -439,6 +450,7 @@ Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and 
         Me.SetPreference "browser.download.folderList", 2 '0 is Desktop, 1 is Downloads
         Me.SetPreference "browser.download.dir", downloadFolderPath
         Me.SetPreference "pdfjs.disabled", disablePDFViewer  'disable the built-in PDF viewer
+        
         'Me.SetPreference "browser.download.manager.showWhenStarting", False
         'Me.SetPreference "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
         'Me.SetPreference "browser.download.useDownloadDir", True

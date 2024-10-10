@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.4
+' SeleniumVBA v5.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -2919,31 +2919,6 @@ Private Function objToWebElements(elementOrElements As Object) As WebElements
         Case Else: Err.Raise 1, "WebDriver", "Error: the elementOrElements argument is not of valid type (WebElement or WebElements)"
     End Select
 End Function
-
-Private Function decodeBase64(ByVal strData As String) As Byte()
-    Dim domDoc As New MSXML2.DOMDocument60
-    Dim domNode As MSXML2.IXMLDOMElement
-    'create node with type of base 64 and decode
-    Set domNode = domDoc.createElement("b64")
-    domNode.DataType = "bin.base64"
-    domNode.text = strData
-    decodeBase64 = domNode.nodeTypedValue
-End Function
-
-Private Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
-    Dim binaryStream As New ADODB.Stream
-
-    'specify stream type - we want To save binary data.
-    binaryStream.Type = adTypeBinary
-  
-    'open the stream And write binary data
-    binaryStream.Open
-    binaryStream.Write bytearray
-  
-    'save binary data To disk
-    binaryStream.SaveToFile filePath, adSaveCreateOverWrite
-    binaryStream.Close
-End Sub
 
 Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
     'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
