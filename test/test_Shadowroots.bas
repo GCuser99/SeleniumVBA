@@ -20,7 +20,7 @@ Sub test_shadowroot()
     
     Set shadowContent = shadowRootelem.FindElement(By.ID, "shadow_content")
     
-    Debug.Print shadowContent.GetText  'should return "some text"
+    Debug.Assert shadowContent.GetText = "some text"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -55,7 +55,7 @@ Sub test_shadowroots_clear_browser_history()
     Set webElem5 = webElem4.GetShadowRoot.FindElement(By.CssSelector, "settings-clear-browsing-data-dialog")
     Set webElem6 = webElem5.GetShadowRoot.FindElement(By.CssSelector, "#clearBrowsingDataDialog")
     
-    Set clearData = webElem6.FindElement(By.CssSelector, "#clearBrowsingDataConfirm")
+    Set clearData = webElem6.FindElement(By.CssSelector, "#clearButton")
     clearData.Click 'to clear browsing history
     
     driver.Wait 1000

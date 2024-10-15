@@ -108,7 +108,7 @@ Sub test_Authentication()
         waitForWindow:=False
     
     If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
-        Debug.Print elem.GetText
+        Debug.Assert elem.GetText = "Congratulations! You must have the proper credentials."
     End If
   
     driver.CloseBrowser

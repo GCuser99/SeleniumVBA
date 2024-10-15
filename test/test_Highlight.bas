@@ -29,28 +29,28 @@ Sub test_highlight()
     'automatically highlight every last found element(s):
     driver.SetHightlightFoundElems True
     
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").GetText
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").GetText = "head 1"
     driver.Wait
     
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[2]").GetText
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[2]").GetText = "head 2"
     driver.Wait
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").GetText
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").GetText = "1"
     driver.Wait
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").GetText
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").GetText = "2"
     driver.Wait
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").GetText
-    driver.Wait
-    
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText
-    driver.Wait
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText
-    driver.Wait
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText
-    driver.Wait
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[2]").GetText
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").GetText = "3"
     driver.Wait
     
-    Debug.Print driver.FindElement(By.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[1]").GetText = "4A"
+    driver.Wait
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]").GetText = "4B"
+    driver.Wait
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[1]").GetText = "4C"
+    driver.Wait
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table/tbody/tr[2]/td[2]").GetText = "4D"
+    driver.Wait
+    
+    Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText = "footer content"
     driver.Wait
     
     driver.SetHightlightFoundElems False

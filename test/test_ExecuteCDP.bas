@@ -80,7 +80,8 @@ Sub test_cdp_enhanced_geolocation()
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
-    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
+    Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
     
     driver.Wait 1000
     
@@ -233,7 +234,10 @@ Sub test_cdp_random_other_stuff()
     'use cdp get browser history
     'https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-getNavigationHistory
     Set resp = driver.ExecuteCDP("Page.getNavigationHistory")
-    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
+    Debug.Assert resp("value")("entries")(1)("url") = "data:,"
+    Debug.Assert resp("value")("entries")(2)("url") = "https://www.wikipedia.org/"
+    Debug.Assert resp("value")("entries")(3)("url") = "https://www.google.com/"
+    Debug.Assert resp("value")("entries")(4)("url") = "https://www.wikipedia.org/"
     
     'use cdp reset browser history
     'https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-resetNavigationHistory
@@ -241,7 +245,8 @@ Sub test_cdp_random_other_stuff()
     
     'use cdp to confirm browser history was erased
     Set resp = driver.ExecuteCDP("Page.getNavigationHistory")
-    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
+    Debug.Assert resp("value")("entries").Count = 1
+    Debug.Assert resp("value")("entries")(1)("url") = "https://www.wikipedia.org/"
     
     'use cdp to clear and disable browser cache
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-enable
@@ -254,8 +259,8 @@ Sub test_cdp_random_other_stuff()
     'use cdp to get cookies
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-getCookies
     Set resp = driver.ExecuteCDP("Network.getCookies")
-    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
-    Debug.Print resp("value")("cookies").Count
+    Debug.Assert resp("value")("cookies").Count > 0
+    Debug.Assert resp("value")("cookies")(1)("name") <> ""
     
     'use cdp to clear cookies
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-clearBrowserCookies
@@ -263,15 +268,14 @@ Sub test_cdp_random_other_stuff()
     
     'use cdp to verify cookies are cleared
     Set resp = driver.ExecuteCDP("Network.getCookies")
-    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(resp, 4)
-    Debug.Print resp("value")("cookies").Count
+    Debug.Assert resp("value")("cookies").Count = 0
     
     'use cdp to override UserAgent
     'note that with the conventional command warppers, this is done with capabilities
     'https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setUserAgentOverride
     driver.ExecuteCDP "Emulation.setUserAgentOverride", "{""userAgent"": 'Mozilla/5.1 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36'}"
     
-    Debug.Print driver.GetUserAgent
+    Debug.Assert driver.GetUserAgent = "Mozilla/5.1 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
     driver.Wait 1500
     
     driver.CloseBrowser

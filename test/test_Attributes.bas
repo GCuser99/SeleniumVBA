@@ -28,13 +28,13 @@ Sub test_element_attributes_and_properties()
     driver.FindElementByID("the-input").SendKeys "John", True
     
     'this gets the initial default attribute value "Sally"
-    Debug.Print "value attribute:", driver.FindElementByID("the-input").GetAttribute("value")
+    Debug.Assert driver.FindElementByID("the-input").GetAttribute("value") = "Sally"
     
     'this gets the current value of the input box, "John"
-    Debug.Print "value property:", driver.FindElementByID("the-input").GetProperty("value")
+    Debug.Assert driver.FindElementByID("the-input").GetProperty("value") = "John"
     
     'Note that after browser parses html, new properties are created
-    Debug.Print "defaultValue property:", driver.FindElementByID("the-input").GetProperty("defaultValue")
+    Debug.Assert driver.FindElementByID("the-input").GetProperty("defaultValue") = "Sally"
     
     driver.Wait 1000
     
@@ -48,14 +48,14 @@ Sub test_element_attributes_and_properties()
     driver.FindElementByID("vehicle1").Click
     
     'Note that after browser parses html, the checked property is created for vehicle1 and vehicle2 checkboxes
-    Debug.Print "checked property for vehicle1:", driver.FindElementByID("vehicle1").GetProperty("checked")
-    Debug.Print "checked property for vehicle2:", driver.FindElementByID("vehicle2").GetProperty("checked")
-    Debug.Print "checked property for vehicle3:", driver.FindElementByID("vehicle3").GetProperty("checked")
+    Debug.Assert driver.FindElementByID("vehicle1").GetProperty("checked") = True
+    Debug.Assert driver.FindElementByID("vehicle2").GetProperty("checked") = False
+    Debug.Assert driver.FindElementByID("vehicle3").GetProperty("checked") = True
     
     'the html for vehicle3 has a "checked" attribute so it gets returned by getAttribute, but vehicle1 and vehicle2 do not and thus return null string
-    Debug.Print "checked attribute for vehicle1:", driver.FindElementByID("vehicle1").GetAttribute("checked")
-    Debug.Print "checked attribute for vehicle2:", driver.FindElementByID("vehicle2").GetAttribute("checked")
-    Debug.Print "checked attribute for vehicle3:", driver.FindElementByID("vehicle3").GetAttribute("checked")
+    Debug.Assert driver.FindElementByID("vehicle1").GetAttribute("checked") = vbNullString
+    Debug.Assert driver.FindElementByID("vehicle2").GetAttribute("checked") = vbNullString
+    Debug.Assert driver.FindElementByID("vehicle3").GetAttribute("checked") = True
     
     driver.Wait 1000
 
@@ -75,8 +75,8 @@ Sub test_css_property()
     
     driver.Wait
     
-    Debug.Print "Background color: " & driver.FindElementByTagName("html").GetCSSProperty("background-color")
-    Debug.Print "Font family: " & driver.FindElementByTagName("html").GetCSSProperty("font-family")
+    Debug.Assert driver.FindElementByTagName("html").GetCSSProperty("background-color") = "rgba(0, 0, 0, 0)"
+    Debug.Assert driver.FindElementByTagName("html").GetCSSProperty("font-family") = """Times New Roman"""
     
     driver.Wait
     
@@ -104,8 +104,8 @@ Sub test_element_aria()
     
     driver.Wait 1000
     
-    Debug.Print "Label: " & driver.FindElementByClassName("xyz").GetAriaLabel
-    Debug.Print "Role: " & driver.FindElementByClassName("xyz").GetAriaRole
+    Debug.Assert driver.FindElementByClassName("xyz").GetAriaLabel = "Add food"
+    Debug.Assert driver.FindElementByClassName("xyz").GetAriaRole = "button"
     
     driver.CloseBrowser
     driver.Shutdown

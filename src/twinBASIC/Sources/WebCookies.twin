@@ -5,7 +5,7 @@
 Public Class WebCookies
 
     ' ==========================================================================
-    ' SeleniumVBA v5.5
+    ' SeleniumVBA v5.6
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -103,7 +103,7 @@ Public Class WebCookies
         Dim ts As TextStream
         Dim darray() As Dictionary
         Dim i As Long
-        filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
+        filePath = driver_.ResolvePath (filePath)
         Set ts = fso.CreateTextFile(filePath, True, True)
         ReDim darray(1 To Me.Count)
         For i = 1 To Me.Count
@@ -123,7 +123,7 @@ Public Class WebCookies
     
         Me.RemoveAll
     
-        filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
+        filePath = driver_.ResolvePath (filePath)
         'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
         Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
         str = ts.ReadAll

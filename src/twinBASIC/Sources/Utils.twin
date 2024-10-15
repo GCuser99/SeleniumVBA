@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v5.5
+    ' SeleniumVBA v5.6
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -58,6 +58,41 @@ Private Module Utils
         Data3 As Integer
         Data4(7) As Byte
     End Type
+    
+    Private Enum CRYPT_STRING_OPTIONS
+        CRYPT_STRING_BASE64HEADER = &H0
+        CRYPT_STRING_BASE64 = &H1        'Base64, without headers.
+        CRYPT_STRING_BINARY = &H2
+        CRYPT_STRING_BASE64REQUESTHEADER = &H3
+        CRYPT_STRING_HEX = &H4
+        CRYPT_STRING_HEXASCII = &H5
+        CRYPT_STRING_BASE64_ANY = &H6
+        CRYPT_STRING_ANY = &H7
+        CRYPT_STRING_HEX_ANY = &H8
+        CRYPT_STRING_BASE64X509CRLHEADER = &H9
+        CRYPT_STRING_HEXADDR = &HA
+        CRYPT_STRING_HEXASCIIADDR = &HB
+        CRYPT_STRING_HEXRAW = &HC
+        CRYPT_STRING_BASE64URI = &HD
+        CRYPT_STRING_ENCODEMASK = &HFF
+        CRYPT_STRING_RESERVED100 = &H100
+        CRYPT_STRING_RESERVED200 = &H200
+        CRYPT_STRING_PERCENTESCAPE = &H8000000   ' base64 formats only
+        CRYPT_STRING_HASHDATA = &H10000000
+        CRYPT_STRING_STRICT = &H20000000
+        CRYPT_STRING_NOCRLF = &H40000000 'Do not append any new line characters to the encoded string.
+        CRYPT_STRING_NOCR = &H80000000 'this will use vbLF for new line character (as opposed to default vbCrLf), compatible with MSXML2
+    End Enum
+
+    Private Enum BOOL
+        CFALSE
+        CTRUE
+    End Enum
+    
+    'https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptbinarytostringw
+    Private DeclareWide PtrSafe Function CryptStringToBinary Lib "crypt32" Alias "CryptStringToBinaryW" (ByVal pszString As String, ByVal cchString As Long, ByVal dwFlags As CRYPT_STRING_OPTIONS, pbBinary As Any, pcbBinary As Long, Optional pdwSkip As Long, Optional pdwFlags As CRYPT_STRING_OPTIONS) As BOOL
+    'https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptstringtobinaryw
+    Private DeclareWide PtrSafe Function CryptBinaryToString Lib "crypt32" Alias "CryptBinaryToStringW" (pbBinary As Any, ByVal cbBinary As Long, ByVal dwFlags As CRYPT_STRING_OPTIONS, ByVal pszString As String, pcchString As Long) As BOOL
     '*/
 
     'adapted from:
@@ -319,19 +354,56 @@ Private Module Utils
         If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
         fp = FreeFile
         Open filePath For Binary Access Write As #fp
-        Put #fp, 1, byteArray
+        Put #fp,, byteArray
         Close #fp
     End Sub
     
-    Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
-        Dim fp As Long, fso As New FileSystemObject
+    Public Function readByteArrayFromFile(ByVal filePath As String, Optional ByVal baseIndex As Long = 1) As Byte()
+        Dim fp As Long
         Dim byteArray() As Byte
         fp = FreeFile
         Open filePath For Binary Access Read As #fp
-        ReDim byteArray(1 To LOF(fp))
-        Get #fp, 1, byteArray
+    
+        ReDim byteArray(baseIndex To LOF(fp) + baseIndex - 1)
+    
+        Get #fp,, byteArray
         Close #fp
         readByteArrayFromFile = byteArray
+    End Function
+    
+    Public Function encodeBase64(bytes() As Byte, Optional ByVal useNewLines As Boolean = True, Optional ByVal useCrLfForNewLine As Boolean = True) As String
+        'https://gist.github.com/wqweto/0002b7e6c4f92e69c8e8339ed2235b4c
+        Dim lSize As Long
+        Dim flags As Long
+        Dim baseIndex As Long
+        Dim numBytes As Long
+    
+        flags = CRYPT_STRING_BASE64
+        If Not useNewLines Then
+            flags = flags Or CRYPT_STRING_NOCRLF
+        ElseIf Not useCrLfForNewLine Then
+            flags = flags Or CRYPT_STRING_NOCR 'compatibility with MSXML2 which uses vbLf
+        End If
+    
+        baseIndex = LBound(bytes)
+        numBytes = UBound(bytes) - baseIndex + 1
+    
+        encodeBase64 = String$(2 * numBytes + 4, 0)
+        lSize = Len(encodeBase64) + 1
+        Call CryptBinaryToString(bytes(baseIndex), numBytes, flags, encodeBase64, lSize)
+        encodeBase64 = Left$(encodeBase64, lSize)
+    End Function
+
+    Public Function decodeBase64(sText As String, Optional ByVal baseIndex As Long = 1) As Byte()
+        'https://gist.github.com/wqweto/0002b7e6c4f92e69c8e8339ed2235b4c
+        Dim lSize As Long
+        Dim baOutput() As Byte
+        lSize = Len(sText) + 1
+        ReDim baOutput(baseIndex To lSize - 1 + baseIndex) As Byte
+        If CryptStringToBinary(sText, Len(sText), CRYPT_STRING_BASE64, baOutput(baseIndex), lSize) <> 0 Then
+            ReDim Preserve baOutput(baseIndex To lSize - 1 + baseIndex) As Byte
+            decodeBase64 = baOutput
+        End If
     End Function
     
 End Module

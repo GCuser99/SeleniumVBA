@@ -26,7 +26,7 @@ Sub test_Selenium_way()
     driver.FindElementByCssSelector("#content > div > a").Click
         
     'note here that main window is still the active one from Selenium's perspective!!
-    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    Debug.Assert driver.ActiveWindow.Title = "The Internet"
         
     'now get the collection of all open window handles
     Set allHandles = driver.Windows.Handles
@@ -41,7 +41,7 @@ Sub test_Selenium_way()
         
     'activate the child window and print title
     driver.Windows(childHandle).Activate
-    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    Debug.Assert driver.ActiveWindow.Title = "New Window"
     
     driver.Shutdown
 End Sub
@@ -67,12 +67,12 @@ Sub test_windows_Selenium_way_with_oop_approach()
     driver.FindElementByCssSelector("#content > div > a").Click
     
     'note here that main window is still the active one from Selenium's perspective!!
-    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    Debug.Assert driver.ActiveWindow.Title = "The Internet"
     
     'find and activate the child window and then print its title
     For Each window In driver.Windows
         If window.IsNotSameAs(mainWindow) Then
-            Debug.Print window.Activate.Title 'prints "New Window"
+            Debug.Assert window.Activate.Title = "New Window"
             Exit For
         End If
     Next window
@@ -101,12 +101,12 @@ Sub test_windows_SwitchToByTitle()
     driver.FindElementByCssSelector("#content > div > a").Click
     
     'note here that main window is still the active one from Selenium's perspective!!
-    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    Debug.Assert driver.ActiveWindow.Title = "The Internet"
     
     Set childWindow = driver.Windows.SwitchToByTitle("New Window")
     
-    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
-    Debug.Print childWindow.Title 'prints "New Window"
+    Debug.Assert driver.ActiveWindow.Title = "New Window"
+    Debug.Assert childWindow.Title = "New Window"
     
     driver.Shutdown
 End Sub
@@ -135,8 +135,8 @@ Sub test_windows_SwitchToByUrl()
     Debug.Print driver.ActiveWindow.Url 'prints "https://the-internet.herokuapp.com/windows"
     
     Set childWindow = driver.Windows.SwitchToByUrl("https://the-internet.herokuapp.com/windows/new")
-    Debug.Print driver.ActiveWindow.Url 'prints "https://the-internet.herokuapp.com/windows/new"
-    Debug.Print childWindow.Url 'prints "https://the-internet.herokuapp.com/windows/new"
+    Debug.Assert driver.ActiveWindow.Url = "https://the-internet.herokuapp.com/windows/new"
+    Debug.Assert childWindow.Url = "https://the-internet.herokuapp.com/windows/new"
     
     driver.Shutdown
 End Sub
@@ -162,12 +162,12 @@ Sub test_windows_SwitchToNext()
     driver.FindElementByCssSelector("#content > div > a").Click
     
     'note here that main window is still the active one from Selenium's perspective!!
-    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    Debug.Assert driver.ActiveWindow.Title = "The Internet"
     
     'switch to the next open window in the collection AFTER the current active window
     Set childWindow = driver.Windows.SwitchToNext
-    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
-    Debug.Print childWindow.Title 'prints "New Window"
+    Debug.Assert driver.ActiveWindow.Title = "New Window"
+    Debug.Assert childWindow.Title = "New Window"
     
     driver.Shutdown
 End Sub
@@ -201,8 +201,8 @@ Sub test_windows_SwitchToNew()
     driver.NavigateTo "http://google.com"
     
     For i = 1 To 5
-        Debug.Print win1.Activate.Title
-        Debug.Print win2.Activate.Title
+        Debug.Assert win1.Activate.Title = "The Internet"
+        Debug.Assert win2.Activate.Title = "Google"
     Next i
     
     driver.Shutdown
@@ -229,15 +229,15 @@ Sub test_windows_CloseIt()
     driver.FindElementByCssSelector("#content > div > a").Click
     
     'note here that main window is still the active one from Selenium's perspective!!
-    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
+    Debug.Assert driver.ActiveWindow.Title = "The Internet"
     
     Set childWindow = driver.Windows.SwitchToNext
-    Debug.Print driver.ActiveWindow.Title 'prints "New Window"
+    Debug.Assert driver.ActiveWindow.Title = "New Window"
     
     childWindow.CloseIt 'this automatically activates the mainWindow upon close
     
-    Debug.Print driver.ActiveWindow.Title 'prints "The Internet"
-    Debug.Print mainWindow.Title 'prints "The Internet"
+    Debug.Assert driver.ActiveWindow.Title = "The Internet"
+    Debug.Assert mainWindow.Title = "The Internet"
     
     driver.Shutdown
 End Sub
@@ -304,14 +304,14 @@ Sub test_url_encoding()
     
     '****************************************************************************************************
     'test if IsPageFound is encoding agnostic
-    Debug.Print "is page found using decoded url: " & driver.IsPageFound(urlDecoded)
-    Debug.Print "is page found using encoded url: " & driver.IsPageFound(urlEncoded)
+    Debug.Assert driver.IsPageFound(urlDecoded) = True
+    Debug.Assert driver.IsPageFound(urlEncoded) = True
     
     '****************************************************************************************************
     'spawn a new window
     driver.Windows.SwitchToNew svbaTab
 
-    Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url
+    Debug.Assert driver.ActiveWindow.Url = "about:blank"
     
     '****************************************************************************************************
     'test if SwitchToByUrl is encoding agnostic and test Window.Url method

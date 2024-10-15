@@ -61,7 +61,7 @@ Sub test_MultiSession_Edge()
     driver2.FindElement(By.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
-    Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
+    Debug.Assert driver1.IsAlertPresent = False
                                 
     driver1.FindElement(By.Name, "cusid").SendKeys "87654"
     driver1.Wait 1000
@@ -69,11 +69,11 @@ Sub test_MultiSession_Edge()
     driver1.FindElement(By.Name, "submit").Click
     driver1.Wait 1000
     
-    Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
-    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    Debug.Assert driver1.IsAlertPresent = True
+    Debug.Assert driver1.SwitchToAlert.GetText = "Do you really want to delete this Customer?"
     driver1.SwitchToAlert.Accept
     
-    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    Debug.Assert driver1.SwitchToAlert.GetText = "Customer Successfully Delete!"
     driver1.SwitchToAlert.Accept
 
     driver1.Wait 1000
@@ -126,7 +126,7 @@ Sub test_MultiSession_mix_Edge_Chrome()
     driver2.FindElement(By.ID, "searchInput").SendKeys keySeq
     driver2.Wait 1000
     
-    Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
+    Debug.Assert driver1.IsAlertPresent = False
                                 
     driver1.FindElement(By.Name, "cusid").SendKeys "87654"
     driver1.Wait 1000
@@ -134,11 +134,11 @@ Sub test_MultiSession_mix_Edge_Chrome()
     driver1.FindElement(By.Name, "submit").Click
     driver1.Wait 1000
     
-    Debug.Print "Is Alert Present: " & driver1.IsAlertPresent
-    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    Debug.Assert driver1.IsAlertPresent = True
+    Debug.Assert driver1.SwitchToAlert.GetText = "Do you really want to delete this Customer?"
     driver1.SwitchToAlert.Accept
     
-    Debug.Print "Alert Text: " & driver1.SwitchToAlert.GetText
+    Debug.Assert driver1.SwitchToAlert.GetText = "Customer Successfully Delete!"
     driver1.SwitchToAlert.Accept
 
     driver1.Wait 1000

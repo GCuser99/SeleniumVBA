@@ -34,8 +34,8 @@ Sub test_select()
     fruits.DeSelectByValue "orange"
     driver.Wait
     
-    Debug.Print fruits.GetSelectedOption.GetText 'Grape
-    Debug.Print driver.FindElementByCssSelector("option[value='grape']", fruits).IsSelected
+    Debug.Assert fruits.GetSelectedOption.GetText = "Grape"
+    Debug.Assert driver.FindElementByCssSelector("option[value='grape']", fruits).IsSelected
     
     driver.CloseBrowser
     driver.Shutdown

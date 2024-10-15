@@ -90,12 +90,12 @@ Sub test_WaitUntilDisplayed()
     'find the "not displayed" element
     Set elem = driver.FindElement(By.ID, "testDiv")
     
-    Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
+    Debug.Assert driver.IsDisplayed(elem) = False
     
     'wait for it to display...
     driver.WaitUntilDisplayed elem
     
-    Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
+    Debug.Assert driver.IsDisplayed(elem) = True
     
     driver.Wait 500
     
@@ -141,12 +141,12 @@ Sub test_WaitUntilNotDisplayed()
     'find the "not displayed" element
     Set elem = driver.FindElement(By.ID, "testDiv")
     
-    Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
+    Debug.Assert driver.IsDisplayed(elem) = True
     
     'wait for it to disappear...
     driver.WaitUntilNotDisplayed elem
     
-    Debug.Print "Is displayed?:", driver.IsDisplayed(elem)
+    Debug.Assert driver.IsDisplayed(elem) = False
     
     'WaitUntilNotDisplayed allows for method chaining too
     'Debug.Print "Is displayed?:", driver.WaitUntilNotDisplayed(elem).IsDisplayed
@@ -244,13 +244,13 @@ Sub test_WaitUntilDisplayed2()
     driver.Wait 500
     
     'search button is there, but not interactable...
-    Debug.Print "Is search button interactable yet? " & searchButton.IsDisplayed
+    Debug.Assert searchButton.IsDisplayed = False
     
     driver.FindElement(By.Name, "q").SendKeys "Interactable"
 
     'searchButton.Click 'will often throw an error here because it takes some time
     'for search button to get ready after typing search phrase
-    Debug.Print "Is search button interactable yet? " & searchButton.IsDisplayed
+    Debug.Assert searchButton.IsDisplayed = False
     
     'can place an explicit Wait here but another way is to use WaitUntilReady method
     'it returns the "ready" input element object so can use methods on same line

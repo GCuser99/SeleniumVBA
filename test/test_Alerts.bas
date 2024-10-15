@@ -30,70 +30,66 @@ Sub test_Alerts()
     'standard alert 1
     driver.FindElement(By.ID, "alert").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 1: " & .GetText
+        Debug.Assert .GetText = "cheese"
         .Accept
     End With
-    Debug.Print "standard alert found and accepted"
     
     'standard alert 2
     driver.FindElement(By.ID, "empty-alert").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 2: " & .GetText
+        Debug.Assert .GetText = ""
         .Accept
     End With
-    Debug.Print "empty alert found and accepted"
     
     'input prompt alert 3
     driver.FindElement(By.ID, "prompt").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 3: " & .GetText
+        Debug.Assert .GetText = "Enter something"
         .SendKeys "here is my response text to prompt"
         .Accept
     End With
-    Debug.Print driver.FindElement(By.ID, "text").GetText
+    Debug.Assert driver.FindElement(By.ID, "text").GetText = "here is my response text to prompt"
     
     'input prompt alert 4
     driver.FindElement(By.ID, "prompt-with-default").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 4: " & .GetText
+        Debug.Assert .GetText = "Enter something"
         .SendKeys "here is my response text to prompt with default"
         .Accept
     End With
-    Debug.Print driver.FindElement(By.ID, "text").GetText
+    Debug.Assert driver.FindElement(By.ID, "text").GetText = "here is my response text to prompt with default"
     
     'input double prompt alerts 5 and 6
     driver.FindElement(By.ID, "double-prompt").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 5: " & .GetText
+        Debug.Assert .GetText = "First"
         .SendKeys "here is my response text to first of double prompt"
         .Accept
     End With
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 6: " & .GetText
+        Debug.Assert .GetText = "Second"
         .SendKeys "here is my response text to second of double prompt"
         .Accept
     End With
     'note that this first GetText must be performed after the second alert above
     'so that it does not interfere with that alert!!
-    Debug.Print driver.FindElement(By.ID, "text1").GetText
-    Debug.Print driver.FindElement(By.ID, "text2").GetText
+    Debug.Assert driver.FindElement(By.ID, "text1").GetText = "here is my response text to first of double prompt"
+    Debug.Assert driver.FindElement(By.ID, "text2").GetText = "here is my response text to second of double prompt"
     
     'test for a delayed alert 7
     'without the non-zero max wait, this will throw an error
     driver.FindElement(By.ID, "slow-alert").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 7: " & .GetText
+        Debug.Assert .GetText = "Slow"
         .Accept
     End With
-    Debug.Print "slow alert found and accepted"
     
     'a confirm alert 8
     driver.FindElement(By.ID, "confirm").Click
     With driver.SwitchToAlert
-        Debug.Print "Alert prompt 8: " & .GetText
+        Debug.Assert .GetText = "Are you sure?"
         .Dismiss
     End With
-    Debug.Print "confirm alert found and dismissed"
     
     driver.Wait 1000
     driver.GoBack
@@ -122,7 +118,7 @@ Sub test_Alerts2()
     'for alert to show, and then returns a WebAlert object for interaction
     driver.SwitchToAlert.SendKeys("hola mi nombre es Jose").Accept
     
-    Debug.Print driver.FindElementByID("result").GetText
+    Debug.Assert driver.FindElementByID("result").GetText = "You entered: hola mi nombre es Jose"
         
     driver.CloseBrowser
     driver.Shutdown

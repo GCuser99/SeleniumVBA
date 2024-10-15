@@ -22,7 +22,8 @@ Sub test_geolocation()
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
-    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
+    Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
     
     driver.Wait 2000
     

@@ -89,7 +89,7 @@ Sub test_BasicAuthentication()
     driver.NavigateTo "http://" & userName & ":" & pw & "@the-internet.herokuapp.com/basic_auth"
   
     If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
-        Debug.Print elem.GetText
+        Debug.Assert elem.GetText = "Congratulations! You must have the proper credentials."
     End If
     
     driver.CloseBrowser
@@ -120,7 +120,7 @@ Sub test_CDP_BasicAuthentication()
     driver.ExecuteCDP "Network.enable"
 
     'build authorization string
-    authString = "Basic " & encodeBase64(userName & ":" & pw)
+    authString = "Basic " & EncodeStringToBase64(userName & ":" & pw)
     
     'build the CDP parameter dictionary
     Set params = New Dictionary
@@ -132,6 +132,8 @@ Sub test_CDP_BasicAuthentication()
     
     driver.FindElement(By.LinkText, "Basic Authentication test").Click
     
+    Debug.Assert driver.FindElement(By.CssSelector, "body > p:nth-child(4)").GetText = "Your browser made it!"
+    
     driver.Wait 1000
     
     driver.CloseBrowser
@@ -139,7 +141,7 @@ Sub test_CDP_BasicAuthentication()
 End Sub
 
 'https://stackoverflow.com/questions/169907/how-do-i-base64-encode-a-string-efficiently-using-excel-vba
-Private Function encodeBase64(text As String) As String
+Private Function EncodeStringToBase64(text As String) As String
     Dim bytes() As Byte
     Dim domDoc As Object
     Dim domElem As Object
@@ -148,5 +150,5 @@ Private Function encodeBase64(text As String) As String
     Set domElem = domDoc.createElement("b64")
     domElem.DataType = "bin.base64"
     domElem.nodeTypedValue = bytes
-    encodeBase64 = Replace(domElem.text, vbLf, "")
+    EncodeStringToBase64 = Replace(domElem.text, vbLf, "")
 End Function

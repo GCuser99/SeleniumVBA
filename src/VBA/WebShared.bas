@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.5
+' SeleniumVBA v5.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -62,6 +62,17 @@ Private Declare PtrSafe Function GetForegroundWindow Lib "user32" () As LongPtr
 Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringW" (ByVal lpApplicationName As LongPtr, ByVal lpKeyName As LongPtr, ByVal lpDefault As LongPtr, lpReturnedString As Any, ByVal nSize As Long, ByVal lpFilename As LongPtr) As Long
 
 Public Declare PtrSafe Function UrlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileW" (ByVal pCaller As Long, ByVal szURL As LongPtr, ByVal szFileName As LongPtr, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+
+'https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptbinarytostringw
+Private Declare PtrSafe Function CryptBinaryToStringW Lib "crypt32" (pbBinary As Any, ByVal cbBinary As Long, ByVal dwFlags As CRYPT_STRING_OPTIONS, ByVal pszString As LongPtr, pcchString As Long) As Long
+'https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptstringtobinaryw
+Private Declare PtrSafe Function CryptStringToBinaryW Lib "crypt32" (ByVal pszString As LongPtr, ByVal cchString As Long, ByVal dwFlags As CRYPT_STRING_OPTIONS, pbBinary As Any, pcbBinary As Long, Optional pdwSkip As Long, Optional pdwFlags As CRYPT_STRING_OPTIONS) As Long
+
+Private Enum CRYPT_STRING_OPTIONS
+    CRYPT_STRING_BASE64 = &H1           'Base64, without headers.
+    CRYPT_STRING_NOCRLF = &H40000000    'Do not append any new line characters to the encoded string.
+    CRYPT_STRING_NOCR = &H80000000      'this will use vbLF for new line character (as opposed to default vbCrLf), compatible with MSXML2
+End Enum
 
 Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
@@ -515,29 +526,44 @@ Public Function AscWL(ByVal s As String) As Long
     AscWL = CLng(AscW(s)) And &HFFFF&
 End Function
 
-Public Function decodeBase64(ByVal strData As String) As Byte()
-    Dim domDoc As New MSXML2.DOMDocument60
-    Dim domNode As MSXML2.IXMLDOMElement
-    'create node with type of base 64 and decode
-    Set domNode = domDoc.createElement("b64")
-    domNode.DataType = "bin.base64"
-    domNode.text = strData
-    decodeBase64 = domNode.nodeTypedValue
+Public Function encodeBase64(bytes() As Byte, Optional ByVal useNewLines As Boolean = True, Optional ByVal useCrLfForNewLine As Boolean = True) As String
+    'https://gist.github.com/wqweto/0002b7e6c4f92e69c8e8339ed2235b4c
+    Dim lSize As Long
+    Dim flags As Long
+    Dim baseIndex As Long
+    Dim numBytes As Long
+    
+    flags = CRYPT_STRING_BASE64
+    If Not useNewLines Then
+        flags = flags Or CRYPT_STRING_NOCRLF
+    ElseIf Not useCrLfForNewLine Then
+        flags = flags Or CRYPT_STRING_NOCR 'compatibility with MSXML2 which uses vbLf
+    End If
+    
+    baseIndex = LBound(bytes)
+    numBytes = UBound(bytes) - baseIndex + 1
+    
+    encodeBase64 = String$(2 * numBytes + 4, 0)
+    lSize = Len(encodeBase64) + 1
+    Call CryptBinaryToStringW(bytes(baseIndex), numBytes, flags, StrPtr(encodeBase64), lSize)
+    encodeBase64 = Left$(encodeBase64, lSize)
 End Function
 
-Public Function encodeBase64(bytes() As Byte) As String
-    Dim domDoc As New MSXML2.DOMDocument60
-    Dim domNode As MSXML2.IXMLDOMElement
-    'create node with type of base 64 and encode
-    Set domNode = domDoc.createElement("b64")
-    domNode.DataType = "bin.base64"
-    domNode.nodeTypedValue = bytes
-    encodeBase64 = domNode.text
+Public Function decodeBase64(sText As String, Optional ByVal baseIndex As Long = 1) As Byte()
+    'https://gist.github.com/wqweto/0002b7e6c4f92e69c8e8339ed2235b4c
+    Dim lSize As Long
+    Dim baOutput() As Byte
+    lSize = Len(sText) + 1
+    ReDim baOutput(baseIndex To lSize - 1 + baseIndex) As Byte
+    If CryptStringToBinaryW(StrPtr(sText), Len(sText), CRYPT_STRING_BASE64, baOutput(baseIndex), lSize) <> 0 Then
+        ReDim Preserve baOutput(baseIndex To lSize - 1 + baseIndex) As Byte
+        decodeBase64 = baOutput
+    End If
 End Function
 
 Public Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
-    Dim binaryStream As New ADODB.Stream
-
+    'we are using ADODB.Stream instead of native Open because later does not support unicode filePaths
+    Dim binaryStream As New ADODB.stream
     'specify stream type - we want to save binary data.
     binaryStream.Type = adTypeBinary
   
@@ -551,7 +577,8 @@ Public Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
 End Sub
 
 Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
-    Dim binaryStream As New ADODB.Stream
+    'we are using ADODB.Stream instead of native Open because later does not support unicode filePaths
+    Dim binaryStream As New ADODB.stream
     Dim bytearray() As Byte
 
     'specify stream type - we want to read binary data.
@@ -562,7 +589,7 @@ Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
     
     'load and read binary data from disk
     binaryStream.LoadFromFile filePath
-    bytearray = binaryStream.Read
+    bytearray = binaryStream.Read 'returns 0-based byte array
   
     binaryStream.Close
     readByteArrayFromFile = bytearray

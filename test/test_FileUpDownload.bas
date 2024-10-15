@@ -4,8 +4,7 @@ Option Private Module
 '@folder("SeleniumVBA.Testing")
 
 Sub test_file_upload()
-    'see https://www.guru99.com/upload-download-file-selenium-webdriver.html
-    Dim driver As SeleniumVBA.WebDriver, str As String
+    Dim driver As SeleniumVBA.WebDriver
 
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -14,24 +13,19 @@ Sub test_file_upload()
     driver.StartEdge
     driver.OpenBrowser
     
-    str = "<!DOCTYPE html><html><body><div role='button' class='xyz' aria-label='Add food' aria-disabled='false' data-tooltip='Add food'><span class='abc' aria-hidden='true'>icon</span></body></html>"
+    driver.SaveStringToFile "Hello World", ".\file_1.txt"
     
-    driver.SaveStringToFile str, ".\snippet.html"
-    
-    driver.NavigateTo "https://demo.guru99.com/test/upload/"
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/upload.html"
 
     driver.Wait 1000
     
     'enter the file path onto the file-selection input field
-    driver.FindElement(By.ID, "uploadfile_0").UploadFile ".\snippet.html" 'this is just a special wrapper for sendkeys
+    driver.FindElement(By.CssSelector, "#upload").UploadFile ".\file_1.txt" 'this is just a special wrapper for sendkeys
     
     driver.Wait 1000
 
-    'check the "I accept the terms of service" check box
-    driver.FindElement(By.ID, "terms").Click
-
-    'click the "Submit File" button
-    driver.FindElement(By.Name, "send").Click
+    'click the "Go" submit button
+    driver.FindElement(By.CssSelector, "#go").Click
     
     driver.Wait 1000
             
@@ -40,16 +34,14 @@ Sub test_file_upload()
 End Sub
 
 Sub test_file_download()
-    'see https://www.browserstack.com/guide/download-file-using-selenium-python
-    Dim driver As SeleniumVBA.WebDriver, caps As SeleniumVBA.WebCapabilities
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
     
     Set driver = SeleniumVBA.New_WebDriver
     
     'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartChrome
-    
-    driver.DeleteFiles ".\BrowserStack - List of devices to test on*.csv"
     
     Set caps = driver.CreateCapabilities
 
@@ -64,18 +56,19 @@ Sub test_file_download()
     
     'driver.SetDownloadFolder ".\" 'for Edge and Chrome only - no need to set in capabilities
         
-    driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/downloads/download.html"
     driver.Wait 500
     
     'driver.FindElementByID("accept-cookie-notification").Click
     'driver.Wait 500
     
-    driver.FindElementByCssSelector(".icon-csv").ScrollIntoView yOffset:=-150
-    driver.Wait 1000
+    driver.DeleteFiles ".\file_1.txt", ".\file_2.jpg"
     
-    driver.FindElementByCssSelector(".icon-csv").Click
+    driver.FindElementByCssSelector("#file-1").Click
+    driver.WaitForDownload ".\file_1.txt"
     
-    driver.WaitForDownload ".\BrowserStack - List of devices to test on.csv"
+    driver.FindElementByCssSelector("#file-2").Click
+    driver.WaitForDownload ".\file_2.jpg"
             
     driver.CloseBrowser
     driver.Shutdown
@@ -91,7 +84,7 @@ Sub test_file_download2()
     
     'set the directory path for saving download to
     Set caps = driver.CreateCapabilities
-    caps.SetDownloadPrefs downloadFolderPath:=".\"
+    caps.SetDownloadPrefs downloadFolderPath:=".\", promptForDownload:=False, disablePDFViewer:=True
     driver.OpenBrowser caps
     
     'delete legacy copy if it exists

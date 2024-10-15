@@ -2,7 +2,7 @@ Attribute VB_Name = "test_IsPresent"
 Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
-    
+
 Sub test_IsPresent()
     Dim driver As SeleniumVBA.WebDriver
     Dim htmlStr As String
@@ -26,25 +26,25 @@ Sub test_IsPresent()
     
     driver.Wait 500
     
-    Debug.Print "does any child1 exist:", driver.IsPresent(By.XPath, "//div[@id = 'child1']", elemFound:=elem)
-    Debug.Print "first found child1 text:", elem.GetText
+    Debug.Assert driver.IsPresent(By.XPath, "//div[@id = 'child1']", elemFound:=elem) = True  'does any child1 exist?
+    Debug.Assert elem.GetText = "child1 from parent1"
     
-    Debug.Print "child1 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child1']")
-    
-    'waiting up to 3 secs for elem to be present
-    Debug.Print "child2 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child2']", 3000, elemFound:=elem)
-    Debug.Print "child2 of parent2 text:", elem.GetText
+    Debug.Assert driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child1']") = True 'child1 of parent2 present?
     
     'waiting up to 3 secs for elem to be present
-    Debug.Print "child3 of parent2 present:", driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child3']", 3000, elemFound:=elem)
-    Debug.Print "child3 of parent2 reference is nothing:", elem Is Nothing
+    Debug.Assert driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child2']", 3000, elemFound:=elem) = True 'child2 of parent2 present?
+    Debug.Assert elem.GetText = "child2 from parent2"
+    
+    'waiting up to 3 secs for elem to be present
+    Debug.Assert driver.FindElement(By.ID, "parent2").IsPresent(By.XPath, ".//div[@id = 'child3']", 3000, elemFound:=elem) = False 'child3 of parent2 present
+    Debug.Assert elem Is Nothing 'child3 of parent2 reference is nothing
     
     Set elems = driver.FindElements(By.CssSelector, "[id^='parent']")
     
     For Each elem In elems
-        Debug.Print "child1 of " & elem.GetAttribute("id") & " present:", elem.IsPresent(By.XPath, ".//div[@id = 'child1']")
-        Debug.Print "child2 of " & elem.GetAttribute("id") & " present:", elem.IsPresent(By.XPath, ".//div[@id = 'child2']")
-        Debug.Print "child3 of " & elem.GetAttribute("id") & " present:", elem.IsPresent(By.XPath, ".//div[@id = 'child3']")
+        Debug.Assert elem.IsPresent(By.XPath, ".//div[@id = 'child1']") = True
+        Debug.Assert elem.IsPresent(By.XPath, ".//div[@id = 'child2']") = True
+        Debug.Assert elem.IsPresent(By.XPath, ".//div[@id = 'child3']") = False
     Next elem
     
     driver.CloseBrowser
@@ -88,7 +88,7 @@ Sub test_IsPresent_wait()
     driver.NavigateToFile ".\snippet1.html"
 
     'wait up to 20 secs for the div from the second html gets loaded
-    Debug.Print driver.IsPresent(By.ID, "testDiv", 20000)
+    Debug.Assert driver.IsPresent(By.ID, "testDiv", 20000) = True
     
     driver.Wait 1500
         

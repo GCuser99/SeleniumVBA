@@ -24,10 +24,10 @@ Sub test_WebElements()
     Set myTable = driver.FindElement(By.XPath, "/html/body/table/tbody")
     Set rowsTable = myTable.FindElements(By.TagName, "tr")
     
-    Debug.Print "Number of rows in table: " & rowsTable.Count
-    Debug.Print "Item 1 of first row: " & rowsTable.Item(1).GetText
-    Debug.Print "Item 1 of first row: " & rowsTable(1).GetText 'Item is the default property of WebElements class
-    Debug.Print "Is member: " & rowsTable.Exists(rowsTable(1))
+    Debug.Assert rowsTable.Count = 5
+    Debug.Assert rowsTable.Item(1).GetText = "1 2 3"
+    Debug.Assert rowsTable(1).GetText = "1 2 3" 'Item is the default property of WebElements class
+    Debug.Assert rowsTable.Exists(rowsTable(1)) = True
         
     'can use the default Item property to iterate through the WebElements object
     For row = 1 To rowsTable.Count
@@ -47,16 +47,16 @@ Sub test_WebElements()
         Next colElem
     Next rowElem
     
-    Debug.Print "Is member: " & rowsTable.Exists(rowsTable(1))
+    Debug.Assert rowsTable.Exists(rowsTable(1)) = True
     
     'can remove a WebElement from collection by index or WebElement object
     rowsTable.Remove 1 'remove first object in collection
     rowsTable.Remove rowsTable(3) 'remove by WebElement object
-    Debug.Print "Cells left after removal: " & rowsTable.Count 'after removing two WebElement objects
+    Debug.Assert rowsTable.Count = 3 'after removing two WebElement objects
     
     'works with ExecuteScript when returning a collection of WebElement objects
     Set tableCells = driver.ExecuteScript("return document.getElementsByTagName('td')")
-    Debug.Print "Number of table cells: " & tableCells.Count
+    Debug.Assert tableCells.Count = 12
     
     driver.CloseBrowser
     driver.Shutdown

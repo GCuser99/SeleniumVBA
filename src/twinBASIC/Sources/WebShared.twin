@@ -1,7 +1,7 @@
 Private Module WebShared
 
     ' ==========================================================================
-    ' SeleniumVBA v5.5
+    ' SeleniumVBA v5.6
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -358,27 +358,5 @@ Private Module WebShared
     Public Function AscWL(ByVal s As String) As Long
         AscWL = CLng(AscW(s)) And &HFFFF&
     End Function
-    
-    Public Function decodeBase64(ByVal strData As String) As Byte()
-        Dim domDoc As New MSXML2.DOMDocument60
-        Dim domNode As MSXML2.IXMLDOMElement
-        'create node with type of base 64 and decode
-        Set domNode = domDoc.createElement("b64")
-        domNode.dataType = "bin.base64"
-        domNode.text = strData
-        decodeBase64 = domNode.nodeTypedValue
-    End Function
-
-    Public Function encodeBase64(bytes() As Byte) As String
-        Dim domDoc As New MSXML2.DOMDocument60
-        Dim domNode As MSXML2.IXMLDOMElement
-        'create node with type of base 64 and encode
-        Set domNode = domDoc.createElement("b64")
-        domNode.dataType = "bin.base64"
-        domNode.nodeTypedValue = bytes
-        encodeBase64 = domNode.text
-    End Function
-
-
     
 End Module

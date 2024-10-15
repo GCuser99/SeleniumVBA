@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.5
+' SeleniumVBA v5.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -189,22 +189,30 @@ Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
     Dim extList() As String
     Dim i As Long
     Dim fso As New FileSystemObject
-    
-    varry = addList
-    pathList = paramListToStringArray(varry)
-    ReDim extList(1 To UBound(pathList))
-    For i = 1 To UBound(pathList)
-        If Not fso.FileExists(pathList(i)) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & pathList(i) & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
-        extList(i) = encodeBase64(readByteArrayFromFile(pathList(i)))
-    Next i
-    addToOptionList "extensions", extList
+    Dim filePath As String
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        varry = addList
+        pathList = paramListToStringArray(varry)
+        ReDim extList(1 To UBound(pathList))
+        For i = 1 To UBound(pathList)
+            filePath = driver_.ResolvePath(pathList(i))
+            If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & filePath & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
+            extList(i) = encodeBase64(readByteArrayFromFile(filePath), , False)
+        Next i
+        addToOptionList "extensions", extList
+    Case svbaBrowser.Firefox
+        Err.Raise 1, "WebCapabilities", "The AddExtensions method is not supported by the Firefox browser - use InstallAddon method of Webdriver class instead"
+    Case svbaBrowser.IE
+        Err.Raise 1, "WebCapabilities", "The AddExtensions method is not supported by the IE browser."
+    End Select
 End Sub
 
 '@Description("Sets the path to the browser executable in a non-standard location")
 Public Sub SetBrowserBinary(ByVal browserPath As String)
 Attribute SetBrowserBinary.VB_Description = "Sets the path to the browser executable in a non-standard location"
     'set the path to the browser executable to use
-    Me.SetOption "binary", WebShared.getFullLocalPath(browserPath, driver_.DefaultIOFolder)
+    Me.SetOption "binary", driver_.ResolvePath(browserPath)
 End Sub
 
 '@Description("Removes control notification for Edge/Chrome")
@@ -368,7 +376,7 @@ Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     Dim userDir As String
     Dim profileName As String
     
-    profilePath = WebShared.getFullLocalPath(profilePath, driver_.DefaultIOFolder)
+    profilePath = driver_.ResolvePath(profilePath)
     
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
@@ -408,9 +416,11 @@ Attribute SetPreference.VB_Description = "Sets an option preference key/value"
     End If
     
     'need to come up with a more generalized approach to paths - this is just a band-aid
-    If key = "download.default_directory" Then val = WebShared.getFullLocalPath(val, driver_.DefaultIOFolder)
-    If key = "browser.download.dir" Then val = WebShared.getFullLocalPath(val, driver_.DefaultIOFolder)
-    If key = "savefile.default_directory" Then val = WebShared.getFullLocalPath(val, driver_.DefaultIOFolder)
+    Select Case key
+    Case "download.default_directory", "browser.download.dir", "savefile.default_directory"
+        val = driver_.ResolvePath(val)
+    Case Else
+    End Select
     
     If IsObject(val) Then
         Set data_.Item("alwaysMatch")(browserOptionKey)("prefs")(key) = val
@@ -430,7 +440,7 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadFolderPath As String = ".\", 
                             Optional ByVal disablePDFViewer As Boolean = True)
 Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and directory path"
                             
-    downloadFolderPath = WebShared.getFullLocalPath(downloadFolderPath, driver_.DefaultIOFolder)
+    downloadFolderPath = driver_.ResolvePath(downloadFolderPath)
 
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
@@ -501,7 +511,7 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
 Attribute SaveToFile.VB_Description = "Saves the capabilities to file path"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
-    filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
+    filePath = driver_.ResolvePath(filePath)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ts.Write Me.ToJson
     ts.Close
@@ -513,7 +523,7 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
         
-    filePath = WebShared.getFullLocalPath(filePath, driver_.DefaultIOFolder)
+    filePath = driver_.ResolvePath(filePath)
     
     If Not fso.FileExists(filePath) Then Err.Raise 53, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
@@ -544,10 +554,7 @@ Friend Sub initializeFor(ByVal browser As svbaBrowser)
         Case svbaBrowser.Firefox
             browserOptionKey = "moz:firefoxOptions"
         Case svbaBrowser.IE
-            'see https://titusfortner.com/2022/09/28/edge-ie-mode.html
             browserOptionKey = "se:ieOptions"
-            browserOptions.Add "ie.edgechromium", True 'attach to Edge Chrome browser
-            'browserOptions.Add "ignoreZoomSetting", True 'ignore the zoom level of Internet Explorer - not needed with v4.7.0.0 and later
     End Select
     
     data_.Item("alwaysMatch").Add browserOptionKey, browserOptions

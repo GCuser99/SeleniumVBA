@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.5
+' SeleniumVBA v5.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -200,6 +200,7 @@ Private Type typCMD
     CMD_EXECUTE_CDP_COMMAND As Variant
     CMD_SCREENSHOT_FULL As Variant
     CMD_SCREENSHOT_FULL_FF As Variant
+    CMD_INSTALL_ADDON_FF As Variant
 End Type
 
 Private tCMD As typCMD
@@ -336,6 +337,7 @@ Private Sub initCommands()
         .CMD_EXECUTE_CDP_COMMAND = Array("POST", "/session/$sessionId/$service/cdp/execute")
         .CMD_SCREENSHOT_FULL = Array("GET", "/session/$sessionId/screenshot/full")
         .CMD_SCREENSHOT_FULL_FF = Array("GET", "/session/$sessionId/moz/screenshot/full")
+        .CMD_INSTALL_ADDON_FF = Array("POST", "/session/$sessionId/moz/addon/install")
     End With
 End Sub
 
@@ -407,7 +409,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     commandStr = vbNullString: serviceArgs = vbNullString
 
     If enableLogging Then
-        logFilePath = WebShared.getFullLocalPath(logFilePath, defaultIOFolder_)
+        logFilePath = ResolvePath(logFilePath)
         Select Case browser_
         Case svbaBrowser.Edge, svbaBrowser.Chrome
             serviceArgs = " --verbose --log-path=" & Chr$(34) & logFilePath & Chr$(34)
@@ -548,7 +550,7 @@ Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of 
     'So the only functional value of this method is to handle relative paths!
     Dim fso As New FileSystemObject
     
-    htmlFilePath = WebShared.getFullLocalPath(htmlFilePath, defaultIOFolder_)
+    htmlFilePath = ResolvePath(htmlFilePath)
     
     If Not fso.FileExists(htmlFilePath) Then
         Err.Raise 53, , "Error in NavigateToFile method: File not found"
@@ -556,7 +558,7 @@ Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of 
         Exit Function
     End If
     
-    NavigateToFile = NavigateTo("file:///" & WebShared.getFullLocalPath(htmlFilePath, defaultIOFolder_), timeOutms, raiseError)
+    NavigateToFile = NavigateTo("file:///" & ResolvePath(htmlFilePath), timeOutms, raiseError)
 End Function
 
 '@Description("Finds the first element for a given selector and value")
@@ -1479,7 +1481,7 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
 Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active browser window to a file"
     Dim pngstr As String
         
-    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    filePath = ResolvePath(filePath)
     
     If fullScreenShot Then
         Select Case browser_
@@ -1509,7 +1511,7 @@ Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a sp
     Dim data As New Dictionary
     Dim pdfstr As String
     
-    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    filePath = ResolvePath(filePath)
     
     If Not settings Is Nothing Then Set data = settings.ToDictionary
     
@@ -1779,18 +1781,29 @@ Attribute CreateCapabilities.VB_Description = "Creates a capabilities object - m
     
     Set caps.WebDriver = Me
     
-    If initializeFromSettingsFile Then
-        Select Case browser_
-        Case svbaBrowser.Chrome
-            If preloadChromeCapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadChromeCapabilitiesFilePath
-        Case svbaBrowser.Edge
-            If preloadEdgeCapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadEdgeCapabilitiesFilePath
-        Case svbaBrowser.Firefox
-            If preloadFirefoxCapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadFirefoxCapabilitiesFilePath
-        Case svbaBrowser.IE
-            If preloadIECapabilitiesFilePath <> vbNullString Then caps.LoadFromFile preloadIECapabilitiesFilePath
-        End Select
-    End If
+    'set browser-specific capabilities from settings file (if applicable) and some non-optional ones
+    Select Case browser_
+    Case svbaBrowser.Chrome
+        If initializeFromSettingsFile And preloadChromeCapabilitiesFilePath <> vbNullString Then
+            caps.LoadFromFile preloadChromeCapabilitiesFilePath
+        End If
+        'https://stackoverflow.com/questions/78787332/selecting-default-search-engine-is-needed-for-chrome-version-127/78788229#78788229
+        caps.AddArguments "--disable-search-engine-choice-screen"
+    Case svbaBrowser.Edge
+        If initializeFromSettingsFile And preloadEdgeCapabilitiesFilePath <> vbNullString Then
+            caps.LoadFromFile preloadEdgeCapabilitiesFilePath
+        End If
+    Case svbaBrowser.Firefox
+        If initializeFromSettingsFile And preloadFirefoxCapabilitiesFilePath <> vbNullString Then
+            caps.LoadFromFile preloadFirefoxCapabilitiesFilePath
+        End If
+    Case svbaBrowser.IE
+        If initializeFromSettingsFile And preloadIECapabilitiesFilePath <> vbNullString Then
+            caps.LoadFromFile preloadIECapabilitiesFilePath
+        End If
+        'see https://titusfortner.com/2022/09/28/edge-ie-mode.html
+        caps.SetOption "ie.edgechromium", True 'attach to Edge Chrome browser
+    End Select
 
     Set CreateCapabilities = caps
 End Function
@@ -2090,7 +2103,7 @@ End Function
 Public Sub UploadFile(element As WebElement, ByVal filePath As String)
 Attribute UploadFile.VB_Description = "Uploads the contents of a file to the element"
     'this is just a special wrapper for sendkeys (upload file mode)
-    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    filePath = ResolvePath(filePath)
     SendKeys element, filePath
 End Sub
 
@@ -2165,7 +2178,7 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     Dim timeEnd As Currency
     Dim timeNow As Currency
     
-    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    filePath = ResolvePath(filePath)
     
     GetTime timeStart 'in currency
     
@@ -2235,7 +2248,7 @@ End Property
 
 Public Property Get DefaultIOFolder() As String
     If defaultIOFolder_ = vbNullString Then
-        DefaultIOFolder = WebShared.getFullLocalPath(".\", defaultIOFolder_)
+        DefaultIOFolder = ResolvePath(".\")
     Else
         DefaultIOFolder = defaultIOFolder_
     End If
@@ -2266,7 +2279,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
                 strlist = Split(fileList(i)(j), ",")
                 For k = 0 To UBound(strlist)
                     On Error Resume Next 'file might not exists
-                    fso.DeleteFile WebShared.getFullLocalPath(strlist(k), defaultIOFolder_), True
+                    fso.DeleteFile ResolvePath(strlist(k)), True
                     On Error GoTo 0
                 Next k
             Next j
@@ -2274,7 +2287,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
             strlist = Split(fileList(i), ",")
             For k = 0 To UBound(strlist)
                 On Error Resume Next 'file might not exists
-                fso.DeleteFile WebShared.getFullLocalPath(strlist(k), defaultIOFolder_), True
+                fso.DeleteFile ResolvePath(strlist(k)), True
                 On Error GoTo 0
             Next k
         End If
@@ -2287,7 +2300,7 @@ Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fso As New FileSystemObject
     Dim ts As TextStream
-    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    filePath = ResolvePath(filePath)
     On Error GoTo ErrHnd
     Set ts = fso.CreateTextFile(filePath, True, formatUnicode16)
     ts.Write val
@@ -2684,7 +2697,7 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     
     'now calculate the destination path
     'first convert user input path to absolute path
-    fileOrFolderPath = WebShared.getFullLocalPath(fileOrFolderPath, defaultIOFolder_)
+    fileOrFolderPath = ResolvePath(fileOrFolderPath)
 
     'check if user gave a folder path or a file path
     If fso.FolderExists(fileOrFolderPath) Then 'its a folder path
@@ -2709,7 +2722,7 @@ End Sub
 '@Description("Saves a base 64 encoded string to a file in binary format")
 Public Sub SaveBase64StringToFile(ByVal base64String As String, ByVal filePath As String)
 Attribute SaveBase64StringToFile.VB_Description = "Saves a base 64 encoded string to a file in binary format"
-    filePath = WebShared.getFullLocalPath(filePath, defaultIOFolder_)
+    filePath = ResolvePath(filePath)
     saveByteArrayToFile decodeBase64(base64String), filePath
 End Sub
 
@@ -2772,6 +2785,24 @@ Attribute SetDownloadFolder.VB_Description = "Sets the default download folder p
     'https://github.com/GCuser99/SeleniumVBA/issues/87
     'ExecuteCDP "Browser.setDownloadBehavior", params
     ExecuteCDP "Page.setDownloadBehavior", params
+End Sub
+
+'@Description("Installs a browser addon (extension) such as an an .xpi file - Firefox only")
+Public Sub InstallAddon(ByVal filePath As String)
+Attribute InstallAddon.VB_Description = "Installs a browser addon (extension) such as an an .xpi file - Firefox only"
+    Dim data As New Dictionary
+    Dim fso As New FileSystemObject
+    Dim b64 As String
+    
+    If browser_ <> svbaBrowser.Firefox Then Err.Raise 1, , "Error in InstallAddon - this method can only be used with Firefox. For Chrome/Edge use AddExtensions method of WebCapabilities instead."
+    
+    filePath = ResolvePath(filePath)
+    If Not fso.FileExists(filePath) Then Err.Raise 1, "WebDriver", "The addon file path :" & vbNewLine & vbNewLine & filePath & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
+    
+    b64 = encodeBase64(readByteArrayFromFile(filePath), useNewLines:=False)
+    data.Add "addon", b64
+    
+    execute tCMD.CMD_INSTALL_ADDON_FF, data
 End Sub
 
 Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary

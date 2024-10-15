@@ -30,21 +30,21 @@ Sub test_frames_with_frameset()
     driver.NavigateToFile ".\snippet.html"
     driver.Wait
     
-    Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(By.TagName, "frame").Count
+    Debug.Assert driver.ExecuteScript("return window.length") = 2 'this includes embed, iframes, frames objects
+    Debug.Assert driver.FindElements(By.TagName, "frame").Count = 2
     
     Set elem = driver.FindElementByName("bottom")
     
     driver.SwitchToFrame elem
     driver.Wait
-    Debug.Print "Switch by element to frame: " & driver.GetCurrentFrameName
+    Debug.Assert driver.GetCurrentFrameName = "bottom"
     
     driver.SwitchToDefaultContent 'must move up the tree to see sibling frame
     driver.Wait
     
     driver.SwitchToFrameByIndex 1
     driver.Wait
-    Debug.Print "Switch by index to frame: " & driver.GetCurrentFrameName
+    Debug.Assert driver.GetCurrentFrameName = "top"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -77,15 +77,15 @@ Sub test_frames_with_embed_objects()
     driver.NavigateToFile ".\snippet.html"
     driver.Wait 1000
     
-    Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(By.TagName, "embed").Count + driver.FindElements(By.TagName, "object").Count
+    Debug.Assert driver.ExecuteScript("return window.length") = 2 'this includes embed, iframes, frames objects
+    Debug.Assert driver.FindElements(By.TagName, "embed").Count + driver.FindElements(By.TagName, "object").Count = 2
     
     Set elemObject = driver.FindElementByName("object frame")
     Set elemEmbed = driver.FindElementByName("embed frame")
     
     driver.SwitchToFrame elemEmbed
     driver.Wait
-    Debug.Print "Switch by element to frame: " & driver.GetCurrentFrameName
+    Debug.Assert driver.GetCurrentFrameName = "embed frame"
     
     driver.SwitchToDefaultContent 'must move up the tree to see sibling frame
     driver.Wait
@@ -97,7 +97,7 @@ Sub test_frames_with_embed_objects()
     
     driver.SwitchToFrame elemObject
     driver.Wait
-    Debug.Print "Switch by element to frame: " & driver.GetCurrentFrameName
+    Debug.Assert driver.GetCurrentFrameName = "object frame"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -130,21 +130,21 @@ Sub test_frames_with_iframes()
     driver.NavigateToFile ".\snippet.html"
     driver.Wait 1000
     
-    Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(By.TagName, "iframe").Count
+    Debug.Assert driver.ExecuteScript("return window.length") = 2 'this includes embed, iframes, frames objects
+    Debug.Assert driver.FindElements(By.TagName, "iframe").Count = 2
     
     Set elem = driver.FindElementByName("iframe2")
     
     driver.SwitchToFrame elem
     driver.Wait
-    Debug.Print "Switch by element to frame: " & driver.GetCurrentFrameName
+    Debug.Assert driver.GetCurrentFrameName = "iframe2"
     
     driver.SwitchToDefaultContent 'must move up the tree to see sibling frame
     driver.Wait
     
     driver.SwitchToFrameByIndex 1
     driver.Wait
-    Debug.Print "Switch by index to frame: " & driver.GetCurrentFrameName
+    Debug.Assert driver.GetCurrentFrameName = "iframe1"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -162,26 +162,26 @@ Sub test_frames_with_nested_iframes()
     driver.NavigateTo "https://demoqa.com/nestedframes"
     driver.Wait 1000
     
-    Debug.Print "Number of windows: " & driver.ExecuteScript("return window.length") 'this includes embed, iframes, frames objects
-    Debug.Print "Number of frames: " & driver.FindElements(By.TagName, "iframe").Count
+    Debug.Assert driver.ExecuteScript("return window.length") > 0 'this includes embed, iframes, frames objects
+    Debug.Assert driver.FindElements(By.TagName, "iframe").Count > 0
     
     Set elem = driver.FindElementByID("frame1") 'cant find this element
     
     'switch to top-level (parent) frame
     driver.SwitchToFrame elem
     driver.Wait
-    Debug.Print "Parent frame text: " & driver.FindElementByTagName("body").GetText
-    Debug.Print "Number of child frames: " & driver.FindElements(By.TagName, "iframe").Count
+    Debug.Assert driver.FindElementByTagName("body").GetText = "Parent frame"
+    Debug.Assert driver.FindElements(By.TagName, "iframe").Count = 1
     
     'switch to child frame
     driver.SwitchToFrameByIndex 1
     driver.Wait
-    Debug.Print "Child frame text: " & driver.FindElementByTagName("body").GetText
+    Debug.Assert driver.FindElementByTagName("body").GetText = "Child Iframe"
     
     'switch back to top-level (parent) frame
     driver.SwitchToParentFrame 'must move up the tree to see sibling frame
     driver.Wait
-    Debug.Print "Parent frame text: " & driver.FindElementByTagName("body").GetText
+    Debug.Assert driver.FindElementByTagName("body").GetText = "Parent frame"
     
     'switch to main document
     driver.SwitchToDefaultContent

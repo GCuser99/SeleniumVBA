@@ -168,7 +168,7 @@ Sub test_unhandled_prompts()
     
     driver.Wait 2000
     
-    Debug.Print driver.ActiveWindow.Title
+    Debug.Assert driver.ActiveWindow.Title = "Google"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -373,7 +373,8 @@ Sub test_geolocation_with_incognito()
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
-    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
+    Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
     
     driver.Wait 2000
     
@@ -388,6 +389,7 @@ End Sub
 Sub test_set_user_agent()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
+    Dim userAgent As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -396,14 +398,15 @@ Sub test_set_user_agent()
     Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
     'update WebCapabilities UserArgent argument
-    caps.SetUserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    caps.SetUserAgent userAgent
     
     driver.OpenBrowser caps, invisible:=True
     
     'to see a full list of headers navigate to https://www.httpbin.org/headers
     driver.NavigateTo "https://www.whatismybrowser.com/detect/what-is-my-user-agent/"
     
-    Debug.Print "Modfified User Agent: " & driver.FindElement(By.ID, "detected_value").GetText
+    Debug.Assert driver.FindElement(By.ID, "detected_value").GetText = userAgent
     
     driver.CloseBrowser
     driver.Shutdown
@@ -429,7 +432,7 @@ Sub test_pageLoadStrategy()
     driver.NavigateTo "https://www.wikipedia.org/"
     
     'this will verify that pageLoadStrategy was set to desired value (Edge/Chrome only)
-    Debug.Print driver.GetSessionsInfo("capabilities")("pageLoadStrategy")
+    Debug.Assert driver.GetSessionsInfo("capabilities")("pageLoadStrategy") = "eager"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -445,10 +448,10 @@ Sub test_addExtensions()
     
     Set caps = driver.CreateCapabilities()
     
-    'this will add a local crx file extension(s)
-    caps.AddExtensions "[path to local crx file]"
+    'this will add a local crx file extension(s) - Chrome/Edge only
+    caps.AddExtensions Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\" & "TickTick-Todo-Task-List-Chrome-Web-Store.crx"
     
-    'use this alternative to add an extension from Chrome's User Data extensions directory
+    'use this alternative to add an extension from Chrome's unpacked User Data extensions directory
     'caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\abcdefghijklmnopqrstuvwxyzabcdef\2.3.1_0"
 
     driver.OpenBrowser caps

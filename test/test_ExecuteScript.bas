@@ -36,7 +36,7 @@ Sub test_executeScript()
     'ExecuteScript returns a single WebElements object if script results in a collection of WebElement objects
     Dim divElems As SeleniumVBA.WebElements
     Set divElems = driver.ExecuteScript("return document.getElementsByTagName(arguments[0])", "div")
-    Debug.Print "Number of div elements: " & divElems.Count
+    Debug.Assert divElems.Count = 289
     
     driver.CloseBrowser
     driver.Shutdown

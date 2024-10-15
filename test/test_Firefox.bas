@@ -18,6 +18,23 @@ Option Private Module
 '- GetSessionsInfo not functional
 '- PrintScale method of PrintSettings class does not seem to have effect
 '
+Sub test_InstallAddon()
+    Dim driver As SeleniumVBA.WebDriver
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartFirefox
+    driver.OpenBrowser
+    
+    'this is a Firefox browser only method - use AddExtensions method of WebCapabilities for Edge/Chrome
+    driver.InstallAddon Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\darkreader-4.9.94.xpi"
+    
+    driver.Wait 5000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
 Sub test_logging()
     Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
     
@@ -52,7 +69,7 @@ Sub test_logging()
         driver.Wait
         fruits.DeSelectByValue "orange"
         driver.Wait
-        Debug.Print fruits.GetSelectedOption.GetText
+        Debug.Assert fruits.GetSelectedOption.GetText = "Grape"
     End If
     
     driver.CloseBrowser
@@ -180,7 +197,7 @@ Sub test_firefox_json_viewer_bug()
     
     driver.Wait 3000
     
-    Debug.Print "with jsonview enabled", driver.PageToJSONObject()("key1")
+    Debug.Assert driver.PageToJSONObject()("key1") = "simple json example"
     
     driver.CloseBrowser
     
@@ -191,7 +208,7 @@ Sub test_firefox_json_viewer_bug()
     driver.NavigateToFile "test.json"
     driver.Wait 5000
     
-    Debug.Print "with jsonview disabled", driver.PageToJSONObject()("key1")
+    Debug.Assert driver.PageToJSONObject()("key1") = "simple json example"
    
     driver.Shutdown
 End Sub
