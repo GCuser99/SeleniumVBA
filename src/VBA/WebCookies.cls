@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.6
+' SeleniumVBA v5.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -60,56 +60,41 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '
 Option Explicit
 
-Private colCookie As Collection
+Private colCookies As Collection
 Private driver_ As WebDriver
 
 '@Description("Adds a cookie to the collection")
 Public Function Add(cookie As WebCookie) As WebCookie
 Attribute Add.VB_Description = "Adds a cookie to the collection"
-    colCookie.Add cookie, cookie.Name
+    colCookies.Add cookie
     Set Add = cookie
 End Function
 
 '@Description("Returns the number of cookies in the collection")
 Public Property Get Count() As Integer
 Attribute Count.VB_Description = "Returns the number of cookies in the collection"
-   Count = colCookie.Count
+   Count = colCookies.Count
 End Property
 
 '@Description("Returns the number of cookies in the collection")
 Public Property Get Size() As Integer
 Attribute Size.VB_Description = "Returns the number of cookies in the collection"
-   Size = colCookie.Count
+   Size = colCookies.Count
 End Property
 
-'@Description("Removes a cookie corresponding to the given index or cookie object")
-Public Sub Remove(indexOrCookie As Variant)
-Attribute Remove.VB_Description = "Removes a cookie corresponding to the given index or cookie object"
-    If TypeName(indexOrCookie) = "Cookie" Then
-        colCookie.Remove indexOrCookie.Name
-    Else
-        colCookie.Remove indexOrCookie
-    End If
+'@Description("Removes a cookie corresponding to the given index")
+Public Sub Remove(index As Long)
+Attribute Remove.VB_Description = "Removes a cookie corresponding to the given index"
+    colCookies.Remove index
 End Sub
 
 '@DefaultMember
-'@Description("Returns the cookie of the provided name")
-Public Property Get Item(ByVal cookieName As Variant) As WebCookie
-Attribute Item.VB_Description = "Returns the cookie of the provided name"
+'@Description("Returns the cookie of the provided index")
+Public Property Get Item(ByVal index As Long) As WebCookie
+Attribute Item.VB_Description = "Returns the cookie of the provided index"
 Attribute Item.VB_UserMemId = 0
-    Set Item = colCookie.Item(cookieName)
+    Set Item = colCookies.Item(index)
 End Property
-
-'@Description("Returns True if cookie object is already in the collection, False otherwise")
-Public Function Exists(ByRef cookie As WebCookie) As Boolean
-Attribute Exists.VB_Description = "Returns True if cookie object is already in the collection, False otherwise"
-    On Error GoTo Err
-    Exists = True
-    colCookie.Item cookie.Name
-    Exit Function
-Err:
-    Exists = False
-End Function
 
 '@Description("Saves the cookie collection to a file path")
 Public Sub SaveToFile(Optional ByVal filePath As String = ".\cookies.txt")
@@ -165,14 +150,14 @@ End Function
 '@Enumerator
 Public Function NewEnum() As IUnknown
 Attribute NewEnum.VB_UserMemId = -4
-    Set NewEnum = colCookie.[_NewEnum]
+    Set NewEnum = colCookies.[_NewEnum]
 End Function
 
 '@Description("Removes all member cookie objects from the collection")
 Public Sub RemoveAll()
 Attribute RemoveAll.VB_Description = "Removes all member cookie objects from the collection"
-    Do While colCookie.Count > 0
-        colCookie.Remove 1
+    Do While colCookies.Count > 0
+        colCookies.Remove 1
     Loop
 End Sub
 
@@ -181,9 +166,9 @@ Friend Property Set WebDriver(obj As WebDriver)
 End Property
 
 Private Sub Class_Initialize()
-    Set colCookie = New Collection
+    Set colCookies = New Collection
 End Sub
 
 Private Sub Class_Terminate()
-    Set colCookie = Nothing
+    Set colCookies = Nothing
 End Sub

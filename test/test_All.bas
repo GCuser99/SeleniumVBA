@@ -21,7 +21,6 @@ Sub test_full_suite()
     test_Capabilities.test_remoteDebugger 'this leaves browser open
     test_Capabilities.test_set_user_agent
     test_Capabilities.test_unhandled_prompts
-    test_Capabilities.test_addExtensions
     test_Capabilities.test_geolocation_with_incognito
     test_Capabilities.test_incognito
     test_Capabilities.test_initialize_caps_from_file
@@ -53,7 +52,7 @@ Sub test_full_suite()
     test_Firefox.test_firefox_json_viewer_bug
     test_Firefox.test_logging
     test_Firefox.test_print
-    test_Firefox.test_InstallAddon
+    test_Firefox.test_file_download
     
     test_Frames.test_frames_with_embed_objects
     test_Frames.test_frames_with_frameset
@@ -115,6 +114,11 @@ Sub test_full_suite()
     test_Windows.test_windows_state
     test_Windows.test_windows_SwitchToByTitle
     test_Windows.test_windows_SwitchToByUrl
+    
+    'these require local extention files to test
+    test_Extensions.test_addExtensions
+    test_Extensions.test_addExtensions2
+    test_Extensions.test_InstallAddon
     
     MsgBox "tests completed"
 End Sub

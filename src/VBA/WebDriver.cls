@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.6
+' SeleniumVBA v5.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -487,7 +487,7 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     
     DoEvents 'this is needed to prevent intermittent error if command window is not hidden or minimized
     
-    Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary), False, 10000)("value")
+    Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary), False, 20000)("value")
 
     If resp.Exists("error") Then
         Select Case resp("error")

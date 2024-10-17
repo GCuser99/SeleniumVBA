@@ -14,9 +14,10 @@ Below is a table showing the compatibility for each solution with various versio
 | ---------------- | ------------- | ------------- |------------- |------------- |------------- |------------- |
 |Excel Workbook|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 |Access DB|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
-|ActiveX DLL*|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
+|ActiveX DLL*|32-bit**|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 
 *the [twinBASIC](https://twinbasic.com) ActiveX DLL can be called from MS VBScript, as well as MS Excel and MS Access
+**only limited testing
 
 ### Excel Workbook and Access DB Installation:
 

@@ -18,22 +18,6 @@ Option Private Module
 '- GetSessionsInfo not functional
 '- PrintScale method of PrintSettings class does not seem to have effect
 '
-Sub test_InstallAddon()
-    Dim driver As SeleniumVBA.WebDriver
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartFirefox
-    driver.OpenBrowser
-    
-    'this is a Firefox browser only method - use AddExtensions method of WebCapabilities for Edge/Chrome
-    driver.InstallAddon Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\darkreader-4.9.94.xpi"
-    
-    driver.Wait 5000
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
 
 Sub test_logging()
     Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
@@ -77,36 +61,36 @@ Sub test_logging()
 End Sub
 
 Sub test_file_download()
-    Dim driver As SeleniumVBA.WebDriver, caps As SeleniumVBA.WebCapabilities
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
     
     Set driver = SeleniumVBA.New_WebDriver
     
     'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
+
     driver.StartFirefox
     
-    driver.DeleteFiles ".\BrowserStack - List of devices to test*"
-    
     Set caps = driver.CreateCapabilities
+
+    'caps.SetPreference "download.default_directory", ".\" 'download to same directory as this excel file
+    'caps.SetPreference "download.prompt_for_download", False
+    'caps.SetPreference "plugins.always_open_pdf_externally", True 'if its a pdf then bypass the pdf viewer
     
+    'this does the above in one line
     caps.SetDownloadPrefs downloadFolderPath:=".\", promptForDownload:=False, disablePDFViewer:=True
-    
-    Debug.Print caps.ToJson
 
     driver.OpenBrowser caps
-    
-    driver.NavigateTo "https://www.browserstack.com/test-on-the-right-mobile-devices"
+        
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/downloads/download.html"
     driver.Wait 500
     
-    'driver.FindElementByID("accept-cookie-notification").Click
-    'driver.Wait 500
+    driver.DeleteFiles ".\file_1.txt", ".\file_2.jpg"
     
-    driver.FindElementByCssSelector(".icon-csv").ScrollIntoView yOffset:=-150
-    driver.Wait 1000
+    driver.FindElementByCssSelector("#file-1").Click
+    driver.WaitForDownload ".\file_1.txt"
     
-    driver.FindElementByCssSelector(".icon-csv").Click
-    
-    driver.WaitForDownload ".\BrowserStack - List of devices to test on.csv"
+    driver.FindElementByCssSelector("#file-2").Click
+    driver.WaitForDownload ".\file_2.jpg"
             
     driver.CloseBrowser
     driver.Shutdown

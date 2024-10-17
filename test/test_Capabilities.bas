@@ -438,26 +438,3 @@ Sub test_pageLoadStrategy()
     driver.Shutdown
 End Sub
 
-Sub test_addExtensions()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartChrome
-    
-    Set caps = driver.CreateCapabilities()
-    
-    'this will add a local crx file extension(s) - Chrome/Edge only
-    caps.AddExtensions Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\" & "TickTick-Todo-Task-List-Chrome-Web-Store.crx"
-    
-    'use this alternative to add an extension from Chrome's unpacked User Data extensions directory
-    'caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\abcdefghijklmnopqrstuvwxyzabcdef\2.3.1_0"
-
-    driver.OpenBrowser caps
-    
-    driver.NavigateTo "https://www.wikipedia.org/"
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub

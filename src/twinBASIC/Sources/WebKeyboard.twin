@@ -4,7 +4,7 @@
 [Description("This class is used to automate keyboard actions")]
 Public Class WebKeyboard
     ' ==========================================================================
-    ' SeleniumVBA v5.6
+    ' SeleniumVBA v5.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

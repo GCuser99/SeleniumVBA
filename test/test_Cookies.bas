@@ -79,7 +79,12 @@ Sub test_cookies2()
     driver.Wait 500
     
     'set a specific saved cookie
-    driver.SetCookie cks("Selenium")
+    For Each ck In cks
+        If ck.Name = "Selenium" Then
+            driver.SetCookie ck
+            Exit For
+        End If
+    Next ck
     
     driver.Wait 500
 
@@ -118,7 +123,7 @@ Sub test_cookies3()
     cks.Add driver.GetCookie("Selenium")
     
     For Each ck In cks
-        Debug.Print ck.Name
+        Debug.Assert ck.Name = "Selenium"
     Next ck
     
     'save cookie(s) to file

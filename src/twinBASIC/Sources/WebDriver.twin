@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v5.6
+    ' SeleniumVBA v5.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -473,7 +473,7 @@ Public Class WebDriver
     
         DoEvents 'this is needed to prevent intermittent error if command window is not hidden or minimized
     
-        Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary), False, 10000)("value")
+        Set resp = execute(tCMD.CMD_NEW_SESSION, params("capabilities", caps.Dictionary), False, 20000)("value")
 
         If resp.Exists("error") Then
             Select Case resp("error")
@@ -1681,26 +1681,26 @@ Public Class WebDriver
         'set browser-specific capabilities from settings file (if applicable) and some non-optional ones
         Select Case browser_
         Case svbaBrowser.Chrome
-            If initializeFromSettingsFile And preloadChromeCapabilitiesFilePath <> vbNullString Then
+            If initializeFromSettingsFile AndAlso preloadChromeCapabilitiesFilePath <> vbNullString Then
                 caps.LoadFromFile preloadChromeCapabilitiesFilePath
             End If
             'https://stackoverflow.com/questions/78787332/selecting-default-search-engine-is-needed-for-chrome-version-127/78788229#78788229
             caps.AddArguments "--disable-search-engine-choice-screen"
         Case svbaBrowser.Edge
-            If initializeFromSettingsFile And preloadEdgeCapabilitiesFilePath <> vbNullString Then
+            If initializeFromSettingsFile AndAlso preloadEdgeCapabilitiesFilePath <> vbNullString Then
                 caps.LoadFromFile preloadEdgeCapabilitiesFilePath
             End If
         Case svbaBrowser.Firefox
-            If initializeFromSettingsFile And preloadFirefoxCapabilitiesFilePath <> vbNullString Then
+            If initializeFromSettingsFile AndAlso preloadFirefoxCapabilitiesFilePath <> vbNullString Then
                 caps.LoadFromFile preloadFirefoxCapabilitiesFilePath
             End If
         Case svbaBrowser.IE
-            If initializeFromSettingsFile And preloadIECapabilitiesFilePath <> vbNullString Then
+            If initializeFromSettingsFile AndAlso preloadIECapabilitiesFilePath <> vbNullString Then
                 caps.LoadFromFile preloadIECapabilitiesFilePath
             End If
             'see https://titusfortner.com/2022/09/28/edge-ie-mode.html
             caps.SetOption "ie.edgechromium", True 'attach to Edge Chrome browser
-        End Select      
+        End Select
 
         Set CreateCapabilities = caps
     End Function
