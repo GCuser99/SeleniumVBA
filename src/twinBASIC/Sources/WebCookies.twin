@@ -5,7 +5,7 @@
 Public Class WebCookies
 
     ' ==========================================================================
-    ' SeleniumVBA v5.7
+    ' SeleniumVBA v5.8
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -58,7 +58,7 @@ Public Class WebCookies
 
     [Description("Adds a cookie to the collection")]
     Public Function Add(cookie As WebCookie) As WebCookie
-        colCookies.Add cookie, cookie.Name
+        colCookies.Add cookie
         Set Add = cookie
     End Function
 

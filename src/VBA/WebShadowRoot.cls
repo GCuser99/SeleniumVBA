@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for exposing a shadow root DOM su
 '@ModuleDescription "This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree - must be instantiated using WebDriver's GetShadowRoot method"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.7
+' SeleniumVBA v5.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
