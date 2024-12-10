@@ -47,6 +47,8 @@ Sub test_IsPresent()
         Debug.Assert elem.IsPresent(By.XPath, ".//div[@id = 'child3']") = False
     Next elem
     
+    driver.DeleteFiles ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -65,7 +67,7 @@ Sub test_IsPresent_wait()
     driver.OpenBrowser
     
     'create an html that waits to load a second html with a div element of interest
-    timeDelay = 5000
+    timeDelay = 3000
 
     html1 = "<!DOCTYPE html>" & _
     "<html>" & _
@@ -88,9 +90,11 @@ Sub test_IsPresent_wait()
     driver.NavigateToFile ".\snippet1.html"
 
     'wait up to 20 secs for the div from the second html gets loaded
-    Debug.Assert driver.IsPresent(By.ID, "testDiv", 20000) = True
+    Debug.Assert driver.IsPresent(By.ID, "testDiv", 20000)
     
-    driver.Wait 1500
+    driver.Wait 1000
+    
+    driver.DeleteFiles ".\snippet1.html", ".\snippet2.html"
         
     driver.CloseBrowser
     driver.Shutdown

@@ -17,9 +17,9 @@ Option Private Module
 '- Multi-sessions not supported
 '- GetSessionsInfo not functional
 '- PrintScale method of PrintSettings class does not seem to have effect
-'
 
 Sub test_logging()
+    'WARNING: FF logging could crash host app with MWB AV real-time protection
     Dim driver As SeleniumVBA.WebDriver, fruits As SeleniumVBA.WebElement
     
     Set driver = SeleniumVBA.New_WebDriver
@@ -56,6 +56,8 @@ Sub test_logging()
         Debug.Assert fruits.GetSelectedOption.GetText = "Grape"
     End If
     
+    driver.DeleteFiles "firefox.log"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -91,6 +93,8 @@ Sub test_file_download()
     
     driver.FindElementByCssSelector("#file-2").Click
     driver.WaitForDownload ".\file_2.jpg"
+    
+    driver.DeleteFiles ".\file_1.txt", ".\file_2.jpg"
             
     driver.CloseBrowser
     driver.Shutdown
@@ -104,8 +108,6 @@ Sub test_print()
     Set driver = SeleniumVBA.New_WebDriver
     Set settings = SeleniumVBA.New_WebPrintSettings
     Set keys = SeleniumVBA.New_WebKeyboard
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartFirefox
     driver.OpenBrowser
@@ -129,6 +131,8 @@ Sub test_print()
     driver.PrintToPDF , settings
 
     driver.Wait 1000
+    
+    driver.DeleteFiles "printpage.pdf"
     
     driver.CloseBrowser
     driver.Shutdown

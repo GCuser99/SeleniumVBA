@@ -23,13 +23,14 @@ Sub test_Sendkeys()
     
     driver.FindElement(By.ID, "searchInput").SendKeys keySeq
 
-    driver.Wait 1500
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
 End Sub
 
 Sub test_SendKeysToOS()
+    'WARNING: SendKeysToOS could crash host app with MalwareBytes AV real-time protection
     'SendKeysToOS can be useful for sending keyboard input to non-browser OS windows,
     'as well as browser windows where the standard SendKeys method does not function
     'with the window of interest. For more info, see:

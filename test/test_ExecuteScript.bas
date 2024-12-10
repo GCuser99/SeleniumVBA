@@ -45,7 +45,6 @@ End Sub
 Sub test_executeScriptAsync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
     Dim driver As SeleniumVBA.WebDriver
-    Dim webElem As SeleniumVBA.WebElement
     Dim Url As String, waitTime As Integer
     
     Set driver = SeleniumVBA.New_WebDriver
@@ -68,7 +67,7 @@ Sub test_executeScriptAsync()
     
     'here the callback sends an alert "wait is over!" after the desired waitTime
     driver.ExecuteScriptAsync "var callback = arguments[arguments.length - 1]; setTimeout(function(){callback(alert('WAIT IS OVER!'))}, arguments[0]);", waitTime
-    driver.Wait 2000
+    driver.Wait 1000
     
     driver.SwitchToAlert.Accept
     driver.Wait 1000
@@ -102,12 +101,14 @@ Sub test_call_embedded_HTML_script()
     driver.SaveStringToFile html, ".\snippet.html"
 
     driver.NavigateToFile ".\snippet.html"
-    driver.Wait 2000
+    driver.Wait 1000
     
     'run the embedded script
     driver.ExecuteScript "doIt();"
     
     driver.Wait 1000
+    
+    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown

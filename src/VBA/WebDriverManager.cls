@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.8
+' SeleniumVBA v5.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -112,7 +112,6 @@ Public Enum svbaBrowser
     Chrome = 1
     Edge = 2
     Firefox = 3
-    IE = 4
 End Enum
 
 Public Enum svbaPlatform
@@ -230,30 +229,6 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         Else
             respStr = getBrowserString(browser) & " Webdriver and Browser are compatible."
         End If
-    Case svbaBrowser.IE
-        'get the latest driver version
-        dverCompat = GetLatestDriverVersion(browser)
-                 
-        'check if we have an error and then take appropriate action
-        If dverCompat Like "Error*" Then
-            If runSilent Then 'don't throw the error - just report back to caller
-                AlignDriverWithBrowser = dverCompat
-                Exit Function
-            Else
-                Err.Raise 1, "WebDriverManager", dverCompat
-            End If
-        End If
-        
-        If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
-            'the installed driver version is sufficiently different than
-            'the installed browser version, so install it
-            DownloadAndInstallDriver browser, dverCompat, driverPath, platform
-            dverInstalled = dverCompat
-            respStr = "The latest " & getBrowserString(browser) & " Webdriver was installed."
-        Else
-            respStr = getBrowserString(browser) & " Webdriver and Browser are compatible."
-        End If
-    
     End Select
     
     If bverInstalled = verBrowserNotFound Then bverInstalled = "Not found"
@@ -281,19 +256,11 @@ Attribute AlignFirefoxDriverWithBrowser.VB_Description = "Checks if driver is in
     AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath, minCompatibilityLevel, runSilent, platform)
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver")
-Public Function AlignIEDriverWithBrowser(Optional ByVal driverPath As String = "IEdriverServer.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaWin32) As String
-Attribute AlignIEDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then if needed, installs an updated driver"
-    'note that default platform for IE mode is win32 due to slow sendkeys issue of win64 version of driver
-    'see https://github.com/GCuser99/SeleniumVBA/discussions/10
-    AlignIEDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.IE, driverPath, minCompatibilityLevel, runSilent, platform)
-End Function
-
 '@Description("Returns the installed Driver version")
 Public Function GetInstalledDriverVersion(ByVal browser As svbaBrowser, Optional ByVal driverPath As Variant) As String
 Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driver version"
-    Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
-    Dim fso As New IWshRuntimeLibrary.FileSystemObject
+    Dim wsh As IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
+    Dim fso As FileSystemObject
     Dim resp As Variant
     Dim i As Long
     Dim ver As String
@@ -306,18 +273,27 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
             driverPath = ".\msedgedriver.exe"
         Case svbaBrowser.Firefox
             driverPath = ".\geckodriver.exe"
-        Case svbaBrowser.IE
-            driverPath = ".\IEdriverServer.exe"
         End Select
     End If
-    
+
     driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
     
+    Set fso = New FileSystemObject
     If Not fso.FileExists(driverPath) Then
         GetInstalledDriverVersion = verDriverNotFound
         Exit Function
     End If
     
+    If browser = svbaBrowser.Edge Then
+        'see if it can be found from embedded extended file properties first - much faster
+        resp = findVersionInString(fso.GetFileVersion(driverPath), browser)
+        If resp <> vbNullString Then
+            GetInstalledDriverVersion = resp
+            Exit Function
+        End If
+    End If
+    
+    Set wsh = New IWshRuntimeLibrary.WshShell
     resp = wsh.Exec(Chr$(34) & driverPath & Chr$(34) & " --version").StdOut.ReadAll
     GetInstalledDriverVersion = findVersionInString(resp, browser)
 End Function
@@ -372,12 +348,12 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
     
     Select Case browser
     Case svbaBrowser.Edge
-        Url = "https://msedgedriver.azureedge.net/LATEST_" & UCase(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
+        Url = "https://msedgedriver.azureedge.net/LATEST_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
         respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
     Case svbaBrowser.Chrome
-        Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & UCase(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
+        Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
         respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = respTxt
@@ -386,11 +362,6 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
         respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = findLatestFirefoxVersion(respTxt)
-    Case svbaBrowser.IE
-        Url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        respTxt = requestData(Url)
-        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
-        GetLatestDriverVersion = findLatestIEVersion(respTxt)
     End Select
 End Function
 
@@ -398,7 +369,7 @@ End Function
 Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal browserVersion As String) As String
 Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent compatible Driver version given the installed Browser version"
     Dim htmlDoc As New HTMLDocument
-    Dim table As htmlTable
+    Dim table As HTMLTable
     Dim row As HTMLTableRow
     Dim verMajor As String
     Dim browserBuild  As String
@@ -518,18 +489,14 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
         
         table.deleteTHead
         
-        For Each row In table.Rows
-            If CInt(verMajor) >= CInt(Split(row.Cells(2).innerText)(0)) Then
-                GetCompatibleDriverVersion = Trim$(row.Cells(0).innerText)
+        For Each row In table.rows
+            If CInt(verMajor) >= CInt(Split(row.cells(2).innerText)(0)) Then
+                GetCompatibleDriverVersion = Trim$(row.cells(0).innerText)
                 Exit Function
             End If
         Next row
         
         GetCompatibleDriverVersion = "Error: Release Not Found"
-        Exit Function
-    Case svbaBrowser.IE
-        'just get the latest release, independent of Edge browser version
-        GetCompatibleDriverVersion = GetLatestDriverVersion(svbaBrowser.IE)
     End Select
 End Function
 
@@ -551,7 +518,7 @@ Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Bro
     Case svbaBrowser.Chrome
         regkey = "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon\version"
         regKeyAlt = "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Google\Update\Clients\{8A69D345-D564-463c-AFF1-A69D9E530F96}\pv"
-    Case svbaBrowser.Edge, svbaBrowser.IE
+    Case svbaBrowser.Edge
         regkey = "HKEY_CURRENT_USER\Software\Microsoft\Edge\BLBeacon\version"
         regKeyAlt = "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}\pv"
     Case svbaBrowser.Firefox
@@ -599,8 +566,6 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
             driverPath = ".\msedgedriver.exe"
         Case svbaBrowser.Firefox
             driverPath = ".\geckodriver.exe"
-        Case Else
-            driverPath = ".\IEDriverServer.exe"
         End Select
     End If
     
@@ -639,33 +604,6 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         Url = "https://github.com/mozilla/geckodriver/releases/download/v" & driverVersion & "/geckodriver-v" & driverVersion & "-" & platformString & ".zip"
         tmpInstallZipPath = tmpInstallFolder & "geckodriver-v" & driverVersion & "-" & platformString & ".zip"
         tmpZipDriverFilename = "geckodriver.exe"
-        tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
-    Case svbaBrowser.IE
-        'even though we have the driver version, the download url cannot be calculated safely because
-        'the versioning of Selenium is not necessarily same as the versioning of the driver:
-        'https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.8.0/IEDriverServer_Win32_4.8.0.zip
-        'https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.8.0/IEDriverServer_Win32_4.8.1.zip
-        'so to be extra safe, find the download url from the release json file
-         
-        'even though ie driver version has 4 parts, repo release only takes 3
-        driverVersion = filterVersionParts(driverVersion, 3)
-         
-        Url = "https://api.github.com/repos/SeleniumHQ/selenium/releases"
-        respTxt = requestData(Url)
-        
-        If respTxt = "Release Not Found" Then Exit Sub
-        
-        Url = findIEDownloadUrl(respTxt, driverVersion, platformString)
-        
-        If Url = vbNullString Then Exit Sub
-            
-        If platformString = "win32" Then
-            tmpInstallZipPath = tmpInstallFolder & "IEDriverServer_Win32_" & driverVersion & ".zip"
-        Else
-            tmpInstallZipPath = tmpInstallFolder & "IEDriverServer_x64_" & driverVersion & ".zip"
-        End If
-        
-        tmpZipDriverFilename = "IEDriverServer.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
     End Select
     
@@ -732,12 +670,6 @@ End Sub
 '@Description("Deletes the Chrome Driver from the specified path")
 Public Sub DeleteChromeDriver(Optional ByVal driverPath As String = "chromedriver.exe")
 Attribute DeleteChromeDriver.VB_Description = "Deletes the Chrome Driver from the specified path"
-    deleteDriver driverPath
-End Sub
-
-'@Description("Deletes the IE Driver from the specified path")
-Public Sub DeleteIEDriver(Optional ByVal driverPath As String = "IEdriverServer.exe")
-Attribute DeleteIEDriver.VB_Description = "Deletes the IE Driver from the specified path"
     deleteDriver driverPath
 End Sub
 
@@ -824,8 +756,6 @@ Private Function getBrowserString(ByVal val As svbaBrowser) As String
         getBrowserString = "Chrome"
     Case svbaBrowser.Firefox
         getBrowserString = "Firefox"
-    Case svbaBrowser.IE
-        getBrowserString = "IE"
     End Select
 End Function
 
@@ -902,71 +832,29 @@ Private Function findLatestFirefoxVersion(ByVal jsonString As String) As String
     findLatestFirefoxVersion = matches(0).SubMatches(0)
 End Function
 
-Private Function findLatestIEVersion(ByVal jsonString As String) As String
-    'this function finds the latest IE driver version number
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
-    Dim match As VBScript_RegExp_55.match
-    Dim latestFound As String
-    
-    oRegExp.Global = True
-    oRegExp.Pattern = "\/IEDriverServer_Win32_(\d+\.\d+\.\d+)\.zip"
-
-    Set matches = oRegExp.execute(jsonString)
-    If matches.Count = 0 Then findLatestIEVersion = "Error: Release Not Found": Exit Function
-    
-    'find the maximum version number - must run through the entire match collection to be sure
-    latestFound = "0.0.0"
-    For Each match In matches
-        If compareVersions(match.SubMatches(0), latestFound) = 1 Then latestFound = match.SubMatches(0)
-    Next match
-    findLatestIEVersion = latestFound
-End Function
-
-Private Function findIEDownloadUrl(ByVal jsonString As String, ByVal driverVersion As String, ByVal platformString As String) As String
-    'this function finds the IE driver download url given the version number and platform
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
-    Dim searchPattern As String
-    
-    oRegExp.Global = False
-    
-    If platformString = "win32" Then
-        searchPattern = """browser_download_url"":""(https:[^,]*?IEDriverServer_Win32_" & Replace(driverVersion, ".", "\.") & "\.zip)"
-    Else
-        searchPattern = """browser_download_url"":""(https:[^,]*?IEDriverServer_x64_" & Replace(driverVersion, ".", "\.") & "\.zip)"
-    End If
-
-    oRegExp.Pattern = searchPattern
-
-    Set matches = oRegExp.execute(jsonString)
-    If matches.Count = 0 Then findIEDownloadUrl = vbNullString: Exit Function
-    
-    findIEDownloadUrl = matches(0).SubMatches(0)
-End Function
-
 Private Function findVersionInString(ByVal stringToSearch As String, ByVal browser As svbaBrowser) As String
     'this function parses the input string for the version number substring
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
+    Dim oRegExp As VBScript_RegExp_55.RegExp
     Dim matches As VBScript_RegExp_55.MatchCollection
     Dim searchPattern As String
-    
+
     Select Case browser
     Case svbaBrowser.Chrome, svbaBrowser.Edge
-        searchPattern = "\s(\d+\.\d+\.\d+\.\d+)\s"
+        searchPattern = "\d+\.\d+\.\d+\.\d+"
     Case svbaBrowser.Firefox
-        searchPattern = "\s(\d+\.\d+\.\d+)\s"
-    Case svbaBrowser.IE
-        'either 3 or 4 parts, depending on context
-        searchPattern = "\s(\d+\.\d+\.\d+\.\d+)\s|\s(\d+\.\d+\.\d+)\s"
+        searchPattern = "\d+\.\d+\.\d+"
     End Select
     
+    On Error GoTo EH
+    Set oRegExp = New VBScript_RegExp_55.RegExp
     oRegExp.Global = False
     oRegExp.Pattern = searchPattern
 
     Set matches = oRegExp.execute(stringToSearch)
-    
-    findVersionInString = matches(0).SubMatches(0)
+    If matches.Count > 0 Then findVersionInString = matches(0)
+    Exit Function
+EH:
+    Err.Raise 1, , "Error in findVersionInString of WebDriverManager: VBScript_RegExp failed - make sure that it is installed on your Windows system and is not being blocked by AV software."
 End Function
 
 '---------------------- Version String Math Functions ----------------------

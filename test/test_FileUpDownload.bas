@@ -69,6 +69,8 @@ Sub test_file_download()
     
     driver.FindElementByCssSelector("#file-2").Click
     driver.WaitForDownload ".\file_2.jpg"
+    
+    driver.DeleteFiles ".\file_1.txt", ".\file_2.jpg"
             
     driver.CloseBrowser
     driver.Shutdown
@@ -94,6 +96,8 @@ Sub test_file_download2()
     
     driver.WaitForDownload ".\test.pdf"
     
+    driver.DeleteFiles ".\test.pdf"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -115,6 +119,8 @@ Sub test_download_resource()
     
     'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
     element.DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
+    
+    driver.DeleteFiles ".\logo.png"
     
     driver.CloseBrowser
     driver.Shutdown

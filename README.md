@@ -4,7 +4,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 ## Features
 
-- Edge, Chrome, Firefox, and IE Mode browser automation support
+- Edge, Chrome, and Firefox browser automation support
 - MS Excel Add-in, MS Access DB, and [twinBASIC](https://twinbasic.com/preview.html) ActiveX DLL solutions available
 - A superset of Selenium's [W3C WebDriver](https://w3c.github.io/webdriver/) commands - [over 400 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
 - Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, CDP, and Capabilities

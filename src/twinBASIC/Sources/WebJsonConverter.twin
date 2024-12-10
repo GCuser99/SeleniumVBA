@@ -768,15 +768,21 @@ Public Class WebJsonConverter
     Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
         ' Check if the given string is considered a "large number"
         ' (See json_ParseNumber)
+ 
         Dim json_Length As Long
         json_Length = VBA.Len(json_String)
  
         ' Length with be at least 16 characters and assume will be less than 100 characters
         If json_Length >= 16 And json_Length <= 100 Then
-            Dim regex As New RegExp
-            regex.Pattern = "^((\+|-)?\d+)(\.((\d+)?))?((e|E)((\+|-)?)\d+)?$"
-            json_StringIsLargeNumber = regex.Test(json_String)
+            Dim regEx As RegExp
+            On Error GoTo EH
+            Set regEx = New RegExp
+            regEx.Pattern = "^((\+|-)?\d+)(\.((\d+)?))?((e|E)((\+|-)?)\d+)?$"
+            json_StringIsLargeNumber = regEx.Test(json_String)
         End If
+        Exit Function
+    EH:
+        Err.Raise 1, , "Error in json_StringIsLargeNumber of WebJsonConverter: VBScript_RegExp failed - make sure that it is installed on your Windows system and is not being blocked by AV software."
     End Function
 
     Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String) As Variant

@@ -24,7 +24,7 @@ Sub test_highlight()
     
     driver.NavigateToFile ".\snippet.html"
     
-    driver.Wait 1000
+    driver.Wait
     
     'automatically highlight every last found element(s):
     driver.SetHightlightFoundElems True
@@ -57,15 +57,17 @@ Sub test_highlight()
     
     'highlight specified elements (all arguments optional):
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[2]/table").Highlight borderColor:=Magenta
-    driver.Wait 1500
+    driver.Wait
     driver.FindElement(By.XPath, "//table[@id='mytable']/thead/tr[1]/th[1]").Highlight borderColor:=Blue, unHighlightLast:=False
-    driver.Wait 1500
+    driver.Wait
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[1]").Highlight borderColor:=Cyan
-    driver.Wait 1500
+    driver.Wait
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[1]/td[2]").Highlight borderColor:=Green
-    driver.Wait 1500
+    driver.Wait
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").Highlight borderColor:=Black, backgroundColor:=Green
-    driver.Wait 1500
+    driver.Wait
+    
+    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -111,27 +113,29 @@ Sub test_highlight2()
         Next i
     End With
     
-    driver.Wait 1500
+    driver.Wait
     
     'highlight the Blue group
     elemsBlue.Highlight borderSizePx:=2, borderColor:=Blue, ScrollIntoView:=False
     
-    driver.Wait 1500
+    driver.Wait
     
     'highlight the Red group
     elemsRed.Highlight borderSizePx:=2, borderColor:=Red, ScrollIntoView:=False, unHighlightLast:=False
     
-    driver.Wait 1500
+    driver.Wait
     
     'unhighlight the Blue group
     elemsBlue.UnHighlight
     
-    driver.Wait 1500
+    driver.Wait
     
     'unhighlight the Red group
     elemsRed.UnHighlight
     
-    driver.Wait 1500
+    driver.Wait
+    
+    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown

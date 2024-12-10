@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v5.8
+    ' SeleniumVBA v5.9
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -72,13 +72,11 @@ Public Class WebDriver
     Private preloadChromeCapabilitiesFilePath As String
     Private preloadEdgeCapabilitiesFilePath As String
     Private preloadFirefoxCapabilitiesFilePath As String
-    Private preloadIECapabilitiesFilePath As String
 
     'holds default driver ports
     Private driverDefaultPortChrome As Long
     Private driverDefaultPortEdge As Long
     Private driverDefaultPortFirefox As Long
-    Private driverDefaultPortIE As Long
 
     'track current timeout states
     Private curImplicitWait As Long
@@ -247,12 +245,10 @@ Public Class WebDriver
         preloadChromeCapabilitiesFilePath = readIniFileEntry(iniFilePath, "CHROME", "preload_capabilities_file_path", vbNullString)
         preloadEdgeCapabilitiesFilePath = readIniFileEntry(iniFilePath, "EDGE", "preload_capabilities_file_path", vbNullString)
         preloadFirefoxCapabilitiesFilePath = readIniFileEntry(iniFilePath, "FIREFOX", "preload_capabilities_file_path", vbNullString)
-        preloadIECapabilitiesFilePath = readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString)
     
         driverDefaultPortChrome = CLng(readIniFileEntry(iniFilePath, "CHROME", "local_host_port", 9515))
         driverDefaultPortEdge = CLng(readIniFileEntry(iniFilePath, "EDGE", "local_host_port", 9516))
         driverDefaultPortFirefox = CLng(readIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444))
-        driverDefaultPortIE = CLng(readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555))
     
         curImplicitWait = CLng(readIniFileEntry(iniFilePath, "GENERAL", "implicit_wait", sysImplicitWait))
         curScriptTimeout = CLng(readIniFileEntry(iniFilePath, "GENERAL", "script_timeout", sysScriptTimeout))
@@ -361,18 +357,12 @@ Public Class WebDriver
         start svbaBrowser.Firefox, driverPath, localHostPort, enableLogging, logFilePath
     End Sub
 
-    [Description("Start an IE mode driver")]
-    Public Sub StartIE(Optional ByVal driverPath As String = "IEDriverServer.exe", Optional ByVal localHostPort As Long, Optional ByVal enableLogging As Boolean = False, Optional ByVal logFilePath As String = ".\ie.log")
-        If localHostPort = 0 Then localHostPort = driverDefaultPortIE
-        start svbaBrowser.IE, driverPath, localHostPort, enableLogging, logFilePath
-    End Sub
-
     Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
         Dim fso As New Scripting.FileSystemObject, serviceArgs As String, commandStr As String
     
         browser_ = browser
     
-        If browser_ = svbaBrowser.Firefox OrElse browser_ = svbaBrowser.IE Then
+        If browser_ = svbaBrowser.Firefox Then
             'for firefox, if previous session is still open on same port, then will get "Session is already started"
             'on OpenBrowser so kill all driver instances on the assigned port
             'could use KillDriver on Chrome/Edge too, but since they support multi-sessions on same port, this will eliminate
@@ -384,10 +374,8 @@ Public Class WebDriver
 
         If checkDriverBrowserVersionAlignment Then
             Dim mngr As New WebDriverManager
-            Dim platform As svbaPlatform
             'it's important to run these in silent mode so that if there is a problem, we don't get in the way of automation activity
-            If browser_ = svbaBrowser.IE Then platform = svbaWin32 Else platform = svbaSystem
-            mngr.AlignDriverWithBrowser browser_, driverPath, minDriverBrowserCompatibilityLevel, True, platform
+            mngr.AlignDriverWithBrowser browser_, driverPath, minDriverBrowserCompatibilityLevel, True
         End If
     
         If Not fso.FileExists(driverPath) Then
@@ -405,10 +393,9 @@ Public Class WebDriver
                 'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
                 'apparently firefox does not support command line argument for specifying log file path
                 'so using cmd.exe to redirect log from console window
+                'WARNING: this option could crash host app with MWB AV real-time protection
                 serviceArgs = " -vv"" > " & Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
                 commandStr = Chr$(34) & Environ("comspec") & Chr$(34) & " /c " & """"
-            Case svbaBrowser.IE
-                serviceArgs = " --log-level=TRACE --log-file=" & Chr$(34) & logFilePath & Chr$(34)
             End Select
         End If
     
@@ -437,11 +424,6 @@ Public Class WebDriver
             'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
             If sessionId_ <> vbNullString Then CloseBrowser
             taskKillByPid processID
-        Case svbaBrowser.IE
-            'unfortunately, CMD_SHUTDOWN in IE mode does not kill all driver sub-processes such as the broswer
-            'so similar to Firefox, must check if browser is still open, and close if needed
-            If sessionId_ <> vbNullString Then CloseBrowser
-            execute tCMD.CMD_SHUTDOWN
         End Select
     
         'need to set this global used by Highlight to nothing or else WebDriver class' terminate event may not fire
@@ -731,6 +713,7 @@ Public Class WebDriver
 
     [Description("Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")]
     Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
+        'WARNING: this could crash host app with MWB AV real-time protection
         Dim i As Long
         Dim modKeys As Collection
         Dim endMatchPos As Long
@@ -772,7 +755,7 @@ Public Class WebDriver
                 
                     If startMatchPos - 1 > endMatchPosLast Then
                         'non-cord action
-                        sendPackage.Add osKeyMapper(Mid(keyString, endMatchPosLast + 1, startMatchPos - endMatchPosLast - 1))
+                        sendPackage.Add osKeyMapper(Mid$(keyString, endMatchPosLast + 1, startMatchPos - endMatchPosLast - 1))
                     End If
                     'now do the cord action
                     'handle more than one modifier keys
@@ -791,7 +774,7 @@ Public Class WebDriver
             
                 If Len(keyString) > endMatchPosLast Then
                     'last non-cord action
-                    sendPackage.Add osKeyMapper(Mid(keyString, endMatchPosLast + 1, Len(keyString) - endMatchPosLast))
+                    sendPackage.Add osKeyMapper(Mid$(keyString, endMatchPosLast + 1, Len(keyString) - endMatchPosLast))
                 End If
             Else 'no cords so send keys in one call
                 sendPackage.Add osKeyMapper(keyString)
@@ -1292,7 +1275,7 @@ Public Class WebDriver
         'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
         If UBound(argumentList) >= 0 Then
             args = argumentList
-            args = deObjectifyInputArgs(args)
+            args = serializeScriptInputs(args)
         End If
     
         data.Add "args", args
@@ -1302,7 +1285,7 @@ Public Class WebDriver
         'replace the response representation of an element, a collection of elements, and a shadow root
         'with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
         If IsObject(resp("value")) Then
-            Set ExecuteScript = objectifyScriptResponse(resp("value"))
+            Set ExecuteScript = deserializeScriptResponse(resp("value"))
         Else
             ExecuteScript = resp("value")
         End If
@@ -1319,7 +1302,7 @@ Public Class WebDriver
         'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
         If UBound(argumentList) >= 0 Then
             args = argumentList
-            args = deObjectifyInputArgs(args)
+            args = serializeScriptInputs(args)
         End If
     
         data.Add "args", args
@@ -1329,7 +1312,7 @@ Public Class WebDriver
         'replace the response representation of an element, a collection of elements, and a shadow root
         'with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
         If IsObject(resp("value")) Then
-            Set ExecuteScriptAsync = objectifyScriptResponse(resp("value"))
+            Set ExecuteScriptAsync = deserializeScriptResponse(resp("value"))
         Else
             ExecuteScriptAsync = resp("value")
         End If
@@ -1412,8 +1395,6 @@ Public Class WebDriver
                 pngstr = execute(tCMD.CMD_SCREENSHOT_FULL)("value")
             Case svbaBrowser.Firefox
                 pngstr = execute(tCMD.CMD_SCREENSHOT_FULL_FF)("value")
-            Case svbaBrowser.IE
-                Err.Raise 405, "WebCapabilities", "The SaveScreenShot method with argument fullScreenShot=True is not supported by the IE browser."
             End Select
         Else
             If element Is Nothing Then
@@ -1442,12 +1423,15 @@ Public Class WebDriver
         saveByteArrayToFile decodeBase64(pdfstr), filePath
     End Sub
 
-    [Description("Returns a dictionary containing x, y, width, height of the element")]
+    [Description("Returns a dictionary containing x, y, width, height, left, top, right, and bottom of the element's rectangle")]
     Public Function GetRect(element As WebElement) As Dictionary
-        'returns dictionary with following keys x, y, width, height
         Dim data As New Dictionary
         data.Add "id", element.elementId
         Set GetRect = execute(tCMD.CMD_GET_ELEMENT_RECT, data)("value")
+        GetRect.Add "top", GetRect.Item("y")
+        GetRect.Add "bottom", GetRect.Item("y") + GetRect.Item("height")
+        GetRect.Add "left", GetRect.Item("x")
+        GetRect.Add "right", GetRect.Item("x") + GetRect.Item("width")
     End Function
 
     [Description("Returns the current webpage source as a string")]
@@ -1642,25 +1626,19 @@ Public Class WebDriver
 
     [Description("Gets the inner HTML of the element")]
     Public Function GetInnerHTML(Optional element As WebElement) As String
-        Dim script As String
         If element Is Nothing Then
-            script = "return document.documentElement.innerHTML"
-            GetInnerHTML = ExecuteScript(script)
+            GetInnerHTML = ExecuteScript("return document.documentElement.innerHTML;")
         Else
-            script = "return arguments[0].innerHTML"
-            GetInnerHTML = ExecuteScript(script, element)
+            GetInnerHTML = ExecuteScript("return arguments[0].innerHTML;", element)
         End If
     End Function
 
     [Description("Gets the outer HTML of the element")]
     Public Function GetOuterHTML(Optional element As WebElement) As String
-        Dim script As String
         If element Is Nothing Then
-            script = "return document.documentElement.outerHTML"
-            GetOuterHTML = ExecuteScript(script)
+            GetOuterHTML = ExecuteScript("return document.documentElement.outerHTML;")
         Else
-            script = "return arguments[0].outerHTML"
-            GetOuterHTML = ExecuteScript(script, element)
+            GetOuterHTML = ExecuteScript("return arguments[0].outerHTML;", element)
         End If
     End Function
 
@@ -1694,12 +1672,6 @@ Public Class WebDriver
             If initializeFromSettingsFile AndAlso preloadFirefoxCapabilitiesFilePath <> vbNullString Then
                 caps.LoadFromFile preloadFirefoxCapabilitiesFilePath
             End If
-        Case svbaBrowser.IE
-            If initializeFromSettingsFile AndAlso preloadIECapabilitiesFilePath <> vbNullString Then
-                caps.LoadFromFile preloadIECapabilitiesFilePath
-            End If
-            'see https://titusfortner.com/2022/09/28/edge-ie-mode.html
-            caps.SetOption "ie.edgechromium", True 'attach to Edge Chrome browser
         End Select
 
         Set CreateCapabilities = caps
@@ -1730,76 +1702,111 @@ Public Class WebDriver
         End If
     End Function
 
-    [Description("Scrolls to the element specified")]
+    [Description("Scrolls the element specified into the visible viewport")]
     Public Function ScrollIntoView(element As WebElement, _
                         Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, _
                         Optional ByVal enAlign_vert As ScrollIntoViewOptions_alignment = align_start, _
                         Optional ByVal enAlign_horiz As ScrollIntoViewOptions_alignment = align_nearest, _
-                        Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
-        Dim script As String
+                        Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebElement
+        Dim optionsList As String
     
-        If enSpeed = 0 AndAlso enAlign_vert = 0 AndAlso enAlign_horiz = 0 Then
-            script = "arguments[0].scrollIntoView();" 'Default, same of "arguments[0].scrollIntoView(true)"
-        Else
-            Dim sSpeed As String, sAlign_vert As String, sAlign_horiz As String
-            Select Case enSpeed
-                Case 0: sSpeed = "auto" 'Default
-                Case 1: sSpeed = "smooth"
-                Case 2: sSpeed = "instant"
-                Case 3: sSpeed = "auto"
-            End Select
-            Select Case enAlign_vert
-                Case 0: sAlign_vert = "start" 'Default
-                Case 1: sAlign_vert = "start"
-                Case 2: sAlign_vert = "center"
-                Case 3: sAlign_vert = "end"
-                Case 4: sAlign_vert = "nearest"
-            End Select
-            Select Case enAlign_horiz
-                Case 0: sAlign_horiz = "nearest" 'Default
-                Case 1: sAlign_horiz = "start"
-                Case 2: sAlign_horiz = "center"
-                Case 3: sAlign_horiz = "end"
-                Case 4: sAlign_horiz = "nearest"
-            End Select
-            script = "arguments[0].scrollIntoView({ behavior: """ & sSpeed & """, block: """ & sAlign_vert & """, inline: """ & sAlign_horiz & """ });"
+        Dim sSpeed As String, sAlign_vert As String, sAlign_horiz As String
+        Select Case enSpeed
+            Case 0: sSpeed = "auto" 'Default
+            Case 1: sSpeed = "smooth"
+            Case 2: sSpeed = "instant"
+            Case 3: sSpeed = "auto"
+        End Select
+        Select Case enAlign_vert
+            Case 0: sAlign_vert = "start" 'Default
+            Case 1: sAlign_vert = "start"
+            Case 2: sAlign_vert = "center"
+            Case 3: sAlign_vert = "end"
+            Case 4: sAlign_vert = "nearest"
+        End Select
+        Select Case enAlign_horiz
+            Case 0: sAlign_horiz = "nearest" 'Default
+            Case 1: sAlign_horiz = "start"
+            Case 2: sAlign_horiz = "center"
+            Case 3: sAlign_horiz = "end"
+            Case 4: sAlign_horiz = "nearest"
+        End Select
+    
+        optionsList = "{""behavior"": """ & sSpeed & """, ""block"": """ & sAlign_vert & """, ""inline"": """ & sAlign_horiz & """}"
+    
+        ExecuteScript getJavaScript("ScrollIntoView.js"), element, optionsList
+        
+        If xOffset <> 0 Or yOffset <> 0 Then
+            Dim container As WebElement
+            'get the element's scroll container element
+            Set container = ExecuteScript(getJavaScript("GetScrollContainer.js"), element)
+        
+            container.ScrollBy xOffset, yOffset
         End If
-        ExecuteScript script, element
-        ScrollBy xOffset, yOffset
+        
         Set ScrollIntoView = element
     End Function
 
-    [Description("Scrolls to a x-y offset in pixels relative to the current window position")]
-    Public Sub ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0)
-        Dim script As String
-        script = "window.scrollBy(" & xOffset & "," & yOffset & ");"
-        ExecuteScript script
+    [Description("Scrolls by an x-y offset in pixels relative to the current scrollable window or element content position")]
+    Public Sub ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, Optional scrollableElem As WebElement)
+        Dim optionsList As String
+
+        Dim sSpeed As String
+        Select Case enSpeed
+            Case 0: sSpeed = "auto" 'Default
+            Case 1: sSpeed = "smooth"
+            Case 2: sSpeed = "instant"
+            Case 3: sSpeed = "auto"
+        End Select
+    
+        optionsList = "{""top"":" & yOffset & ",""left"":" & xOffset & ",""behavior"": """ & sSpeed & """}"
+
+        ExecuteScript getJavaScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "by", optionsList
     End Sub
 
-    [Description("Scrolls to a x-y coordinate position in pixels relative to the current window viewport origin")]
-    Public Sub ScrollTo(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0)
-        Dim script As String
-        script = "window.scrollTo(" & x & "," & y & ");"
-        ExecuteScript script
+    [Description("Scrolls to an x-y position in pixels relative to the current scrollable window or element content origin")]
+    Public Sub ScrollTo(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, Optional scrollableElem As WebElement)
+        Dim optionsList As String
+
+        Dim sSpeed As String
+        Select Case enSpeed
+            Case 0: sSpeed = "auto" 'Default
+            Case 1: sSpeed = "smooth"
+            Case 2: sSpeed = "instant"
+            Case 3: sSpeed = "auto"
+        End Select
+    
+        optionsList = "{""top"":" & y & ",""left"":" & x & ",""behavior"": """ & sSpeed & """}"
+
+        ExecuteScript getJavaScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "to", optionsList
     End Sub
 
-    [Description("Scrolls to the current window viewport origin")]
-    Public Sub ScrollToTop()
-        ScrollTo 0, 0
+    [Description("Scrolls to the top of current scrollable window or element content")]
+    Public Sub ScrollToTop(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, Optional scrollableElem As WebElement)
+        ScrollTo 0, 0, enSpeed, scrollableElem
     End Sub
 
-    [Description("Scrolls to the bottom of current window viewport")]
-    Public Sub ScrollToBottom()
-        Dim script As String
-        script = "window.scrollTo(0, document.body.scrollHeight);"
-        ExecuteScript script
+    [Description("Scrolls to the bottom of current scrollable window or element content")]
+    Public Sub ScrollToBottom(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, Optional scrollableElem As WebElement)
+        ScrollTo 0, GetScrollHeight(scrollableElem), enSpeed, scrollableElem
     End Sub
 
-    [Description("Gets the heigth of the current window viewport")]
-    Public Function GetScrollHeight() As Integer
-        Dim script As String
-        script = "return document.body.scrollHeight;"
-        GetScrollHeight = ExecuteScript(script)
+    [Description("Gets the height of the current scrollable window or element content")]
+    Public Function GetScrollHeight(Optional scrollableElem As WebElement) As Long
+        If scrollableElem Is Nothing Then
+            GetScrollHeight = ExecuteScript("return document.documentElement.scrollHeight;")
+        Else
+            GetScrollHeight = ExecuteScript("return arguments[0].scrollHeight;", scrollableElem)
+        End If
+    End Function
+
+    [Description("Gets the width of the current scrollable window or element content")]
+    Public Function GetScrollWidth(Optional scrollableElem As WebElement) As Long
+        If scrollableElem Is Nothing Then
+            GetScrollWidth = ExecuteScript("return document.documentElement.scrollWidth;")
+        Else
+            GetScrollWidth = ExecuteScript("return arguments[0].scrollWidth;", scrollableElem)
+        End If
     End Function
 
     [Description("Returns the collection of cookies for the current webpage")]
@@ -2182,45 +2189,29 @@ Public Class WebDriver
         Set GetChildElements = parentElement.FindElements(By.XPath, "./child::*")
     End Function
 
-    [Description("Returns an array holding the text values from a table or tbody element")]
+    [Description("Returns a 1-based array holding the text values from a table or tbody element")]
     Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
-        Dim htmlDoc As New HTMLDocument
-        Dim htmlTbl As HTMLTable
-
+        Dim data As Dictionary, elemDict As Dictionary, c As Collection
         'convert the WebElement table into an html dom table object
         'input WebElement can either be a table or a tbody element
-        'using a html dom table for processing is greater than 25x faster than using Selenium selectors to process table
     
-        If htmlDoc.documentMode >= 11 Then
-            'this below is more direct and works in my Office 365, but appears to fail on some 64-bit systems, related to
-            'FEATURE_BROWSER_EMULATION registry key setting.
-            Set htmlTbl = htmlDoc.createElement("table")
-        
-            Select Case table.GetTagName
-            Case "table"
-                htmlTbl.innerHTML = table.GetInnerHTML
-            Case "tbody"
-                htmlTbl.innerHTML = table.GetOuterHTML
-            Case Else 'report error
-                Err.Raise 1, "WebDriver", "Error in TableToArray method: input object must be a table or tbody element."
-            End Select
+        'instead of calling ExecuteScript, reduce some overhead by rolling our own since we know what's going in and coming out
+        Set elemDict = New Dictionary
+        elemDict.Add ELEMENT_KEY, table.elementId
+        Set data = New Dictionary
+        data.Add "script", getJavaScript("TableToArray.js")
+        data.Add "args", Array(elemDict, skipHeader, skipFooter, createSpanData)
+        Set data = ExecuteCmd("POST", "/session/$sessionId/execute/sync", data)
+    
+        If TypeName(data("value")) = "Collection" Then
+            Set c = data("value")
         Else
-            'this is the work-around...
-            Select Case table.GetTagName
-            Case "table"
-                htmlDoc.body.innerHTML = table.GetOuterHTML
-            Case "tbody"
-                htmlDoc.body.innerHTML = "<table>" & table.GetOuterHTML & "</table>"
-            Case Else 'report error
-                Err.Raise 1, "WebDriver", "Error in TableToArray method: input object must be a table or tbody element."
-            End Select
-        
-            Set htmlTbl = htmlDoc.body.children(0)
+            Err.Raise 1, , "Error in TableToArray method: input element must be either table or tbody element"
         End If
 
-        TableToArray = htmlTableToArray(htmlTbl, skipHeader, skipFooter, createSpanData)
+        TableToArray = collectionToArray(c)
     End Function
-
+    
     [Description("Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact")]
     Public Function PageToHTMLDoc(Optional ByVal sanitize As Boolean = False) As MSHTML.HTMLDocument
         'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
@@ -2229,7 +2220,7 @@ Public Class WebDriver
     
         pageSource = Me.GetPageSource
     
-        If sanitize Then pageSource = sanitizeHTML(pageSource)
+        If sanitize Then pageSource = ExecuteScript(getJavaScript("SanitizeHTML.js"), pageSource)
 
         If htmlDoc.documentMode >= 11 Then
             htmlDoc.documentElement.innerHTML = pageSource
@@ -2261,12 +2252,10 @@ Public Class WebDriver
 
     [Description("Converts webpage to an html file - use sanitize to remove online dynamic content while leaving the dom tree intact")]
     Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False, Optional ByVal formatUnicode16 As Boolean = True)
-        'sanitize option attempts to remove all "online" dynamic content while leaving the dom tree intact
-        If sanitize Then
-            Me.SaveStringToFile sanitizeHTML(Me.GetPageSource), filePath, formatUnicode16
-        Else
-            Me.SaveStringToFile Me.GetPageSource, filePath, formatUnicode16
-        End If
+        Dim pageSource As String
+        pageSource = Me.GetPageSource
+        If sanitize Then pageSource = ExecuteScript(getJavaScript("SanitizeHTML.js"), pageSource)
+        Me.SaveStringToFile pageSource, filePath, formatUnicode16
     End Sub
 
     [Description("Converts webpage to an xml file")]
@@ -2379,7 +2368,7 @@ Public Class WebDriver
         entryCol.Add "# WebCapabilities class to save a default set of capabilities"
         entryCol.Add "# for pre-loading."
         entryCol.Add "# The system defaults for local_host_port:"
-        entryCol.Add "# Chrome - 9515, Edge - 9516, Firefox - 4444, IE - 5555"
+        entryCol.Add "# Chrome - 9515, Edge - 9516, Firefox - 4444"
         entryCol.Add " "
     
         entryCol.Add "[CHROME]"
@@ -2400,16 +2389,28 @@ Public Class WebDriver
         entryCol.Add "local_host_port=" & readIniFileEntry(iniFilePath, "FIREFOX", "local_host_port", 4444, useDefaultValue)
         entryCol.Add " "
     
-        entryCol.Add "[INTERNET EXPLORER]"
-        entryCol.Add " "
-        entryCol.Add "preload_capabilities_file_path=" & readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "preload_capabilities_file_path", vbNullString, useDefaultValue)
-        entryCol.Add "local_host_port=" & readIniFileEntry(iniFilePath, "INTERNET EXPLORER", "local_host_port", 5555, useDefaultValue)
-        entryCol.Add " "
-    
         entryCol.Add "[PDF_DEFAULT_PRINT_SETTINGS]"
         entryCol.Add " "
         entryCol.Add "# Valid units values are svbaInches (default) or svbaCentimeters."
         entryCol.Add "# Valid orientation values are svbaPortrait (default) or svbaLandscape."
+        entryCol.Add " "
+        entryCol.Add "# Common Metric print settings:"
+        entryCol.Add "# units=svbaCentimeters"
+        entryCol.Add "# page_height=27.94"
+        entryCol.Add "# page_width=21.59"
+        entryCol.Add "# margin_bottom=1"
+        entryCol.Add "# margin_top=1"
+        entryCol.Add "# margin_right=1"
+        entryCol.Add "# margin_left=1"
+        entryCol.Add " "
+        entryCol.Add "# Common Imperial print settings:"
+        entryCol.Add "# units=svbaInches"
+        entryCol.Add "# page_height=11"
+        entryCol.Add "# page_width=8.5"
+        entryCol.Add "# margin_bottom=.393701"
+        entryCol.Add "# margin_top=.393701"
+        entryCol.Add "# margin_right=.393701"
+        entryCol.Add "# margin_left=.393701"
         entryCol.Add " "
         entryCol.Add "units=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "units", "svbaInches", useDefaultValue)
         entryCol.Add "page_height=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "page_height", 11, useDefaultValue)
@@ -2422,7 +2423,8 @@ Public Class WebDriver
         entryCol.Add "orientation=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", "svbaPortrait", useDefaultValue)
         entryCol.Add "print_scale=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
         entryCol.Add "shrink_to_fit=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
-    
+        
+        
         Set ts = fso.CreateTextFile(iniFilePath, True, True)
     
         For i = 1 To entryCol.Count
@@ -2617,7 +2619,7 @@ Public Class WebDriver
     Public Sub SetDownloadFolder(Optional ByVal folderPath As String = ".\")
         'redirect the download location AFTER capabilities have been set - can be called multiple times in same session!!
         Dim params As New Dictionary
-        If browser_ = Firefox OrElse browser_ = IE Then
+        If browser_ = Firefox Then
             'GeckoDriver lack of support for cdp endpoint - https://groups.google.com/a/mozilla.org/g/dev-webdriver/c/DcYrCVCWMLU
             Err.Raise 1, , "Error in SetDownloadFolder - this method can only be used with Edge and Chrome. Use WebCapabilities SetDownloadPrefs instead."
         End If
@@ -2808,8 +2810,6 @@ Public Class WebDriver
             sImageName = "msedgedriver%"
         Case svbaBrowser.Firefox
             sImageName = "geckodriver%"
-        Case svbaBrowser.IE
-            sImageName = "IEDriverServer%"
         End Select
     
         Set objService = GetObject("winmgmts:\\.\root\CIMV2")
@@ -2844,85 +2844,11 @@ Public Class WebDriver
         taskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
     End Function
 
-    Private Function htmlTableToArray(table As HTMLTable, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
-        Dim row As HTMLTableRow
-        Dim cell As HTMLTableCell
-        Dim cellChild As HTMLHtmlElement
-        Dim maxCols As Integer
-        Dim i As Integer
-        Dim foundTable As Boolean
-        Dim rowSpan As Integer
-        Dim colSpan As Integer
-        Dim v() As Variant
-    
-        If skipHeader Then table.deleteTHead
-        If skipFooter Then table.deleteTFoot
-    
-        If createSpanData Then
-            'first handle row spans
-            For Each row In table.rows
-                For Each cell In row.cells
-                    rowSpan = cell.rowSpan
-                    If rowSpan > 1 Then
-                        For i = row.rowIndex + 1 To row.rowIndex + rowSpan - 1
-                            table.rows(i).insertCell(cell.cellIndex).innerText = cell.innerText
-                        Next i
-                    End If
-                Next cell
-            Next row
-        
-            'now process column spans
-            For Each row In table.rows
-                For Each cell In row.cells
-                    colSpan = cell.colSpan
-                    If colSpan > 1 Then
-                        For i = 1 To colSpan - 1
-                            row.insertCell(row.cells.length).innerText = cell.innerText
-                        Next i
-                    End If
-                Next cell
-            Next row
-        End If
-    
-        'calculate the number of array columns needed for output
-        For Each row In table.rows
-            If row.cells.length > maxCols Then maxCols = row.cells.length
-        Next row
-    
-        'dimension output array
-        ReDim v(baseArrayIdx To table.rows.length - 1 + baseArrayIdx, baseArrayIdx To maxCols - 1 + baseArrayIdx)
-    
-        'extract cell data (td and th elements) from each row
-        For Each row In table.rows
-            For Each cell In row.cells
-                'there can be all sorts of crap in a table cell including <font>, <p>, <img>, and MULTIPLE <table>'s!
-                'search to see if there is at least one table
-                'if there are more than one in the cell then only process first!
-                If cell.children.Length > 0 Then
-                    foundTable = False
-                    For Each cellChild In cell.children
-                        If cellChild.tagName = "TABLE" Then
-                            'recursive call to TableToArray
-                            v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData)
-                            foundTable = True
-                            Exit For
-                        End If
-                    Next cellChild
-                    If Not foundTable Then v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
-                Else
-                    v(row.rowIndex + baseArrayIdx, cell.cellIndex + baseArrayIdx) = cell.innerText
-                End If
-            Next cell
-        Next row
-    
-        htmlTableToArray = v
-    End Function
-
     Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
         Dim str As String
         Dim elem As WebElement
         Select Case browser_
-        Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
+        Case svbaBrowser.Chrome, svbaBrowser.Edge
             If Me.IsPresent(By.XPath, "//*[@id='webkit-xml-viewer-source-xml']", , , elem) Then str = elem.GetInnerHTML
         Case svbaBrowser.Firefox
             str = Me.GetPageSource
@@ -2974,215 +2900,11 @@ Public Class WebDriver
             Else
                 Err.Raise 1, "WebDriver", "Error: The page source is not JSON format!"
             End If
-        Case svbaBrowser.IE
-            Err.Raise 1, "WebDriver", "IE driver cannot view JSON format"
         End Select
     
         If prettyPrint Then str = WebJsonConverter.ConvertToJson(WebJsonConverter.ParseJson(str), 4)
     
         getJSONStringFromPage = str
-    End Function
-
-    Private Function sanitizeHTML(ByVal str As String) As String
-        Dim htmlDoc As New HTMLDocument
-        Dim elems As IHTMLDOMChildrenCollection
-        Dim elem As HTMLGenericElement
-        Dim parentElem As HTMLDivElement
-        Dim i As Long, j As Long
-        Dim ipos1 As Long, ipos2 As Long
-        Dim foundOne As Boolean
-        Dim subStr As String
-        Dim eventsArray() As Variant
-        Dim eventStr As String
-        Dim emptyScript As HTMLScriptElement
-        Dim scriptNode As IHTMLDOMNode
-        Dim styleNode As IHTMLDOMNode
-        Dim newStyleNode As IHTMLDOMNode
-        Dim tempDoc As HTMLDocument
-
-        'This function renders html source "offline" by disabling dynamic content, while leaving the DOM tree intact.
-    
-        'The following are disabled:
-    
-        '- script elements
-        '- url redirects
-        '- src attributes
-        '- srcset attributes
-        '- href attributes
-        '- rel attributes
-        '- url() function in style elements and attributes
-        '- action attributes in form elements
-        '- as attribute in link element when as='script'
-        '- on* event attributes
-        '- data attribute in object elements
-    
-        'To perform above in a reliable and efficient way, the source is loaded into a simulated document fragment using a div element as
-        'the root. This way the source can be parsed using DOM while disconnected from a html document root.
-        'html, head, and body tags in the input string are renamed prior to loading into the div element, and then renamed back
-        'before returning the results.
-    
-        'rename html, head, and body tags
-        'use vbTextCompare for case insensitivity
-        str = Replace$(str, "<html", "<html_", Compare:=vbTextCompare, Count:=1)
-        str = Replace$(str, "</html", "</html_", Compare:=vbTextCompare, Count:=1)
-
-        str = Replace$(str, "<head", "<head_", Compare:=vbTextCompare, Count:=1)
-        str = Replace$(str, "</head", "</head_", Compare:=vbTextCompare, Count:=1)
-    
-        str = Replace$(str, "<body", "<body_", Compare:=vbTextCompare, Count:=1)
-        str = Replace$(str, "</body", "</body_", Compare:=vbTextCompare, Count:=1)
-    
-        'create the simulated document fragment using a div element
-        Set parentElem = htmlDoc.createElement("div")
-        'assign the input string to inner html of the parent element
-        parentElem.innerHTML = str
-
-        'disable scripts
-        Set elems = parentElem.querySelectorAll("script")
-        For i = 0 To elems.length - 1
-            If htmlDoc.documentMode >= 11 Then
-                'these work in Office 365, but appear not to work on some 64-bit systems
-                Set elem = elems.item(i)
-                elem.innerText = vbNullString
-            Else
-                'so we use the node replace method to empty script
-                Set scriptNode = elems.item(i)
-                Set emptyScript = htmlDoc.createElement("script")
-                scriptNode.parentNode.replaceChild emptyScript, scriptNode
-            End If
-        Next i
-
-        'disable redirects
-        Set elems = parentElem.querySelectorAll("meta[http-equiv='refresh']")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "content", vbNullString
-        Next i
-    
-        'disable src attributes
-        Set elems = parentElem.querySelectorAll("*[src]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "src", vbNullString
-        Next i
-    
-        'disable srcset attributes
-        Set elems = parentElem.querySelectorAll("*[srcset]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "srcset", vbNullString
-        Next i
-    
-        'disable href attributes
-        Set elems = parentElem.querySelectorAll("*[href]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            If Not (elem.getAttribute("href") Like "about:blank*") Then
-                elem.setAttribute "href", vbNullString
-            End If
-        Next i
-    
-        'disable rel attributes
-        Set elems = parentElem.querySelectorAll("*[rel]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "rel", vbNullString
-        Next i
-    
-        'disable url() function in style elements
-        If htmlDoc.documentMode >= 11 Then
-            Set elems = parentElem.querySelectorAll("style")
-        
-            For i = 0 To elems.length - 1
-                Set elem = elems.item(i)
-                subStr = LCase$(elem.innerHTML) 'this is needed to use much faster (>10x!) vbBinaryCompare
-                foundOne = False
-                ipos1 = InStr(1, subStr, "url(")
-                Do While ipos1
-                    ipos2 = InStr(ipos1 + 4, subStr, ")")
-                    'subStr = Left$(subStr, ipos1 + 3) & Mid$(subStr, ipos2)
-                    'ipos1 = InStr(ipos1 + 5, subStr, "url(")
-                    'this takes a fraction of time as the above but replaces with spaces instead of nulls
-                    Mid$(subStr, ipos1 + 4, ipos2 - ipos1 - 4) = Space$(ipos2 - ipos1 - 4)
-                    ipos1 = InStr(ipos2 + 1, subStr, "url(")
-                    foundOne = True
-                    DoEvents
-                Loop
-                If foundOne Then elem.innerHTML = subStr
-            Next i
-        End If
-    
-        'disable url() function in style attributes
-        Set elems = parentElem.querySelectorAll("[style*='url(']")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            subStr = LCase$(elem.getAttribute("style"))
-            foundOne = False
-            ipos1 = InStr(1, subStr, "url(")
-            Do While ipos1
-                ipos2 = InStr(ipos1 + 4, subStr, ")")
-                'subStr = Left$(subStr, ipos1 + 3) & Mid$(subStr, ipos2)
-                'ipos1 = InStr(ipos1 + 5, subStr, "url(")
-                'this takes a fraction of time as the above but replaces with spaces instead of nulls
-                Mid$(subStr, ipos1 + 4, ipos2 - ipos1 - 4) = Space$(ipos2 - ipos1 - 4)
-                ipos1 = InStr(ipos2 + 1, subStr, "url(")
-                foundOne = True
-                DoEvents
-            Loop
-            If foundOne Then elem.setAttribute "style", subStr
-        Next i
-
-        'disable action attributes in form elements
-        Set elems = parentElem.querySelectorAll("form[action]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "action", vbNullString
-        Next i
-    
-        'disable as attributes equal to "script" in link elements
-        Set elems = parentElem.querySelectorAll("link[as='script']")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "as", vbNullString
-        Next i
-    
-        'disable data attributes in object elements
-        Set elems = parentElem.querySelectorAll("object[data]")
-        For i = 0 To elems.length - 1
-            Set elem = elems.item(i)
-            elem.setAttribute "data", vbNullString
-        Next i
-   
-        'disable on* event attributes
-        eventsArray = Array("onclick", "onload", "onoffline", "ononline", "onunload", "onpageshow", "onpagehide", "onerror", "onresize", "onhashchange", "onbeforeunload", "onpopstate", "onmessage")
-        For j = 0 To UBound(eventsArray)
-            eventStr = eventsArray(j)
-            Set elems = parentElem.querySelectorAll("*[" & eventStr & "]")
-            For i = 0 To elems.length - 1
-                Set elem = elems.item(i)
-                'can't use SetAttribute for on* event attributes so let's remove it instead
-                elem.removeAttribute eventStr
-                'add a replacement attribute with dummy suffix - will remove suffix with replace after dom processing
-                elem.setAttribute eventStr & "___xxx123", vbNullString
-            Next i
-        Next j
-
-        'load processed source back into str
-        str = parentElem.innerHTML
-    
-        'rename dummy tags back to original tag names
-        str = Replace$(str, "<html_", "<html", , 1)
-        str = Replace$(str, "</html_", "</html", , 1)
-
-        str = Replace$(str, "<head_", "<head", , 1)
-        str = Replace$(str, "</head_", "</head", , 1)
-    
-        str = Replace$(str, "<body_", "<body", , 1)
-        str = Replace$(str, "</body_", "</body", , 1)
-    
-        str = Replace$(str, "___xxx123", vbNullString)
-    
-        sanitizeHTML = str
     End Function
 
     Private Function formatXML(ByVal val As String) As String
@@ -3238,7 +2960,7 @@ Public Class WebDriver
         End If
     End Function
 
-    Private Function deObjectifyInputArgs(argumentList() As Variant) As Variant()
+    Private Function serializeScriptInputs(argumentList() As Variant) As Variant()
         'replace WebElement, WebElements, WebShadowRoot object arguments with format needed by WebDriver server
         Dim i As Long, j As Long
         Dim elemCol As Collection
@@ -3279,10 +3001,10 @@ Public Class WebDriver
             End Select
         Next i
     
-        deObjectifyInputArgs = args
+        serializeScriptInputs = args
     End Function
 
-    Private Function objectifyScriptResponse(responseValue As Object) As Object
+    Private Function deserializeScriptResponse(responseValue As Object) As Object
         'this function replaces the ExecuteScript response representation of an element, a collection of elements,
         'and a shadow root with a WebElement object, a WebElements object, and a WebShadowRoot object, respectively
         'its recursive designed allows to search and replace a nested response structure
@@ -3301,7 +3023,7 @@ Public Class WebDriver
             'loop through all items of the collection, looking for objects
             For i = 1 To numItems
                 If IsObject(responseValue.Item(i)) Then
-                    Set obj = objectifyScriptResponse(responseValue.Item(i))
+                    Set obj = deserializeScriptResponse(responseValue.Item(i))
                 
                     If TypeName(obj) <> "WebElement" Then isElementCollection = False
                 
@@ -3333,13 +3055,13 @@ Public Class WebDriver
             Else 'check each key value for collection or dictionary
                 For Each vkey In responseValue.keys
                     If IsObject(responseValue.Item(vkey)) Then
-                        Set responseValue.Item(vkey) = objectifyScriptResponse(responseValue.Item(vkey))
+                        Set responseValue.Item(vkey) = deserializeScriptResponse(responseValue.Item(vkey))
                     End If
                 Next vkey
             End If
         End Select
         
-        Set objectifyScriptResponse = responseValue
+        Set deserializeScriptResponse = responseValue
     End Function
 
     Private Function osKeyMapper(ByVal keyString As String) As String
@@ -3486,6 +3208,27 @@ Public Class WebDriver
     
     Friend Function decodeUrl(ByVal encodedUrl As String) As String
         decodeUrl = ExecuteScript("return decodeURI('" & encodedUrl & "')")
+    End Function
+    
+    Private Function collectionToArray(c As Variant) As Variant()
+        Dim row As Collection, a() As Variant, j As Long, k As Long, cell As Variant
+        'assumes the incoming collection is "regular" shaped
+        'use of for each is more performative
+        ReDim a(1 To c.Count, 1 To c(1).Count)
+        k = 0
+        For Each row In c
+            k = k + 1
+            j = 0
+            For Each cell In row
+                j = j + 1
+                If TypeName(cell) = "Collection" Then
+                    a(k, j) = collectionToArray(cell)
+                Else
+                    If Not IsNull(cell) Then a(k, j) = cell
+                End If
+            Next cell
+        Next row
+        collectionToArray = a
     End Function
     
     Private Sub Class_Terminate()

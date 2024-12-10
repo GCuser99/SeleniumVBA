@@ -1,9 +1,12 @@
 Attribute VB_Name = "test_All"
+Option Explicit
+Option Private Module
+'@folder("SeleniumVBA.Testing")
+
 Sub test_full_suite()
     'useful for devs - assumes Edge, Chrome, and Firefox browsers/WebDrivers are installed
     test_ActionChains.test_action_chain
     test_ActionChains.test_action_chain_sendkeys
-    test_ActionChains.test_drag_and_drop
     
     test_Alerts.test_Alerts
     test_Alerts.test_Alerts2
@@ -18,7 +21,7 @@ Sub test_full_suite()
     test_Capabilities.test_invisible
     test_Capabilities.test_kiosk_printing
     test_Capabilities.test_pageLoadStrategy
-    test_Capabilities.test_remoteDebugger 'this leaves browser open
+    test_Capabilities.test_remoteDebugger 'this leaves browser open - must close manually
     test_Capabilities.test_set_user_agent
     test_Capabilities.test_unhandled_prompts
     test_Capabilities.test_geolocation_with_incognito
@@ -29,8 +32,6 @@ Sub test_full_suite()
     test_cookies.test_cookies2
     test_cookies.test_cookies3
     
-    test_Dropdowns.test_select
-    
     test_ExecuteCDP.test_cdp_enhanced_file_download
     test_ExecuteCDP.test_cdp_enhanced_geolocation
     test_ExecuteCDP.test_cdp_enhanced_screenshot
@@ -38,6 +39,7 @@ Sub test_full_suite()
     test_ExecuteCDP.test_cdp_scripts
     
     test_ExecuteCmd.test_chrome_edge_full_screenshot
+    'this requires FF installation
     test_ExecuteCmd.test_firefox_full_screenshot
     
     test_executeScript.test_call_embedded_HTML_script
@@ -49,8 +51,8 @@ Sub test_full_suite()
     test_FileUpDownload.test_file_download2
     test_FileUpDownload.test_file_upload
     
+    'these requires FF installation
     test_Firefox.test_firefox_json_viewer_bug
-    test_Firefox.test_logging
     test_Firefox.test_print
     test_Firefox.test_file_download
     
@@ -63,6 +65,9 @@ Sub test_full_suite()
     
     test_highlight.test_highlight
     test_highlight.test_highlight2
+    
+    test_Inputs.test_select
+    test_Inputs.test_radio
     
     test_IsPresent.test_IsPresent
     test_IsPresent.test_IsPresent_wait
@@ -80,7 +85,10 @@ Sub test_full_suite()
     test_print.test_screenshot
     test_print.test_screenshot_full
     
-    test_Scroll.test_scroll_ops
+    test_Scroll.test_scrollIntoView
+    test_Scroll.test_long_scroll
+    test_Scroll.test_element_scroll
+    test_Scroll.test_deep_scrollIntoView
     
     test_Sendkeys.test_Authentication
     test_Sendkeys.test_Sendkeys

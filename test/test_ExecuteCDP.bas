@@ -38,7 +38,7 @@ Sub test_cdp_enhanced_screenshot()
     params.Add "fromSurface", True 'defaults to true
     params.Add "optimizeForSpeed", False 'defaults to false
     
-    Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(params, 4)
+    'Debug.Print SeleniumVBA.WebJsonConverter.ConvertToJson(params, 4)
     
     'send the cdp command to the WebDriver and return "data" key of the response dictionary
     strB64 = driver.ExecuteCDP("Page.captureScreenshot", params)("value")("data")
@@ -47,6 +47,8 @@ Sub test_cdp_enhanced_screenshot()
     driver.SaveBase64StringToFile strB64, ".\screenshotfull.jpg"
     
     driver.Wait 500
+    
+    driver.DeleteFiles ".\screenshotfull.jpg"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -93,13 +95,14 @@ Sub test_cdp_enhanced_geolocation()
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
-    Debug.Print driver.FindElementByID("lat-value").GetText, driver.FindElementByID("long-value").GetText
+    Debug.Assert driver.FindElementByID("lat-value").GetText <> 41.1621429
+    Debug.Assert driver.FindElementByID("long-value").GetText <> -8.6219537
     
-    driver.Wait 2000
+    driver.Wait 1000
     
     driver.FindElementByXPath("//*[@id='map-link']/a").Click
     
-    driver.Wait 5000
+    driver.Wait 2000
     
     driver.CloseBrowser
     driver.Shutdown
@@ -136,6 +139,8 @@ Sub test_cdp_enhanced_file_download()
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/raw/main/dev/test_files/test.pdf"
     
     driver.WaitForDownload ".\test.pdf"
+    
+    driver.DeleteFiles ".\test.pdf"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -177,15 +182,15 @@ Sub test_cdp_scripts()
 
     driver.NavigateToFile ".\snippet.html"
     
-    driver.Wait 3000
+    driver.Wait 1000
     
     driver.SwitchToAlert.Accept 'CDP injected alert
     
-    driver.Wait 3000
+    driver.Wait 1000
     
     driver.SwitchToAlert.Accept 'embedded HTML load alert
     
-    driver.Wait 2000
+    driver.Wait 1000
     
     'use CDP to call the HTML embedded script to alter element text
     'https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate
@@ -193,7 +198,9 @@ Sub test_cdp_scripts()
     params.Add "expression", "changeText('The text has been changed by a CDP call to embedded HTML script');"
     driver.ExecuteCDP "Runtime.evaluate", params
     
-    driver.Wait 3000
+    Debug.Assert driver.FindElementByID("text").GetText = "The text has been changed by a CDP call to embedded HTML script"
+    
+    driver.Wait 1000
     
     'use CDP to run a CDP script that returns the text value of the element
     params.RemoveAll
@@ -201,14 +208,20 @@ Sub test_cdp_scripts()
     Set resp = driver.ExecuteCDP("Runtime.evaluate", params)
     
     'print the result to debug window
-    Debug.Print resp("value")("result")("type"), resp("value")("result")("value")
+    Debug.Assert resp("value")("result")("type") = "string"
+    Debug.Assert resp("value")("result")("value") = "The text has been changed by a CDP call to embedded HTML script"
     
     'use CDP to run a script that uses DOM to change the text value
     params.RemoveAll
     params.Add "expression", "document.getElementById('text').innerText='The text has been changed by a CDP script'"
     driver.ExecuteCDP "Runtime.evaluate", params
     
-    driver.Wait 2000
+    Debug.Assert driver.FindElementByID("text").GetText = "The text has been changed by a CDP script"
+    
+    driver.Wait 1000
+    
+    driver.DeleteFiles ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -276,7 +289,7 @@ Sub test_cdp_random_other_stuff()
     driver.ExecuteCDP "Emulation.setUserAgentOverride", "{""userAgent"": 'Mozilla/5.1 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36'}"
     
     Debug.Assert driver.GetUserAgent = "Mozilla/5.1 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
-    driver.Wait 1500
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown

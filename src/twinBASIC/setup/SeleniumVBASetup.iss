@@ -108,6 +108,8 @@ Filename: "{sys}\wscript.exe"; Parameters: "{app}\utilities\create_update_ini_fi
 ;Add excel and access trusted location for examples
 Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Excel}.0\Excel\Security\Trusted Locations\SeleniumVBA"; ValueName: "Path"; ValueType: String; ValueData: "{app}\examples";  Flags: uninsdeletekey; Check: HasExcel;
 Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Access}.0\Access\Security\Trusted Locations\SeleniumVBA"; ValueName: "Path"; ValueType: String; ValueData: "{app}\examples";  Flags: uninsdeletekey; Check: HasAccess;
+;Enable WScript host in case it's been disabled
+;Root: HKCU; Subkey: "Software\Microsoft\Windows Script Host\Settings"; ValueName: "Enabled"; ValueType: dword; ValueData: 1; 
 
 [Code]
 const

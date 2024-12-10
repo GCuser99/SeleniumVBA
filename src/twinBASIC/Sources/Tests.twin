@@ -1,4 +1,288 @@
 Private Module Tests
+    
+    Sub test_table_to_array_giant()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim table() As Variant
+        'Dim sw As New StopWatch
+
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+
+        driver.ImplicitMaxWait = 2000
+
+        driver.NavigateTo "https://www.federalreserve.gov/data/yield-curve-tables/feds200805_1.html"
+
+        Dim tableElem As WebElement
+        'Set tableElem = driver.FindElementByCssSelector("#content > div:nth-child(6) > table")
+        Set tableElem = driver.FindElementByCssSelector("#content > div:nth-child(6) > table > tbody")
+    
+        table = driver.TableToArray(tableElem, False, False, False)
+
+        Debug.Assert UBound(table, 1) = 500
+        Debug.Assert UBound(table, 2) = 127
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_deep_scrollIntoView()
+        Dim driver As SeleniumVBA.WebDriver
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartChrome
+        driver.OpenBrowser
+
+        driver.NavigateTo "https://the-internet.herokuapp.com/large"
+        driver.Wait 1000
+
+        driver.FindElement(By.ID, "sibling-50.3").ScrollIntoView enSpeed:=jump_smooth, enAlign_horiz:=align_start
+    
+        driver.ScrollToTop
+    
+        driver.FindElement(By.ID, "sibling-50.3").ScrollIntoView enSpeed:=jump_smooth, enAlign_horiz:=align_start, xOffset:=-200
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_scrollIntoView()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim elem As SeleniumVBA.WebElement
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+        driver.ActiveWindow.Maximize
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scrolling_tests/page_with_scrolling_frame.html"
+    
+        driver.FindElement(By.Name, "scrolling_frame").SwitchToFrame
+    
+        Set elem = driver.FindElement(By.Name, "scroll_checkbox")
+    
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Debug.Assert elem.GetProperty("checked")
+    
+        elem.Click 'click off
+        driver.ScrollToTop
+    
+        elem.ScrollIntoView().Click
+    
+        Debug.Assert elem.GetProperty("checked")
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scrolling_tests/page_with_tall_frame.html"
+    
+        driver.FindElement(By.Name, "tall_frame").SwitchToFrame
+    
+        Set elem = driver.FindElement(By.Name, "checkbox")
+    
+        elem.ScrollIntoView jump_smooth
+    
+        elem.Click
+    
+        Debug.Assert elem.GetProperty("checked")
+    
+        elem.Click 'click off
+        driver.ScrollToTop
+    
+        elem.ScrollIntoView().Click
+    
+        Debug.Assert elem.GetProperty("checked")
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scrolling_tests/page_with_scrolling_frame_out_of_view.html"
+    
+        driver.FindElement(By.Name, "scrolling_frame").ScrollIntoView(jump_smooth).SwitchToFrame
+    
+        Set elem = driver.FindElement(By.Name, "scroll_checkbox")
+    
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Debug.Assert elem.GetProperty("checked")
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scrolling_tests/page_with_nested_scrolling_frames.html"
+    
+        driver.FindElement(By.Name, "scrolling_frame").SwitchToFrame
+        driver.FindElement(By.Name, "nested_scrolling_frame").ScrollIntoView(jump_smooth).SwitchToFrame
+    
+        Set elem = driver.FindElement(By.Name, "scroll_checkbox")
+    
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Debug.Assert elem.GetProperty("checked")
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scrolling_tests/page_with_y_overflow_auto.html"
+    
+        Set elem = driver.FindElement(By.TagName, "a")
+    
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Debug.Assert driver.FindElementByTagName("h1").GetText = "Clicked Successfully!"
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scroll.html"
+    
+        Set elem = driver.FindElement(By.ID, "line9")
+    
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Debug.Assert driver.FindElement(By.ID, "clicked").GetText = "line9"
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/scroll4.html"
+    
+        Set elem = driver.FindElement(By.ID, "radio")
+    
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Debug.Assert elem.IsSelected
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/overflow/x_auto_y_auto.html"
+    
+        Set elem = driver.FindElement(By.ID, "right")
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Set elem = driver.FindElement(By.ID, "bottom-right")
+        elem.ScrollIntoView(jump_smooth).Click
+    
+        Set elem = driver.FindElement(By.ID, "bottom")
+        elem.ScrollIntoView(jump_smooth).Click 'this one fails in FF - element is hidden by scroll bar
+    
+        Debug.Assert driver.FindElement(By.ID, "right-clicked").GetText = "ok"
+        Debug.Assert driver.FindElement(By.ID, "bottom-right-clicked").GetText = "ok"
+        Debug.Assert driver.FindElement(By.ID, "bottom-clicked").GetText = "ok"
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/overflow/x_hidden_y_hidden.html"
+    
+        Set elem = driver.FindElement(By.ID, "right")
+        elem.ScrollIntoView(jump_auto).Click
+    
+        Set elem = driver.FindElement(By.ID, "bottom-right")
+        elem.ScrollIntoView(jump_auto).Click
+    
+        Set elem = driver.FindElement(By.ID, "bottom")
+        elem.ScrollIntoView(jump_auto).Click 'this one fails in FF - element is hidden by scroll bar
+    
+        Debug.Assert driver.FindElement(By.ID, "right-clicked").ScrollIntoView(jump_instant).GetText = "ok"
+        Debug.Assert driver.FindElement(By.ID, "bottom-right-clicked").GetText = "ok"
+        Debug.Assert driver.FindElement(By.ID, "bottom-clicked").GetText = "ok"
+        
+        driver.Wait 1000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+
+    Sub test_long_scroll()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim endElem As SeleniumVBA.WebElement
+        Dim html As String
+        Dim filePath As String
+        Dim i As Long
+
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+
+        'create the test html doc - set the style attribute scroll-behavior to "smooth"
+        'this will affect the default "auto" scroll behavior in the scroll methods tested below
+        html = "<!DOCTYPE html><html style='scroll-behavior:smooth;'><body>"
+        For i = 1 To 10000: html = html & "<div><p>" & i & "</p></div>": Next i
+        html = html & "<div id='end'><p>end</p></div>"
+        html = html & "</body></html>"
+
+        filePath = ".\snippet.html"
+        driver.SaveStringToFile html, filePath
+
+        driver.NavigateToFile filePath
+        driver.ActiveWindow.Maximize
+        driver.Wait 1000
+
+        Set endElem = driver.FindElement(By.ID, "end")
+
+        'this will smooth scroll because the default "jump_auto" scroll mode
+        'takes its value from scrolling container's CSS
+        driver.ScrollIntoView endElem
+    
+        driver.ScrollToTop jump_instant
+    
+        driver.Wait 1000
+    
+        driver.ScrollIntoView endElem
+    
+        driver.ScrollToTop
+    
+        driver.ScrollTo , 30000
+    
+        driver.ScrollBy , -30000
+    
+        driver.ScrollToBottom
+    
+        driver.Wait 1000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+
+    Sub test_element_scroll()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim endElem As SeleniumVBA.WebElement
+        Dim scrollContainer As SeleniumVBA.WebElement
+        Dim html As String
+        Dim filePath As String
+        Dim i As Long
+
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+
+        'create the test html doc - set the style attribute scroll-behavior to "smooth"
+        'this will affect the default "auto" scroll behavior in the scroll methods tested below
+        html = "<!DOCTYPE html><html><body>"
+        html = html & "<div id='scroll' style='overflow-y:scroll; height:400px;scroll-behavior:smooth;'>"
+        For i = 1 To 1000: html = html & "<div id='" & i & "'><p>" & i & "</p></div>": Next i
+        html = html & "<div id='end'><p>end</p></div>"
+        html = html & "</div>"
+        html = html & "</body></html>"
+
+        filePath = ".\snippet.html"
+        driver.SaveStringToFile html, filePath
+
+        driver.NavigateToFile filePath
+        driver.ActiveWindow.Maximize
+        driver.Wait 1000
+
+        Set scrollContainer = driver.FindElement(By.ID, "scroll")
+        Set endElem = driver.FindElement(By.ID, "end")
+
+        'this will smooth scroll because the default "jump_auto" scroll mode
+        'takes its value from scrolling container's CSS
+        driver.ScrollIntoView endElem
+    
+        scrollContainer.ScrollToTop jump_instant
+    
+        driver.Wait 1000
+    
+        driver.ScrollIntoView endElem
+    
+        scrollContainer.ScrollToTop
+    
+        scrollContainer.ScrollTo , 30000
+    
+        scrollContainer.ScrollBy , -30000
+    
+        scrollContainer.ScrollToBottom
+    
+        driver.Wait 1000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
     Sub test_print()
         Dim driver As WebDriver
         Dim settings As WebPrintSettings
@@ -304,7 +588,6 @@ Private Module Tests
         MsgBox mngr.AlignEdgeDriverWithBrowser()
         MsgBox mngr.AlignChromeDriverWithBrowser()
         MsgBox mngr.AlignFirefoxDriverWithBrowser()
-        MsgBox mngr.AlignIEDriverWithBrowser()
     End Sub
     
     Sub test_file_download()
@@ -356,10 +639,10 @@ Private Module Tests
         'note that santization leaves DOM tree intact
         Set htmlDoc = driver.PageToHTMLDoc(sanitize:=True)
         Debug.Print htmlDoc.body.ChildNodes.Length
-    
+        
         'save sanitized page to html file
         driver.PageToHTMLFile "source_sanitized.html", sanitize:=True
-    
+        
         'this is much faster because santization disables "online" dynamic elements
         driver.NavigateToFile "source_sanitized.html"
         driver.Wait 1000
@@ -501,47 +784,88 @@ Private Module Tests
     
         driver.Shutdown
     End Sub
-    
     Sub test_action_chain()
-        Dim driver As WebDriver, actions As WebActionChain
-        Dim from1 As WebElement, to1 As WebElement
-        Dim from2 As WebElement, to2 As WebElement
-        Dim from3 As WebElement, to3 As WebElement
-        Dim from4 As WebElement, to4 As WebElement
-        Dim elem As WebElement
+        Dim driver As SeleniumVBA.WebDriver, actions As SeleniumVBA.WebActionChain
+        Dim left1 As SeleniumVBA.WebElement, right1 As SeleniumVBA.WebElement
+        Dim left2 As SeleniumVBA.WebElement, right2 As SeleniumVBA.WebElement
+        Dim left3 As SeleniumVBA.WebElement, right3 As SeleniumVBA.WebElement
+        Dim left4 As SeleniumVBA.WebElement, right4 As SeleniumVBA.WebElement
+        Dim left5 As SeleniumVBA.WebElement, right5 As SeleniumVBA.WebElement
+        Dim list1 As SeleniumVBA.WebElement, list2 As SeleniumVBA.WebElement
     
-        Set driver = New WebDriver
+        Set driver = SeleniumVBA.New_WebDriver
     
         driver.StartEdge
         driver.OpenBrowser
     
-        driver.NavigateTo "https://demo.guru99.com/test/drag_drop.html"
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/draggableLists.html"
     
         driver.Wait 500
     
-        Set from1 = driver.FindElement(By.XPath, "//*[@id='credit2']/a")
-        Set to1 = driver.FindElement(By.XPath, "//*[@id='bank']/li")
+        Set left1 = driver.FindElement(By.CssSelector, "#leftitem-1")
+        Set left2 = driver.FindElement(By.CssSelector, "#leftitem-2")
+        Set left3 = driver.FindElement(By.CssSelector, "#leftitem-3")
+        Set left4 = driver.FindElement(By.CssSelector, "#leftitem-4")
+        Set left5 = driver.FindElement(By.CssSelector, "#leftitem-5")
     
-        Set from2 = driver.FindElement(By.XPath, "//*[@id='credit1']/a")
-        Set to2 = driver.FindElement(By.XPath, "//*[@id='loan']/li")
+        Set right1 = driver.FindElement(By.CssSelector, "#rightitem-1")
+        Set right2 = driver.FindElement(By.CssSelector, "#rightitem-2")
+        Set right3 = driver.FindElement(By.CssSelector, "#rightitem-3")
+        Set right4 = driver.FindElement(By.CssSelector, "#rightitem-4")
+        Set right5 = driver.FindElement(By.CssSelector, "#rightitem-5")
     
-        Set from3 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
-        Set to3 = driver.FindElement(By.XPath, "//*[@id='amt7']/li")
-    
-        Set from4 = driver.FindElement(By.XPath, "//*[@id='fourth']/a")
-        Set to4 = driver.FindElement(By.XPath, "//*[@id='amt8']/li")
+        Set list1 = driver.FindElement(By.CssSelector, "#sortable1")
+        Set list2 = driver.FindElement(By.CssSelector, "#sortable2")
     
         driver.Wait 500
     
         Set actions = driver.ActionChain
-        actions.ScrollBy , 500
-        actions.DragAndDrop from1, to1
-        actions.DragAndDrop from2, to2
-        actions.DragAndDrop from3, to3
-        actions.ClickAndHold(from4).MoveToElement(to4).ReleaseButton
+        actions.DragAndDrop left1, list2
+        actions.DragAndDrop right1, list1
+        actions.DragAndDrop left2, list2
+        actions.DragAndDrop right2, list1
+        actions.DragAndDrop left3, list2
+        actions.DragAndDrop right3, list1
+        actions.DragAndDrop left4, list2
+        actions.DragAndDrop right4, list1
+        actions.DragAndDrop left5, list2
+        actions.DragAndDrop right5, list1
+        actions.ClickAndHold(right3).MoveToElement(right5).ReleaseButton
+        actions.ClickAndHold(right4).MoveToElement(right5).ReleaseButton
         actions.Perform 'do all the actions defined above
     
         driver.Wait 1000
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+
+    Sub test_action_chain_sendkeys()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim keys As SeleniumVBA.WebKeyboard
+        Dim actions As SeleniumVBA.WebActionChain
+        Dim textBox As SeleniumVBA.WebElement
+    
+        Set driver = SeleniumVBA.New_WebDriver
+        Set keys = SeleniumVBA.New_WebKeyboard
+    
+        driver.StartEdge
+    
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/single_text_input.html"
+        driver.Wait 500
+    
+        Set textBox = driver.FindElement(By.ID, "textInput")
+    
+        Set actions = driver.ActionChain
+    
+        'build the chain and then execute with Perform method
+        actions.MoveToElement(textBox).Click
+        actions.KeyDown(keys.ShiftKey).SendKeys("upper case").KeyUp (keys.ShiftKey)
+        actions.Perform
+
+        driver.Wait 2000
     
         driver.CloseBrowser
         driver.Shutdown

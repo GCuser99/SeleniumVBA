@@ -37,6 +37,8 @@ Sub test_print()
 
     driver.Wait 1000
     
+    driver.DeleteFiles "printpage.pdf"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -58,6 +60,8 @@ Sub test_screenshot()
 
     driver.Wait 1000
     
+    driver.DeleteFiles "screenshot.png"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -78,6 +82,8 @@ Sub test_screenshot_full()
     driver.SaveScreenshot fullScreenShot:=True
 
     driver.Wait 1000
+    
+    driver.DeleteFiles "screenshot.png"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -103,6 +109,8 @@ Sub test_element_screenshot()
     driver.FindElement(By.ID, "searchInput").SaveScreenshot
 
     driver.Wait 1000
+    
+    driver.DeleteFiles "screenshot.png"
     
     driver.CloseBrowser
     driver.Shutdown

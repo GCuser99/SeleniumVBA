@@ -26,6 +26,7 @@ Sub test_cookies()
     
     driver.Wait 500
     
+    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
     'get all cookies for this domain and then save to file
     driver.GetAllCookies().SaveToFile "cookies.txt"
     
@@ -42,6 +43,8 @@ Sub test_cookies()
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 1000
+    
+    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -67,9 +70,9 @@ Sub test_cookies2()
     'get and save the important cookie for this domain
     Set cks = driver.GetAllCookies
     
-    For Each ck In cks
-        Debug.Print ck.Name
-    Next ck
+    Debug.Assert cks.Count > 0
+    
+    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
     
     driver.DeleteAllCookies  'this does not affect the cks object
     
@@ -91,6 +94,8 @@ Sub test_cookies2()
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 500
+    
+    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -119,6 +124,8 @@ Sub test_cookies3()
     
     driver.Wait 500
     
+    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
+    
     'get cookie add add it to Cookies object
     cks.Add driver.GetCookie("Selenium")
     
@@ -145,6 +152,10 @@ Sub test_cookies3()
     driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
     
     driver.Wait 500
+    
+    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
+    
+    driver.DeleteFiles ".\cookies.txt"
     
     driver.CloseBrowser
     driver.Shutdown

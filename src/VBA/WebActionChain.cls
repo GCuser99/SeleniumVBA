@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.8
+' SeleniumVBA v5.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -949,21 +949,8 @@ Attribute Perform.VB_Description = "Executes the action chain"
     'in which the inputs were added, making multi-calls to tCMD.CMD_ACTIONS.
     
     If data_.Exists("actions") Then
-        'Note IEdriverServer does not support wheel actions, so must use multi-call method
-        If driver_.GetBrowserName = "internet explorer" Then
-            Dim inputChans() As Variant
-            Dim i As Long
-            'multi-call method:
-            inputChans = data_.Item("actions")
-            For i = 0 To UBound(inputChans)
-                data_.Item("actions") = Array(inputChans(i))
-                driver_.execute tCMD.CMD_ACTIONS, data_
-            Next i
-        Else
-            '... or synchronize input channels and call Execute method once
-            'for typical action chains, this is 5-10% faster...
-            driver_.execute tCMD.CMD_ACTIONS, syncChannels(data_)
-        End If
+        'synchronize input channels and call Execute method once
+        driver_.execute tCMD.CMD_ACTIONS, syncChannels(data_)
     End If
 End Sub
 

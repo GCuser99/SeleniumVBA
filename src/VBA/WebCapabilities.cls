@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.8
+' SeleniumVBA v5.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -203,8 +203,6 @@ Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
         addToOptionList "extensions", extList
     Case svbaBrowser.Firefox
         Err.Raise 1, "WebCapabilities", "The AddExtensions method is not supported by the Firefox browser - use InstallAddon method of Webdriver class instead"
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The AddExtensions method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -227,8 +225,6 @@ Attribute RemoveControlNotification.VB_Description = "Removes control notificati
         'to get rid of that, run in incognito mode
     Case svbaBrowser.Firefox
         Err.Raise 1, "WebCapabilities", "The RemoveControlNotification method is not supported by the Firefox browser."
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The RemoveControlNotification method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -243,8 +239,6 @@ Attribute SetDetachBrowser.VB_Description = "Sets the detach option for Edge/Chr
         Me.SetOption "detach", val
     Case svbaBrowser.Firefox
         Err.Raise 1, "WebCapabilities", "The SetDetachBrowser method is not supported by the Firefox browser."
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The SetDetachBrowser method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -256,8 +250,6 @@ Attribute SetDebuggerAddress.VB_Description = "Sets the Debugger Address option 
         Me.SetOption "debuggerAddress", val
     Case svbaBrowser.Firefox
         Err.Raise 1, "WebCapabilities", "The SetDebuggerAddress method is not supported by the Firefox browser."
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The SetDebuggerAddress method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -337,8 +329,6 @@ Attribute RunInvisible.VB_Description = "Runs headless argument mode"
         Me.AddArguments "--headless=new"
     Case svbaBrowser.Firefox
         Me.AddArguments "--headless"
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The RunInvisible method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -352,17 +342,6 @@ Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode"
         Me.AddArguments "--inprivate"
     Case svbaBrowser.Firefox
         Me.AddArguments "-private"
-    Case svbaBrowser.IE
-        'see https://www.selenium.dev/documentation/ie_driver_server/
-        'for this to work, the following register key value must be set:
-        'Key: "Computer\HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\Main"
-        'Value "TabProcGrowth" set to REG_DWORD = 0
-        'WARNING - setting the above key value to 0 will slow sendkeys (similar to 64-bit driver problem)
-        'Me.SetOption "ie.forceCreateProcessApi", True
-        'Me.SetOption "ie.browserCommandLineSwitches", "-private"
-        'Me.SetOption "ie.ensureCleanSession", True
-        'the above did not work for GCUser99
-        Err.Raise 1, "WebCapabilities", "The RunIncognito method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -379,7 +358,7 @@ Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     profilePath = driver_.ResolvePath(profilePath)
     
     Select Case browser_
-    Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         userDir = fso.GetParentFolderName(profilePath)
         profileName = fso.GetBaseName(profilePath)
         Me.AddArguments "--user-data-dir=" & userDir
@@ -396,7 +375,7 @@ End Sub
 Public Sub SetUserAgent(ByVal val As String)
 Attribute SetUserAgent.VB_Description = "Sets the user agent string"
     Select Case browser_
-    Case svbaBrowser.Chrome, svbaBrowser.Edge, svbaBrowser.IE
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
         Me.AddArguments "--user-agent=" & val
     Case svbaBrowser.Firefox
         Me.SetPreference "general.useragent.override", val
@@ -465,8 +444,6 @@ Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and 
         'Me.SetPreference "browser.helperApps.neverAsk.saveToDisk", "application/pdf;text/plain;text/csv;application/text;text/xml;application/xml;application/csv;pplication/octet-stream doc xls pdf txt"
         'Me.SetPreference "browser.download.useDownloadDir", True
         'Me.SetPreference "browser.download.viewableInternally.enabledTypes", ""
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The SetDownloadPrefs method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -483,8 +460,6 @@ Attribute SetGeolocationAware.VB_Description = "Sets whether or not to allow geo
         'Me.SetPreference "profile.default_content_setting_values.geolocation", IIf(aware, 1, 2)
     Case svbaBrowser.Firefox
         Err.Raise 1, "WebCapabilities", "The SetGeolocationAware method is not supported by the Firefox browser."
-    Case svbaBrowser.IE
-        Err.Raise 1, "WebCapabilities", "The SetGeolocationAware method is not supported by the IE browser."
     End Select
 End Sub
 
@@ -553,8 +528,6 @@ Friend Sub initializeFor(ByVal browser As svbaBrowser)
             browserOptionKey = "ms:edgeOptions"
         Case svbaBrowser.Firefox
             browserOptionKey = "moz:firefoxOptions"
-        Case svbaBrowser.IE
-            browserOptionKey = "se:ieOptions"
     End Select
     
     data_.Item("alwaysMatch").Add browserOptionKey, browserOptions

@@ -58,13 +58,15 @@ Sub test_element_attributes_and_properties()
     Debug.Assert driver.FindElementByID("vehicle3").GetAttribute("checked") = True
     
     driver.Wait 1000
+    
+    driver.DeleteFiles filePath
 
     driver.CloseBrowser
     driver.Shutdown
 End Sub
 
 Sub test_css_property()
-    Dim driver As SeleniumVBA.WebDriver, str As String, color As String
+    Dim driver As SeleniumVBA.WebDriver
 
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -106,6 +108,8 @@ Sub test_element_aria()
     
     Debug.Assert driver.FindElementByClassName("xyz").GetAriaLabel = "Add food"
     Debug.Assert driver.FindElementByClassName("xyz").GetAriaRole = "button"
+    
+    driver.DeleteFiles filePath
     
     driver.CloseBrowser
     driver.Shutdown

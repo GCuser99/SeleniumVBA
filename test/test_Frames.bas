@@ -46,6 +46,8 @@ Sub test_frames_with_frameset()
     driver.Wait
     Debug.Assert driver.GetCurrentFrameName = "top"
     
+    driver.DeleteFiles ".\snippettop.html", ".\snippetbottom.html", ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -99,6 +101,8 @@ Sub test_frames_with_embed_objects()
     driver.Wait
     Debug.Assert driver.GetCurrentFrameName = "object frame"
     
+    driver.DeleteFiles ".\snippettop.html", ".\snippetbottom.html", ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -146,6 +150,8 @@ Sub test_frames_with_iframes()
     driver.Wait
     Debug.Assert driver.GetCurrentFrameName = "iframe1"
     
+    driver.DeleteFiles ".\snippettop.html", ".\snippetbottom.html", ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -190,4 +196,5 @@ Sub test_frames_with_nested_iframes()
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+
 

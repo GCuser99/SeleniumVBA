@@ -1,4 +1,8 @@
 Attribute VB_Name = "test_Extensions"
+Option Explicit
+Option Private Module
+'@folder("SeleniumVBA.Testing")
+
 Sub test_addExtensions()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
@@ -15,7 +19,7 @@ Sub test_addExtensions()
 
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 2000
+    driver.Wait 1000
 
     driver.CloseBrowser
     driver.Shutdown
@@ -38,7 +42,7 @@ Sub test_addExtensions2()
 
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 2000
+    driver.Wait 1000
 
     driver.CloseBrowser
     driver.Shutdown
@@ -54,7 +58,7 @@ Sub test_InstallAddon()
     'this will install an xpi add-on (Firefox only) - use AddExtensions method of WebCapabilities for Edge/Chrome
     driver.InstallAddon Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\darkreader-4.9.94.xpi"
     
-    driver.Wait 2000
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown

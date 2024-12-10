@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.8
+' SeleniumVBA v5.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -337,8 +337,6 @@ Public Function getBrowserNameString(ByVal browser As svbaBrowser) As String
         getBrowserNameString = "msedge"
     Case svbaBrowser.Firefox
         getBrowserNameString = "firefox"
-    Case svbaBrowser.IE
-        getBrowserNameString = "internet explorer"
     End Select
 End Function
 

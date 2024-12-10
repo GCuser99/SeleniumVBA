@@ -11,7 +11,7 @@ Sub test_table()
 
     driver.StartChrome
     driver.OpenBrowser
-    
+
     htmlStr = "<html><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>3</td><td><table border='l'><tbody><tr><td>4A</td><td>4B</td></tr><tr><td>4C</td><td>4D</td></tr></tbody></table></td></tr></tbody><tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
     driver.SaveStringToFile htmlStr, ".\snippet.html"
     
@@ -33,6 +33,8 @@ Sub test_table()
     
     Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText = "footer content"
     
+    driver.DeleteFiles ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -53,40 +55,39 @@ Sub test_table_to_array()
     driver.SaveStringToFile htmlStr, ".\snippet.html"
     driver.NavigateToFile ".\snippet.html"
     
-    driver.Wait 5000
+    driver.Wait 1000
     
     table = driver.FindElement(By.ID, "mytable").TableToArray()
     
-    Debug.Print "With createSpanData=True (default):"
-    For i = 1 To UBound(table, 1)
-        If Not IsArray(table(i, 3)) Then
-            Debug.Print table(i, 1), table(i, 2), table(i, 3)
-        Else
-            For j = 1 To UBound(table(i, 3), 1)
-                For k = 1 To UBound(table(i, 3), 2)
-                    Debug.Print table(i, 1), table(i, 2), table(i, 3)(j, k)
-                Next k
-            Next j
-        End If
-    Next i
+    'With createSpanData=True (default):
+    Debug.Assert table(1, 1) & " " & table(1, 2) & " " & table(1, 3) = "head 1 head 2 head 3"
+    Debug.Assert table(2, 1) & " " & table(2, 2) & " " & table(2, 3) = "Dos Equis: X X"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(1, 1) = "Choose Option A"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(1, 2) = "Choose Option B"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(2, 1) = "Choose Option C"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(2, 2) = "Choose Option D"
+    Debug.Assert table(4, 1) & " " & table(4, 2) & " " & table(4, 3) = "Sky Is Blue"
+    Debug.Assert table(5, 1) & " " & table(5, 2) & " " & table(5, 3) = "Less Is More"
+    Debug.Assert table(6, 1) & " " & table(6, 2) & " " & table(6, 3) = "Big Is Better"
+    Debug.Assert table(7, 1) & " " & table(7, 2) & " " & table(7, 3) = "I Feel Better"
+    Debug.Assert table(8, 1) & " " & table(8, 2) & " " & table(8, 3) = "footer content footer content footer content"
     
     'now process table w/o creating span data
     
     table = driver.FindElement(By.ID, "mytable").TableToArray(createSpanData:=False)
     
-    Debug.Print ""
-    Debug.Print "With createSpanData=False:"
-    For i = 1 To UBound(table, 1)
-        If Not IsArray(table(i, 3)) Then
-            Debug.Print table(i, 1), table(i, 2), table(i, 3)
-        Else
-            For j = 1 To UBound(table(i, 3), 1)
-                For k = 1 To UBound(table(i, 3), 2)
-                    Debug.Print table(i, 1), table(i, 2), table(i, 3)(j, k)
-                Next k
-            Next j
-        End If
-    Next i
+    'With createSpanData=False:
+    Debug.Assert table(1, 1) & " " & table(1, 2) & " " & table(1, 3) = "head 1 head 2 head 3"
+    Debug.Assert table(2, 1) & " " & table(2, 2) & " " & table(2, 3) = "Dos Equis: X "
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(1, 1) = "Choose Option A"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(1, 2) = "Choose Option B"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(2, 1) = "Choose Option C"
+    Debug.Assert table(3, 1) & " " & table(3, 2) & " " & table(3, 3)(2, 2) = "Choose Option D"
+    Debug.Assert table(4, 1) & " " & table(4, 2) & " " & table(4, 3) = "Sky Is Blue"
+    Debug.Assert table(5, 1) & " " & table(5, 2) & " " & table(5, 3) = "Less More "
+    Debug.Assert table(6, 1) & " " & table(6, 2) & " " & table(6, 3) = "Big Better "
+    Debug.Assert table(7, 1) & " " & table(7, 2) & " " & table(7, 3) = "I Feel "
+    Debug.Assert table(8, 1) & " " & table(8, 2) & " " & table(8, 3) = "footer content  "
 
     driver.CloseBrowser
     driver.Shutdown
@@ -109,6 +110,7 @@ Sub test_table_to_array_large()
     
     Debug.Assert UBound(table, 1) = 50
     Debug.Assert UBound(table, 2) = 50
+    Debug.Assert table(43, 5) = "43.5"
 
     driver.CloseBrowser
     driver.Shutdown

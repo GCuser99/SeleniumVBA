@@ -31,6 +31,8 @@ Sub test_firefox_full_screenshot()
 
     driver.Wait 1000
     
+    driver.DeleteFiles ".\screenshotfull.png"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -60,6 +62,8 @@ Sub test_chrome_edge_full_screenshot()
     driver.SaveBase64StringToFile strB64, ".\screenshotfull.png"
 
     driver.Wait 1000
+    
+    driver.DeleteFiles ".\screenshotfull.png"
     
     driver.CloseBrowser
     driver.Shutdown

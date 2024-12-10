@@ -42,6 +42,8 @@ Sub test_logging()
         Debug.Assert fruits.GetSelectedOption.GetText = "Grape"
     End If
     
+    driver.DeleteFiles "chrome.log"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub

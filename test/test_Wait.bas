@@ -5,49 +5,25 @@ Option Private Module
 
 Sub test_ImplicitMaxWait()
     Dim driver As SeleniumVBA.WebDriver
-    Dim html1 As String
-    Dim html2 As String
-    Dim timeDelay As Long
     
     Set driver = SeleniumVBA.New_WebDriver
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
+
     driver.StartChrome
     driver.OpenBrowser
     
-    timeDelay = 5000
+    driver.ImplicitMaxWait = 10000
     
-    'set the implicit wait for finding element(s)
-    driver.ImplicitMaxWait = timeDelay + 100
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/ajaxy_page.html"
     
-    'create an html with an element of interest that waits to load a second html
-
-    html1 = "<!DOCTYPE html>" & _
-    "<html>" & _
-    "<script>" & _
-    "function calling(){" & _
-    "      setTimeout(""location.replace('snippet2.html')""," & timeDelay & ");" & _
-    "}" & _
-    "</script>" & _
-    "<body onLoad=""calling();"">" & _
-    "<div>Not here yet...</div>" & _
-    "</body>" & _
-    "</html>"
-
-    'create the second html to be loaded by first
-    html2 = "<!DOCTYPE html><html><body><div id='here'>I'm here after " & timeDelay & " ms!</div></body></html>"
+    driver.FindElementByName("typer").SendKeys "Hello New World!"
+    driver.FindElementByID("red").Click
+    driver.FindElementByName("submit").Click
     
-    driver.SaveStringToFile html1, ".\snippet1.html"
-    driver.SaveStringToFile html2, ".\snippet2.html"
-
-    driver.NavigateToFile ".\snippet1.html"
+    'wait for element creation...
+    Debug.Assert driver.FindElementByClassName("label").GetText = "Hello New World!"
     
-    'wait until the second html is loaded
-    driver.FindElement By.ID, "here"
-
-    driver.Wait 500
-        
+    driver.Wait 1000
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -65,7 +41,7 @@ Sub test_WaitUntilDisplayed()
     driver.StartChrome
     driver.OpenBrowser
     
-    timeDelay = 5000
+    timeDelay = 3000
     
     'create an html with a script to hide the display of an element
     
@@ -99,6 +75,8 @@ Sub test_WaitUntilDisplayed()
     
     driver.Wait 500
     
+    driver.DeleteFiles ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -116,7 +94,7 @@ Sub test_WaitUntilNotDisplayed()
     driver.StartChrome
     driver.OpenBrowser
     
-    timeDelay = 5000
+    timeDelay = 3000
     
     'create an html with a script to block the display of an element
     
@@ -153,6 +131,8 @@ Sub test_WaitUntilNotDisplayed()
     
     driver.Wait 500
     
+    driver.DeleteFiles ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -170,7 +150,7 @@ Sub test_WaitUntilNotPresent()
     driver.StartChrome
     driver.OpenBrowser
     
-    timeDelay = 5000
+    timeDelay = 3000
     
     'create an html with an element of interest that waits to load a second html
 
@@ -198,6 +178,8 @@ Sub test_WaitUntilNotPresent()
     driver.WaitUntilNotPresent By.ID, "testDiv"
 
     driver.Wait 500
+    
+    driver.DeleteFiles ".\snippet1.html", ".\snippet2.html"
         
     driver.CloseBrowser
     driver.Shutdown
@@ -224,6 +206,8 @@ Sub test_WaitForDownload()
     'wait until the download is complete
     driver.WaitForDownload ".\test.pdf"
     
+    driver.DeleteFiles ".\test.pdf"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -244,13 +228,12 @@ Sub test_WaitUntilDisplayed2()
     driver.Wait 500
     
     'search button is there, but not interactable...
-    Debug.Assert searchButton.IsDisplayed = False
+    Debug.Assert Not searchButton.IsDisplayed
     
     driver.FindElement(By.Name, "q").SendKeys "Interactable"
 
-    'searchButton.Click 'will often throw an error here because it takes some time
+    'searchButton.Click 'will often (not always) throw an error here because it takes some time
     'for search button to get ready after typing search phrase
-    Debug.Assert searchButton.IsDisplayed = False
     
     'can place an explicit Wait here but another way is to use WaitUntilReady method
     'it returns the "ready" input element object so can use methods on same line

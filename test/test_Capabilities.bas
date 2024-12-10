@@ -7,6 +7,7 @@ Option Private Module
 Sub test_invisible()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
+    Dim agentString As String
 
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -21,7 +22,7 @@ Sub test_invisible()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    Debug.Print "User Agent: " & driver.GetUserAgent
+    agentString = driver.GetUserAgent
 
     driver.CloseBrowser
     
@@ -30,7 +31,7 @@ Sub test_invisible()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    Debug.Print "User Agent: " & driver.GetUserAgent
+    Debug.Assert driver.GetUserAgent = agentString
     
     driver.CloseBrowser
     driver.Shutdown
@@ -54,7 +55,7 @@ Sub test_incognito()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 3000
+    driver.Wait 1000
     
     driver.CloseBrowser
     
@@ -63,7 +64,7 @@ Sub test_incognito()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 3000
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
@@ -131,7 +132,7 @@ Sub test_initialize_caps_from_file()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 3000
+    driver.Wait 1000
     
     driver.CloseBrowser
     
@@ -140,7 +141,11 @@ Sub test_initialize_caps_from_file()
     
     driver.NavigateTo "https://www.wikipedia.org/"
     
-    driver.Wait 3000
+    driver.Wait 1000
+    
+    Debug.Assert driver.GetUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36"
+    
+    driver.DeleteFiles "chrome.json"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -166,7 +171,7 @@ Sub test_unhandled_prompts()
     
     driver.ExecuteScript "alert('Hi!');"
     
-    driver.Wait 2000
+    driver.Wait 1000
     
     Debug.Assert driver.ActiveWindow.Title = "Google"
     
@@ -300,6 +305,8 @@ Sub test_kiosk_printing()
     
     driver.WaitForDownload ".\" & driver.ActiveWindow.Title & ".pdf"
     
+    driver.DeleteFiles ".\" & driver.ActiveWindow.Title & ".pdf"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -376,11 +383,11 @@ Sub test_geolocation_with_incognito()
     Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
     Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
     
-    driver.Wait 2000
+    driver.Wait 1000
     
     driver.FindElementByXPath("//*[@id='map-link']/a").Click
     
-    driver.Wait 5000
+    driver.Wait 1000
     
     driver.CloseBrowser
     driver.Shutdown
@@ -415,9 +422,7 @@ End Sub
 Sub test_pageLoadStrategy()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
-    Dim keys As SeleniumVBA.WebKeyboard
-    
-    Set keys = SeleniumVBA.New_WebKeyboard
+
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome

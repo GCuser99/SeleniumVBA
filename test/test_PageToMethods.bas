@@ -26,12 +26,7 @@ Sub test_PageToHTMLMethods()
     
     'note that santization leaves DOM tree intact
     Set htmlDoc = driver.PageToHTMLDoc(sanitize:=True)
-    If htmlDoc.documentMode = 11 Then
-        Debug.Assert htmlDoc.body.ChildNodes.Length = numNodes
-    Else 'its probably 5
-        'needs to be looked into - this behaves differently in Access and tB IDE which has documentMode=5
-        Debug.Assert htmlDoc.body.ChildNodes.Length = numNodes + 2
-    End If
+    Debug.Assert htmlDoc.body.ChildNodes.Length = numNodes
     
     'save sanitized page to html file
     driver.PageToHTMLFile "source_sanitized.html", sanitize:=True
@@ -43,6 +38,8 @@ Sub test_PageToHTMLMethods()
     'uncomment the following to see how long it takes to render unsanitized html file - be patient!
     'driver.NavigateToFile "source_raw.html"
     'driver.Wait 1000
+    
+    driver.DeleteFiles "source_raw.html", "source_sanitized.html"
     
     driver.Shutdown
 End Sub
@@ -72,7 +69,9 @@ Sub test_PageToXMLMethods()
     'read the test file back into browser
     driver.NavigateToFile "test.xml"
     
-    driver.Wait 2000
+    driver.Wait 1000
+    
+    driver.DeleteFiles "test.xml"
     
     driver.CloseBrowser
     driver.Shutdown
@@ -103,6 +102,8 @@ Sub test_PageToJSONMethods()
     driver.NavigateToFile "test.json"
     
     driver.Wait 2000
+    
+    driver.DeleteFiles "test.json"
     
     driver.CloseBrowser
     driver.Shutdown

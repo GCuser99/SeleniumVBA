@@ -5,7 +5,7 @@
 Public Class WebElement
 
     ' ==========================================================================
-    ' SeleniumVBA v5.8
+    ' SeleniumVBA v5.9
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -210,7 +210,7 @@ Public Class WebElement
         GetTagName = driver_.GetTagName(Me)
     End Function
 
-    [Description("Returns a dictionary containing x, y, width, height of this element")]
+    [Description("Returns a dictionary containing x, y, width, height, left, top, right, and bottom of this element's rectangle")]
     Public Function GetRect() As Dictionary
         Set GetRect = driver_.GetRect(Me)
     End Function
@@ -354,12 +354,42 @@ Public Class WebElement
         HasFocus = driver_.HasFocus(Me)
     End Function
 
-    [Description("Scrolls to this element")]
+    [Description("Scrolls this element into the visible viewport")]
     Public Function ScrollIntoView(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto, _
                                    Optional ByVal enAlign_vert As ScrollIntoViewOptions_alignment = align_start, _
                                    Optional ByVal enAlign_horiz As ScrollIntoViewOptions_alignment = align_nearest, _
-                                   Optional ByVal xOffset As Integer = 0, Optional ByVal yOffset As Integer = 0) As WebElement
+                                   Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebElement
         Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz, xOffset, yOffset)
+    End Function
+    
+    [Description("Scrolls by an x-y offset in pixels relative to this scrollable element's content position")]
+    Public Sub ScrollBy(Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto)
+        driver_.ScrollBy xOffset, yOffset, enSpeed, Me
+    End Sub
+    
+    [Description("Scrolls to an x-y position in pixels relative to this scrollable element's content origin")]
+    Public Sub ScrollTo(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto)
+        driver_.ScrollTo x, y, enSpeed, Me
+    End Sub
+
+    [Description("Scrolls to the top of this scrollable element's content")]
+    Public Sub ScrollToTop(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto)
+        driver_.ScrollToTop enSpeed, Me
+    End Sub
+
+    [Description("Scrolls to the bottom of this scrollable element's content")]
+    Public Sub ScrollToBottom(Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_auto)
+        driver_.ScrollToBottom enSpeed, Me
+    End Sub
+
+    [Description("Gets the height of this scrollable element's content")]
+    Public Function GetScrollHeight() As Long
+        GetScrollHeight = driver_.GetScrollHeight(Me)
+    End Function
+
+    [Description("Gets the width of of this scrollable element's content")]
+    Public Function GetScrollWidth() As Long
+        GetScrollWidth = driver_.GetScrollWidth(Me)
     End Function
 
     [Description("Gets the shadow root hosted by this element")]
@@ -397,7 +427,7 @@ Public Class WebElement
         Set GetChildElements = driver_.GetChildElements(Me)
     End Function
 
-    [Description("Returns an array holding the text values from a table or tbody element")]
+    [Description("Returns a 1-based array holding the text values from a table or tbody element")]
     Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
         TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter, createSpanData)
     End Function
