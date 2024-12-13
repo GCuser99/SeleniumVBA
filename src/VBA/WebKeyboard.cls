@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.9
+' SeleniumVBA v6.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

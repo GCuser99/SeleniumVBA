@@ -115,3 +115,42 @@ Sub test_table_to_array_large()
     driver.CloseBrowser
     driver.Shutdown
 End Sub
+
+Sub test_table_to_array_formatting()
+    Dim driver As WebDriver
+    Dim elem As WebElement
+    Dim table() As Variant
+    
+    Set driver = New WebDriver
+
+    driver.StartEdge
+    driver.OpenBrowser
+    
+    htmlStr = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi, this is <p>Mike</p></td></tr></table></body></html>"
+    
+    driver.SaveStringToFile htmlStr, ".\snippet.html"
+    driver.NavigateToFile ".\snippet.html"
+    
+    driver.Wait 1500
+    
+    Set elem = driver.FindElementByCssSelector("#mytable")
+    
+    table = elem.TableToArray(ignoreCellFormatting:=False) 'default setting
+    
+    Debug.Print "----------------------------------------------"
+    Debug.Print table(1, 1) '-> 12/14/2024  \r\n   12/15/2024
+    Debug.Print "----------------------------------------------"
+    Debug.Print table(1, 2) '-> Hi, this is  \r\n  \r\n  Mike
+
+    
+    table = elem.TableToArray(ignoreCellFormatting:=True)
+    
+    Debug.Print "----------------------------------------------"
+    Debug.Print table(1, 1) '-> 12/14/202412/15/2024
+    Debug.Print "----------------------------------------------"
+    Debug.Print table(1, 2) '-> Hi, this is Mike
+
+    driver.Wait 1000
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub

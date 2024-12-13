@@ -5,7 +5,7 @@
 Public Class WebActionChain
 
     ' ==========================================================================
-    ' SeleniumVBA v5.9
+    ' SeleniumVBA v6.0
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

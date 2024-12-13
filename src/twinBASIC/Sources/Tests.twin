@@ -20,7 +20,7 @@ Private Module Tests
     
         table = driver.TableToArray(tableElem, False, False, False)
 
-        Debug.Assert UBound(table, 1) = 500
+        Debug.Assert UBound(table, 1) = 501
         Debug.Assert UBound(table, 2) = 127
     
         driver.CloseBrowser

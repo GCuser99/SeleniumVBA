@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.9
+' SeleniumVBA v6.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -506,9 +506,9 @@ Attribute GetChildElements.VB_Description = "Returns the direct descendant child
 End Function
 
 '@Description("Returns a 1-based array holding the text values from a table or tbody element")
-Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+Public Function TableToArray(Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True, Optional ByVal ignoreCellFormatting As Boolean = False) As Variant()
 Attribute TableToArray.VB_Description = "Returns a 1-based array holding the text values from a table or tbody element"
-    TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter, createSpanData)
+    TableToArray = driver_.TableToArray(Me, skipHeader, skipFooter, createSpanData, ignoreCellFormatting)
 End Function
 
 '@Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")

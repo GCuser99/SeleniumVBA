@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v5.9
+    ' SeleniumVBA v6.0
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -481,9 +481,9 @@ Private Module Utils
         '    End If
         'Next i
         
-        tmp = Replace(getJavaScript("ScrollContainer.js"), Chr$(34), Chr$(34) & Chr$(34))
+        tmp = Replace(getJavaScript("GetScrollContainer.js"), Chr$(34), Chr$(34) & Chr$(34))
         v = Split(tmp, vbLf)
-        s = s & "Case ""ScrollContainer.js""" & vbCrLf
+        s = s & "Case ""GetScrollContainer.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)
             If v(i) = vbNullString Then

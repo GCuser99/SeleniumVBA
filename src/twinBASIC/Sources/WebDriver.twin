@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v5.9
+    ' SeleniumVBA v6.0
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -2190,7 +2190,7 @@ Public Class WebDriver
     End Function
 
     [Description("Returns a 1-based array holding the text values from a table or tbody element")]
-    Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+    Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True, Optional ByVal ignoreCellFormatting As Boolean = False) As Variant()
         Dim data As Dictionary, elemDict As Dictionary, c As Collection
         'convert the WebElement table into an html dom table object
         'input WebElement can either be a table or a tbody element
@@ -2200,7 +2200,7 @@ Public Class WebDriver
         elemDict.Add ELEMENT_KEY, table.elementId
         Set data = New Dictionary
         data.Add "script", getJavaScript("TableToArray.js")
-        data.Add "args", Array(elemDict, skipHeader, skipFooter, createSpanData)
+        data.Add "args", Array(elemDict, skipHeader, skipFooter, createSpanData, ignoreCellFormatting)
         Set data = ExecuteCmd("POST", "/session/$sessionId/execute/sync", data)
     
         If TypeName(data("value")) = "Collection" Then

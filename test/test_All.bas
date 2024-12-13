@@ -101,6 +101,7 @@ Sub test_full_suite()
     test_Tables.test_table
     test_Tables.test_table_to_array
     test_Tables.test_table_to_array_large
+    test_Tables.test_table_to_array_formatting
     
     'these two require answering prompts
     'test_UpdateDriver.test_updateDrivers

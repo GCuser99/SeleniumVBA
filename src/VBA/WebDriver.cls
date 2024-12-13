@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v5.9
+' SeleniumVBA v6.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -2331,7 +2331,7 @@ Attribute GetChildElements.VB_Description = "Returns the direct descendant child
 End Function
 
 '@Description("Returns a 1-based array holding the text values from a table or tbody element")
-Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True) As Variant()
+Public Function TableToArray(table As WebElement, Optional ByVal skipHeader As Boolean = False, Optional ByVal skipFooter As Boolean = False, Optional ByVal createSpanData As Boolean = True, Optional ByVal ignoreCellFormatting As Boolean = False) As Variant()
 Attribute TableToArray.VB_Description = "Returns a 1-based array holding the text values from a table or tbody element"
     Dim data As Dictionary, elemDict As Dictionary, c As Collection
     'convert the WebElement table into an html dom table object
@@ -2345,7 +2345,7 @@ Attribute TableToArray.VB_Description = "Returns a 1-based array holding the tex
     Set data = New Dictionary
     
     data.Add "script", getJavaScript("TableToArray.js")
-    data.Add "args", Array(elemDict, skipHeader, skipFooter, createSpanData)
+    data.Add "args", Array(elemDict, skipHeader, skipFooter, createSpanData, ignoreCellFormatting)
     Set data = ExecuteCmd("POST", "/session/$sessionId/execute/sync", data)
     
     If TypeName(data("value")) = "Collection" Then
@@ -2356,6 +2356,7 @@ Attribute TableToArray.VB_Description = "Returns a 1-based array holding the tex
 
     TableToArray = collectionToArray(c)
 End Function
+
 
 '@Description("Converts webpage to an html document object - use sanitize to remove online dynamic content while leaving the dom tree intact")
 Public Function PageToHTMLDoc(Optional ByVal sanitize As Boolean = False) As MSHTML.HTMLDocument
@@ -3409,61 +3410,31 @@ Private Function getJavaScript(ByVal scriptName As String) As String
     Select Case scriptName
     Case "TableToArray.js"
         script = vbNullString
-        script = script & "function htmlTableToArray(table, skipHeader, skipFooter, createSpanData) {" & vbCrLf
+        script = script & "function htmlTableToArray(table, skipHeader, skipFooter, createSpanData, ignoreCellFormatting) {" & vbCrLf
         script = script & "    // This function recursively converts [nested] table[s] into an array [vba collection]" & vbCrLf
-        script = script & "    " & vbCrLf
+        script = script & "        " & vbCrLf
         script = script & "    let maxCols = 0;" & vbCrLf
+        script = script & "    // v is output array" & vbCrLf
         script = script & "    let v = [];" & vbCrLf
+        script = script & "    // vrs is array to keep track of row span count if createSpanData = true" & vbCrLf
+        script = script & "    let vrs = [];" & vbCrLf
         script = script & vbCrLf
-        script = script & "    // Remove the header and footer rows if necessary" & vbCrLf
-        script = script & "    if (skipHeader) {" & vbCrLf
-        script = script & "        table.deleteTHead();" & vbCrLf
-        script = script & "    }" & vbCrLf
-        script = script & "    if (skipFooter) {" & vbCrLf
-        script = script & "        table.deleteTFoot();" & vbCrLf
-        script = script & "    }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "    // Handle row spans if createSpanData is true" & vbCrLf
-        script = script & "    if (createSpanData) {" & vbCrLf
-        script = script & "        for (let row of table.rows) {" & vbCrLf
-        script = script & "            for (let cell of row.cells) {" & vbCrLf
-        script = script & "                let rowSpan = cell.rowSpan;" & vbCrLf
-        script = script & "                if (rowSpan > 1) {" & vbCrLf
-        script = script & "                    for (let i = row.rowIndex + 1; i < row.rowIndex + rowSpan; i++) {" & vbCrLf
-        script = script & "                        let targetRow = table.rows[i];" & vbCrLf
-        script = script & "                        targetRow.insertCell(cell.cellIndex).innerText = cell.innerText;" & vbCrLf
-        script = script & "                    }" & vbCrLf
-        script = script & "                }" & vbCrLf
-        script = script & "            }" & vbCrLf
-        script = script & "        }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "        // Handle column spans" & vbCrLf
-        script = script & "        for (let row of table.rows) {" & vbCrLf
-        script = script & "            for (let cell of row.cells) {" & vbCrLf
-        script = script & "                let colSpan = cell.colSpan;" & vbCrLf
-        script = script & "                if (colSpan > 1) {" & vbCrLf
-        script = script & "                    for (let i = 1; i < colSpan; i++) {" & vbCrLf
-        script = script & "                        row.insertCell(row.cells.length).innerText = cell.innerText;" & vbCrLf
-        script = script & "                    }" & vbCrLf
-        script = script & "                }" & vbCrLf
-        script = script & "            }" & vbCrLf
-        script = script & "        }" & vbCrLf
-        script = script & "    }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "    // Calculate the maximum number of columns needed for the array" & vbCrLf
+        script = script & "    // Calculate the maximum number of columns needed for the arrays" & vbCrLf
         script = script & "    for (let row of table.rows) {" & vbCrLf
         script = script & "        if (row.cells.length > maxCols) {" & vbCrLf
         script = script & "            maxCols = row.cells.length;" & vbCrLf
         script = script & "        }" & vbCrLf
         script = script & "    }" & vbCrLf
         script = script & vbCrLf
-        script = script & "    // Initialize the output array" & vbCrLf
+        script = script & "    // Initialize the v and vrs arrays" & vbCrLf
         script = script & "    for (let i = 0; i < table.rows.length; i++) {" & vbCrLf
         script = script & "        v[i] = new Array(maxCols);" & vbCrLf
+        script = script & "        if (createSpanData) {vrs[i] = new Array(maxCols).fill(1);}" & vbCrLf
         script = script & "    }" & vbCrLf
         script = script & vbCrLf
         script = script & "    // Extract cell data from each row and store it in the array" & vbCrLf
         script = script & "    for (let row of table.rows) {" & vbCrLf
+        script = script & "        let colIdx = 0;" & vbCrLf
         script = script & "        for (let cell of row.cells) {" & vbCrLf
         script = script & "            let foundTable = false;" & vbCrLf
         script = script & vbCrLf
@@ -3472,38 +3443,90 @@ Private Function getJavaScript(ByVal scriptName As String) As String
         script = script & "                for (let cellChild of cell.children) {" & vbCrLf
         script = script & "                    if (cellChild.tagName.toUpperCase() === 'TABLE') {" & vbCrLf
         script = script & "                        // We have a nested table..." & vbCrLf
-        script = script & "                        v[row.rowIndex][cell.cellIndex] = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData);" & vbCrLf
+        script = script & "                        v[row.rowIndex][colIdx] = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData, ignoreCellFormatting);" & vbCrLf
         script = script & "                        foundTable = true;" & vbCrLf
         script = script & "                        break;" & vbCrLf
         script = script & "                    }" & vbCrLf
         script = script & "                }" & vbCrLf
         script = script & "            }" & vbCrLf
         script = script & vbCrLf
-        script = script & "            // If no table found, store the text content of the cell" & vbCrLf
+        script = script & "            // If no table found, store the text of the cell" & vbCrLf
         script = script & "            if (!foundTable) {" & vbCrLf
-        script = script & "                v[row.rowIndex][cell.cellIndex] = cell.innerText;" & vbCrLf
+        script = script & "                // Store the contents of the cell in output array" & vbCrLf
+        script = script & "                if (ignoreCellFormatting) {" & vbCrLf
+        script = script & "                    // Store the complete text content, including hidden text" & vbCrLf
+        script = script & "                    v[row.rowIndex][colIdx] = cell.textContent;}" & vbCrLf
+        script = script & "                else {" & vbCrLf
+        script = script & "                    // Store the visible text content, including <br>'s and other formatting" & vbCrLf
+        script = script & "                    v[row.rowIndex][colIdx] = cell.innerText;" & vbCrLf
+        script = script & "                }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "                if (createSpanData) {" & vbCrLf
+        script = script & "                    // Store row span data for use later" & vbCrLf
+        script = script & "                    vrs[row.rowIndex][colIdx] = cell.rowSpan;" & vbCrLf
+        script = script & "                    let colSpan = cell.colSpan;" & vbCrLf
+        script = script & "                    if (colSpan > 1) {" & vbCrLf
+        script = script & "                        // Propogate column span data" & vbCrLf
+        script = script & "                        for (let i = 1; i < colSpan; i++) {" & vbCrLf
+        script = script & "                            if (ignoreCellFormatting) {" & vbCrLf
+        script = script & "                                v[row.rowIndex][colIdx + i] = cell.textContent;}" & vbCrLf
+        script = script & "                            else {" & vbCrLf
+        script = script & "                                v[row.rowIndex][colIdx + i] = cell.innerText;" & vbCrLf
+        script = script & "                            }" & vbCrLf
+        script = script & "                        }" & vbCrLf
+        script = script & "                        colIdx += colSpan - 1;" & vbCrLf
+        script = script & "                    }" & vbCrLf
+        script = script & "                }" & vbCrLf
+        script = script & "            }" & vbCrLf
+        script = script & "            colIdx += 1;" & vbCrLf
+        script = script & "        }" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "    // Handle row spans if createSpanData is true" & vbCrLf
+        script = script & "    if (createSpanData) {" & vbCrLf
+        script = script & "        // Propogate row span data if needed" & vbCrLf
+        script = script & "        for (let i = 0; i < v.length; i++) {" & vbCrLf
+        script = script & "            for (let j = 0; j < v[i].length; j++) {" & vbCrLf
+        script = script & "                let rowSpan = vrs[i][j];" & vbCrLf
+        script = script & "                if (rowSpan > 1) {" & vbCrLf
+        script = script & "                    for (let k = i + 1; k < i + rowSpan; k++) {" & vbCrLf
+        script = script & "                        // Insert a copy of cell data from row with span" & vbCrLf
+        script = script & "                        v[k].splice(j, 0, v[i][j]);" & vbCrLf
+        script = script & "                        v[k].pop();" & vbCrLf
+        script = script & "                        vrs[k].splice(j, 0, 1);" & vbCrLf
+        script = script & "                        vrs[k].pop();" & vbCrLf
+        script = script & "                    }" & vbCrLf
+        script = script & "                }" & vbCrLf
         script = script & "            }" & vbCrLf
         script = script & "        }" & vbCrLf
         script = script & "    }" & vbCrLf
         script = script & vbCrLf
+        script = script & "    // Remove the header and footer rows if called for" & vbCrLf
+        script = script & "    if (skipHeader) {" & vbCrLf
+        script = script & "        if (table.querySelector('thead') !== null) {" & vbCrLf
+        script = script & "            v.shift();" & vbCrLf
+        script = script & "        }" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "    if (skipFooter) {" & vbCrLf
+        script = script & "        if (table.querySelector('tfoot') !== null) {" & vbCrLf
+        script = script & "            v.pop();" & vbCrLf
+        script = script & "        }" & vbCrLf
+        script = script & "    }" & vbCrLf
         script = script & "    return v;" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & vbCrLf
-        script = script & "// Create an empty table element" & vbCrLf
-        script = script & "const htmlTable = document.createElement('table');" & vbCrLf
-        script = script & "let table = arguments[0];" & vbCrLf
+        script = script & "const elem = arguments[0];" & vbCrLf
         script = script & vbCrLf
-        script = script & "// Assign html of empty table element to incoming element's html" & vbCrLf
-        script = script & "// Handle cases if incoming element's tag is table vs tbody" & vbCrLf
-        script = script & "if (table.tagName.toUpperCase() === 'TABLE') {" & vbCrLf
-        script = script & "    htmlTable.innerHTML = table.innerHTML;}" & vbCrLf
-        script = script & "else if (table.tagName.toUpperCase() === 'TBODY'){" & vbCrLf
-        script = script & "    htmlTable.innerHTML = table.outerHTML;}" & vbCrLf
+        script = script & "// Handle case if incoming element's tag is tbody" & vbCrLf
+        script = script & "if (elem.tagName.toUpperCase() === 'TABLE') {" & vbCrLf
+        script = script & "    var table = elem;}" & vbCrLf
+        script = script & "else if (elem.tagName.toUpperCase() === 'TBODY'){" & vbCrLf
+        script = script & "    var table = elem.parentElement;}" & vbCrLf
         script = script & "else {" & vbCrLf
         script = script & "    return false;" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & "// Convert table element to an array (vba collection)" & vbCrLf
-        script = script & "return htmlTableToArray(htmlTable, arguments[1], arguments[2], arguments[3]);" & vbCrLf
+        script = script & "return htmlTableToArray(table, arguments[1], arguments[2], arguments[3], arguments[4]);" & vbCrLf
         script = script & vbCrLf
     Case "SanitizeHTML.js"
         script = vbNullString
@@ -3649,8 +3672,8 @@ Private Function getJavaScript(ByVal scriptName As String) As String
         script = script & "// Get the value of the container element's scroll behavior ('auto' or 'smooth')" & vbCrLf
         script = script & "function getScrollBehavior(container){return getComputedStyle(container).getPropertyValue('scroll-behavior');}" & vbCrLf
         script = script & vbCrLf
-        script = script & "// This function calls the scrollIntoView method on the element for a smooth scroll " & vbCrLf
-        script = script & "// and listens for the scrollend event to resolve a promise  " & vbCrLf
+        script = script & "// This function calls the scrollIntoView method on the element for a smooth scroll" & vbCrLf
+        script = script & "// and listens for the scrollend event to resolve a promise" & vbCrLf
         script = script & "const scrollIntoView = function(elem, container, options = {}) {" & vbCrLf
         script = script & "    return new Promise(function(resolve, _) {" & vbCrLf
         script = script & "        container.addEventListener('scrollend', (e) => {" & vbCrLf
@@ -3698,11 +3721,11 @@ Private Function getJavaScript(ByVal scriptName As String) As String
         script = script & "// Determine if the element is the document root" & vbCrLf
         script = script & "function isDocumentElement(obj){return (obj === document.documentElement);}" & vbCrLf
         script = script & vbCrLf
-        script = script & "// Get the value of the container element's scroll behavior ('auto' or 'smooth')    " & vbCrLf
+        script = script & "// Get the value of the container element's scroll behavior ('auto' or 'smooth')" & vbCrLf
         script = script & "function getScrollBehavior(container){return getComputedStyle(container).getPropertyValue('scroll-behavior');}" & vbCrLf
         script = script & vbCrLf
-        script = script & "// This function calls the scrollTo method on the element for a smooth scroll " & vbCrLf
-        script = script & "// and listens for the scrollend event to resolve a promise      " & vbCrLf
+        script = script & "// This function calls the scrollTo method on the element for a smooth scroll" & vbCrLf
+        script = script & "// and listens for the scrollend event to resolve a promise" & vbCrLf
         script = script & "const scroll = function(elem, container, scrollType, options = {}) {" & vbCrLf
         script = script & "    return new Promise(function(resolve, _) {" & vbCrLf
         script = script & "        container.addEventListener('scrollend', (e) => {" & vbCrLf

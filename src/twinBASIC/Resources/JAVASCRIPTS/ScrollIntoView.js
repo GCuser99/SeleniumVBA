@@ -19,8 +19,8 @@ function isDocumentElement(obj){return (obj === document.documentElement);}
 // Get the value of the container element's scroll behavior ('auto' or 'smooth')
 function getScrollBehavior(container){return getComputedStyle(container).getPropertyValue('scroll-behavior');}
 
-// This function calls the scrollIntoView method on the element for a smooth scroll 
-// and listens for the scrollend event to resolve a promise  
+// This function calls the scrollIntoView method on the element for a smooth scroll
+// and listens for the scrollend event to resolve a promise
 const scrollIntoView = function(elem, container, options = {}) {
     return new Promise(function(resolve, _) {
         container.addEventListener('scrollend', (e) => {

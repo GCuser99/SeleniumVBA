@@ -1,11 +1,11 @@
 // Determine if the element is the document root
 function isDocumentElement(obj){return (obj === document.documentElement);}
 
-// Get the value of the container element's scroll behavior ('auto' or 'smooth')    
+// Get the value of the container element's scroll behavior ('auto' or 'smooth')
 function getScrollBehavior(container){return getComputedStyle(container).getPropertyValue('scroll-behavior');}
 
-// This function calls the scrollTo method on the element for a smooth scroll 
-// and listens for the scrollend event to resolve a promise      
+// This function calls the scrollTo method on the element for a smooth scroll
+// and listens for the scrollend event to resolve a promise
 const scroll = function(elem, container, scrollType, options = {}) {
     return new Promise(function(resolve, _) {
         container.addEventListener('scrollend', (e) => {
@@ -26,7 +26,7 @@ const timeoutPromise = new Promise((resolve, _) => {
 // processing starts here...
 var elem = arguments[0];
 if (typeof elem === 'string') {var elem =  document.documentElement;};
-const scrollType = arguments[1];    
+const scrollType = arguments[1];
 const options = JSON.parse(arguments[2]);
 var container = elem;
 
