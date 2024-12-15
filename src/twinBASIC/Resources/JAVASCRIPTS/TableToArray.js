@@ -43,10 +43,10 @@ function htmlTableToArray(table, skipHeader, skipFooter, createSpanData, ignoreC
                 // Store the contents of the cell in output array
                 if (ignoreCellFormatting) {
                     // Store the complete text content, including hidden text
-                    v[row.rowIndex][colIdx] = cell.textContent;}
+                    v[row.rowIndex][colIdx] = cell.textContent.replace(/\xA0/g,' ');}
                 else {
-                    // Store the visible text content, including <br>'s and other formatting
-                    v[row.rowIndex][colIdx] = cell.innerText;
+                    // Store the visible text content, including <br>'s and other white space formatting
+                    v[row.rowIndex][colIdx] = cell.innerText.replace(/\xA0/g,' ');
                 }
 
                 if (createSpanData) {
@@ -56,11 +56,7 @@ function htmlTableToArray(table, skipHeader, skipFooter, createSpanData, ignoreC
                     if (colSpan > 1) {
                         // Propogate column span data
                         for (let i = 1; i < colSpan; i++) {
-                            if (ignoreCellFormatting) {
-                                v[row.rowIndex][colIdx + i] = cell.textContent;}
-                            else {
-                                v[row.rowIndex][colIdx + i] = cell.innerText;
-                            }
+                            v[row.rowIndex][colIdx + i] = v[row.rowIndex][colIdx];
                         }
                         colIdx += colSpan - 1;
                     }

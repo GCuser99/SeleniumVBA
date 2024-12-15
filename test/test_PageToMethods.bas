@@ -96,8 +96,7 @@ Sub test_PageToJSONMethods()
     
     'load up a json object for further processing
     Set json = driver.PageToJSONObject
-    Debug.Assert json(json.Count)("url") = "https://api.github.com/repos/GCuser99/SeleniumVBA/releases/64172486"
-        
+    Debug.Assert json(json.Count)("url") Like "https://api.github.com/repos/GCuser99/SeleniumVBA/releases/*"
     'read the test file back into browser
     driver.NavigateToFile "test.json"
     

@@ -5,7 +5,7 @@
 Public Class WebCapabilities
 
     ' ==========================================================================
-    ' SeleniumVBA v6.0
+    ' SeleniumVBA v6.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -272,7 +272,7 @@ Public Class WebCapabilities
         For j = 1 To UBound(addList)
             flag = addList(j)
             For i = 1 To flags.Count
-                If Split(flags.Item(i), "@")(0) = Split(flag, "@")(0) Then
+                If VBA.Split(flags.Item(i), "@")(0) = VBA.Split(flag, "@")(0) Then
                     flags.Remove i
                     Exit For
                 End If

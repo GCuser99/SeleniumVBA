@@ -5,7 +5,7 @@
 Public Class WebDriverManager
 
     ' ==========================================================================
-    ' SeleniumVBA v6.0
+    ' SeleniumVBA v6.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -336,7 +336,7 @@ Public Class WebDriverManager
             Url = "https://msedgedriver.azureedge.net/LATEST_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
             respTxt = requestData(Url)
             If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
-            GetLatestDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
+            GetLatestDriverVersion = VBA.Replace$(respTxt, vbNewLine, vbNullString)
         Case svbaBrowser.Chrome
             Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
             respTxt = requestData(Url)
@@ -391,7 +391,7 @@ Public Class WebDriverManager
                 verMajor = verMajor - 1
             Loop
         
-            GetCompatibleDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
+            GetCompatibleDriverVersion = VBA.Replace$(respTxt, vbNewLine, vbNullString)
             Exit Function
         Case svbaBrowser.Chrome
             browserBuild = filterVersionParts(browserVersion, 3)
@@ -474,7 +474,7 @@ Public Class WebDriverManager
             table.deleteTHead
         
             For Each row In table.rows
-                If CInt(verMajor) >= CInt(Split(row.cells(2).innerText)(0)) Then
+                If CInt(verMajor) >= CInt(VBA.Split(row.cells(2).innerText)(0)) Then
                     GetCompatibleDriverVersion = Trim$(row.cells(0).innerText)
                     Exit Function
                 End If
@@ -772,9 +772,9 @@ Public Class WebDriverManager
     Private Function findLatestChromeVersionFromBuild(ByVal jsonString As String, ByVal browserBuild As String) As String
         'this function assumes that input json is ordered from oldest to newest build/version numbers
         'it finds the MOST RECENT version of chrome driver that is compatible with the input browser build
-        Dim oRegExp As New VBScript_RegExp_55.RegExp
-        Dim matches As VBScript_RegExp_55.MatchCollection
-        Dim match As VBScript_RegExp_55.Match
+        Dim oRegExp As New RegExp
+        Dim matches As MatchCollection
+        Dim match As Match
         Dim lastVersion As String
 
         oRegExp.Global = True
@@ -794,8 +794,8 @@ Public Class WebDriverManager
 
     Private Function findLatestFirefoxVersion(ByVal jsonString As String) As String
         'this function finds the latest Firefox driver version number
-        Dim oRegExp As New VBScript_RegExp_55.RegExp
-        Dim matches As VBScript_RegExp_55.MatchCollection
+        Dim oRegExp As New RegExp
+        Dim matches As MatchCollection
     
         oRegExp.Global = False
         oRegExp.Pattern = "geckodriver-v(\d+\.\d+\.\d+)-win32\.zip"
@@ -809,8 +809,8 @@ Public Class WebDriverManager
 
     Private Function findVersionInString(ByVal stringToSearch As String, ByVal browser As svbaBrowser) As String
         'this function parses the input string for the version number substring
-        Dim oRegExp As VBScript_RegExp_55.RegExp
-        Dim matches As VBScript_RegExp_55.MatchCollection
+        Dim oRegExp As RegExp
+        Dim matches As MatchCollection
         Dim searchPattern As String
 
         Select Case browser
@@ -820,16 +820,12 @@ Public Class WebDriverManager
             searchPattern = "\d+\.\d+\.\d+"
         End Select
     
-        On Error GoTo EH
-        Set oRegExp = New VBScript_RegExp_55.RegExp
+        Set oRegExp = New RegExp
         oRegExp.Global = False
         oRegExp.Pattern = searchPattern
 
         Set matches = oRegExp.Execute(stringToSearch)
         If matches.Count > 0 Then findVersionInString = matches(0)
-        Exit Function
-    EH:
-        Err.Raise 1, , "Error in findVersionInString of WebDriverManager: VBScript_RegExp failed - make sure that it is installed on your Windows system and is not being blocked by AV software."
     End Function
 
     '---------------------- Version String Math Functions ----------------------
@@ -877,8 +873,8 @@ Public Class WebDriverManager
         End If
     
         'split the strings into part arrays
-        ver1parts = Split(ver1, ".")
-        ver2parts = Split(ver2, ".")
+        ver1parts = VBA.Split(ver1, ".")
+        ver2parts = VBA.Split(ver2, ".")
     
         'compare each part until unequal, return 1 if ver1 > ver2, -1 otherwise
         For i = 0 To UBound(ver1parts)
@@ -895,7 +891,7 @@ Public Class WebDriverManager
     Private Function filterVersionParts(ByVal versionString As String, ByVal numberOfPartsToKeep As Long) As String
         Dim verParts As Variant
         Dim i As Long
-        verParts = Split(versionString, ".")
+        verParts = VBA.Split(versionString, ".")
         If numberOfPartsToKeep >= UBound(verParts) + 1 Then
             filterVersionParts = versionString
             Exit Function
@@ -909,7 +905,7 @@ Public Class WebDriverManager
 
     Private Function selectVersionPart(ByVal versionString As String, ByVal partNumber As Long) As String
         Dim verParts As Variant
-        verParts = Split(versionString, ".")
+        verParts = VBA.Split(versionString, ".")
         If partNumber > UBound(verParts) + 1 Then
             selectVersionPart = vbNullString
             Exit Function
@@ -918,7 +914,7 @@ Public Class WebDriverManager
     End Function
 
     Private Function countVersionParts(ByVal versionString As String) As String
-        countVersionParts = UBound(Split(versionString, ".")) + 1
+        countVersionParts = UBound(VBA.Split(versionString, ".")) + 1
     End Function
 
 End Class

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.0
+' SeleniumVBA v6.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -3455,10 +3455,10 @@ Private Function getJavaScript(ByVal scriptName As String) As String
         script = script & "                // Store the contents of the cell in output array" & vbCrLf
         script = script & "                if (ignoreCellFormatting) {" & vbCrLf
         script = script & "                    // Store the complete text content, including hidden text" & vbCrLf
-        script = script & "                    v[row.rowIndex][colIdx] = cell.textContent;}" & vbCrLf
+        script = script & "                    v[row.rowIndex][colIdx] = cell.textContent.replace(/\xA0/g,' ');}" & vbCrLf
         script = script & "                else {" & vbCrLf
         script = script & "                    // Store the visible text content, including <br>'s and other formatting" & vbCrLf
-        script = script & "                    v[row.rowIndex][colIdx] = cell.innerText;" & vbCrLf
+        script = script & "                    v[row.rowIndex][colIdx] = cell.innerText.replace(/\xA0/g,' ');" & vbCrLf
         script = script & "                }" & vbCrLf
         script = script & vbCrLf
         script = script & "                if (createSpanData) {" & vbCrLf
@@ -3468,11 +3468,7 @@ Private Function getJavaScript(ByVal scriptName As String) As String
         script = script & "                    if (colSpan > 1) {" & vbCrLf
         script = script & "                        // Propogate column span data" & vbCrLf
         script = script & "                        for (let i = 1; i < colSpan; i++) {" & vbCrLf
-        script = script & "                            if (ignoreCellFormatting) {" & vbCrLf
-        script = script & "                                v[row.rowIndex][colIdx + i] = cell.textContent;}" & vbCrLf
-        script = script & "                            else {" & vbCrLf
-        script = script & "                                v[row.rowIndex][colIdx + i] = cell.innerText;" & vbCrLf
-        script = script & "                            }" & vbCrLf
+        script = script & "                             v[row.rowIndex][colIdx + i] = v[row.rowIndex][colIdx];" & vbCrLf
         script = script & "                        }" & vbCrLf
         script = script & "                        colIdx += colSpan - 1;" & vbCrLf
         script = script & "                    }" & vbCrLf

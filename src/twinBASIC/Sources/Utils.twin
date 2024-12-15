@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v6.0
+    ' SeleniumVBA v6.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -421,8 +421,8 @@ Private Module Utils
         s = s & "Dim script As String" & vbCrLf
         s = s & "Select Case scriptName" & vbCrLf
         
-        tmp = Replace(getJavaScript("TableToArray.js"), Chr$(34), Chr$(34) & Chr$(34))
-        v = Split(tmp, vbLf)
+        tmp = VBA.Replace$(getJavaScript("TableToArray.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
         s = s & "Case ""TableToArray.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)
@@ -433,8 +433,8 @@ Private Module Utils
             End If
         Next i
         
-        tmp = Replace(getJavaScript("SanitizeHTML.js"), Chr$(34), Chr$(34) & Chr$(34))
-        v = Split(tmp, vbLf)
+        tmp = VBA.Replace$(getJavaScript("SanitizeHTML.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
         s = s & "Case ""SanitizeHTML.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)
@@ -445,8 +445,8 @@ Private Module Utils
             End If
         Next i
         
-        tmp = Replace(getJavaScript("ScrollIntoView.js"), Chr$(34), Chr$(34) & Chr$(34))
-        v = Split(tmp, vbLf)
+        tmp = VBA.Replace$(getJavaScript("ScrollIntoView.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
         s = s & "Case ""ScrollIntoView.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)
@@ -457,8 +457,8 @@ Private Module Utils
             End If
         Next i
         
-        tmp = Replace(getJavaScript("Scroll.js"), Chr$(34), Chr$(34) & Chr$(34))
-        v = Split(tmp, vbLf)
+        tmp = VBA.Replace$(getJavaScript("Scroll.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
         s = s & "Case ""Scroll.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)
@@ -469,8 +469,8 @@ Private Module Utils
             End If
         Next i
         
-        'tmp = Replace(getJavaScript("ScrollTo.js"), Chr$(34), Chr$(34) & Chr$(34))
-        'v = Split(tmp, vbLf)
+        'tmp = VBA.Replace$(getJavaScript("ScrollTo.js"), Chr$(34), Chr$(34) & Chr$(34))
+        'v = VBA.Split(tmp, vbLf)
         's = s & "Case ""ScrollTo.js""" & vbCrLf
         's = s & vbTab & "script = vbNullString" & vbCrLf
         'For i = LBound(v) To UBound(v)
@@ -481,8 +481,8 @@ Private Module Utils
         '    End If
         'Next i
         
-        tmp = Replace(getJavaScript("GetScrollContainer.js"), Chr$(34), Chr$(34) & Chr$(34))
-        v = Split(tmp, vbLf)
+        tmp = VBA.Replace$(getJavaScript("GetScrollContainer.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
         s = s & "Case ""GetScrollContainer.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)

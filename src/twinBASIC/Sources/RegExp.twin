@@ -1,0 +1,263 @@
+[COMCreatable(False)]
+[PredeclaredId(False)]
+[Hidden(True)]
+[Description("This class exposes a drop-in replacement for VBSript's regular expression object model.")]
+Private Class RegExp
+    Option Explicit
+    'Wrapper for StaticRegex (https://github.com/sihlfall/vba-regex)
+    'designed as drop-in replacement (with extended functionality) for MS VBScript_RegExp_55.RegExp
+    'contributed by GCUser99 (https://github.com/GCuser99) on Sept 17, 2024
+    'TO DO: add named captures to SubMatches collection (using Key?)
+
+    Private mGlobal As Boolean
+    Private mMultiLine As Boolean
+    Private mIgnoreCase As Boolean
+    Private mPattern As String
+    
+    [Description("If True, all matches will be returned. If False, only the first match will be returned.")]
+    Public Property Let Global(ByVal pGlobal As Boolean)
+        mGlobal = pGlobal
+    End Property
+    Public Property Get Global() As Boolean
+        Global = mGlobal
+    End Property
+    
+    [Description("If True, ^ will match the beginning of a line after a new line character and $ will match the end of a line before a new line character. If False, ^ will match the beginning of the entire string and $ will match the end of the entire string.")]
+    Public Property Let MultiLine(ByVal pMultiLine As Boolean)
+        mMultiLine = pMultiLine
+    End Property
+    Public Property Get MultiLine() As Boolean
+        MultiLine = mMultiLine
+    End Property
+    
+    [Description("If True, matches will be case-insensitive. If False, matches will be case-sensitive.")]
+    Public Property Let IgnoreCase(ByVal pIgnoreCase As Boolean)
+        mIgnoreCase = pIgnoreCase
+    End Property
+    Public Property Get IgnoreCase() As Boolean
+        IgnoreCase = mIgnoreCase
+    End Property
+    
+    [Description("The regular expression pattern.")]
+    Public Property Let Pattern(ByVal pPattern As String)
+        mPattern = pPattern
+    End Property
+    Public Property Get Pattern() As String
+        Pattern = mPattern
+    End Property
+    
+    [Description("Returns a MatchCollection. Uses the Pattern property to search the sourceString.")]
+    Public Function Execute(ByVal sourceString As String) As MatchCollection
+        Dim matcherState As StaticRegex.MatcherStateTy
+        Dim regex As StaticRegex.RegexTy
+        Dim oMatches As MatchCollection
+        Dim oMatch As Match
+        Dim i As Long
+        Dim submatchString As String
+        Dim matchStart As Long, matchLength As Long
+        
+        StaticRegex.InitializeRegex regex, mPattern, mIgnoreCase
+    
+        StaticRegex.InitializeMatcherState matcherState, Not mGlobal, mMultiLine
+        
+        Set oMatches = New MatchCollection
+        
+        Do While StaticRegex.MatchNext(matcherState, regex, sourceString)
+            With matcherState.captures
+                Set oMatch = New Match
+                matchStart = .entireMatch.start
+                matchLength = .entireMatch.Length
+                If matchStart > 0 Then
+                    oMatch.Value = Mid$(sourceString, matchStart, matchLength)
+                    oMatch.FirstIndex = matchStart - 1 'in VBScript_RegExp_55 this is zero based
+                    oMatch.Length = matchLength
+                Else
+                    oMatch.Value = vbNullString
+                End If
+
+                'could add submatch via key associated with named group
+                For i = 0 To .nNumberedCaptures - 1
+                    matchStart = .numberedCaptures(i).start
+                    matchLength = .numberedCaptures(i).Length
+                    If matchStart > 0 Then submatchString = Mid$(sourceString, matchStart, matchLength) Else submatchString = vbNullString
+                    oMatch.SubMatches.Add submatchString
+                Next i
+                'to do: need to add named captures to SubMatches collection (using Key?) 
+                'or alternatively, to another exposed additional collection such as "SubMatchesNamed"
+                oMatches.Add oMatch
+            End With
+        Loop
+
+        Set Execute = oMatches
+    End Function
+    
+    [Description("Returns True if Pattern finds a match in sourceString, otherwise returns False.")]
+    Public Function Test(ByVal sourceString As String) As Boolean
+        Dim regex As StaticRegex.RegexTy
+        StaticRegex.InitializeRegex regex, mPattern, mIgnoreCase
+        Test = StaticRegex.Test(regex, sourceString, mMultiLine)
+    End Function
+    
+    [Description("Replaces matches with replaceString and returns the String with replacements made.")]
+    Public Function Replace(ByVal sourceString As String, ByVal replaceString As String) As String
+        Dim regex As StaticRegex.RegexTy
+        StaticRegex.InitializeRegex regex, mPattern, mIgnoreCase
+        Replace = StaticRegex.Replace(regex, replaceString, sourceString, Not mGlobal, mMultiLine)
+    End Function
+    
+    Private Sub Class_Initialize()
+        mGlobal = False 'StaticRegex defaults to True
+        mMultiLine = False
+        mIgnoreCase = False
+    End Sub
+    
+    '-----------------------------------------------------------------------------------------
+    '-----------Extensions to MS VBScript_RegExp_55 object model-----------------------
+    '-----------------------------------------------------------------------------------------
+    'for ideas on how to extend the feature set, without breaking compatibility
+    'see https://learn.microsoft.com/en-us/dotnet/standard/base-types/the-regular-expression-object-model
+    
+    'https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex.split?view=net-8.0
+    
+    [Description("Splits an input string into an array of substrings at the positions defined by a regular expression match.")]
+    Public Function Split(ByVal sourceString As String) As Collection
+        Dim regex As StaticRegex.RegexTy
+        StaticRegex.InitializeRegex regex, mPattern, mIgnoreCase
+        Set Split = StaticRegex.Split(regex, sourceString, Not mGlobal, mMultiLine)
+    End Function
+End Class
+
+[COMCreatable(False)]
+[PredeclaredId(False)]
+[Hidden(True)]
+[Description("This class represents the results from a single regular expression match.")]
+Private Class Match
+    Option Explicit
+    
+    Private oSubMatches As SubMatches
+    Private mValue As String
+    Private mFirstIndex As Long
+    Private mLength As Long
+
+    [Description("Returns the SubMatches collection of submatch (Group) strings.")]
+    Public Property Get SubMatches() As SubMatches
+        Set SubMatches = oSubMatches
+    End Property
+    
+    [Description("Returns the entire matched string")]
+    [DefaultMember]
+    Public Property Get Value() As String
+        Value = mValue
+    End Property
+    Friend Property Let Value(ByVal pValue As String)
+        mValue = pValue
+    End Property
+    
+    [Description("Returns the character index position associated with the start of the match string. Note that the index is zero-based.")]
+    Public Property Get FirstIndex() As Long
+        FirstIndex = mFirstIndex
+    End Property
+    Friend Property Let FirstIndex(ByVal pFirstIndex As Long)
+        mFirstIndex = pFirstIndex
+    End Property
+    
+    [Description("Returns the character length of the match string.")]
+    Public Property Get Length() As Long
+        Length = mLength
+    End Property
+    Friend Property Let Length(ByVal pLength As Long)
+        mLength = pLength
+    End Property
+    
+    Private Sub Class_Initialize()
+        Set oSubMatches = New SubMatches
+    End Sub
+    
+    Private Sub Class_Terminate()
+        Set oSubMatches = Nothing
+    End Sub
+
+End Class
+
+[COMCreatable(False)]
+[PredeclaredId(False)]
+[Hidden(True)]
+[Description("This class represents a collection of match objects.")]
+Private Class MatchCollection
+    Option Explicit
+
+    Private colMatches As Collection
+    
+    Friend Sub Add(obj As Match)
+        colMatches.Add obj
+    End Sub
+    
+    [Description("Returns the number of Match objects found in the source string.")]
+    Public Property Get Count() As Long
+       Count = colMatches.Count
+    End Property
+    
+    [Description("Returns the Match object associated with the provided index")]
+    [DefaultMember]
+    Public Property Get Item(ByVal pItemIndex As Variant) As Match
+        Set Item = colMatches.Item(pItemIndex + 1)
+    End Property
+
+    [Hidden]
+    [Enumerator]
+    Public Function NewEnum() As IUnknown
+        Set NewEnum = colMatches.[_NewEnum]
+    End Function
+
+    Private Sub Class_Terminate()
+        'RemoveAll
+        Set colMatches = Nothing
+    End Sub
+
+    Private Sub Class_Initialize()
+        Set colMatches = New Collection
+    End Sub
+
+End Class
+
+[COMCreatable(False)]
+[PredeclaredId(False)]
+[Hidden(False)]
+[Description("This class provides the means to access SubMatch (Group) values.")]
+Public Class SubMatches
+    Option Explicit
+
+    Private colSubMatches As Collection
+    
+    Friend Sub Add(ByVal val As String)
+        colSubMatches.Add val
+    End Sub
+    
+    [Description("Returns the number of SubMatch objects found in the source string.")]
+    Public Property Get Count() As Long
+       Count = colSubMatches.Count
+    End Property
+
+    [Description("Returns the SubMatch string associated with the provided index")]
+    [DefaultMember]
+    Public Property Get Item(ByVal pItemIndex As Variant) As String
+        'VBS is zero-based, but Collection is 1-based
+        'to do: could expose a Property that would change base-index = 1
+        Item = colSubMatches.Item(pItemIndex + 1)
+    End Property
+
+    [Hidden]
+    [Enumerator]
+    Public Function NewEnum() As IUnknown
+        Set NewEnum = colSubMatches.[_NewEnum]
+    End Function
+
+    Private Sub Class_Terminate()
+        Set colSubMatches = Nothing
+    End Sub
+
+    Private Sub Class_Initialize()
+        Set colSubMatches = New Collection
+    End Sub
+
+End Class

@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.0
+    ' SeleniumVBA v6.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -394,7 +394,7 @@ Public Class WebDriver
                 'apparently firefox does not support command line argument for specifying log file path
                 'so using cmd.exe to redirect log from console window
                 'WARNING: this option could crash host app with MWB AV real-time protection
-                serviceArgs = " -vv"" > " & Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
+                serviceArgs = " -vv"" > " & VBA.Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
                 commandStr = Chr$(34) & Environ("comspec") & Chr$(34) & " /c " & """"
             End Select
         End If
@@ -733,9 +733,9 @@ Public Class WebDriver
             sendPackage.Add keyString
         Else
             'search for chords, parse, and then map the input key sequence(s) to VBA/VBScript SendKeys format
-            Dim oRegExp As New VBScript_RegExp_55.RegExp
-            Dim matches As VBScript_RegExp_55.MatchCollection
-            Dim match As VBScript_RegExp_55.Match
+            Dim oRegExp As New RegExp
+            Dim matches As MatchCollection
+            Dim match As Match
             Dim modKeyString As String
 
             oRegExp.Global = True
@@ -1363,8 +1363,8 @@ Public Class WebDriver
         End Select
     
         'qc command path
-        commandPath = Replace$(commandPath, ":", "$") 'some languages use ":" to denote a command path argument
-        commandPath = Replace$(commandPath, "\", "/") 'make sure using forward slashes in path
+        commandPath = VBA.Replace$(commandPath, ":", "$") 'some languages use ":" to denote a command path argument
+        commandPath = VBA.Replace$(commandPath, "\", "/") 'make sure using forward slashes in path
         If Left$(commandPath, 1) <> "/" Then commandPath = "/" & commandPath 'and a leading forward slash
     
         'process the parameters
@@ -2145,7 +2145,7 @@ Public Class WebDriver
         For i = 0 To UBound(fileList)
             If IsArray(fileList(i)) Then
                 For j = LBound(fileList(i)) To UBound(fileList(i))
-                    strlist = Split(fileList(i)(j), ",")
+                    strlist = VBA.Split(fileList(i)(j), ",")
                     For k = 0 To UBound(strlist)
                         On Error Resume Next 'file might not exists
                         fso.DeleteFile ResolvePath(strlist(k)), True
@@ -2153,7 +2153,7 @@ Public Class WebDriver
                     Next k
                 Next j
             Else
-                strlist = Split(fileList(i), ",")
+                strlist = VBA.Split(fileList(i), ",")
                 For k = 0 To UBound(strlist)
                     On Error Resume Next 'file might not exists
                     fso.DeleteFile ResolvePath(strlist(k)), True
@@ -2458,12 +2458,12 @@ Public Class WebDriver
         Url = element.GetAttribute(srcAttribute)
         If Url = vbNullString Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
         'remove new line characters
-        Url = Replace$(Replace$(Url, vbLf, ""), vbCr, "")
+        Url = VBA.Replace$(VBA.Replace$(Url, vbLf, ""), vbCr, "")
     
         If LCase$(srcAttribute) = "srcset" Then
             'if image then get the highest pixel density src possible
             'split the sources in srcset into an array
-            srcArray = Split(Url, ", ")
+            srcArray = VBA.Split(Url, ", ")
         
             'initialize the maximum size and source
             sizeMax = vbNullString
@@ -2471,14 +2471,14 @@ Public Class WebDriver
         
             For i = 0 To UBound(srcArray)
                 'loop through and extract src/size pairs
-                srcSizePair = Split(Trim$(srcArray(i)), " ")
+                srcSizePair = VBA.Split(Trim$(srcArray(i)), " ")
                 src = Trim$(srcSizePair(0))
             
                 'process size if available
                 If UBound(srcSizePair) > 0 Then
                     srcSize = Trim$(srcSizePair(1))
                     'remove pixel density and/or width indicator for size compare
-                    srcSize = Replace$(Replace$(srcSize, "x", vbNullString, , , vbTextCompare), "w", vbNullString, , , vbTextCompare)
+                    srcSize = VBA.Replace$(VBA.Replace$(srcSize, "x", vbNullString, , , vbTextCompare), "w", vbNullString, , , vbTextCompare)
                 Else
                     srcSize = vbNullString
                 End If
@@ -2503,10 +2503,10 @@ Public Class WebDriver
             curUrl = GetCurrentUrl(decode:=False)
         
             'strip off query params if they exist
-            curUrl = Split(curUrl, "?")(0)
+            curUrl = VBA.Split(curUrl, "?")(0)
         
             'replace double slash in "http[s]://" - will put back later
-            urlSections = Split(Replace$(curUrl, "//", "^^"), "/")
+            urlSections = VBA.Split(VBA.Replace$(curUrl, "//", "^^"), "/")
             numUrlSections = UBound(urlSections)
         
             'determine relativity level (root, current, up(s))
@@ -2518,14 +2518,14 @@ Public Class WebDriver
                 'current level
                 urlLevel = numUrlSections - 1
                 'strip out the rel indicator
-                Url = Replace$(Url, "./", "")
+                Url = VBA.Replace$(Url, "./", "")
             Case Url Like "../*"
                 'up-levels
                 'count how many up-levels
-                numUpLevels = UBound(Split(Url, "../"))
+                numUpLevels = UBound(VBA.Split(Url, "../"))
                 urlLevel = numUrlSections - 1 - numUpLevels
                 'strip out the rel indicator(s)
-                Url = Replace$(Url, "../", "")
+                Url = VBA.Replace$(Url, "../", "")
             End Select
         
             'build the base url
@@ -2535,7 +2535,7 @@ Public Class WebDriver
             Next i
         
             'put back the double slash in "http[s]://"
-            baseUrl = Replace$(baseUrl, "^^", "//")
+            baseUrl = VBA.Replace$(baseUrl, "^^", "//")
         
             'make sure there is a slash between base url and relative url
             If Right$(baseUrl, 1) <> "/" AndAlso Left$(Url, 1) <> "/" Then baseUrl = baseUrl & "/"
@@ -2554,7 +2554,7 @@ Public Class WebDriver
             fileName = fso.GetFileName(Url)
             'strip off query params if they exist
             'and cat with full path of user input
-            filePath = fileOrFolderPath & "\" & Split(fileName, "?")(0)
+            filePath = fileOrFolderPath & "\" & VBA.Split(fileName, "?")(0)
         Else 'its a file path
             filePath = fileOrFolderPath
             If Not fso.FolderExists(fso.GetParentFolderName(filePath)) Then
@@ -2663,12 +2663,12 @@ Public Class WebDriver
         If parameters Is Nothing Then Set parameters = New Dictionary
     
         'insert session id into command path
-        If InStr(cmdPath, "$sessionId") > 0 Then cmdPath = Replace$(cmdPath, "$sessionId", sessionId_)
+        If InStr(cmdPath, "$sessionId") > 0 Then cmdPath = VBA.Replace$(cmdPath, "$sessionId", sessionId_)
     
         'process other command path and non-path parameters
         For Each parmKey In parameters.Keys
             If InStr(cmdPath, "$" & parmKey) > 0 Then 'path parameter
-                cmdPath = Replace$(cmdPath, "$" & parmKey, parameters(parmKey))
+                cmdPath = VBA.Replace$(cmdPath, "$" & parmKey, parameters(parmKey))
             Else
                 'non-path parameter - it's an argument
                 cmdArgs.Add parmKey, parameters(parmKey)
@@ -2954,7 +2954,7 @@ Public Class WebDriver
             ReDim Preserve bytes(0 To j + 1)
             str = bytes
         
-            fixFirefoxBug1797871 = Replace$(str, vbNewLine & vbNewLine, vbNewLine)
+            fixFirefoxBug1797871 = VBA.Replace$(str, vbNewLine & vbNewLine, vbNewLine)
         Else
             fixFirefoxBug1797871 = str
         End If
@@ -3065,7 +3065,7 @@ Public Class WebDriver
     End Function
 
     Private Function osKeyMapper(ByVal keyString As String) As String
-        Dim oRegExp As New VBScript_RegExp_55.RegExp
+        Dim oRegExp As New RegExp
         Dim mappedValue As String
         Dim i As Long
         Dim key As String
@@ -3167,7 +3167,7 @@ Public Class WebDriver
                 mappedValue = map(AscWL(key) - &HE000&)
                 If mappedValue = vbNullString Then Err.Raise 1, , "Error in using SendKeysToOS - key " & "\u" & VBA.Right$("0000" & VBA.Hex$(AscW(key)), 4) & " not supported"
                 'replace Selenium special key occurrence with mapped VBA/VBScript version
-                keyString = Replace(keyString, key, mappedValue, , 1)
+                keyString = VBA.Replace$(keyString, key, mappedValue, , 1)
             End If
         Next i
 

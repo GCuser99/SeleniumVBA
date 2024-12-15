@@ -1,7 +1,7 @@
 Private Module WebShared
 
     ' ==========================================================================
-    ' SeleniumVBA v6.0
+    ' SeleniumVBA v6.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -142,7 +142,7 @@ Private Module WebShared
                     objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
                     If InStr(strPath, strValue) > 0 Then
                         objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
-                        strSecPart = Replace$(Mid$(strPath, Len(strValue)), "/", pathSep)
+                        strSecPart = VBA.Replace$(Mid$(strPath, Len(strValue)), "/", pathSep)
                         getLocalOneDrivePath = strMountpoint & strSecPart
         
                         Do Until Dir(getLocalOneDrivePath, vbDirectory) <> vbNullString OrElse InStr(2, strSecPart, pathSep) = 0
@@ -332,9 +332,9 @@ Private Module WebShared
     'this is used to convert an escaped unicode string (e.g. "\u00A9") into the
     'single (wide) character equiv. This conversion is required by WebJsonConverter.
     Public Function unEscapeUnicode(ByRef keyString As Variant) As String
-        Dim oRegExp As New VBScript_RegExp_55.RegExp
-        Dim matches As VBScript_RegExp_55.MatchCollection
-        Dim match As VBScript_RegExp_55.Match
+        Dim oRegExp As New RegExp
+        Dim matches As MatchCollection
+        Dim match As Match
         Dim unEscapedValue As String
     
         oRegExp.Global = True
@@ -346,7 +346,7 @@ Private Module WebShared
             For Each match In matches
                 unEscapedValue = ChrW$(Val("&H" & match.SubMatches(0)))
                 'replace match with unescaped value
-                keyString = Replace(keyString, match.Value, unEscapedValue, Count:=1)
+                keyString = VBA.Replace$(keyString, match.Value, unEscapedValue, Count:=1)
             Next match
         End If
         unEscapeUnicode = keyString

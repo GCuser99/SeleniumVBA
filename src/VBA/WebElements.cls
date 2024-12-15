@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.0
+' SeleniumVBA v6.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

@@ -1,9 +1,44 @@
 Private Module Tests
     
+    Sub test_table_to_array_formatting()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim elem As SeleniumVBA.WebElement
+        Dim table() As Variant
+        Dim htmlStr As String
+    
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        htmlStr = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
+    
+        driver.SaveStringToFile htmlStr, ".\snippet.html"
+        driver.NavigateToFile ".\snippet.html"
+    
+        driver.Wait 1500
+    
+        Set elem = driver.FindElementByCssSelector("#mytable")
+    
+        table = elem.TableToArray(ignoreCellFormatting:=False) 'default setting
+    
+        Debug.Assert table(1, 1) = "12/14/2024" & vbCrLf & "12/15/2024"
+        Debug.Assert table(1, 2) = "Hi, this is " & vbCrLf & vbCrLf & "Mike"
+
+        table = elem.TableToArray(ignoreCellFormatting:=True)
+    
+        Debug.Assert table(1, 1) = "12/14/202412/15/2024"
+        Debug.Assert table(1, 2) = "Hi, this is Mike"
+
+        driver.DeleteFiles ".\snippet.html"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
     Sub test_table_to_array_giant()
         Dim driver As SeleniumVBA.WebDriver
         Dim table() As Variant
-        'Dim sw As New StopWatch
 
         Set driver = SeleniumVBA.New_WebDriver
 
@@ -389,7 +424,7 @@ Private Module Tests
         num = 1000.1
         Debug.Print "My decimal separator is: " & DecimalSep()
         If DecimalSep <> "." Then
-            Debug.Print "My number converted to String: " & Replace$(num, DecimalSep, ".")
+            Debug.Print "My number converted to String: " & VBA.Replace$(num, DecimalSep, ".")
         Else
             Debug.Print "My number converted to String: " & CStr(num)
         End If
@@ -1085,7 +1120,7 @@ Private Module Tests
     
         'load up a json object for further processing
         Set json = driver.PageToJSONObject
-        Debug.Print json(1)("url")
+        Debug.Assert json(json.Count)("url") Like "https://api.github.com/repos/GCuser99/SeleniumVBA/releases/*"
         
         'read the test file back into browser
         driver.NavigateToFile "test.json"

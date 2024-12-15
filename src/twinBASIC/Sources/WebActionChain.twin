@@ -5,7 +5,7 @@
 Public Class WebActionChain
 
     ' ==========================================================================
-    ' SeleniumVBA v6.0
+    ' SeleniumVBA v6.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -917,8 +917,20 @@ Public Class WebActionChain
         'in which the inputs were added, making multi-calls to tCMD.CMD_ACTIONS.
     
         If data_.Exists("actions") Then
-            'synchronize input channels and call Execute method once
+            #If Win64 Then
+            'synchronize input channels and call Execute method once    
             driver_.execute tCMD.CMD_ACTIONS, syncChannels(data_)
+            #Else
+            '32-bit version crashes if synchronization is employed 
+            'so use multi-call method
+            Dim inputChans() As Variant
+            Dim i As Long
+            inputChans = data_.Item("actions")
+            For i = 0 To UBound(inputChans)
+                data_.Item("actions") = Array(inputChans(i))
+                driver_.execute tCMD.CMD_ACTIONS, data_
+            Next i
+            #End If
         End If
     End Sub
 

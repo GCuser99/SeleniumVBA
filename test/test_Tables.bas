@@ -117,16 +117,17 @@ Sub test_table_to_array_large()
 End Sub
 
 Sub test_table_to_array_formatting()
-    Dim driver As WebDriver
-    Dim elem As WebElement
+    Dim driver As SeleniumVBA.WebDriver
+    Dim elem As SeleniumVBA.WebElement
     Dim table() As Variant
+    Dim htmlStr As String
     
-    Set driver = New WebDriver
+    Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
     
-    htmlStr = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi, this is <p>Mike</p></td></tr></table></body></html>"
+    htmlStr = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
     
     driver.SaveStringToFile htmlStr, ".\snippet.html"
     driver.NavigateToFile ".\snippet.html"
@@ -137,20 +138,16 @@ Sub test_table_to_array_formatting()
     
     table = elem.TableToArray(ignoreCellFormatting:=False) 'default setting
     
-    Debug.Print "----------------------------------------------"
-    Debug.Print table(1, 1) '-> 12/14/2024  \r\n   12/15/2024
-    Debug.Print "----------------------------------------------"
-    Debug.Print table(1, 2) '-> Hi, this is  \r\n  \r\n  Mike
+    Debug.Assert table(1, 1) = "12/14/2024" & vbCrLf & "12/15/2024"
+    Debug.Assert table(1, 2) = "Hi, this is " & vbCrLf & vbCrLf & "Mike"
 
-    
     table = elem.TableToArray(ignoreCellFormatting:=True)
     
-    Debug.Print "----------------------------------------------"
-    Debug.Print table(1, 1) '-> 12/14/202412/15/2024
-    Debug.Print "----------------------------------------------"
-    Debug.Print table(1, 2) '-> Hi, this is Mike
+    Debug.Assert table(1, 1) = "12/14/202412/15/2024"
+    Debug.Assert table(1, 2) = "Hi, this is Mike"
 
-    driver.Wait 1000
+    driver.DeleteFiles ".\snippet.html"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
