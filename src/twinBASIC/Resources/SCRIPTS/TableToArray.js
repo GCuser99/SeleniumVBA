@@ -48,7 +48,8 @@ function htmlTableToArray(table, skipHeader, skipFooter, createSpanData, ignoreC
                     // Store the visible text content, including <br>'s and other white space formatting
                     v[row.rowIndex][colIdx] = cell.innerText.replace(/\xA0/g,' ');
                 }
-
+                
+                // Handle col spans if createSpanData is true
                 if (createSpanData) {
                     // Store row span data for use later
                     vrs[row.rowIndex][colIdx] = cell.rowSpan;

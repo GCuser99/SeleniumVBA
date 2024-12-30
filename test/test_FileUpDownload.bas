@@ -103,24 +103,59 @@ Sub test_file_download2()
 End Sub
 
 Sub test_download_resource()
-    'this test uses the DownloadResource method of the WebElement class to download the src to an img element
     Dim driver As SeleniumVBA.WebDriver
     Dim element As SeleniumVBA.WebElement
 
     Set driver = SeleniumVBA.New_WebDriver
 
-    driver.StartChrome
+    driver.StartEdge
     driver.OpenBrowser
     
+    driver.ImplicitMaxWait = 2000
+    
+    'img element with only src attribute
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
-    driver.Wait 1000
-
     Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
+    element.DownloadResource ("src")
+    driver.WaitForDownload "logo.png", 1000
     
-    'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
-    element.DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
+    driver.ActiveWindow.Maximize
+
+    'img element with srcset attribute
+    driver.NavigateTo "https://mdn.github.io/learning-area/html/multimedia-and-embedding/responsive-images/responsive.html"
+    Set element = driver.FindElement(By.CssSelector, "body > main > section > img")
+    element.DownloadResource ("srcset")
+    driver.WaitForDownload "elva-fairy-800w.jpg", 1000
     
-    driver.DeleteFiles ".\logo.png"
+    'download the default src attribute
+    element.DownloadResource ("src")
+    driver.WaitForDownload "elva-fairy-800w.jpg", 1000
+    
+    'source elements with srcset attributes
+    Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(1)")
+    element.DownloadResource ("srcset")
+    driver.WaitForDownload "elva-480w-close-portrait.jpg", 1000
+    
+    Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(2)")
+    element.DownloadResource ("srcset")
+    driver.WaitForDownload "elva-800w.jpg", 1000
+    
+    'img element with only src attribute
+    driver.NavigateTo "https://html.com/attributes/img-srcset/"
+    Set element = driver.FindElement(By.CssSelector, "#post-1847 > div > div:nth-child(46) > img")
+    element.DownloadResource ("src")
+    driver.WaitForDownload "flamingo-fallback.jpg", 1000
+    
+    'img element with srcset attribute
+    driver.NavigateTo "https://webkit.org/demos/srcset/"
+    Set element = driver.FindElement(By.CssSelector, "body > img")
+    element.DownloadResource ("srcset")
+    driver.WaitForDownload "image-4x.png", 1000
+    
+    element.DownloadResource ("src")
+    driver.WaitForDownload "image-src.png", 1000
+    
+    driver.DeleteFiles "image-src.png", "image-4x.png", "flamingo-fallback.jpg", "elva-480w-close-portrait.jpg", "elva-800w.jpg", "elva-fairy-800w.jpg", "logo.png"
     
     driver.CloseBrowser
     driver.Shutdown

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.1
+' SeleniumVBA v6.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -424,6 +424,7 @@ Public Function ScrollIntoView(Optional ByVal enSpeed As ScrollIntoViewOptions_s
                                Optional ByVal enAlign_vert As ScrollIntoViewOptions_alignment = align_start, _
                                Optional ByVal enAlign_horiz As ScrollIntoViewOptions_alignment = align_nearest, _
                                Optional ByVal xOffset As Long = 0, Optional ByVal yOffset As Long = 0) As WebElement
+Attribute ScrollIntoView.VB_Description = "Scrolls this element into the visible viewport"
     Set ScrollIntoView = driver_.ScrollIntoView(Me, enSpeed, enAlign_vert, enAlign_horiz, xOffset, yOffset)
 End Function
 

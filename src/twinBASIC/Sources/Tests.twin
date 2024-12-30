@@ -1,4 +1,52 @@
 Private Module Tests
+
+    Sub test_DownloadResource()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim element As SeleniumVBA.WebElement
+
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+    
+        'img element with only src attribute
+        driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
+        Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
+        element.DownloadResource ("src")
+    
+        driver.ActiveWindow.Maximize
+
+        'img element with srcset attribute
+        driver.NavigateTo "https://mdn.github.io/learning-area/html/multimedia-and-embedding/responsive-images/responsive.html"
+        Set element = driver.FindElement(By.CssSelector, "body > main > section > img")
+        element.DownloadResource ("srcset")
+    
+        'download the default src attribute
+        element.DownloadResource ("src")
+    
+        'source elements with srcset attributes
+        Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(1)")
+        element.DownloadResource ("srcset")
+        Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(2)")
+        element.DownloadResource ("srcset")
+    
+        'img element with only src attribute
+        driver.NavigateTo "https://html.com/attributes/img-srcset/"
+        Set element = driver.FindElement(By.CssSelector, "#post-1847 > div > div:nth-child(46) > img")
+        element.DownloadResource ("src")
+    
+        'img element with srcset attribute
+        driver.NavigateTo "https://webkit.org/demos/srcset/"
+        Set element = driver.FindElement(By.CssSelector, "body > img")
+        element.DownloadResource ("srcset")
+    
+        driver.DeleteFiles "image-4x.png", "flamingo-fallback.jpg", "elva-480w-close-portrait.jpg", "elva-800w.jpg", "elva-fairy-800w.jpg", "logo.png"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
     
     Sub test_table_to_array_formatting()
         Dim driver As SeleniumVBA.WebDriver
@@ -1085,17 +1133,17 @@ Private Module Tests
         driver.Wait 500
     
         'save page to xml file
-        driver.PageToXMLFile "test.xml"
+        driver.PageToXMLFile "test.xml", prettyPrint:=True
     
         'load up an xml document for further processing
         Set xmlDoc = driver.PageToXMLDoc
     
-        Debug.Print xmlDoc.selectSingleNode("//heading").text
+        Debug.Assert xmlDoc.selectSingleNode("//heading").text = "Reminder"
         
         'read the test file back into browser
         driver.NavigateToFile "test.xml"
     
-        driver.Wait 2000
+        driver.Wait 1000
     
         driver.CloseBrowser
         driver.Shutdown

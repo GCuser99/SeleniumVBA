@@ -43,7 +43,6 @@ Sub test_table_to_array()
     Dim driver As SeleniumVBA.WebDriver
     Dim table() As Variant
     Dim htmlStr As String
-    Dim i As Long, j As Long, k As Long
     
     Set driver = SeleniumVBA.New_WebDriver
 

@@ -15,9 +15,10 @@
 # twinBASIC native form (tbform) - prevent LF normalization
 *.[tT][bB][fF][oO][rR][mM] -text diff linguist-language=JSON
 
-# twinBASIC resources (json, xml) - prevent LF normalization
+# twinBASIC resources (json, xml, js) - prevent LF normalization
 *.[jJ][sS][oO][nN] -text diff
 *.[xX][mM][lL] -text diff
+*.[jS][sS] -text diff
 
 # twinBASIC project (twinproj)
 *.[tT][wW][iI][nN][pP][rR][oO][jJ] binary
@@ -30,7 +31,7 @@
 
 # INI file - prevent LF normalization
 *.[iI][nN][iI] -text diff
-                    
+              
 # Excel documents (xlam, xlsm)
 *.[xX][lL][aA][mM] binary
 *.[xX][lL][sS][mM] binary
@@ -54,4 +55,15 @@
 
 # Other (pdf)
 *.[pP][dD][fF] diff=astextplain
+
+# Files to exclude in release source
+/dev export-ignore
+/dist export-ignore
+/src/twinBASIC/Build export-ignore
+/src/twinBASIC/no_registration export-ignore
+/src/twinBASIC/setup export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/README.md export-ignore
+
 

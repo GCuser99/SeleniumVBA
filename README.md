@@ -120,4 +120,6 @@ This project is an extensively modified/extended version of uezo's [TinySelenium
 
 [Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell and [UninsIS](https://github.com/Bill-Stewart/UninsIS) by Bill Stewart
 
+[vba-regex](https://github.com/sihlfall/vba-regex) by sihlfall
+
 

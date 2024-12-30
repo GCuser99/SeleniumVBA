@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.1
+' SeleniumVBA v6.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -285,7 +285,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     End If
     
     If browser = svbaBrowser.Edge Then
-        'see if it can be found from embedded extended file properties first - much faster
+        'see if it can be found from embedded extended file properties first - much faster and less disruptive
         resp = findVersionInString(fso.GetFileVersion(driverPath), browser)
         If resp <> vbNullString Then
             GetInstalledDriverVersion = resp

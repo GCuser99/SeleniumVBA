@@ -5,7 +5,7 @@
 Public Class WebDriverManager
 
     ' ==========================================================================
-    ' SeleniumVBA v6.1
+    ' SeleniumVBA v6.2
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -272,7 +272,7 @@ Public Class WebDriverManager
         End If
         
         If browser = svbaBrowser.Edge Then
-            'see if it can be found from embedded extended file properties first - much faster
+            'see if it can be found from embedded extended file properties first - much faster and less disruptive
             resp = findVersionInString(fso.GetFileVersion(driverPath), browser)
             If resp <> vbNullString Then
                 GetInstalledDriverVersion = resp

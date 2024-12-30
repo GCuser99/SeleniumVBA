@@ -4107,7 +4107,4 @@ Private Module StaticRegex
         Set Split = colStrings
     End Function
 
-
-    
-
 End Module

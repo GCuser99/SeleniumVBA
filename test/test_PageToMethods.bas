@@ -26,8 +26,9 @@ Sub test_PageToHTMLMethods()
     
     'note that santization leaves DOM tree intact
     Set htmlDoc = driver.PageToHTMLDoc(sanitize:=True)
-    Debug.Assert htmlDoc.body.ChildNodes.Length = numNodes
     
+    Debug.Assert htmlDoc.body.ChildNodes.Length = numNodes
+
     'save sanitized page to html file
     driver.PageToHTMLFile "source_sanitized.html", sanitize:=True
     

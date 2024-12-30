@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.1
+' SeleniumVBA v6.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -513,7 +513,7 @@ Public Function unEscapeUnicode(ByRef keyString As Variant) As String
         For Each match In matches
             unEscapedValue = ChrW$(val("&H" & match.SubMatches(0)))
             'replace match with unescaped value
-            keyString = Replace(keyString, match.Value, unEscapedValue, Count:=1)
+            keyString = Replace$(keyString, match.Value, unEscapedValue, Count:=1)
         Next match
     End If
     unEscapeUnicode = keyString

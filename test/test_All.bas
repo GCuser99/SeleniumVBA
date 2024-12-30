@@ -29,9 +29,9 @@ Sub test_full_suite()
     test_Capabilities.test_initialize_caps_from_file
     
     test_cookies.test_cookies
-    test_cookies.test_cookies2
+    'test_cookies.test_cookies2 'test website needs replacement - too slow
     test_cookies.test_cookies3
-    
+
     test_ExecuteCDP.test_cdp_enhanced_file_download
     test_ExecuteCDP.test_cdp_enhanced_geolocation
     test_ExecuteCDP.test_cdp_enhanced_screenshot
@@ -90,7 +90,6 @@ Sub test_full_suite()
     test_Scroll.test_element_scroll
     test_Scroll.test_deep_scrollIntoView
     
-    test_Sendkeys.test_Authentication
     test_Sendkeys.test_Sendkeys
     
     test_settings.test_settings

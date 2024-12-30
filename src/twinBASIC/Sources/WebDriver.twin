@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.1
+    ' SeleniumVBA v6.2
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -934,7 +934,7 @@ Public Class WebDriver
             data.Add "id", element.elementId
             GetText = execute(tCMD.CMD_GET_ELEMENT_TEXT, data)("value")
         Else 'get the underlying text whether visible or not
-            GetText = ExecuteScript("return arguments[0].textContent;", element)
+            GetText = ExecuteScript("return arguments[0].textContent.replace(/\xA0/g,' ');", element)
         End If
     End Function
 
@@ -1734,12 +1734,12 @@ Public Class WebDriver
     
         optionsList = "{""behavior"": """ & sSpeed & """, ""block"": """ & sAlign_vert & """, ""inline"": """ & sAlign_horiz & """}"
     
-        ExecuteScript getJavaScript("ScrollIntoView.js"), element, optionsList
+        ExecuteScript getScript("ScrollIntoView.js"), element, optionsList
         
         If xOffset <> 0 Or yOffset <> 0 Then
             Dim container As WebElement
             'get the element's scroll container element
-            Set container = ExecuteScript(getJavaScript("GetScrollContainer.js"), element)
+            Set container = ExecuteScript(getScript("GetScrollContainer.js"), element)
         
             container.ScrollBy xOffset, yOffset
         End If
@@ -1761,7 +1761,7 @@ Public Class WebDriver
     
         optionsList = "{""top"":" & yOffset & ",""left"":" & xOffset & ",""behavior"": """ & sSpeed & """}"
 
-        ExecuteScript getJavaScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "by", optionsList
+        ExecuteScript getScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "by", optionsList
     End Sub
 
     [Description("Scrolls to an x-y position in pixels relative to the current scrollable window or element content origin")]
@@ -1778,7 +1778,7 @@ Public Class WebDriver
     
         optionsList = "{""top"":" & y & ",""left"":" & x & ",""behavior"": """ & sSpeed & """}"
 
-        ExecuteScript getJavaScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "to", optionsList
+        ExecuteScript getScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "to", optionsList
     End Sub
 
     [Description("Scrolls to the top of current scrollable window or element content")]
@@ -2199,7 +2199,7 @@ Public Class WebDriver
         Set elemDict = New Dictionary
         elemDict.Add ELEMENT_KEY, table.elementId
         Set data = New Dictionary
-        data.Add "script", getJavaScript("TableToArray.js")
+        data.Add "script", getScript("TableToArray.js")
         data.Add "args", Array(elemDict, skipHeader, skipFooter, createSpanData, ignoreCellFormatting)
         Set data = ExecuteCmd("POST", "/session/$sessionId/execute/sync", data)
     
@@ -2220,7 +2220,7 @@ Public Class WebDriver
     
         pageSource = Me.GetPageSource
     
-        If sanitize Then pageSource = ExecuteScript(getJavaScript("SanitizeHTML.js"), pageSource)
+        If sanitize Then pageSource = ExecuteScript(getScript("SanitizeHTML.js"), pageSource)
 
         If htmlDoc.documentMode >= 11 Then
             htmlDoc.documentElement.innerHTML = pageSource
@@ -2254,7 +2254,7 @@ Public Class WebDriver
     Public Sub PageToHTMLFile(ByVal filePath As String, Optional ByVal sanitize As Boolean = False, Optional ByVal formatUnicode16 As Boolean = True)
         Dim pageSource As String
         pageSource = Me.GetPageSource
-        If sanitize Then pageSource = ExecuteScript(getJavaScript("SanitizeHTML.js"), pageSource)
+        If sanitize Then pageSource = ExecuteScript(getScript("SanitizeHTML.js"), pageSource)
         Me.SaveStringToFile pageSource, filePath, formatUnicode16
     End Sub
 
@@ -2437,113 +2437,15 @@ Public Class WebDriver
     [Description("Downloads a resource (such as an image) contained in an element attribute to a file or folder path - if a folder is specified, then the file will inherit the name of the source")]
     Public Sub DownloadResource(element As WebElement, Optional ByVal srcAttribute As String = "src", Optional ByVal fileOrFolderPath As String = ".\")
         Dim Url As String
-        Dim baseUrl As String
-        Dim srcMax As String
-        Dim sizeMax As String
-        Dim srcArray As Variant
-        Dim srcSizePair As Variant
-        Dim src As String
-        Dim srcSize As String
-        Dim ret As Long
         Dim fso As New FileSystemObject
         Dim filePath As String
         Dim fileName As String
-        Dim ipos As Long
-        Dim i As Long
-        Dim urlLevel As Long
-        Dim curUrl As String
-        Dim numUpLevels As Long
-        Dim numUrlSections As Long
-    
-        Url = element.GetAttribute(srcAttribute)
-        If Url = vbNullString Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not find Attribute " & Chr$(34) & srcAttribute & Chr$(34)
-        'remove new line characters
-        Url = VBA.Replace$(VBA.Replace$(Url, vbLf, ""), vbCr, "")
-    
-        If LCase$(srcAttribute) = "srcset" Then
-            'if image then get the highest pixel density src possible
-            'split the sources in srcset into an array
-            srcArray = VBA.Split(Url, ", ")
+        Dim ret As Long
         
-            'initialize the maximum size and source
-            sizeMax = vbNullString
-            srcMax = vbNullString
-        
-            For i = 0 To UBound(srcArray)
-                'loop through and extract src/size pairs
-                srcSizePair = VBA.Split(Trim$(srcArray(i)), " ")
-                src = Trim$(srcSizePair(0))
-            
-                'process size if available
-                If UBound(srcSizePair) > 0 Then
-                    srcSize = Trim$(srcSizePair(1))
-                    'remove pixel density and/or width indicator for size compare
-                    srcSize = VBA.Replace$(VBA.Replace$(srcSize, "x", vbNullString, , , vbTextCompare), "w", vbNullString, , , vbTextCompare)
-                Else
-                    srcSize = vbNullString
-                End If
-            
-                'if this size is greater than max found size, then store as max
-                If srcSize >= sizeMax Then
-                    sizeMax = srcSize
-                    srcMax = src
-                End If
-            Next i
-        
-            'use the max found source
-            Url = srcMax
-        End If
-    
-        'handle relative path if applicable
-        If Left$(Url, 4) <> "http" Then 'it is a relative path
-            'construct a full url from base url and the relative path
-            Dim urlSections As Variant
-        
-            'get the current url path
-            curUrl = GetCurrentUrl(decode:=False)
-        
-            'strip off query params if they exist
-            curUrl = VBA.Split(curUrl, "?")(0)
-        
-            'replace double slash in "http[s]://" - will put back later
-            urlSections = VBA.Split(VBA.Replace$(curUrl, "//", "^^"), "/")
-            numUrlSections = UBound(urlSections)
-        
-            'determine relativity level (root, current, up(s))
-            Select Case True
-            Case Url Like "/*"
-                'root level
-                urlLevel = 0
-            Case Url Like "[!./]*", Url Like "./*"
-                'current level
-                urlLevel = numUrlSections - 1
-                'strip out the rel indicator
-                Url = VBA.Replace$(Url, "./", "")
-            Case Url Like "../*"
-                'up-levels
-                'count how many up-levels
-                numUpLevels = UBound(VBA.Split(Url, "../"))
-                urlLevel = numUrlSections - 1 - numUpLevels
-                'strip out the rel indicator(s)
-                Url = VBA.Replace$(Url, "../", "")
-            End Select
-        
-            'build the base url
-            baseUrl = urlSections(0) 'root
-            For i = 1 To urlLevel
-                baseUrl = baseUrl & "/" & urlSections(i)
-            Next i
-        
-            'put back the double slash in "http[s]://"
-            baseUrl = VBA.Replace$(baseUrl, "^^", "//")
-        
-            'make sure there is a slash between base url and relative url
-            If Right$(baseUrl, 1) <> "/" AndAlso Left$(Url, 1) <> "/" Then baseUrl = baseUrl & "/"
-        
-            'concat to calculate absolute url
-            Url = baseUrl & Url
-        End If
-    
+        'get the resource url
+        Url = ExecuteScript(getScript("GetResourceUrl.js"), element, srcAttribute)
+        If Url Like "Error*" Then Err.Raise 1, "WebDriver", Url & Chr$(34) & srcAttribute & Chr$(34)
+
         'now calculate the destination path
         'first convert user input path to absolute path
         fileOrFolderPath = ResolvePath(fileOrFolderPath)
@@ -2565,11 +2467,9 @@ Public Class WebDriver
         'download the url to file path
         ret = UrlDownloadToFile(Nothing, Url, filePath, 0&, Nothing)
     
-        If ret <> 0 Then
-             Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
-        End If
+        If ret <> 0 Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
     End Sub
-
+    
     [Description("Saves a base 64 encoded string to a file in binary format")]
     Public Sub SaveBase64StringToFile(ByVal base64String As String, ByVal filePath As String)
         filePath = ResolvePath(filePath)
@@ -2914,18 +2814,7 @@ Public Class WebDriver
     
         xmlDoc.loadXML val
     
-        xslDoc.loadXML "<?xml version=" & Chr$(34) & "1.0" & Chr$(34) & "?>" _
-                & "<xsl:stylesheet version=" & Chr$(34) & "1.0" & Chr$(34) _
-                & "                xmlns:xsl=" & Chr$(34) & "http://www.w3.org/1999/XSL/Transform" & Chr$(34) & ">" _
-                & "<xsl:strip-space elements=" & Chr$(34) & "*" & Chr$(34) & " />" _
-                & "<xsl:output method=" & Chr$(34) & "xml" & Chr$(34) & " indent=" & Chr$(34) & "yes" & Chr$(34) & vbNullString _
-                & "            encoding=" & Chr$(34) & "UTF-8" & Chr$(34) & "/>" _
-                & " <xsl:template match=" & Chr$(34) & "node() | @*" & Chr$(34) & ">" _
-                & "  <xsl:copy>" _
-                & "   <xsl:apply-templates select=" & Chr$(34) & "node() | @*" & Chr$(34) & " />" _
-                & "  </xsl:copy>" _
-                & " </xsl:template>" _
-                & "</xsl:stylesheet>"
+        xslDoc.loadXML getScript("PrettyPrint.xml")
     
         xslDoc.async = False
         xmlDoc.transformNodeToObject xslDoc, xmlDocFormatted
