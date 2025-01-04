@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

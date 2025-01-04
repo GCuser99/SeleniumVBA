@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -324,7 +324,7 @@ Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option elemen
 End Sub
 
 '@Description("Selects a dropdown option element with the specified index")
-Public Sub SelectByIndex(ByVal index As Integer)
+Public Sub SelectByIndex(ByVal index As Long)
 Attribute SelectByIndex.VB_Description = "Selects a dropdown option element with the specified index"
     driver_.SelectByIndex index, Me
 End Sub
@@ -366,7 +366,7 @@ Attribute DeSelectByVisibleText.VB_Description = "Deselects the dropdown option 
 End Sub
 
 '@Description("Deselects a dropdown option element with the specified index")
-Public Sub DeSelectByIndex(ByVal index As Integer)
+Public Sub DeSelectByIndex(ByVal index As Long)
 Attribute DeSelectByIndex.VB_Description = "Deselects a dropdown option element with the specified index"
     driver_.DeSelectByIndex index, Me
 End Sub

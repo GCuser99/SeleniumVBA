@@ -1,5 +1,86 @@
 Private Module Tests
+    
+    Sub test_session_cookie()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim cks As SeleniumVBA.WebCookies
+        Dim ck As SeleniumVBA.WebCookie
+    
+        Set driver = SeleniumVBA.New_WebDriver
+    
+        Set cks = driver.CreateCookies
 
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/sessionCookie.html"
+        driver.Wait 500
+    
+        'this creates a cookie named bgcolor containing the background color as its value
+        driver.FindElement(By.CssSelector, "#setcolorbutton").Click
+        driver.Wait 500
+    
+        'get cookie for this domain and then save to file
+        driver.GetAllCookies().SaveToFile "cookies.txt"
+    
+        'click to open the new window - this tries to set the background color through the passed cookie
+        'but note that because the cookie was deleted, the background color does not get set
+        driver.FindElement(By.CssSelector, "#openwindowbutton").Click
+        driver.Wait 500
+    
+        driver.Windows.SwitchToByTitle "Session cookie destination*"
+        Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 255, 255)"
+    
+        driver.Wait 500
+    
+        driver.CloseBrowser
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/sessionCookie.html"
+    
+        'make sure all cookies are deleted from the session
+        driver.DeleteAllCookies
+    
+        'load the cookies from previous session
+        driver.SetCookies cks.LoadFromFile("cookies.txt")
+    
+        For Each ck In cks
+            Debug.Assert ck.Name = "bgcolor"
+            Debug.Assert ck.Value = "#80FFFF"
+        Next ck
+    
+        'click to open the new window - this sets the background color through the loaded cookie
+        driver.FindElement(By.CssSelector, "#openwindowbutton").Click
+        driver.Wait 500
+    
+        driver.Windows.SwitchToByTitle "Session cookie destination*"
+        Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 255, 255)"
+    
+        driver.Wait 500
+    
+        driver.CloseBrowser
+        driver.OpenBrowser
+    
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/sessionCookie.html"
+    
+        'make sure all cookies are deleted from the session
+        driver.DeleteAllCookies
+    
+        'change the value (background color) of the cookie from from previous session and set it
+        cks(1).Value = "#8080ff"
+        driver.SetCookie cks(1)
+    
+        'click to open the new window - this sets the background color through the loaded cookie
+        driver.FindElement(By.CssSelector, "#openwindowbutton").Click
+        driver.Wait 500
+    
+        driver.Windows.SwitchToByTitle "Session cookie destination*"
+        Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 128, 255)"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    
     Sub test_DownloadResource()
         Dim driver As SeleniumVBA.WebDriver
         Dim element As SeleniumVBA.WebElement
@@ -954,72 +1035,6 @@ Private Module Tests
         driver.Shutdown
     End Sub
     
-    Sub test_highlight2()
-        Dim driver As WebDriver
-        Dim elemsBlue As WebElements
-        Dim elemsRed As WebElements
-        Dim htmlStr As String, i As Long
-    
-        Set driver = New WebDriver
-        Set elemsBlue = New WebElements
-        Set elemsRed = New WebElements
-
-        driver.StartEdge
-        driver.OpenBrowser
-    
-        htmlStr = "<html><body><table border='1' id='mytable'>" _
-        & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
-        & "<tr><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td></tr>" _
-        & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
-        & "<tr><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td></tr>" _
-        & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
-        & "</table></body></html>"
-    
-        driver.SaveStringToFile htmlStr, ".\snippet.html"
-    
-        driver.NavigateToFile ".\snippet.html"
-    
-        driver.ImplicitMaxWait = 1000
-    
-        'split the table cells into two groups Red and Blue
-        With driver.FindElements(By.TagName, "td")
-            For i = 1 To .Count
-                If i Mod 2 = 0 Then
-                    'ordinal position in collection is even
-                    elemsBlue.Add .Item(i)
-                Else
-                    'ordinal position in collection is odd
-                    elemsRed.Add .Item(i)
-                End If
-            Next i
-        End With
-    
-        driver.Wait 1500
-    
-        'highlight the Blue group
-        elemsBlue.Highlight borderSizePx:=2, borderColor:=Blue, ScrollIntoView:=False
-    
-        driver.Wait 1500
-    
-        'highlight the Red group
-        elemsRed.Highlight borderSizePx:=2, borderColor:=Red, ScrollIntoView:=False, unHighlightLast:=False
-    
-        driver.Wait 1500
-    
-        'unhighlight the Blue group
-        elemsBlue.UnHighlight
-    
-        driver.Wait 1500
-    
-        'unhighlight the Red group
-        elemsRed.UnHighlight
-    
-        driver.Wait 1500
-    
-        driver.CloseBrowser
-        driver.Shutdown
-    End Sub
-    
     Sub test_cdp_enhanced_geolocation()
         'this demonstrates using the ExecuteCDP to manage geolocation with enhanced user control
         'even if the default profile is set to hide geolocation info, this will override that,
@@ -1108,10 +1123,10 @@ Private Module Tests
         driver.SaveStringToFile html2, ".\snippet2.html"
 
         driver.NavigateToFile ".\snippet1.html"
-    
+        
         'wait until the second html is loaded
         driver.WaitUntilNotPresent By.ID, "testDiv"
-
+    
         driver.Wait 500
         
         driver.CloseBrowser
@@ -1179,23 +1194,28 @@ Private Module Tests
         driver.Shutdown
     End Sub
     
-    Sub test_download_resource()
-        'this test uses the DownloadResource method of the WebElement class to download the src to an img element
-        Dim driver As WebDriver
-        Dim element As WebElement
-
-        Set driver = New WebDriver
-
-        driver.StartChrome
+    Sub test_shadowroot()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim shadowHost As SeleniumVBA.WebElement
+        Dim shadowContent As SeleniumVBA.WebElement
+        Dim shadowRootelem As SeleniumVBA.WebShadowRoot
+    
+        Set driver = SeleniumVBA.New_WebDriver
+    
+        driver.StartEdge
         driver.OpenBrowser
     
-        driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
-        driver.Wait 1000
-
-        Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
+        driver.NavigateTo "https://www.selenium.dev/selenium/web/shadowRootPage.html"
     
-        'if a folder path is specified for fileOrFolderPath, then the saved file inherits the name of the source
-        element.DownloadResource srcAttribute:="src", fileOrFolderPath:=".\"
+        Set shadowHost = driver.FindElement(By.CssSelector, "body > div:nth-child(3) > custom-checkbox-element")
+    
+        Set shadowRootelem = shadowHost.GetShadowRoot()
+    
+        Set shadowContent = shadowRootelem.FindElement(By.CssSelector, "div > input[type=checkbox]")
+    
+        shadowContent.Click
+    
+        Debug.Assert shadowContent.GetProperty("checked")
     
         driver.CloseBrowser
         driver.Shutdown

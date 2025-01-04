@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v6.2
+    ' SeleniumVBA v6.3
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -508,7 +508,6 @@ Private Module Utils
         s = s & "End Select" & vbCrLf
         s = s & "getScript = script" & vbCrLf
         s = s & "End Function"
-        
         
         Dim fso As New FileSystemObject, ts As TextStream
         Set ts = fso.CreateTextFile(Environ("USERPROFILE") & "\Documents\SeleniumVBA\twinBasic\scripts.txt", True)

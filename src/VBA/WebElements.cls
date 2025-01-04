@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -62,13 +62,13 @@ Attribute Add.VB_Description = "Adds an element to the collection"
 End Function
 
 '@Description("Returns the number of elements in the collection")
-Public Property Get Count() As Integer
+Public Property Get Count() As Long
 Attribute Count.VB_Description = "Returns the number of elements in the collection"
    Count = colWebElement.Count
 End Property
 
 '@Description("Returns the number of elements in the collection")
-Public Property Get Size() As Integer
+Public Property Get Size() As Long
 Attribute Size.VB_Description = "Returns the number of elements in the collection"
    Size = colWebElement.Count
 End Property

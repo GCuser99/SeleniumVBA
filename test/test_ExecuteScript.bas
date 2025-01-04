@@ -12,8 +12,10 @@ Sub test_executeScript()
 
     driver.StartChrome
     driver.OpenBrowser
-
-    Url = "http://demo.guru99.com/test/guru99home/"
+    
+    driver.ImplicitMaxWait = 2000
+    
+    Url = "https://www.selenium.dev/selenium/web/"
     
     'Navigate to url
     'arguments are specified in ParamArray list where first parameter value is associated
@@ -24,8 +26,8 @@ Sub test_executeScript()
     driver.ActiveWindow.Maximize
     driver.Wait
     
-    'ExecuteScript returns a WebElement object if script results in a WebElement object
-    Set webElem = driver.ExecuteScript("return document.getElementById('philadelphia-field-submit')")
+    'if script results in a WebElement object, then ExecuteScript returns same
+    Set webElem = driver.ExecuteScript("return document.querySelector('body > ul > li:nth-child(24) > a')")
     
     'arguments are specified in ParamArray list where first parameter value is associated
     'with arguments[0], second parameter value is associated with arguments[1], etc
@@ -34,9 +36,9 @@ Sub test_executeScript()
     driver.Wait 1000
     
     'ExecuteScript returns a single WebElements object if script results in a collection of WebElement objects
-    Dim divElems As SeleniumVBA.WebElements
-    Set divElems = driver.ExecuteScript("return document.getElementsByTagName(arguments[0])", "div")
-    Debug.Assert divElems.Count = 289
+    Dim anchorElems As SeleniumVBA.WebElements
+    Set anchorElems = driver.ExecuteScript("return document.getElementsByTagName(arguments[0])", "a")
+    Debug.Assert anchorElems.Count = 232
     
     driver.CloseBrowser
     driver.Shutdown
@@ -45,7 +47,7 @@ End Sub
 Sub test_executeScriptAsync()
     'see https://www.lambdatest.com/blog/how-to-use-javascriptexecutor-in-selenium-webdriver/
     Dim driver As SeleniumVBA.WebDriver
-    Dim Url As String, waitTime As Integer
+    Dim Url As String, waitTime As Long
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -81,8 +83,6 @@ Sub test_call_embedded_HTML_script()
     Dim html As String
     
     Set driver = SeleniumVBA.New_WebDriver
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     driver.StartChrome
     driver.OpenBrowser

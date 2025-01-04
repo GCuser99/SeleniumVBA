@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -448,7 +448,7 @@ Public Sub sleep(ByVal ms As Currency)
 End Sub
 
 Public Function Max(ParamArray numberList() As Variant) As Variant
-    Dim i As Integer
+    Dim i As Long
     Max = numberList(LBound(numberList))
     For i = LBound(numberList) + 1 To UBound(numberList)
         If numberList(i) > Max Then Max = numberList(i)

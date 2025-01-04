@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -71,13 +71,13 @@ Attribute Add.VB_Description = "Adds a cookie to the collection"
 End Function
 
 '@Description("Returns the number of cookies in the collection")
-Public Property Get Count() As Integer
+Public Property Get Count() As Long
 Attribute Count.VB_Description = "Returns the number of cookies in the collection"
    Count = colCookies.Count
 End Property
 
 '@Description("Returns the number of cookies in the collection")
-Public Property Get Size() As Integer
+Public Property Get Size() As Long
 Attribute Size.VB_Description = "Returns the number of cookies in the collection"
    Size = colCookies.Count
 End Property
@@ -103,6 +103,9 @@ Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file pat
     Dim ts As TextStream
     Dim darray() As Dictionary
     Dim i As Long
+    
+    If Me.Count = 0 Then Err.Raise 1, , "Error in WebCookies: SaveToFile method failed because there are no cookies to save."
+    
     filePath = driver_.ResolvePath(filePath)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ReDim darray(1 To Me.Count)
@@ -125,6 +128,9 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
     Me.RemoveAll
     
     filePath = driver_.ResolvePath(filePath)
+    
+    If Not fso.FileExists(filePath) Then Err.Raise 1, , "Error in WebCookies: LoadToFile method failed because the specified file does not exist."
+    
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
     Set ts = fso.OpenTextFile(filePath, , , TristateUseDefault)
     str = ts.ReadAll

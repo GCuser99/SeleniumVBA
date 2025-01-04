@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -556,8 +556,8 @@ Private Sub addToOptionList(ByVal optionName As String, addList() As String)
     'add to list of option parameters, while checking for duplicates
     Dim parameters As Collection
     Dim found As Boolean
-    Dim j As Integer
-    Dim i As Integer
+    Dim j As Long
+    Dim i As Long
 
     'lists are represented as collections for caps initialized from LoadFromFile (via WebJsonConverter.ParseJson)
     If IsObject(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
@@ -581,9 +581,9 @@ End Sub
 
 Private Function paramListToStringArray(parmList() As Variant) As String()
     'a parameter array can include arrays as list elements - expand into a string array
-    Dim i As Integer
-    Dim j As Integer
-    Dim k As Integer
+    Dim i As Long
+    Dim j As Long
+    Dim k As Long
     Dim strlist() As String
     
     'count number of parameters in list

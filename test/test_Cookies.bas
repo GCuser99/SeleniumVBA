@@ -3,159 +3,81 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
 
-Sub test_cookies()
-    'https://www.guru99.com/handling-cookies-selenium-webdriver.html
-    Dim driver As SeleniumVBA.WebDriver, cks As SeleniumVBA.WebCookies
+Sub test_session_cookie()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim cks As SeleniumVBA.WebCookies
+    Dim ck As SeleniumVBA.WebCookie
     
     Set driver = SeleniumVBA.New_WebDriver
     
     Set cks = driver.CreateCookies
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
+
     driver.StartEdge
     driver.OpenBrowser
     
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
-    
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/sessionCookie.html"
     driver.Wait 500
     
-    driver.FindElement(By.Name, "username").SendKeys ("abc123")
-    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(By.Name, "submit").Click
-    
+    'this creates a cookie named bgcolor containing the background color as its value
+    driver.FindElement(By.CssSelector, "#setcolorbutton").Click
     driver.Wait 500
     
-    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
-    'get all cookies for this domain and then save to file
+    'get cookie for this domain and then save to file
     driver.GetAllCookies().SaveToFile "cookies.txt"
     
+    'click to open the new window - this tries to set the background color through the passed cookie
+    'but note that because the cookie was deleted, the background color does not get set
+    driver.FindElement(By.CssSelector, "#openwindowbutton").Click
+    driver.Wait 500
+    
+    driver.Windows.SwitchToByTitle "Session cookie destination*"
+    Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 255, 255)"
+    
+    driver.Wait 500
+    
+    driver.CloseBrowser
+    driver.OpenBrowser
+    
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/sessionCookie.html"
+    
+    'make sure all cookies are deleted from the session
     driver.DeleteAllCookies
     
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
-    driver.Wait 1000
-    
-    'load and set saved cookies from file
+    'load the cookies from previous session
     driver.SetCookies cks.LoadFromFile("cookies.txt")
     
-    driver.Wait 1000
-    
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
-    
-    driver.Wait 1000
-    
-    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-Sub test_cookies2()
-    'https://www.guru99.com/handling-cookies-selenium-webdriver.html
-    Dim driver As SeleniumVBA.WebDriver, cks As SeleniumVBA.WebCookies, ck As SeleniumVBA.WebCookie
-
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartEdge
-    driver.OpenBrowser
-    
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
-    
-    driver.Wait 500
-    
-    driver.FindElement(By.Name, "username").SendKeys ("abc123")
-    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(By.Name, "submit").Click
-    
-    'get and save the important cookie for this domain
-    Set cks = driver.GetAllCookies
-    
-    Debug.Assert cks.Count > 0
-    
-    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
-    
-    driver.DeleteAllCookies  'this does not affect the cks object
-    
-    driver.Wait 500
-    
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
-    driver.Wait 500
-    
-    'set a specific saved cookie
     For Each ck In cks
-        If ck.Name = "Selenium" Then
-            driver.SetCookie ck
-            Exit For
-        End If
+        Debug.Assert ck.Name = "bgcolor"
+        Debug.Assert ck.Value = "#80FFFF"
     Next ck
     
-    driver.Wait 500
-
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
-    
+    'click to open the new window - this sets the background color through the loaded cookie
+    driver.FindElement(By.CssSelector, "#openwindowbutton").Click
     driver.Wait 500
     
-    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
+    driver.Windows.SwitchToByTitle "Session cookie destination*"
+    Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 255, 255)"
+    
+    driver.Wait 500
     
     driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-Sub test_cookies3()
-    'https://www.guru99.com/handling-cookies-selenium-webdriver.html
-    Dim driver As SeleniumVBA.WebDriver, cks As SeleniumVBA.WebCookies, ck As SeleniumVBA.WebCookie
-
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    Set cks = driver.CreateCookies
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
-    driver.StartChrome
     driver.OpenBrowser
     
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/sessionCookie.html"
     
+    'make sure all cookies are deleted from the session
+    driver.DeleteAllCookies
+    
+    'change the value (background color) of the cookie from from previous session and set it
+    cks(1).Value = "#8080ff"
+    driver.SetCookie cks(1)
+    
+    'click to open the new window - this sets the background color through the loaded cookie
+    driver.FindElement(By.CssSelector, "#openwindowbutton").Click
     driver.Wait 500
     
-    driver.FindElement(By.Name, "username").SendKeys ("abc123")
-    driver.FindElement(By.Name, "password").SendKeys ("123xyz")
-    driver.FindElement(By.Name, "submit").Click
-    
-    driver.Wait 500
-    
-    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
-    
-    'get cookie add add it to Cookies object
-    cks.Add driver.GetCookie("Selenium")
-    
-    For Each ck In cks
-        Debug.Assert ck.Name = "Selenium"
-    Next ck
-    
-    'save cookie(s) to file
-    cks.SaveToFile ".\cookies.txt"
-    
-    driver.DeleteAllCookies 'this does not affect the cks object
-    
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_aut.php"
-    driver.Wait 500
-    
-    'load cookie(s) from file
-    cks.LoadFromFile ".\cookies.txt"
-    
-    'set saved cookie(s) from file
-    driver.SetCookies cks
-    
-    driver.Wait 500
-
-    driver.NavigateTo "https://demo.guru99.com/test/cookie/selenium_cookie.php"
-    
-    driver.Wait 500
-    
-    Debug.Assert driver.FindElementByTagName("h2").GetText = "You are logged In"
-    
-    driver.DeleteFiles ".\cookies.txt"
+    driver.Windows.SwitchToByTitle "Session cookie destination*"
+    Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 128, 255)"
     
     driver.CloseBrowser
     driver.Shutdown

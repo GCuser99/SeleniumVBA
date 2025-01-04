@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.2
+    ' SeleniumVBA v6.3
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -549,7 +549,7 @@ Public Class WebDriver
     [Description("Finds all elements that satisfy the specified selector and value")]
     Public Function FindElements(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElements
         Dim data As Dictionary
-        Dim i As Integer
+        Dim i As Long
         Dim vCMD As Variant
         Dim elements As Collection
         Dim elems As New WebElements
@@ -1227,7 +1227,7 @@ Public Class WebDriver
     End Function
 
     [Description("Selects a dropdown option element with the specified index")]
-    Public Sub SelectByIndex(ByVal index As Integer, element As WebElement)
+    Public Sub SelectByIndex(ByVal index As Long, element As WebElement)
         SetFocus element
         ExecuteScript "arguments[0].options[" & CStr(index - baseDomIdx) & "].selected = true;", element
     End Sub
@@ -1235,7 +1235,7 @@ Public Class WebDriver
     [Description("Selects all multi-select dropdown option elements")]
     Public Sub SelectAll(element As WebElement)
         Dim elems As WebElements
-        Dim i As Integer
+        Dim i As Long
         Set elems = FindElements(By.CssSelector, "option", element)
         SetFocus element
         For i = 1 To elems.Count
@@ -1246,7 +1246,7 @@ Public Class WebDriver
     [Description("Deselects all dropdown option elements")]
     Public Sub DeSelectAll(element As WebElement)
         Dim elems As WebElements
-        Dim i As Integer
+        Dim i As Long
         Set elems = FindElements(By.CssSelector, "option", element)
         SetFocus element
         For i = 1 To elems.Count
@@ -1255,7 +1255,7 @@ Public Class WebDriver
     End Sub
 
     [Description("Deselects a dropdown option element with the specified index")]
-    Public Sub DeSelectByIndex(ByVal index As Integer, element As WebElement)
+    Public Sub DeSelectByIndex(ByVal index As Long, element As WebElement)
         Dim elems As WebElements
         Set elems = FindElements(By.CssSelector, "option", element)
         If IsSelected(elems(index - baseDomIdx + 1)) Then
@@ -1449,7 +1449,7 @@ Public Class WebDriver
     End Sub
 
     [Description("Switches focus to the frame indicated by the specified index")]
-    Public Sub SwitchToFrameByIndex(ByVal index As Integer)
+    Public Sub SwitchToFrameByIndex(ByVal index As Long)
         Dim data As New Dictionary
         data.Add "id", index - baseDomIdx
         execute tCMD.CMD_SWITCH_TO_FRAME, data
@@ -1964,7 +1964,7 @@ Public Class WebDriver
         Dim data As Dictionary
         Dim elements As Collection
         Dim elems As New WebElements
-        Dim i As Integer
+        Dim i As Long
     
         Set data = toSelector(by_, val)
         data.Add "sid", shadowRoot.shadowRootId
@@ -2138,9 +2138,9 @@ Public Class WebDriver
     [Description("Deletes a list of files")]
     Public Sub DeleteFiles(ParamArray fileList() As Variant)
         Dim fso As New FileSystemObject
-        Dim i As Integer
-        Dim k As Integer
-        Dim j As Integer
+        Dim i As Long
+        Dim k As Long
+        Dim j As Long
         Dim strlist() As String
         For i = 0 To UBound(fileList)
             If IsArray(fileList(i)) Then
@@ -2667,7 +2667,7 @@ Public Class WebDriver
 
     Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
         Dim dict As New Dictionary
-        Dim i As Integer
+        Dim i As Long
         For i = 0 To UBound(keysAndValues) - 1 Step 2
             dict.Add keysAndValues(i), keysAndValues(i + 1)
         Next i
@@ -2693,7 +2693,7 @@ Public Class WebDriver
         End Select
     End Function
 
-    Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
+    Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Long = 0)
         'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
         Dim objService As WbemScripting.SWbemServices
         Dim objDriverList As WbemScripting.SWbemObjectSet

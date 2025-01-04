@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.2
+' SeleniumVBA v6.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -567,7 +567,7 @@ End Function
 Public Function FindElements(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElements
 Attribute FindElements.VB_Description = "Finds all elements that satisfy the specified selector and value"
     Dim data As Dictionary
-    Dim i As Integer
+    Dim i As Long
     Dim vCMD As Variant
     Dim elements As Collection
     Dim elems As New WebElements
@@ -1294,7 +1294,7 @@ Attribute IsMultiSelect.VB_Description = "Returns a boolean indicating if the el
 End Function
 
 '@Description("Selects a dropdown option element with the specified index")
-Public Sub SelectByIndex(ByVal index As Integer, element As WebElement)
+Public Sub SelectByIndex(ByVal index As Long, element As WebElement)
 Attribute SelectByIndex.VB_Description = "Selects a dropdown option element with the specified index"
     SetFocus element
     ExecuteScript "arguments[0].options[" & CStr(index - baseDomIdx) & "].selected = true;", element
@@ -1304,7 +1304,7 @@ End Sub
 Public Sub SelectAll(element As WebElement)
 Attribute SelectAll.VB_Description = "Selects all multi-select dropdown option elements"
     Dim elems As WebElements
-    Dim i As Integer
+    Dim i As Long
     Set elems = FindElements(By.CssSelector, "option", element)
     SetFocus element
     For i = 1 To elems.Count
@@ -1316,7 +1316,7 @@ End Sub
 Public Sub DeSelectAll(element As WebElement)
 Attribute DeSelectAll.VB_Description = "Deselects all dropdown option elements"
     Dim elems As WebElements
-    Dim i As Integer
+    Dim i As Long
     Set elems = FindElements(By.CssSelector, "option", element)
     SetFocus element
     For i = 1 To elems.Count
@@ -1325,7 +1325,7 @@ Attribute DeSelectAll.VB_Description = "Deselects all dropdown option elements"
 End Sub
 
 '@Description("Deselects a dropdown option element with the specified index")
-Public Sub DeSelectByIndex(ByVal index As Integer, element As WebElement)
+Public Sub DeSelectByIndex(ByVal index As Long, element As WebElement)
 Attribute DeSelectByIndex.VB_Description = "Deselects a dropdown option element with the specified index"
     Dim elems As WebElements
     Set elems = FindElements(By.CssSelector, "option", element)
@@ -1529,7 +1529,7 @@ Attribute SwitchToFrame.VB_Description = "Switches focus to the frame element"
 End Sub
 
 '@Description("Switches focus to the frame indicated by the specified index")
-Public Sub SwitchToFrameByIndex(ByVal index As Integer)
+Public Sub SwitchToFrameByIndex(ByVal index As Long)
 Attribute SwitchToFrameByIndex.VB_Description = "Switches focus to the frame indicated by the specified index"
     Dim data As New Dictionary
     data.Add "id", index - baseDomIdx
@@ -2090,7 +2090,7 @@ Attribute FindElementsFromShadowRoot.VB_Description = "Finds all elements in the
     Dim data As Dictionary
     Dim elements As Collection
     Dim elems As New WebElements
-    Dim i As Integer
+    Dim i As Long
     
     Set data = toSelector(by_, val)
     data.Add "sid", shadowRoot.shadowRootId
@@ -2276,9 +2276,9 @@ End Property
 Public Sub DeleteFiles(ParamArray fileList() As Variant)
 Attribute DeleteFiles.VB_Description = "Deletes a list of files"
     Dim fso As New FileSystemObject
-    Dim i As Integer
-    Dim k As Integer
-    Dim j As Integer
+    Dim i As Long
+    Dim k As Long
+    Dim j As Long
     Dim strlist() As String
     For i = 0 To UBound(fileList)
         If IsArray(fileList(i)) Then
@@ -2832,7 +2832,7 @@ End Function
 
 Private Function params(ParamArray keysAndValues() As Variant) As Dictionary
     Dim dict As New Dictionary
-    Dim i As Integer
+    Dim i As Long
     For i = 0 To UBound(keysAndValues) - 1 Step 2
         dict.Add keysAndValues(i), keysAndValues(i + 1)
     Next i
@@ -2858,7 +2858,7 @@ Private Function objToWebElements(elementOrElements As Object) As WebElements
     End Select
 End Function
 
-Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Integer = 0)
+Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Long = 0)
     'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
     Dim objService As WbemScripting.SWbemServices
     Dim objDriverList As WbemScripting.SWbemObjectSet

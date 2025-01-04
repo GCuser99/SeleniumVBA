@@ -5,7 +5,7 @@
 Public Class WebElements
 
     ' ==========================================================================
-    ' SeleniumVBA v6.2
+    ' SeleniumVBA v6.3
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -54,12 +54,12 @@ Public Class WebElements
     End Function
 
     [Description("Returns the number of elements in the collection")]
-    Public Property Get Count() As Integer
+    Public Property Get Count() As Long
        Count = colWebElement.Count
     End Property
 
     [Description("Returns the number of elements in the collection")]
-    Public Property Get Size() As Integer
+    Public Property Get Size() As Long
        Size = colWebElement.Count
     End Property
 

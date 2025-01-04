@@ -28,9 +28,7 @@ Sub test_full_suite()
     test_Capabilities.test_incognito
     test_Capabilities.test_initialize_caps_from_file
     
-    test_cookies.test_cookies
-    'test_cookies.test_cookies2 'test website needs replacement - too slow
-    test_cookies.test_cookies3
+    test_cookies.test_session_cookie
 
     test_ExecuteCDP.test_cdp_enhanced_file_download
     test_ExecuteCDP.test_cdp_enhanced_geolocation
@@ -123,7 +121,7 @@ Sub test_full_suite()
     test_Windows.test_windows_SwitchToByTitle
     test_Windows.test_windows_SwitchToByUrl
     
-    'these require local extention files to test
+    'these require local extension files to test
     test_Extensions.test_addExtensions
     test_Extensions.test_addExtensions2
     test_Extensions.test_InstallAddon

@@ -5,7 +5,7 @@
 Public Class WebElement
 
     ' ==========================================================================
-    ' SeleniumVBA v6.2
+    ' SeleniumVBA v6.3
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -275,7 +275,7 @@ Public Class WebElement
     End Sub
 
     [Description("Selects a dropdown option element with the specified index")]
-    Public Sub SelectByIndex(ByVal index As Integer)
+    Public Sub SelectByIndex(ByVal index As Long)
         driver_.SelectByIndex index, Me
     End Sub
 
@@ -310,7 +310,7 @@ Public Class WebElement
     End Sub
 
     [Description("Deselects a dropdown option element with the specified index")]
-    Public Sub DeSelectByIndex(ByVal index As Integer)
+    Public Sub DeSelectByIndex(ByVal index As Long)
         driver_.DeSelectByIndex index, Me
     End Sub
 
