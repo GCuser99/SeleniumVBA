@@ -2494,7 +2494,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "default_io_folder=" & readIniFileEntry(iniFilePath, "GENERAL", "default_io_folder", vbNullString, useDefaultValue)
     entryCol.Add "command_window_style=" & readIniFileEntry(iniFilePath, "GENERAL", "command_window_style", "vbHide", useDefaultValue)
     entryCol.Add " "
-    entryCol.Add "implicit_wait=" & readIniFileEntry(iniFilePath, "GENERAL", "implict_wait", sysImplicitWait, useDefaultValue)
+    entryCol.Add "implicit_wait=" & readIniFileEntry(iniFilePath, "GENERAL", "implicit_wait", sysImplicitWait, useDefaultValue)
     entryCol.Add "page_load_timeout=" & readIniFileEntry(iniFilePath, "GENERAL", "page_load_timeout", sysPageLoadTimeout, useDefaultValue)
     entryCol.Add "script_timeout=" & readIniFileEntry(iniFilePath, "GENERAL", "script_timeout", sysScriptTimeout, useDefaultValue)
     entryCol.Add " "
