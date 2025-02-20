@@ -5,7 +5,7 @@
 Public Class WebPrintSettings
 
     ' ==========================================================================
-    ' SeleniumVBA v6.3
+    ' SeleniumVBA v6.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -18,7 +18,7 @@ Public Class WebPrintSettings
     ' ==========================================================================
     ' MIT License
     '
-    ' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
     '
     ' Permission is hereby granted, free of charge, to any person obtaining a copy
     ' of this software and associated documentation files (the "Software"), to deal
@@ -210,7 +210,7 @@ Public Class WebPrintSettings
         'attempt to read global variable values from optional settings file - if not successful,
         'then assign a system default value (last input parameter of ReadIniFileEntry)
     
-        iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
+        iniFilePath = getFullLocalPath(thisLibFolderPath, , True) & "\SeleniumVBA.ini"
     
         mUnits = enumTextToValue(readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "units", svbaInches))
         mMarginBottom = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "margin_bottom", 1 / 2.54)

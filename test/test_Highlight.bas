@@ -5,14 +5,14 @@ Option Private Module
 
 Sub test_highlight()
     Dim driver As SeleniumVBA.WebDriver
-    Dim v() As Variant, htmlStr As String
+    Dim v() As Variant, html As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
     
-    htmlStr = "<html><body><table border='l' id='mytable'>" _
+    html = "<html><head><title>Test Highlight Elements</title></head><body><table border='l' id='mytable'>" _
     & "<thead><tr><th>head 1</th><th>head 2</th></tr></thead>" _
     & "<tbody><tr><td>1</td><td>2</td></tr>" _
     & "<tr><td>3</td><td><table border='l'><tbody>" _
@@ -20,9 +20,7 @@ Sub test_highlight()
     & "</table></td></tr></tbody>" _
     & "<tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
     
-    driver.SaveStringToFile htmlStr, ".\snippet.html"
-    
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.Wait
     
@@ -67,8 +65,6 @@ Sub test_highlight()
     driver.FindElement(By.XPath, "//table[@id='mytable']/tbody/tr[2]/td[1]").Highlight borderColor:=Black, backgroundColor:=Green
     driver.Wait
     
-    driver.DeleteFiles ".\snippet.html"
-    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -77,7 +73,7 @@ Sub test_highlight2()
     Dim driver As SeleniumVBA.WebDriver
     Dim elemsBlue As SeleniumVBA.WebElements
     Dim elemsRed As SeleniumVBA.WebElements
-    Dim htmlStr As String, i As Long
+    Dim html As String, i As Long
     
     Set driver = SeleniumVBA.New_WebDriver
     Set elemsBlue = SeleniumVBA.New_WebElements
@@ -86,7 +82,7 @@ Sub test_highlight2()
     driver.StartEdge
     driver.OpenBrowser
     
-    htmlStr = "<html><body><table border='1' id='mytable'>" _
+    html = "<html><head><title>Test Highlight Elements</title></head><body><table border='1' id='mytable'>" _
     & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
     & "<tr><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td></tr>" _
     & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
@@ -94,9 +90,7 @@ Sub test_highlight2()
     & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
     & "</table></body></html>"
     
-    driver.SaveStringToFile htmlStr, ".\snippet.html"
-    
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.ImplicitMaxWait = 1000
     
@@ -134,8 +128,6 @@ Sub test_highlight2()
     elemsRed.UnHighlight
     
     driver.Wait
-    
-    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown

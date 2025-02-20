@@ -5,12 +5,13 @@ function isScrollable(element){
         && (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' ||
         style.overflowY === 'scroll' || style.overflowX === 'auto' || style.overflowX === 'scroll');
 }
-
 // Recursively find an element's scroll container (scrollable parent)
 function getScrollContainer(element){
-    if (!element) return document.documentElement;
-    if (isScrollable(element)) {return element;}
-    else {return getScrollContainer(element.parentElement);}
+    if (!element) {return document.documentElement;}
+    if (isScrollable(element)) {
+        return element;
+    } else {
+        return getScrollContainer(element.parentElement);
+    }
 }
-
 return getScrollContainer(arguments[0]);

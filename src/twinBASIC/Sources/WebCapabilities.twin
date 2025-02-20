@@ -5,7 +5,7 @@
 Public Class WebCapabilities
 
     ' ==========================================================================
-    ' SeleniumVBA v6.3
+    ' SeleniumVBA v6.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -20,7 +20,7 @@ Public Class WebCapabilities
     ' ==========================================================================
     ' MIT License
     '
-    ' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
     ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
     '
     ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -181,7 +181,7 @@ Public Class WebCapabilities
             pathList = paramListToStringArray(varry)
             ReDim extList(1 To UBound(pathList))
             For i = 1 To UBound(pathList)
-                filePath = driver_.ResolvePath (pathList(i))
+                filePath = driver_.ResolvePath (pathList(i), True)
                 If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & filePath & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
                 extList(i) = encodeBase64(readByteArrayFromFile(filePath), , False)
             Next i
@@ -194,7 +194,7 @@ Public Class WebCapabilities
     [Description("Sets the path to the browser executable in a non-standard location")]
     Public Sub SetBrowserBinary(ByVal browserPath As String)
         'set the path to the browser executable to use
-        Me.SetOption "binary", driver_.ResolvePath(browserPath)
+        Me.SetOption "binary", driver_.ResolvePath(browserPath, True)
     End Sub
 
     [Description("Removes control notification for Edge/Chrome")]
@@ -331,7 +331,7 @@ Public Class WebCapabilities
         Dim userDir As String
         Dim profileName As String
     
-        profilePath = driver_.ResolvePath(profilePath)
+        profilePath = driver_.ResolvePath(profilePath, False)
     
         Select Case browser_
         Case svbaBrowser.Chrome, svbaBrowser.Edge
@@ -371,7 +371,7 @@ Public Class WebCapabilities
         'need to come up with a more generalized approach to paths - this is just a band-aid
         Select Case key
         Case "download.default_directory", "browser.download.dir", "savefile.default_directory"
-            val = driver_.ResolvePath(val)
+            val = driver_.ResolvePath(val, True)
         Case Else
         End Select
     
@@ -392,7 +392,7 @@ Public Class WebCapabilities
                                 Optional ByVal promptForDownload As Boolean = False, _
                                 Optional ByVal disablePDFViewer As Boolean = True)
                             
-        downloadFolderPath = driver_.ResolvePath(downloadFolderPath)
+        downloadFolderPath = driver_.ResolvePath(downloadFolderPath, True)
 
         Select Case browser_
         Case svbaBrowser.Chrome, svbaBrowser.Edge
@@ -453,7 +453,7 @@ Public Class WebCapabilities
     Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
         Dim fso As New FileSystemObject
         Dim ts As TextStream
-        filePath = driver_.ResolvePath(filePath)
+        filePath = driver_.ResolvePath(filePath, False)
         Set ts = fso.CreateTextFile(filePath, True, True)
         ts.Write Me.ToJson
         ts.Close
@@ -464,7 +464,7 @@ Public Class WebCapabilities
         Dim fso As New FileSystemObject
         Dim ts As TextStream
         
-        filePath = driver_.ResolvePath(filePath)
+        filePath = driver_.ResolvePath(filePath, True)
     
         If Not fso.FileExists(filePath) Then Err.Raise 53, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
         'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
@@ -526,7 +526,7 @@ Public Class WebCapabilities
         Dim i As Long
 
         'lists are represented as collections for caps initialized from LoadFromFile (via WebJsonConverter.ParseJson)
-        If IsObject(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
+        If data_.Item("alwaysMatch")(browserOptionKey).Exists(optionName) Then
             Set parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
         Else 'starting from scratch
             Set parameters = New Collection
@@ -542,7 +542,11 @@ Public Class WebCapabilities
             End If
         Next i
         'put the expanded list back
-        Set data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
+        If Not data_.Item("alwaysMatch")(browserOptionKey).Exists(optionName) Then
+            data_.Item("alwaysMatch")(browserOptionKey).add optionName, parameters
+        Else
+            Set data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
+        End If
     End Sub
 
     Private Function paramListToStringArray(parmList() As Variant) As String()

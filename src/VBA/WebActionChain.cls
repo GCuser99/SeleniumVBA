@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.3
+' SeleniumVBA v6.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -25,7 +25,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -1154,7 +1154,7 @@ Private Function actionPointerCancel() As Dictionary
     Set actionPointerCancel = action
 End Function
 
-Private Function actionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin As String = "viewport", Optional elementId As String) As Dictionary
+Private Function actionPointerMove(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal button As ButtonType = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal origin As String = "viewport", Optional ByVal elementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "pointerMove"
@@ -1186,7 +1186,7 @@ Private Function actionPointerMove(Optional ByVal x As Long = 0, Optional ByVal 
     Set actionPointerMove = action
 End Function
 
-Private Function actionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional elementId As String) As Dictionary
+Private Function actionScroll(Optional ByVal x As Long = 0, Optional ByVal y As Long = 0, Optional ByVal deltaX As Long = 0, Optional ByVal deltaY As Long = 0, Optional ByVal duration As Long = DEFAULT_PAUSE_DURATION, Optional ByVal elementId As String) As Dictionary
     Dim action As New Dictionary
     
     action.Add "type", "scroll"

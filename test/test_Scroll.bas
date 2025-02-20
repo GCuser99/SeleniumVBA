@@ -133,7 +133,6 @@ Sub test_long_scroll()
     Dim driver As SeleniumVBA.WebDriver
     Dim endElem As SeleniumVBA.WebElement
     Dim html As String
-    Dim filePath As String
     Dim i As Long
 
     Set driver = SeleniumVBA.New_WebDriver
@@ -143,15 +142,12 @@ Sub test_long_scroll()
 
     'create the test html doc - set the style attribute scroll-behavior to "smooth"
     'this will affect the default "auto" scroll behavior in the scroll methods tested below
-    html = "<!DOCTYPE html><html style='scroll-behavior:smooth;'><body>"
+    html = "<!DOCTYPE html><html style='scroll-behavior:smooth;'><head><title>Test Long Scroll</title></head><body>"
     For i = 1 To 10000: html = html & "<div><p>" & i & "</p></div>": Next i
     html = html & "<div id='end'><p>end</p></div>"
     html = html & "</body></html>"
 
-    filePath = ".\snippet.html"
-    driver.SaveStringToFile html, filePath
-
-    driver.NavigateToFile filePath
+    driver.NavigateToString html
     driver.ActiveWindow.Maximize
     driver.Wait 1000
 
@@ -177,8 +173,6 @@ Sub test_long_scroll()
     
     driver.Wait 1000
     
-    driver.DeleteFiles filePath
-    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -188,7 +182,6 @@ Sub test_element_scroll()
     Dim endElem As SeleniumVBA.WebElement
     Dim scrollContainer As SeleniumVBA.WebElement
     Dim html As String
-    Dim filePath As String
     Dim i As Long
 
     Set driver = SeleniumVBA.New_WebDriver
@@ -198,17 +191,14 @@ Sub test_element_scroll()
 
     'create the test html doc - set the style attribute scroll-behavior to "smooth"
     'this will affect the default "auto" scroll behavior in the scroll methods tested below
-    html = "<!DOCTYPE html><html><body>"
+    html = "<!DOCTYPE html><html><head><title>Test Element Scroll</title></head><body>"
     html = html & "<div id='scroll' style='overflow-y:scroll; height:400px;scroll-behavior:smooth;'>"
     For i = 1 To 1000: html = html & "<div id='" & i & "'><p>" & i & "</p></div>": Next i
     html = html & "<div id='end'><p>end</p></div>"
     html = html & "</div>"
     html = html & "</body></html>"
 
-    filePath = ".\snippet.html"
-    driver.SaveStringToFile html, filePath
-
-    driver.NavigateToFile filePath
+    driver.NavigateToString html
     driver.ActiveWindow.Maximize
     driver.Wait 1000
 
@@ -234,8 +224,6 @@ Sub test_element_scroll()
     scrollContainer.ScrollToBottom
     
     driver.Wait 1000
-    
-    driver.DeleteFiles filePath
     
     driver.CloseBrowser
     driver.Shutdown

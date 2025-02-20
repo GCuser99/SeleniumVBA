@@ -5,24 +5,21 @@ Option Private Module
 
 Sub test_IsPresent()
     Dim driver As SeleniumVBA.WebDriver
-    Dim htmlStr As String
+    Dim html As String
     Dim elem As SeleniumVBA.WebElement
     Dim elems As SeleniumVBA.WebElements
     
     Set driver = SeleniumVBA.New_WebDriver
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
 
     driver.StartChrome
     driver.OpenBrowser
     
-    htmlStr = "<html><body>"
-    htmlStr = htmlStr & "<div id='parent1'><div id='child1'><p>child1 from parent1</p></div><div id='child2'><p>child2 from parent1</p></div></div>"
-    htmlStr = htmlStr & "<div id='parent2'><div id='child1'><p>child1 from parent2</p></div><div id='child2'><p>child2 from parent2</p></div></div>"
-    htmlStr = htmlStr & "</body></html>"
+    html = "<html><head><title>Test Is Element Present</title></head><body>"
+    html = html & "<div id='parent1'><div id='child1'><p>child1 from parent1</p></div><div id='child2'><p>child2 from parent1</p></div></div>"
+    html = html & "<div id='parent2'><div id='child1'><p>child1 from parent2</p></div><div id='child2'><p>child2 from parent2</p></div></div>"
+    html = html & "</body></html>"
     
-    driver.SaveStringToFile htmlStr, ".\snippet.html"
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.Wait 500
     
@@ -47,55 +44,56 @@ Sub test_IsPresent()
         Debug.Assert elem.IsPresent(By.XPath, ".//div[@id = 'child3']") = False
     Next elem
     
-    driver.DeleteFiles ".\snippet.html"
-    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
 
 Sub test_IsPresent_wait()
     Dim driver As SeleniumVBA.WebDriver
-    Dim html1 As String
-    Dim html2 As String
+    Dim html As String
     Dim timeDelay As Long
     
     Set driver = SeleniumVBA.New_WebDriver
     
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
     driver.StartChrome
     driver.OpenBrowser
     
-    'create an html that waits to load a second html with a div element of interest
     timeDelay = 3000
 
-    html1 = "<!DOCTYPE html>" & _
-    "<html>" & _
-    "<script>" & _
-    "function loading(){" & _
-    "      setTimeout(""location.replace('snippet2.html')""," & timeDelay & ");" & _
-    "}" & _
-    "</script>" & _
-    "<body onLoad=""loading();"">" & _
-    "<div>waiting for load...</div>" & _
-    "</body>" & _
-    "</html>"
+    'create an html that creates a new element after a specified time delay
+    html = vbNullString
+    html = html & "<!DOCTYPE html>" & vbCrLf
+    html = html & "<html>" & vbCrLf
+    html = html & "    <head>" & vbCrLf
+    html = html & "        <title>Is Present?</title>" & vbCrLf
+    html = html & "        <script>" & vbCrLf
+    html = html & "            function insertDivWithDelay(delay, parentElementId) {" & vbCrLf
+    html = html & "                setTimeout(function() {" & vbCrLf
+    html = html & "                    const newDiv = document.createElement(""div"");" & vbCrLf
+    html = html & "                    newDiv.id = 'new div';" & vbCrLf
+    html = html & "                    newDiv.textContent = ""This div appeared after "" + delay / 1000 + "" seconds."";" & vbCrLf
+    html = html & "                    newDiv.style.color = ""blue"";" & vbCrLf
+    html = html & "                    const parentElement = document.getElementById(parentElementId);" & vbCrLf
+    html = html & "                    if (parentElement) {" & vbCrLf
+    html = html & "                        parentElement.append(newDiv);" & vbCrLf
+    html = html & "                    } else {" & vbCrLf
+    html = html & "                    }" & vbCrLf
+    html = html & "                }, delay);" & vbCrLf
+    html = html & "            }" & vbCrLf
+    html = html & "        </script>" & vbCrLf
+    html = html & "    </head>" & vbCrLf
+    html = html & "    <body onLoad=""insertDivWithDelay(" & timeDelay & ", 'parent');"">" & vbCrLf
+    html = html & "        <div id=""parent"">waiting for load...</div>" & vbCrLf
+    html = html & "    </body>" & vbCrLf
+    html = html & "</html>"
 
-    'create the second html to be loaded
-    html2 = "<!DOCTYPE html><html><body><div id='testDiv'>I'm here now after " & timeDelay & " ms!</div></body></html>"
-    
-    driver.SaveStringToFile html1, ".\snippet1.html"
-    driver.SaveStringToFile html2, ".\snippet2.html"
+    driver.NavigateToString html
 
-    driver.NavigateToFile ".\snippet1.html"
-
-    'wait up to 20 secs for the div from the second html gets loaded
-    Debug.Assert driver.IsPresent(By.ID, "testDiv", 20000)
+    'wait up to 20 secs for the new div is created
+    Debug.Assert driver.IsPresent(By.ID, "new div", 20000)
     
     driver.Wait 1000
-    
-    driver.DeleteFiles ".\snippet1.html", ".\snippet2.html"
-        
+
     driver.CloseBrowser
     driver.Shutdown
 End Sub

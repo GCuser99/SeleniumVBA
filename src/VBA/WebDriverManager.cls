@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.3
+' SeleniumVBA v6.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -25,7 +25,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -133,14 +133,14 @@ Private Sub Class_Initialize()
     
     'attempt to read global variable values from optional settings file - if not successful,
     'then assign a system default value (last input parameter of ReadIniFileEntry)
-    iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
+    iniFilePath = getFullLocalPath(thisLibFolderPath, , True) & "\SeleniumVBA.ini"
     Me.DefaultDriverFolder = readIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
 End Sub
 
 '@Description("Sets the default driver folder path")
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
 Attribute DefaultDriverFolder.VB_Description = "Sets the default driver folder path"
-    mDefaultDriverFolder = WebShared.getFullLocalPath(folderPath)
+    mDefaultDriverFolder = WebShared.getFullLocalPath(folderPath, , True)
 End Property
 
 Public Property Get DefaultDriverFolder() As String
@@ -276,7 +276,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
         End Select
     End If
 
-    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
+    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
     
     Set fso = New FileSystemObject
     If Not fso.FileExists(driverPath) Then
@@ -571,7 +571,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
     
     platformString = getPlatformString(platform)
     
-    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
+    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
     
     driverFolder = fso.GetParentFolderName(driverPath)
     driverFileName = fso.GetFileName(driverPath)
@@ -685,7 +685,7 @@ Private Sub deleteDriver(ByVal driverPath As String)
     Dim fso As New FileSystemObject
     Dim driverFileName As String
     'check if driver exists and if it does, make sure it isn't in use before deleting
-    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder)
+    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
     driverFileName = fso.GetFileName(driverPath)
     If fso.FileExists(driverPath) Then
         If isProcessRunning(driverFileName) Then taskKillByImage (driverFileName)

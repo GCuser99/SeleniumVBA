@@ -36,8 +36,6 @@ Sub test_WaitUntilDisplayed()
     
     Set driver = SeleniumVBA.New_WebDriver
     
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
     driver.StartChrome
     driver.OpenBrowser
     
@@ -47,6 +45,7 @@ Sub test_WaitUntilDisplayed()
     
     html = "<!DOCTYPE html>" & _
     "<html>" & _
+    "<head><title>Test Wait Until Displayed</title></head>" & _
     "<body>" & _
     "<div id='testDiv'>I'm ready now after " & timeDelay & " ms!</div>" & _
     "<script>" & _
@@ -58,10 +57,8 @@ Sub test_WaitUntilDisplayed()
     "</script>" & _
     "</body>" & _
     "</html>"
-    
-    driver.SaveStringToFile html, ".\snippet.html"
 
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     'find the "not displayed" element
     Set elem = driver.FindElement(By.ID, "testDiv")
@@ -75,8 +72,6 @@ Sub test_WaitUntilDisplayed()
     
     driver.Wait 500
     
-    driver.DeleteFiles ".\snippet.html"
-    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -89,8 +84,6 @@ Sub test_WaitUntilNotDisplayed()
     
     Set driver = SeleniumVBA.New_WebDriver
     
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
     driver.StartChrome
     driver.OpenBrowser
     
@@ -100,6 +93,7 @@ Sub test_WaitUntilNotDisplayed()
     
     html = "<!DOCTYPE html>" & _
     "<html>" & _
+    "<head><title>Test Wait Until Not Displayed</title></head>" & _
     "<body>" & _
     "<div id='testDiv'>I'm displayed for " & timeDelay & " ms...</div>" & _
     "<script>" & _
@@ -111,10 +105,8 @@ Sub test_WaitUntilNotDisplayed()
     "</script>" & _
     "</body>" & _
     "</html>"
-    
-    driver.SaveStringToFile html, ".\snippet.html"
 
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     'find the "not displayed" element
     Set elem = driver.FindElement(By.ID, "testDiv")
@@ -131,55 +123,50 @@ Sub test_WaitUntilNotDisplayed()
     
     driver.Wait 500
     
-    driver.DeleteFiles ".\snippet.html"
-    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
 
 Sub test_WaitUntilNotPresent()
     Dim driver As SeleniumVBA.WebDriver
-    Dim html1 As String
-    Dim html2 As String
+    Dim html As String
     Dim timeDelay As Long
     
     Set driver = SeleniumVBA.New_WebDriver
-    
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
     
     driver.StartChrome
     driver.OpenBrowser
     
     timeDelay = 3000
     
-    'create an html with an element of interest that waits to load a second html
+    'create an html with an element of interest that is removed after a delay
+    html = vbNullString
+    html = html & "<!DOCTYPE html>" & vbCrLf
+    html = html & "<html>" & vbCrLf
+    html = html & "    <head>" & vbCrLf
+    html = html & "        <title>Is Not Present?</title>" & vbCrLf
+    html = html & "        <script>" & vbCrLf
+    html = html & "            function removeElementWithDelay(delay, elementId) {" & vbCrLf
+    html = html & "                setTimeout(function() {" & vbCrLf
+    html = html & "                const elementToRemove = document.getElementById(elementId);" & vbCrLf
+    html = html & "                if (elementToRemove) {" & vbCrLf
+    html = html & "                    elementToRemove.remove();" & vbCrLf
+    html = html & "                }" & vbCrLf
+    html = html & "                }, delay);" & vbCrLf
+    html = html & "            }" & vbCrLf
+    html = html & "        </script>" & vbCrLf
+    html = html & "    </head>" & vbCrLf
+    html = html & "    <body onLoad=""removeElementWithDelay(" & timeDelay & ", 'div here');"">" & vbCrLf
+    html = html & "        <div id=""div here"">I'm here...</div>" & vbCrLf
+    html = html & "    </body>" & vbCrLf
+    html = html & "</html>"
 
-    html1 = "<!DOCTYPE html>" & _
-    "<html>" & _
-    "<script>" & _
-    "function calling(){" & _
-    "      setTimeout(""location.replace('snippet2.html')""," & timeDelay & ");" & _
-    "}" & _
-    "</script>" & _
-    "<body onLoad=""calling();"">" & _
-    "<div id='testDiv'>I'm present!</div>" & _
-    "</body>" & _
-    "</html>"
-
-    'create the second html to be loaded by first
-    html2 = "<!DOCTYPE html><html><body><div>I'm gone after " & timeDelay & " ms!</div></body></html>"
+    driver.NavigateToString html
     
-    driver.SaveStringToFile html1, ".\snippet1.html"
-    driver.SaveStringToFile html2, ".\snippet2.html"
-
-    driver.NavigateToFile ".\snippet1.html"
-    
-    'wait until the second html is loaded
-    driver.WaitUntilNotPresent By.ID, "testDiv"
+    'wait until the div is removed
+    driver.WaitUntilNotPresent By.ID, "div here"
 
     driver.Wait 500
-    
-    driver.DeleteFiles ".\snippet1.html", ".\snippet2.html"
         
     driver.CloseBrowser
     driver.Shutdown

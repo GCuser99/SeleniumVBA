@@ -43,7 +43,6 @@ End Sub
 Sub test_radio()
     Dim driver As SeleniumVBA.WebDriver
     Dim html As String
-    Dim filePath As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -51,7 +50,7 @@ Sub test_radio()
     driver.OpenBrowser
     
     'create a radio button sample
-    html = "<!DOCTYPE html><html><body>"
+    html = "<!DOCTYPE html><html><head><title>Test Radio Button</title></head><body>"
     html = html & "<h1>Display Radio Buttons</h1>"
     html = html & "<form action='/action_page.php'>"
     html = html & "  <p>Please select your favorite Web language:</p>"
@@ -64,10 +63,7 @@ Sub test_radio()
     html = html & "</form>"
     html = html & "</body></html>"
     
-    filePath = ".\radio.html"
-    driver.SaveStringToFile html, filePath
-
-    driver.NavigateToFile filePath
+    driver.NavigateToString html
     driver.ActiveWindow.Maximize
     
     driver.Wait 1000
@@ -77,8 +73,6 @@ Sub test_radio()
     Debug.Assert driver.FindElement(By.ID, "css").IsSelected
     
     driver.Wait 1000
-    
-    driver.DeleteFiles ".\radio.html"
     
     driver.CloseBrowser
     driver.Shutdown

@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v6.3
+    ' SeleniumVBA v6.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -14,7 +14,7 @@ Private Module Utils
     ' ==========================================================================
     ' MIT License
     '
-    ' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
     '
     ' Permission is hereby granted, free of charge, to any person obtaining a copy
     ' of this software and associated documentation files (the "Software"), to deal
@@ -505,6 +505,18 @@ Private Module Utils
             End If
         Next i
         
+        tmp = VBA.Replace$(getScript("HTMLToData.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
+        s = s & "Case ""HTMLToData.js""" & vbCrLf
+        s = s & vbTab & "script = vbNullString" & vbCrLf
+        For i = LBound(v) To UBound(v)
+            If v(i) = vbNullString Then
+                s = s & vbTab & "script = script & vbCrLf" & vbCrLf
+            Else
+                s = s & vbTab & "script = script & """ & v(i) & """ & vbCrLf" & vbCrLf
+            End If
+        Next i
+        
         s = s & "End Select" & vbCrLf
         s = s & "getScript = script" & vbCrLf
         s = s & "End Function"
@@ -512,6 +524,7 @@ Private Module Utils
         Dim fso As New FileSystemObject, ts As TextStream
         Set ts = fso.CreateTextFile(Environ("USERPROFILE") & "\Documents\SeleniumVBA\twinBasic\scripts.txt", True)
         ts.Write s
+        ts.Close
     End Sub
     
 End Module

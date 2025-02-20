@@ -5,17 +5,16 @@ Option Private Module
 
 Sub test_table()
     Dim driver As SeleniumVBA.WebDriver
-    Dim htmlStr As String
+    Dim html As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartChrome
     driver.OpenBrowser
 
-    htmlStr = "<html><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>3</td><td><table border='l'><tbody><tr><td>4A</td><td>4B</td></tr><tr><td>4C</td><td>4D</td></tr></tbody></table></td></tr></tbody><tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
-    driver.SaveStringToFile htmlStr, ".\snippet.html"
+    html = "<html><head><title>Test Table To Array</title></head><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>3</td><td><table border='l'><tbody><tr><td>4A</td><td>4B</td></tr><tr><td>4C</td><td>4D</td></tr></tbody></table></td></tr></tbody><tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
     
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.Wait 1000
     
@@ -33,8 +32,6 @@ Sub test_table()
     
     Debug.Assert driver.FindElement(By.XPath, "//table[@id='mytable']/tfoot/tr[1]/td[1]").GetText = "footer content"
     
-    driver.DeleteFiles ".\snippet.html"
-    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -42,17 +39,16 @@ End Sub
 Sub test_table_to_array()
     Dim driver As SeleniumVBA.WebDriver
     Dim table() As Variant
-    Dim htmlStr As String
+    Dim html As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
     
-    htmlStr = "<html><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th><th>head 3</th></tr></thead><tbody><tr><td>Dos Equis:</td><td colspan='2'>X</td></tr><tr><td>Choose</td><td>Option</td><td><table border='l'><tbody><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></tbody></table></td></tr><tr><td>Sky</td><td rowspan='3'>Is</td><td>Blue</td></tr><tr><td>Less</td><td>More</td></tr><tr><td>Big</td><td rowspan='2'>Better</td></tr><tr><td>I</td><td>Feel</td></tr></tbody><tfoot><tr><td colspan='3'>footer content</td></tr></tfoot></table></body></html>"
+    html = "<html><head><title>Test Table To Array</title></head><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th><th>head 3</th></tr></thead><tbody><tr><td>Dos Equis:</td><td colspan='2'>X</td></tr><tr><td>Choose</td><td>Option</td><td><table border='l'><tbody><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></tbody></table></td></tr><tr><td>Sky</td><td rowspan='3'>Is</td><td>Blue</td></tr><tr><td>Less</td><td>More</td></tr><tr><td>Big</td><td rowspan='2'>Better</td></tr><tr><td>I</td><td>Feel</td></tr></tbody><tfoot><tr><td colspan='3'>footer content</td></tr></tfoot></table></body></html>"
     
-    driver.SaveStringToFile htmlStr, ".\snippet.html"
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.Wait 1000
     
@@ -119,17 +115,16 @@ Sub test_table_to_array_formatting()
     Dim driver As SeleniumVBA.WebDriver
     Dim elem As SeleniumVBA.WebElement
     Dim table() As Variant
-    Dim htmlStr As String
+    Dim html As String
     
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
     
-    htmlStr = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
+    html = "<html><head><title>Test Table To Array Formatting</title></head><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
     
-    driver.SaveStringToFile htmlStr, ".\snippet.html"
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.Wait 1500
     
@@ -144,8 +139,6 @@ Sub test_table_to_array_formatting()
     
     Debug.Assert table(1, 1) = "12/14/202412/15/2024"
     Debug.Assert table(1, 2) = "Hi, this is Mike"
-
-    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown

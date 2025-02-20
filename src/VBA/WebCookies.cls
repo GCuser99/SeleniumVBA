@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.3
+' SeleniumVBA v6.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -25,7 +25,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,7 @@ Attribute SaveToFile.VB_Description = "Saves the cookie collection to a file pat
     
     If Me.Count = 0 Then Err.Raise 1, , "Error in WebCookies: SaveToFile method failed because there are no cookies to save."
     
-    filePath = driver_.ResolvePath(filePath)
+    filePath = driver_.ResolvePath(filePath, False)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ReDim darray(1 To Me.Count)
     For i = 1 To Me.Count
@@ -127,7 +127,7 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
     
     Me.RemoveAll
     
-    filePath = driver_.ResolvePath(filePath)
+    filePath = driver_.ResolvePath(filePath, True)
     
     If Not fso.FileExists(filePath) Then Err.Raise 1, , "Error in WebCookies: LoadToFile method failed because the specified file does not exist."
     

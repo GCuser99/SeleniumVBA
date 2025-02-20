@@ -133,17 +133,16 @@ Private Module Tests
         Dim driver As SeleniumVBA.WebDriver
         Dim elem As SeleniumVBA.WebElement
         Dim table() As Variant
-        Dim htmlStr As String
+        Dim html As String
     
         Set driver = SeleniumVBA.New_WebDriver
 
         driver.StartEdge
         driver.OpenBrowser
     
-        htmlStr = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
-    
-        driver.SaveStringToFile htmlStr, ".\snippet.html"
-        driver.NavigateToFile ".\snippet.html"
+        html = "<html><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
+        
+        driver.NavigateToString html
     
         driver.Wait 1500
     
@@ -159,8 +158,6 @@ Private Module Tests
         Debug.Assert table(1, 1) = "12/14/202412/15/2024"
         Debug.Assert table(1, 2) = "Hi, this is Mike"
 
-        driver.DeleteFiles ".\snippet.html"
-    
         driver.CloseBrowser
         driver.Shutdown
     End Sub
@@ -343,7 +340,6 @@ Private Module Tests
         Dim driver As SeleniumVBA.WebDriver
         Dim endElem As SeleniumVBA.WebElement
         Dim html As String
-        Dim filePath As String
         Dim i As Long
 
         Set driver = SeleniumVBA.New_WebDriver
@@ -358,10 +354,7 @@ Private Module Tests
         html = html & "<div id='end'><p>end</p></div>"
         html = html & "</body></html>"
 
-        filePath = ".\snippet.html"
-        driver.SaveStringToFile html, filePath
-
-        driver.NavigateToFile filePath
+        driver.NavigateToString(html)
         driver.ActiveWindow.Maximize
         driver.Wait 1000
 
@@ -396,7 +389,6 @@ Private Module Tests
         Dim endElem As SeleniumVBA.WebElement
         Dim scrollContainer As SeleniumVBA.WebElement
         Dim html As String
-        Dim filePath As String
         Dim i As Long
 
         Set driver = SeleniumVBA.New_WebDriver
@@ -413,10 +405,7 @@ Private Module Tests
         html = html & "</div>"
         html = html & "</body></html>"
 
-        filePath = ".\snippet.html"
-        driver.SaveStringToFile html, filePath
-
-        driver.NavigateToFile filePath
+        driver.NavigateToString(html)
         driver.ActiveWindow.Maximize
         driver.Wait 1000
 
@@ -548,22 +537,6 @@ Private Module Tests
         driver.Shutdown
     End Sub
     
-    Sub TestDecimalSeparator()
-        Dim num As Double
-        num = 1000.1
-        Debug.Print "My decimal separator is: " & DecimalSep()
-        If DecimalSep <> "." Then
-            Debug.Print "My number converted to String: " & VBA.Replace$(num, DecimalSep, ".")
-        Else
-            Debug.Print "My number converted to String: " & CStr(num)
-        End If
-    End Sub
-
-    Private Function DecimalSep() As String
-        'this works
-        DecimalSep = Format$(0, ".")
-    End Function
-    
     Sub test_url_encoding()
         Dim driver As WebDriver
         Dim urlEncoded As String
@@ -663,32 +636,6 @@ Private Module Tests
             Debug.Print elem.GetText
         End If
   
-        driver.CloseBrowser
-        driver.Shutdown
-    End Sub
-    
-    Sub test_error()
-        Dim driver As WebDriver
-        Dim keys As WebKeyboard
-        Dim keySeq As String
-    
-        Set driver = New WebDriver
-        Set keys = New WebKeyboard
-
-        driver.StartEdge
-    
-        driver.OpenBrowser
-    
-        driver.ImplicitMaxWait = 2000
-    
-        driver.NavigateTo "https://www.wikipedia.org/"
-    
-        keySeq = "Leonardo da VinJci" & keys.Repeat(keys.LeftKey, 3) & keys.DeleteKey & keys.ReturnKey
-        'On Error Resume Next
-        driver.FindElement(By.ID, "searchInput1").SendKeys keySeq
-
-        driver.Wait 1500
-        Debug.Print "got here"
         driver.CloseBrowser
         driver.Shutdown
     End Sub
@@ -1086,52 +1033,7 @@ Private Module Tests
         driver.CloseBrowser
         driver.Shutdown
     End Sub
-    
-    Sub test_WaitUntilNotPresent()
-        Dim driver As WebDriver
-        Dim html1 As String
-        Dim html2 As String
-        Dim timeDelay As Long
-    
-        Set driver = New WebDriver
-    
-        'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-    
-        driver.StartChrome
-        driver.OpenBrowser
-    
-        timeDelay = 5000
-    
-        'create an html with an element of interest that waits to load a second html
 
-        html1 = "<!DOCTYPE html>" & _
-        "<html>" & _
-        "<script>" & _
-        "function calling(){" & _
-        "      setTimeout(""location.replace('snippet2.html')""," & timeDelay & ");" & _
-        "}" & _
-        "</script>" & _
-        "<body onLoad=""calling();"">" & _
-        "<div id='testDiv'>I'm present!</div>" & _
-        "</body>" & _
-        "</html>"
-
-        'create the second html to be loaded by first
-        html2 = "<!DOCTYPE html><html><body><div>I'm gone after " & timeDelay & " ms!</div></body></html>"
-    
-        driver.SaveStringToFile html1, ".\snippet1.html"
-        driver.SaveStringToFile html2, ".\snippet2.html"
-
-        driver.NavigateToFile ".\snippet1.html"
-        
-        'wait until the second html is loaded
-        driver.WaitUntilNotPresent By.ID, "testDiv"
-    
-        driver.Wait 500
-        
-        driver.CloseBrowser
-        driver.Shutdown
-    End Sub
     
     Sub test_PageToXMLMethods()
         Dim driver As WebDriver
@@ -1163,7 +1065,7 @@ Private Module Tests
         driver.CloseBrowser
         driver.Shutdown
     End Sub
-
+    
     Sub test_PageToJSONMethods()
         Dim driver As WebDriver
         Dim json As Collection, Url As String
@@ -1217,6 +1119,101 @@ Private Module Tests
     
         Debug.Assert shadowContent.GetProperty("checked")
     
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_IsPresent_wait()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim html As String
+        Dim timeDelay As Long
+    
+        Set driver = SeleniumVBA.New_WebDriver
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        timeDelay = 3000
+
+        'create an html that creates a new element after a specified time delay
+        html = vbNullString
+        html = html & "<!DOCTYPE html>" & vbCrLf
+        html = html & "<html>" & vbCrLf
+        html = html & "    <head>" & vbCrLf
+        html = html & "        <title>Is Present?</title>" & vbCrLf
+        html = html & "        <script>" & vbCrLf
+        html = html & "            function insertDivWithDelay(delay, parentElementId) {" & vbCrLf
+        html = html & "                setTimeout(function() {" & vbCrLf
+        html = html & "                    const newDiv = document.createElement(""div"");" & vbCrLf
+        html = html & "                    newDiv.id = 'new div';" & vbCrLf
+        html = html & "                    newDiv.textContent = ""This div appeared after "" + delay / 1000 + "" seconds."";" & vbCrLf
+        html = html & "                    newDiv.style.color = ""blue"";" & vbCrLf
+        html = html & "                    const parentElement = document.getElementById(parentElementId);" & vbCrLf
+        html = html & "                    if (parentElement) {" & vbCrLf
+        html = html & "                        parentElement.append(newDiv);" & vbCrLf
+        html = html & "                    } else {" & vbCrLf
+        html = html & "                    }" & vbCrLf
+        html = html & "                }, delay);" & vbCrLf
+        html = html & "            }" & vbCrLf
+        html = html & "        </script>" & vbCrLf
+        html = html & "    </head>" & vbCrLf
+        html = html & "    <body onLoad=""insertDivWithDelay(" & timeDelay & ", 'parent');"">" & vbCrLf
+        html = html & "        <div id=""parent"">waiting for load...</div>" & vbCrLf
+        html = html & "    </body>" & vbCrLf
+        html = html & "</html>"
+
+        driver.NavigateToString html
+
+        'wait up to 20 secs for the new div is created
+        Debug.Assert driver.IsPresent(By.ID, "new div", 20000)
+    
+        driver.Wait 1000
+
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_WaitUntilNotPresent()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim html As String
+        Dim timeDelay As Long
+    
+        Set driver = SeleniumVBA.New_WebDriver
+    
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        timeDelay = 3000
+    
+        'create an html with an element of interest that is removed after a delay
+        html = vbNullString
+        html = html & "<!DOCTYPE html>" & vbCrLf
+        html = html & "<html>" & vbCrLf
+        html = html & "    <head>" & vbCrLf
+        html = html & "        <title>Is Not Present?</title>" & vbCrLf
+        html = html & "        <script>" & vbCrLf
+        html = html & "            function removeElementWithDelay(delay, elementId) {" & vbCrLf
+        html = html & "                setTimeout(function() {" & vbCrLf
+        html = html & "                const elementToRemove = document.getElementById(elementId);" & vbCrLf
+        html = html & "                if (elementToRemove) {" & vbCrLf
+        html = html & "                    elementToRemove.remove();" & vbCrLf
+        html = html & "                }" & vbCrLf
+        html = html & "                }, delay);" & vbCrLf
+        html = html & "            }" & vbCrLf
+        html = html & "        </script>" & vbCrLf
+        html = html & "    </head>" & vbCrLf
+        html = html & "    <body onLoad=""removeElementWithDelay(" & timeDelay & ", 'div here');"">" & vbCrLf
+        html = html & "        <div id=""div here"">I'm here...</div>" & vbCrLf
+        html = html & "    </body>" & vbCrLf
+        html = html & "</html>"
+
+        driver.NavigateToString html
+    
+        'wait until the div is removed
+        driver.WaitUntilNotPresent By.ID, "div here"
+
+        driver.Wait 500
+        
         driver.CloseBrowser
         driver.Shutdown
     End Sub

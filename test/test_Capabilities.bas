@@ -312,28 +312,67 @@ Sub test_kiosk_printing()
 End Sub
 
 Sub test_remoteDebugger()
-    'this allows one to connect to an existing Edge\Chrome browser instance
+    'This test demonstrates how to connect to an existing Edge\Chrome browser instance and automate tasks.
+    'An example usage case - you need to manually login to a website first and then run some automation tasks.
+    'Below creates a shortcut on the user's Desktop to the browser's executable on port 9222 using the default profile.
+    'Then we open the browser before starting the WebDriver - in a typical use case all of above would be performed manually.
+    'Then we start WebDriver, setting the debugger address to port 9222 and perform automated tasks using SeleniumVBA.
+    
+    'To manually create a shortcut on Desktop type this into a new shortcut location:
+    '"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --remote-debugging-port=9222 --profile-directory=Default
+    '"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --profile-directory=Default
+    
     Dim driver As SeleniumVBA.WebDriver
     Dim keys As SeleniumVBA.WebKeyboard
     Dim caps As SeleniumVBA.WebCapabilities
     Dim wshell As Object
+    Dim browser As String
     Dim keySeq As String
     
     Set keys = SeleniumVBA.New_WebKeyboard
     Set driver = SeleniumVBA.New_WebDriver
     
-    'must start the browser on the debugging port
     Set wshell = CreateObject("WScript.Shell")
     
-    'first must kill edge\chrome processes
-    wshell.Run "taskkill /f /t /im chrome.exe", 0, True
-    'wshell.Run "taskkill /f /t /im msedge.exe", 0, True
+    browser = "chrome" '"chrome" or "msedge"
     
-    wshell.Run "chrome.exe --remote-debugging-port=9222"
-    'wshell.Run "msedge.exe --remote-debugging-port=9222"
-
-    driver.StartChrome
-    'driver.StartEdge
+    '--------------------------------------------------------------------------------------------
+    'In typical use case this section would be performed manually
+    'If you manually created the Desktop shortcut shown earlier, and opened your browser via the shortcut
+    'then this code block is redundant. It is here for testing only.
+    Select Case browser
+    Case "chrome"
+        'first must kill existing chrome processes
+        wshell.Run "taskkill /f /t /im chrome.exe", 0, True
+        'create a shortcut on the Desktop
+        With wshell.CreateShortcut(wshell.SpecialFolders("Desktop") & "\Chrome_test.lnk")
+            .targetPath = Environ("ProgramFiles") & "\Google\Chrome\Application\chrome.exe"
+            .WorkingDirectory = .targetPath
+            .Arguments = "--remote-debugging-port=9222 --profile-directory=Default"
+            .Save
+        End With
+        'open the shortcut made above
+        wshell.Run wshell.SpecialFolders("Desktop") & "\" & "Chrome_test.lnk"
+    Case "msedge"
+        'first must kill existing edge processes
+        wshell.Run "taskkill /f /t /im msedge.exe", 0, True
+        'create a shortcut on the Desktop
+        With wshell.CreateShortcut(wshell.SpecialFolders("Desktop") & "\Edge_test.lnk")
+            .targetPath = Environ("programfiles(x86)") & "\Microsoft\Edge\Application\msedge.exe"
+            .WorkingDirectory = .targetPath
+            .Arguments = "--remote-debugging-port=9222 --profile-directory=Default"
+            .Save
+        End With
+        'open the shortcut made above
+        wshell.Run wshell.SpecialFolders("Desktop") & "\" & "Edge_test.lnk"
+    End Select
+    '--------------------------------------------------------------------------------------------
+    
+    'now we start automating the existing browser instance
+    Select Case browser
+    Case "chrome": driver.StartChrome
+    Case "msedge": driver.StartEdge
+    End Select
     
     Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     

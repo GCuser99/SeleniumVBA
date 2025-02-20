@@ -7,17 +7,15 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 - Edge, Chrome, and Firefox browser automation support
 - MS Excel Add-in, MS Access DB, and [twinBASIC](https://twinbasic.com/preview.html) ActiveX DLL solutions available
 - A superset of Selenium's [W3C WebDriver](https://w3c.github.io/webdriver/) commands - [over 400 public methods and properties](https://github.com/GCuser99/SeleniumVBA/wiki/Object-Model-Overview)
-- Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, CDP, and Capabilities
+- Support for HTML DOM, Action Chains, SendKeys, Shadow Roots, Cookies, ExecuteScript, and Capabilities
+- ExecuteCDP method exposing [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) - a low-level interface for browser interaction.
 - Automated Browser/WebDriver version alignment - works out-of-the-box with no manual downloads necessary!
 - Help documentation is available in the [SeleniumVBA Wiki](https://github.com/GCuser99/SeleniumVBA/wiki)
 
 **What's New?**
 
-- Improved windows management with WebWindow and WebWindows classes
-- Improved JavaScript Alert management with WebAlert class and SwitchToAlert method of WebDriver class
-- Advanced keys support including Chord and Repeat methods of the WebKeyboard class
-- Improved SendKeys and new SendKeysToOS methods - the later for sending key inputs to non-browser windows
-- ExecuteCDP method exposing [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) - a low-level interface for browser interaction.
+- Improved performance/reliability by executing expensive/complex code using server-side JavaScript
+- NavigateToString allowing direct navigation to HTML strings to help facilitate testing and issue debugging
 
 ## Setup
 

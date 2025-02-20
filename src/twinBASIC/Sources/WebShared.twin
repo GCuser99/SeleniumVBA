@@ -1,7 +1,7 @@
 Private Module WebShared
 
     ' ==========================================================================
-    ' SeleniumVBA v6.3
+    ' SeleniumVBA v6.4
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -14,7 +14,7 @@ Private Module WebShared
     ' ==========================================================================
     ' MIT License
     '
-    ' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
     '
     ' Permission is hereby granted, free of charge, to any person obtaining a copy
     ' of this software and associated documentation files (the "Software"), to deal
@@ -65,99 +65,101 @@ Private Module WebShared
     End Enum
     '*/
 
-    Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString) As String
+    Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString, Optional ByVal targetExists As Boolean = True) As String
         'Returns an absolute path from a relative path and a fully qualified base path.
         'basePath defaults to the folder path of the document that holds the Active VBA Project
         'fso.GetAbsolutePathName interprets a url as a relative path, so must avoid for url's
 
-        Dim fso As New Scripting.FileSystemObject, savePath As String
+        Dim fso As New FileSystemObject
+        Dim savePath As String
+        Dim parentFolder As String
+        Dim pathSep As String
 
         'make sure no rogue beginning or ending spaces and expand "%[Environ Variable]%" if in the path
         inputPath = expandEnvironVariable(VBA.Trim$(inputPath))
 
-        If Not isPathRelative(inputPath) Then 'its an absolute path
-            'just in case OneDrive/SharePoint user has specified a path built with ThisWorkbook.Path...
-            If isPathHTTPS(inputPath) Then inputPath = getLocalOneDrivePath(inputPath)
-        
-            'normalize the path if its not a url - this insures that path separators are correct, and
-            'if a folder, has no ending separator
-            If Not isPathUrl(inputPath) Then inputPath = fso.GetAbsolutePathName(inputPath)
-        
-            getFullLocalPath = inputPath
-        Else 'ok then convert relative path to absolute
-            'make sure no unintended beginning or ending spaces
-            basePath = expandEnvironVariable(VBA.Trim$(basePath))
-        
+        If isPathRelative(inputPath) Then
+            'convert relative path to absolute
             If basePath = vbNullString Then
                 basePath = activeVBAProjectFolderPath
             Else
+                'make sure no unintended beginning or ending spaces
+                basePath = expandEnvironVariable(VBA.Trim$(basePath))
                 'it's possible that user specified a relative reference folder path - convert it to absolute relative to
                 'the folder path of the document that holds the Active VBA Project
-                If isPathRelative(basePath) Then basePath = getFullLocalPath(basePath, activeVBAProjectFolderPath)
+                If isPathRelative(basePath) Then basePath = getFullLocalPath(basePath, activeVBAProjectFolderPath, True)
             End If
 
             'convert OneDrive path if needed
-            If isPathHTTPS(basePath) Then basePath = getLocalOneDrivePath(basePath)
-        
+            If isPathHTTPS(basePath) Then
+                basePath = getLocalOneDrivePath(basePath) 'assumes basePath exists
+            End If
+            
             'check that reference path exists and notify user if not
             If Not fso.FolderExists(basePath) Then
                 If Not isPathHTTPS(basePath) Then 'its a url which fso doesn't support - must trust that it exists (@6DiegoDiego9)
                     Err.Raise 1, "WebShared", "Reference folder basePath does not exist." & vbNewLine & vbNewLine & basePath & vbNewLine & vbNewLine & "Please specify a valid folder path."
                 End If
             End If
-        
+            
             'employ fso to make the conversion of relative path to absolute
             savePath = CurDir$()
             SetCurrentDirectory basePath
             getFullLocalPath = fso.GetAbsolutePathName(inputPath)
             SetCurrentDirectory savePath
+        Else
+            'its an absolute path
+            'just in case OneDrive/SharePoint user has specified a path built with ThisWorkbook.Path...
+            If isPathHTTPS(inputPath) Then
+                If targetExists Then
+                    inputPath = getLocalOneDrivePath(inputPath) 'assumes target exists
+                Else
+                    'target does not exist, so resolve the parent folder instead, and then rebuild path
+                    parentFolder = getLocalOneDrivePath(fso.GetParentFolderName(inputPath))
+                    If InStr(parentFolder, "\") Then pathSep = "\" Else pathSep = "/"
+                    inputPath = parentFolder & pathSep & fso.GetFileName(inputPath)
+                End If
+            End If
+        
+            'normalize the path if its not a url - this insures that path separators are correct, and
+            'if a folder, has no ending separator
+            If Not isPathUrl(inputPath) Then inputPath = fso.GetAbsolutePathName(inputPath)
+        
+            getFullLocalPath = inputPath
         End If
     End Function
 
-    Private Function getLocalOneDrivePath(ByVal strPath As String) As String
+    Private Function getLocalOneDrivePath(ByVal targetPath As String) As String
         'for more info, see https://stackoverflow.com/a/72736800/11738627 post by Guido Witt-Dorring
         'this function returns the original/local disk path associated with a synched OneDrive or SharePoint cloud url
-    
-        If isPathHTTPS(strPath) Then
-            Const HKEY_CURRENT_USER = &H80000001
-            Dim objReg As WbemScripting.SWbemObjectEx 'changed to early binding by GCUser99
-            Dim regPath As String
-            Dim subKeys() As Variant
-            Dim subKey As Variant
-            Dim strValue As String
-            Dim strMountpoint As String
-            Dim strSecPart As String
+        'this function assumes that the specified path exists
+        Dim origPath As String: origPath = targetPath '(@6DiegoDiego9)
 
-            Static pathSep As String
-
-            If pathSep = vbNullString Then pathSep = "\"
-    
-            Set objReg = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\default:StdRegProv")
-
-            regPath = "Software\SyncEngines\Providers\OneDrive\"
-            objReg.EnumKey HKEY_CURRENT_USER, regPath, subKeys
-        
-            If VBA.IsArrayInitialized(subKeys) Then 'found OneDrive in registry
-                For Each subKey In subKeys
-                    objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "UrlNamespace", strValue
-                    If InStr(strPath, strValue) > 0 Then
-                        objReg.GetStringValue HKEY_CURRENT_USER, regPath & subKey, "MountPoint", strMountpoint
-                        strSecPart = VBA.Replace$(Mid$(strPath, Len(strValue)), "/", pathSep)
-                        getLocalOneDrivePath = strMountpoint & strSecPart
-        
-                        Do Until Dir(getLocalOneDrivePath, vbDirectory) <> vbNullString OrElse InStr(2, strSecPart, pathSep) = 0
-                            strSecPart = Mid$(strSecPart, InStr(2, strSecPart, pathSep))
-                            getLocalOneDrivePath = strMountpoint & strSecPart
-                        Loop
-                        Dim fso As New FileSystemObject
-                        If Not fso.FolderExists(getLocalOneDrivePath) Then getLocalOneDrivePath = strPath 'OneDrive folder excluded from sync (@6DiegoDiego9)
-                        Exit Function
-                    End If
-                Next subKey
+        Const HKCU = &H80000001
+        Dim objReg As Object, rPath As String, subKeys() As Variant, subKey As Variant
+        Dim urlNamespace As String, mountPoint As String, secPart As String
+        Set objReg = GetObject("winmgmts:{impersonationLevel=impersonate}!\\." & "\root\default:StdRegProv")
+        rPath = "Software\SyncEngines\Providers\OneDrive\"
+        objReg.EnumKey HKCU, rPath, subKeys
+        For Each subKey In subKeys
+            objReg.GetStringValue HKCU, rPath & subKey, "UrlNamespace", urlNamespace
+            If InStr(targetPath, urlNamespace) > 0 Then
+                objReg.GetStringValue HKCU, rPath & subKey, "MountPoint", mountPoint
+                secPart = VBA.Replace$(Mid$(targetPath, Len(urlNamespace)), "/", "\")
+                targetPath = mountPoint & secPart
+                Do Until Dir(targetPath, vbDirectory) <> "" Or InStr(2, secPart, "\") = 0
+                    secPart = Mid$(secPart, InStr(2, secPart, "\"))
+                    targetPath = mountPoint & secPart
+                Loop
+                Exit For
             End If
+        Next subKey
+    
+        Dim fso As New FileSystemObject
+        If Not (fso.FileExists(targetPath) Or fso.FolderExists(targetPath)) Then
+            targetPath = origPath 'fallback to original path if it's online-only (excluded from sync) (@6DiegoDiego9)
         End If
-        
-        getLocalOneDrivePath = strPath 'pass unchanged
+        getLocalOneDrivePath = targetPath
     End Function
 
     Private Function isPathRelative(ByVal sPath As String) As Boolean

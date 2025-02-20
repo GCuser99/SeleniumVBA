@@ -90,6 +90,7 @@ Sub test_call_embedded_HTML_script()
     'create an html with a script that changes an element's text
     html = "<!DOCTYPE html>" & _
     "<html>" & _
+    "<head><title>Test Call Embedded Script</title></head>" & _
     "<body>" & _
     "<p id='text'>Hello World!</p>" & _
     "<script>" & _
@@ -98,17 +99,13 @@ Sub test_call_embedded_HTML_script()
     "</body>" & _
     "</html>"
 
-    driver.SaveStringToFile html, ".\snippet.html"
-
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     driver.Wait 1000
     
     'run the embedded script
     driver.ExecuteScript "doIt();"
     
     driver.Wait 1000
-    
-    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown

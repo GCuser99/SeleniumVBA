@@ -162,6 +162,7 @@ Sub test_cdp_scripts()
     'create an html with a script that alerts after page load and a script that can alter element's text
     html = "<!DOCTYPE html>" & _
     "<html>" & _
+    "<head><title>Test CDP Scripts</title></head>" & _
     "<body onload='loadIt()'>" & _
     "<p id='text'>Original text here</p>" & _
     "<script>" & _
@@ -173,14 +174,13 @@ Sub test_cdp_scripts()
     "</body>" & _
     "</html>"
 
-    driver.SaveStringToFile html, ".\snippet.html"
     
     'Use CDP to inject a script to run before HTML document scripts run
     'https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-addScriptToEvaluateOnNewDocument
     params.Add "source", "alert('This injected CDP script executes on page load, BEFORE any other document scripts are executed');"
     driver.ExecuteCDP "Page.addScriptToEvaluateOnNewDocument", params
 
-    driver.NavigateToFile ".\snippet.html"
+    driver.NavigateToString html
     
     driver.Wait 1000
     
@@ -219,8 +219,6 @@ Sub test_cdp_scripts()
     Debug.Assert driver.FindElementByID("text").GetText = "The text has been changed by a CDP script"
     
     driver.Wait 1000
-    
-    driver.DeleteFiles ".\snippet.html"
     
     driver.CloseBrowser
     driver.Shutdown

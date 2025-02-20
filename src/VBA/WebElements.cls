@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.3
+' SeleniumVBA v6.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -25,7 +25,7 @@ Attribute VB_Description = "This class is used for managing a collection of WebE
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -77,9 +77,9 @@ End Property
 Public Sub Remove(indexOrWebElement As Variant)
 Attribute Remove.VB_Description = "Removes an element corresponding to the given index or element object"
     If TypeName(indexOrWebElement) = "WebElement" Then
-        Dim welem As WebElement
-        Set welem = indexOrWebElement 'Friend property ElementID can not be invoked with late binding
-        colWebElement.Remove welem.elementId
+        Dim elem As WebElement
+        Set elem = indexOrWebElement 'Friend property ElementID can not be invoked with late binding
+        colWebElement.Remove elem.elementId
     Else
         colWebElement.Remove indexOrWebElement
     End If

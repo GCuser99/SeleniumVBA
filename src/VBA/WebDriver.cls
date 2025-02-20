@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.3
+' SeleniumVBA v6.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -102,7 +102,7 @@ Private cleanupTempFiles As Boolean
 Private modifierKeyStateDown As Boolean
 
 'store original style of Highlighted elements to be able to UnHighlight them at a future time
-Private SetHighlight_ElemsOrigStyle As Scripting.Dictionary
+Private SetHighlight_ElemsOrigStyle As Dictionary
 
 'see HighLight method
 Public Enum VBAcolors
@@ -239,7 +239,7 @@ Private Sub Class_Initialize()
 
     'attempt to read global variable values from optional settings file - if not successful,
     'then assign a system default value (last input parameter of ReadIniFileEntry)
-    iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
+    iniFilePath = getFullLocalPath(thisLibFolderPath, , True) & "\SeleniumVBA.ini"
     
     Me.CommandWindowStyle = enumTextToValue(readIniFileEntry(iniFilePath, "GENERAL", "command_window_style", vbHide))
     Me.DefaultDriverFolder = readIniFileEntry(iniFilePath, "GENERAL", "driver_location_folder", oShell.Namespace("shell:Downloads").Self.Path)
@@ -369,7 +369,7 @@ Attribute StartFirefox.VB_Description = "Start a Firefox driver"
 End Sub
 
 Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVal localHostPort As Long, ByVal enableLogging As Boolean, ByVal logFilePath As String)
-    Dim fso As New Scripting.FileSystemObject, serviceArgs As String, commandStr As String
+    Dim fso As New FileSystemObject, serviceArgs As String, commandStr As String
     
     browser_ = browser
     
@@ -381,7 +381,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
         killDriver browser_, localHostPort
     End If
     
-    driverPath = WebShared.getFullLocalPath(driverPath, defaultDriverFolder_)
+    driverPath = WebShared.getFullLocalPath(driverPath, defaultDriverFolder_, True)
 
     If checkDriverBrowserVersionAlignment Then
         Dim mngr As New WebDriverManager
@@ -396,7 +396,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     commandStr = vbNullString: serviceArgs = vbNullString
 
     If enableLogging Then
-        logFilePath = ResolvePath(logFilePath)
+        logFilePath = ResolvePath(logFilePath, False)
         Select Case browser_
         Case svbaBrowser.Edge, svbaBrowser.Chrome
             serviceArgs = " --verbose --log-path=" & Chr$(34) & logFilePath & Chr$(34)
@@ -531,7 +531,7 @@ Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of 
     'So the only functional value of this method is to handle relative paths!
     Dim fso As New FileSystemObject
     
-    htmlFilePath = ResolvePath(htmlFilePath)
+    htmlFilePath = ResolvePath(htmlFilePath, True)
     
     If Not fso.FileExists(htmlFilePath) Then
         Err.Raise 53, , "Error in NavigateToFile method: File not found"
@@ -539,7 +539,15 @@ Attribute NavigateToFile.VB_Description = "Navigates browser to an html file of 
         Exit Function
     End If
     
-    NavigateToFile = NavigateTo("file:///" & ResolvePath(htmlFilePath), timeOutms, raiseError)
+    NavigateToFile = NavigateTo("file:///" & htmlFilePath, timeOutms, raiseError)
+End Function
+
+'@Description("Navigates browser to page represented by the html document string provided")
+Public Function NavigateToString(ByVal html As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean
+Attribute NavigateToString.VB_Description = "Navigates browser to page represented by the html document string provided"
+    Dim dataUrl As String
+    dataUrl = ExecuteScript(getScript("HTMLToData.js"), html)
+    NavigateToString = NavigateTo(dataUrl, timeOutms, raiseError)
 End Function
 
 '@Description("Finds the first element for a given selector and value")
@@ -857,11 +865,12 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
         
         'save the vbs string to user's temp file
         Dim filePath As String
-        filePath = "%TEMP%\seleniumVBAtmp" & Timer() & ".vbs"
+        filePath = ResolvePath("%TEMP%\seleniumVBAtmp" & Timer() & ".vbs", False)
+        
         SaveStringToFile vbs, filePath
         
         'launch the script!
-        Shell "WScript """ & ResolvePath(filePath) & """ , vbNormalFocus"
+        Shell "WScript """ & filePath & """ , vbNormalFocus"
         
         'remember to clean up later on WebDriver terminate event
         cleanupTempFiles = True
@@ -1054,7 +1063,7 @@ Attribute SetHighlight.VB_Description = "Highlights/unhighlights specified eleme
 
     If onOffSwitch Then
         If lastElems Is Nothing Then Set lastElems = New WebElements
-        If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Scripting.Dictionary
+        If SetHighlight_ElemsOrigStyle Is Nothing Then Set SetHighlight_ElemsOrigStyle = New Dictionary
 
         'handling of last highlighted elements
         If unHighlightLast = True And lastElems.Count > 0 Then
@@ -1463,7 +1472,7 @@ Public Sub SaveScreenshot(Optional ByVal filePath As String = ".\screenshot.png"
 Attribute SaveScreenshot.VB_Description = "Saves a screenshot of the active browser window to a file"
     Dim pngstr As String
         
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, False)
     
     If fullScreenShot Then
         Select Case browser_
@@ -1491,7 +1500,7 @@ Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a sp
     Dim data As New Dictionary
     Dim pdfstr As String
     
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, False)
     
     If Not settings Is Nothing Then Set data = settings.ToDictionary
     
@@ -1868,7 +1877,7 @@ Attribute ScrollBy.VB_Description = "Scrolls by an x-y offset in pixels relative
     
     optionsList = "{""top"":" & yOffset & ",""left"":" & xOffset & ",""behavior"": """ & sSpeed & """}"
     
-    ExecuteScript getScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "by", optionsList
+    ExecuteScript getScript("Scroll.js"), IIf(scrollableElem Is Nothing, "''", scrollableElem), "by", optionsList
 End Sub
 
 '@Description("Scrolls to an x-y position in pixels relative to the current scrollable window or element content origin")
@@ -1886,7 +1895,7 @@ Attribute ScrollTo.VB_Description = "Scrolls to an x-y position in pixels relati
     
     optionsList = "{""top"":" & y & ",""left"":" & x & ",""behavior"": """ & sSpeed & """}"
     
-    ExecuteScript getScript("Scroll.js"), IIf(scrollableElem Is Nothing, "", scrollableElem), "to", optionsList
+    ExecuteScript getScript("Scroll.js"), IIf(scrollableElem Is Nothing, "''", scrollableElem), "to", optionsList
 End Sub
 
 '@Description("Scrolls to the top of current scrollable window or element content")
@@ -2110,7 +2119,7 @@ End Function
 Public Sub UploadFile(element As WebElement, ByVal filePath As String)
 Attribute UploadFile.VB_Description = "Uploads the contents of a file to the element"
     'this is just a special wrapper for sendkeys (upload file mode)
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, True)
     SendKeys element, filePath
 End Sub
 
@@ -2185,7 +2194,7 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     Dim timeEnd As Currency
     Dim timeNow As Currency
     
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, False)
     
     GetTime timeStart 'in currency
     
@@ -2250,12 +2259,12 @@ End Function
 '@Description("Sets/Gets the default input/output folder")
 Public Property Let DefaultIOFolder(ByVal folderPath As String)
 Attribute DefaultIOFolder.VB_Description = "Sets/Gets the default input/output folder"
-    defaultIOFolder_ = WebShared.getFullLocalPath(folderPath)
+    defaultIOFolder_ = WebShared.getFullLocalPath(folderPath, , True)
 End Property
 
 Public Property Get DefaultIOFolder() As String
     If defaultIOFolder_ = vbNullString Then
-        DefaultIOFolder = ResolvePath(".\")
+        DefaultIOFolder = ResolvePath(".\", True)
     Else
         DefaultIOFolder = defaultIOFolder_
     End If
@@ -2265,7 +2274,7 @@ End Property
 Public Property Let DefaultDriverFolder(ByVal folderPath As String)
 Attribute DefaultDriverFolder.VB_Description = "Sets/Gets the default Selenium driver folder"
 'Note: default folder is Downloads dir
-    defaultDriverFolder_ = WebShared.getFullLocalPath(folderPath)
+    defaultDriverFolder_ = WebShared.getFullLocalPath(folderPath, , True)
 End Property
 
 Public Property Get DefaultDriverFolder() As String
@@ -2286,7 +2295,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
                 strlist = Split(fileList(i)(j), ",")
                 For k = 0 To UBound(strlist)
                     On Error Resume Next 'file might not exists
-                    fso.DeleteFile ResolvePath(strlist(k)), True
+                    fso.DeleteFile ResolvePath(strlist(k), False), True
                     On Error GoTo 0
                 Next k
             Next j
@@ -2294,7 +2303,7 @@ Attribute DeleteFiles.VB_Description = "Deletes a list of files"
             strlist = Split(fileList(i), ",")
             For k = 0 To UBound(strlist)
                 On Error Resume Next 'file might not exists
-                fso.DeleteFile ResolvePath(strlist(k)), True
+                fso.DeleteFile ResolvePath(strlist(k), False), True
                 On Error GoTo 0
             Next k
         End If
@@ -2307,7 +2316,7 @@ Attribute SaveStringToFile.VB_Description = "Saves a specified string to a file"
     'this is used to save test html snippets to file for subsequent browser navigation
     Dim fso As New FileSystemObject
     Dim ts As TextStream
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, False)
     On Error GoTo errHnd
     Set ts = fso.CreateTextFile(filePath, True, formatUnicode16)
     ts.Write val
@@ -2459,7 +2468,7 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     
     useDefaultValue = Not keepExistingValues
     
-    iniFilePath = getFullLocalPath(thisLibFolderPath) & "\SeleniumVBA.ini"
+    iniFilePath = getFullLocalPath(thisLibFolderPath, , True) & "\SeleniumVBA.ini"
     
     entryCol.Add "# This settings file is completely optional. For it to have effect,"
     entryCol.Add "# it must be located in the same folder as the SeleniumVBA code"
@@ -2597,14 +2606,14 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Dim filePath As String
     Dim fileName As String
     Dim ret As Long
-
+    
     'get the resource url
     Url = ExecuteScript(getScript("GetResourceUrl.js"), element, srcAttribute)
     If Url Like "Error*" Then Err.Raise 1, "WebDriver", Url & Chr$(34) & srcAttribute & Chr$(34)
 
     'now calculate the destination path
     'first convert user input path to absolute path
-    fileOrFolderPath = ResolvePath(fileOrFolderPath)
+    fileOrFolderPath = ResolvePath(fileOrFolderPath, False)
 
     'check if user gave a folder path or a file path
     If fso.FolderExists(fileOrFolderPath) Then 'its a folder path
@@ -2629,14 +2638,14 @@ End Sub
 '@Description("Saves a base 64 encoded string to a file in binary format")
 Public Sub SaveBase64StringToFile(ByVal base64String As String, ByVal filePath As String)
 Attribute SaveBase64StringToFile.VB_Description = "Saves a base 64 encoded string to a file in binary format"
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, False)
     saveByteArrayToFile decodeBase64(base64String), filePath
 End Sub
 
 '@Description("Returns a fully qualified path for the input path")
-Public Function ResolvePath(ByVal pathToResolve As String) As String
+Public Function ResolvePath(ByVal pathToResolve As String, Optional ByVal targetExists As Boolean = True) As String
 Attribute ResolvePath.VB_Description = "Returns a fully qualified path for the input path"
-    ResolvePath = WebShared.getFullLocalPath(pathToResolve, defaultIOFolder_)
+    ResolvePath = WebShared.getFullLocalPath(pathToResolve, defaultIOFolder_, targetExists)
 End Function
 
 '@Description("Returns the Id string of the specified element object - useful for testing purposes")
@@ -2687,7 +2696,7 @@ Attribute SetDownloadFolder.VB_Description = "Sets the default download folder p
     End If
     'https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-setDownloadBehavior
     params.Add "behavior", "allow" 'deny, allow, default
-    params.Add "downloadPath", ResolvePath(folderPath)
+    params.Add "downloadPath", ResolvePath(folderPath, True)
     'Page. works but is deprecated as of 10/2023 - use Browser. once incognito issue is fixed
     'https://github.com/GCuser99/SeleniumVBA/issues/87
     'ExecuteCDP "Browser.setDownloadBehavior", params
@@ -2703,7 +2712,7 @@ Attribute InstallAddon.VB_Description = "Installs a browser addon (extension) su
     
     If browser_ <> svbaBrowser.Firefox Then Err.Raise 1, , "Error in InstallAddon - this method can only be used with Firefox. For Chrome/Edge use AddExtensions method of WebCapabilities instead."
     
-    filePath = ResolvePath(filePath)
+    filePath = ResolvePath(filePath, True)
     If Not fso.FileExists(filePath) Then Err.Raise 1, "WebDriver", "The addon file path :" & vbNewLine & vbNewLine & filePath & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
     
     b64 = encodeBase64(readByteArrayFromFile(filePath), useNewLines:=False)
@@ -3718,16 +3727,16 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "        && (style.overflow === 'auto' || style.overflow === 'scroll' || style.overflowY === 'auto' ||" & vbCrLf
         script = script & "        style.overflowY === 'scroll' || style.overflowX === 'auto' || style.overflowX === 'scroll');" & vbCrLf
         script = script & "}" & vbCrLf
-        script = script & vbCrLf
         script = script & "// Recursively find an element's scroll container (scrollable parent)" & vbCrLf
         script = script & "function getScrollContainer(element){" & vbCrLf
-        script = script & "    if (!element) return document.documentElement;" & vbCrLf
-        script = script & "    if (isScrollable(element)) {return element;}" & vbCrLf
-        script = script & "    else {return getScrollContainer(element.parentElement);}" & vbCrLf
+        script = script & "    if (!element) {return document.documentElement;}" & vbCrLf
+        script = script & "    if (isScrollable(element)) {" & vbCrLf
+        script = script & "        return element;" & vbCrLf
+        script = script & "    } else {" & vbCrLf
+        script = script & "        return getScrollContainer(element.parentElement);" & vbCrLf
+        script = script & "    }" & vbCrLf
         script = script & "}" & vbCrLf
-        script = script & vbCrLf
         script = script & "return getScrollContainer(arguments[0]);" & vbCrLf
-        script = script & vbCrLf
     Case "PrettyPrint.xml"
         script = vbNullString
         script = script & "<?xml version=""1.0""?>" & vbCrLf
@@ -3740,12 +3749,23 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "        </xsl:copy>" & vbCrLf
         script = script & "    </xsl:template>" & vbCrLf
         script = script & "</xsl:stylesheet>" & vbCrLf
+    Case "HTMLToData.js"
+        script = vbNullString
+        script = script & "function toDataURI(str) {" & vbCrLf
+        script = script & "    //remove unneeded whitespace before encoding" & vbCrLf
+        script = script & "    const lines = str.replace(/\r\n/g, '\n').split('\n');" & vbCrLf
+        script = script & "    const trimmedLines = lines.map(line => line.trim());" & vbCrLf
+        script = script & "    const cleanedString = trimmedLines.join('\n');" & vbCrLf
+        script = script & "    //now do the encoding and build the uri" & vbCrLf
+        script = script & "    return 'data:text/html,' + encodeURIComponent(cleanedString.toWellFormed());" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "return toDataURI(arguments[0]);" & vbCrLf
     End Select
     getScript = script
 End Function
 
 Private Sub Class_Terminate()
     'delete temp files if they were created
-    If cleanupTempFiles Then DeleteFiles "%TEMP%\seleniumVBAtmp*.vbs"
+    If cleanupTempFiles Then DeleteFiles ResolvePath("%TEMP%\seleniumVBAtmp*.vbs", False)
 End Sub
 

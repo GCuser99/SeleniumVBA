@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.3
+' SeleniumVBA v6.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2024, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -196,7 +196,7 @@ Attribute AddExtensions.VB_Description = "Adds a list of option extensions"
         pathList = paramListToStringArray(varry)
         ReDim extList(1 To UBound(pathList))
         For i = 1 To UBound(pathList)
-            filePath = driver_.ResolvePath(pathList(i))
+            filePath = driver_.ResolvePath(pathList(i), True)
             If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & filePath & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
             extList(i) = encodeBase64(readByteArrayFromFile(filePath), , False)
         Next i
@@ -210,7 +210,7 @@ End Sub
 Public Sub SetBrowserBinary(ByVal browserPath As String)
 Attribute SetBrowserBinary.VB_Description = "Sets the path to the browser executable in a non-standard location"
     'set the path to the browser executable to use
-    Me.SetOption "binary", driver_.ResolvePath(browserPath)
+    Me.SetOption "binary", driver_.ResolvePath(browserPath, True)
 End Sub
 
 '@Description("Removes control notification for Edge/Chrome")
@@ -355,7 +355,7 @@ Attribute SetProfile.VB_Description = "Sets a user-defined profile path"
     Dim userDir As String
     Dim profileName As String
     
-    profilePath = driver_.ResolvePath(profilePath)
+    profilePath = driver_.ResolvePath(profilePath, False)
     
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
@@ -397,7 +397,7 @@ Attribute SetPreference.VB_Description = "Sets an option preference key/value"
     'need to come up with a more generalized approach to paths - this is just a band-aid
     Select Case key
     Case "download.default_directory", "browser.download.dir", "savefile.default_directory"
-        val = driver_.ResolvePath(val)
+        val = driver_.ResolvePath(val, True)
     Case Else
     End Select
     
@@ -419,7 +419,7 @@ Public Sub SetDownloadPrefs(Optional ByVal downloadFolderPath As String = ".\", 
                             Optional ByVal disablePDFViewer As Boolean = True)
 Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and directory path"
                             
-    downloadFolderPath = driver_.ResolvePath(downloadFolderPath)
+    downloadFolderPath = driver_.ResolvePath(downloadFolderPath, True)
 
     Select Case browser_
     Case svbaBrowser.Chrome, svbaBrowser.Edge
@@ -486,7 +486,7 @@ Public Sub SaveToFile(Optional ByVal filePath As String = ".\capabilities.json")
 Attribute SaveToFile.VB_Description = "Saves the capabilities to file path"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
-    filePath = driver_.ResolvePath(filePath)
+    filePath = driver_.ResolvePath(filePath, False)
     Set ts = fso.CreateTextFile(filePath, True, True)
     ts.Write Me.ToJson
     ts.Close
@@ -498,7 +498,7 @@ Attribute LoadFromFile.VB_Description = "Loads the capabilities from file path"
     Dim fso As New FileSystemObject
     Dim ts As TextStream
         
-    filePath = driver_.ResolvePath(filePath)
+    filePath = driver_.ResolvePath(filePath, True)
     
     If Not fso.FileExists(filePath) Then Err.Raise 53, "WebCapabilities", "Capabilities Json file does not exist:" & vbNewLine & vbNewLine & filePath
     'note that this will fail if input file format is utf-8 with non-ascii chars - see https://github.com/GCuser99/SeleniumVBA/discussions/32
@@ -553,31 +553,35 @@ Private Function getAlertHandlingString(ByVal val As svbaAlertHandling) As Strin
 End Function
 
 Private Sub addToOptionList(ByVal optionName As String, addList() As String)
-    'add to list of option parameters, while checking for duplicates
-    Dim parameters As Collection
-    Dim found As Boolean
-    Dim j As Long
-    Dim i As Long
+     'add to list of option parameters, while checking for duplicates
+     Dim parameters As Collection
+     Dim found As Boolean
+     Dim j As Long
+     Dim i As Long
 
-    'lists are represented as collections for caps initialized from LoadFromFile (via WebJsonConverter.ParseJson)
-    If IsObject(data_.Item("alwaysMatch")(browserOptionKey)(optionName)) Then
-        Set parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
-    Else 'starting from scratch
-        Set parameters = New Collection
-    End If
+     'lists are represented as collections for caps initialized from LoadFromFile (via WebJsonConverter.ParseJson)
+     If data_.Item("alwaysMatch")(browserOptionKey).Exists(optionName) Then
+         Set parameters = data_.Item("alwaysMatch")(browserOptionKey)(optionName)
+     Else 'starting from scratch
+         Set parameters = New Collection
+     End If
 
-    For i = LBound(addList) To UBound(addList)
-        found = False
-        For j = 1 To parameters.Count
-            If addList(i) = parameters(j) Then found = True: Exit For
-        Next j
-        If Not found Then
-            parameters.Add addList(i)
-        End If
-    Next i
-    'put the expanded list back
-    Set data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
-End Sub
+     For i = LBound(addList) To UBound(addList)
+         found = False
+         For j = 1 To parameters.Count
+             If addList(i) = parameters(j) Then found = True: Exit For
+         Next j
+         If Not found Then
+             parameters.Add addList(i)
+         End If
+     Next i
+     'put the expanded list back
+     If Not data_.Item("alwaysMatch")(browserOptionKey).Exists(optionName) Then
+         data_.Item("alwaysMatch")(browserOptionKey).Add optionName, parameters
+     Else
+         Set data_.Item("alwaysMatch")(browserOptionKey)(optionName) = parameters
+     End If
+ End Sub
 
 Private Function paramListToStringArray(parmList() As Variant) As String()
     'a parameter array can include arrays as list elements - expand into a string array
