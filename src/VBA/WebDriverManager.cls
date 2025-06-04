@@ -942,7 +942,7 @@ Private Function selectVersionPart(ByVal versionString As String, ByVal partNumb
     selectVersionPart = verParts(partNumber - 1)
 End Function
 
-Private Function countVersionParts(ByVal versionString As String) As String
+Private Function countVersionParts(ByVal versionString As String) As Long
     countVersionParts = UBound(Split(versionString, ".")) + 1
 End Function
 
