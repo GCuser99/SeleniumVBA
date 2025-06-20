@@ -1,6 +1,9 @@
 # modified from https://github.com/DecimalTurn/VBA-on-GitHub
 # read the excellent writeup there!
 
+# PowerShell (.ps1) - prevent LF normalization
+*.[pP][sS]1 -text diff linguist-language=PowerShell
+
 # VBA code (bas, cls, frm) - prevent LF normalization
 *.[bB][aA][sS] -text diff linguist-language=VBA
 *.[cC][lL][sS] -text diff linguist-language=VBA

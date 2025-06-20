@@ -12,7 +12,11 @@ Sub test_table()
     driver.StartChrome
     driver.OpenBrowser
 
-    html = "<html><head><title>Test Table To Array</title></head><body><table border='l' id='mytable'><thead><tr><th>head 1</th><th>head 2</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr><tr><td>3</td><td><table border='l'><tbody><tr><td>4A</td><td>4B</td></tr><tr><td>4C</td><td>4D</td></tr></tbody></table></td></tr></tbody><tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
+    html = "<html><head><title>Test Table To Array</title></head><body><table border='l' id='mytable'>"
+    html = html & "<thead><tr><th>head 1</th><th>head 2</th></tr></thead>"
+    html = html & "<tbody><tr><td>1</td><td>2</td></tr><tr><td>3</td><td>"
+    html = html & "<table border='l'><tbody><tr><td>4A</td><td>4B</td></tr><tr><td>4C</td><td>4D</td></tr></tbody></table>"
+    html = html & "</td></tr></tbody><tfoot><tr><td colspan='2'>footer content</td></tr></tfoot></table></body></html>"
     
     driver.NavigateToString html
     
@@ -88,25 +92,36 @@ Sub test_table_to_array()
     driver.Shutdown
 End Sub
 
-Sub test_table_to_array_large()
+Sub test_large_table_to_array()
     Dim driver As SeleniumVBA.WebDriver
     Dim table() As Variant
+    Dim html As String
+    Dim i As Long, j As Long
     
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
     
-    driver.ImplicitMaxWait = 2000
+    'build the large table page (in this case having 20,000 cells)
+    html = "<html><head><title>Test Table To Array</title></head><body><table border='1' id='mytable'>"
+    For i = 1 To 200
+        html = html & "<tr>"
+        For j = 1 To 100
+            html = html & "<td>" & i & "." & j & "</td>"
+        Next j
+        html = html & "</tr>"
+    Next i
+    html = html & "</table></body></html>"
     
-    driver.NavigateTo "https://the-internet.herokuapp.com/large"
+    driver.NavigateToString html
     
-    table = driver.FindElement(By.ID, "large-table").TableToArray(skipHeader:=True)
+    'this is super-fast due to generating the table in-browser using JavaScript
+    table = driver.FindElement(By.ID, "mytable").TableToArray(createSpanData:=False)
     
-    Debug.Assert UBound(table, 1) = 50
-    Debug.Assert UBound(table, 2) = 50
-    Debug.Assert table(43, 5) = "43.5"
-
+    Debug.Assert table(7, 30) = "7.30"
+    Debug.Assert table(99, 2) = "99.2"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub
@@ -122,8 +137,11 @@ Sub test_table_to_array_formatting()
     driver.StartEdge
     driver.OpenBrowser
     
-    html = "<html><head><title>Test Table To Array Formatting</title></head><body><table border='l' id='mytable'><tr><td>12/14/2024<br>12/15/2024</td><td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td></tr></table></body></html>"
-    
+    html = "<html><head><title>Test Table To Array Formatting</title></head><body>"
+    html = html & "<table border='l' id='mytable'><tr>"
+    html = html & "<td>12/14/2024<br>12/15/2024</td>"
+    html = html & "<td>Hi,&nbsp;this&nbsp;is&nbsp;<p>Mike</p></td>"
+    html = html & "</tr></table></body></html>"
     driver.NavigateToString html
     
     driver.Wait 1500

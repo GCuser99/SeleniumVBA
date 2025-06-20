@@ -199,37 +199,3 @@ Sub test_WaitForDownload()
     driver.Shutdown
 End Sub
 
-Sub test_WaitUntilDisplayed2()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim searchButton As SeleniumVBA.WebElement
-    
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartEdge
-    driver.OpenBrowser
-    
-    driver.NavigateTo "https://www.google.com/"
-    
-    Set searchButton = driver.FindElement(By.Name, "btnK")
-    
-    driver.Wait 500
-    
-    'search button is there, but not interactable...
-    Debug.Assert Not searchButton.IsDisplayed
-    
-    driver.FindElement(By.Name, "q").SendKeys "Interactable"
-
-    'searchButton.Click 'will often (not always) throw an error here because it takes some time
-    'for search button to get ready after typing search phrase
-    
-    'can place an explicit Wait here but another way is to use WaitUntilReady method
-    'it returns the "ready" input element object so can use methods on same line
-    searchButton.WaitUntilDisplayed().Click
-    
-    driver.Wait 500
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-

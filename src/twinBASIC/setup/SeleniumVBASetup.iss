@@ -15,15 +15,16 @@
 #define InstallerName "SeleniumVBADLLSetup"
 #define DLL64FilePath "..\Build\SeleniumVBA_win64.dll"
 #define DLL32FilePath "..\Build\SeleniumVBA_win32.dll"
-#define LicenseFilePath "..\..\..\GitHub\SeleniumVBA\LICENSE.txt"
-#define TestFolderPath "..\test_documents"
-#define LogoFilePath "..\..\logo\logo_setup.bmp"
+#define LicenseFilePath "..\..\..\LICENSE.txt"
+#define TestFolderPath ".\test_documents"
+#define UtilitiesPath "..\..\Utilities"
+#define LogoFilePath ".\logo_setup.bmp"
 #define RequirementsFilePath ".\readme.rtf"
-#define SetupOutputFolderPath "..\..\..\GitHub\SeleniumVBA\dist" 
+#define SetupOutputFolderPath "..\..\..\dist" 
 #define AppVersion GetVersionNumbersString(DLL64FilePath)
 // The following definition points to the path of 
 // Bill Stewart's UninsIS.dll
-#define UninstallDLLFilePath ".\UninsIS\UninsIS-1.5.0\i386\UninsIS.dll"
+#define UninstallDLLFilePath ".\UninsIS\UninsIS.dll"
 
 [Setup]
 AppId={{#AppGUID}
@@ -70,8 +71,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Components]
 
 Name: "pkg_core"; Description: "SeleniumVBA ActiveX Dll"; Types: full compact custom; Flags: fixed;
-Name: "pkg_utils";  Description: "VBScript Utilities"; Types: full compact custom; Flags: fixed;
-Name: "pkg_docs";  Description: "MS Excel, Access, and VBScript Test Documents"; Types: full compact custom;
+Name: "pkg_utils";  Description: "PowerShell Utilities"; Types: full compact custom; Flags: fixed;
+Name: "pkg_docs";  Description: "MS Excel and Access Test Documents"; Types: full compact custom;
   
 [Messages]
 
@@ -86,10 +87,10 @@ Source: {#DLL32FilePath}; DestDir: {app};  Flags: ignoreversion regserver ; Chec
 Source: {#TestFolderPath}\SeleniumVBA test subs for tB.xlsm; DestDir: {app}\examples; Flags: ignoreversion; Components: pkg_docs; 
 Source: {#TestFolderPath}\SeleniumVBA test subs for tB.accdb; DestDir: {app}\examples; Flags: ignoreversion; Components: pkg_docs;
 Source: {#TestFolderPath}\readme.txt; DestDir: {app}\examples; Flags: ignoreversion; Components: pkg_docs;
-Source: {#TestFolderPath}\test_download_resource.vbs; DestDir: {app}\examples; Flags: ignoreversion; Components: pkg_docs;
-Source: {#TestFolderPath}\update_drivers.vbs; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
-Source: {#TestFolderPath}\cleanup_drivers.vbs; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
-Source: {#TestFolderPath}\create_update_ini_file.vbs; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
+Source: {#UtilitiesPath}\cleanup_drivers.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
+Source: {#UtilitiesPath}\create_update_ini_file.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
+Source: {#UtilitiesPath}\launch_chrome_in_debugger_mode.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
+Source: {#UtilitiesPath}\launch_edge_in_debugger_mode.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
 Source: {#LicenseFilePath} ; DestDir: "{app}"; Flags: ignoreversion ; Components: pkg_core;
 Source: {#RequirementsFilePath} ; DestDir: "{app}"; Flags: ignoreversion ; Components: pkg_core;
 ; Source: "Readme.txt"; DestDir: "{app}"; Flags: isreadme
@@ -101,8 +102,7 @@ Name: "{autodesktop}\SeleniumVBA - Shortcut"; Filename: "{app}"
 Name: "{app}\wiki help documentation"; Filename: "{#AppHelpURL}"
 
 [Run]
-Filename: "{syswow64}\wscript.exe"; Parameters: "{app}\utilities\create_update_ini_file.vbs"; Description: "Create/update optional INI Settings file (old values will be preserved)"; Flags: postinstall skipifsilent; Check: InstallX32; 
-Filename: "{sys}\wscript.exe"; Parameters: "{app}\utilities\create_update_ini_file.vbs"; Description: "Create/update optional INI Settings file (old values will be preserved)"; Flags: postinstall skipifsilent; Check: InstallX64; 
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\utilities\create_update_ini_file.ps1"" -keepExistingValues -iniFilePath ""{app}\SeleniumVBA.ini"""; Description: "Create/update optional INI Settings file (old values will be preserved)"; Flags: postinstall skipifsilent runhidden;
 
 [Registry]
 ;Add excel and access trusted location for examples

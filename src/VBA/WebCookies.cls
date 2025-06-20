@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of cookie 
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.4
+' SeleniumVBA v6.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -140,14 +140,14 @@ Attribute LoadFromFile.VB_Description = "Loads the cookie collection from a file
     Dim i As Long
     For i = 1 To v.Count
         Set ck = New WebCookie
-        ck.Name = v(i)("name")
-        ck.Domain = v(i)("domain")
-        ck.ExpiryUnix = v(i)("expiry")
-        ck.HttpOnly = v(i)("httpOnly")
-        ck.SameSite = v(i)("sameSite")
-        ck.Secure = v(i)("secure")
-        ck.Value = v(i)("value")
-        ck.Path = v(i)("path")
+        If v(i).Exists("name") Then ck.Name = v(i)("name")
+        If v(i).Exists("domain") Then ck.Domain = v(i)("domain")
+        If v(i).Exists("expiry") Then ck.ExpiryUnix = v(i)("expiry")
+        If v(i).Exists("httpOnly") Then ck.HttpOnly = v(i)("httpOnly")
+        If v(i).Exists("sameSite") Then ck.SameSite = v(i)("sameSite")
+        If v(i).Exists("secure") Then ck.Secure = v(i)("secure")
+        If v(i).Exists("value") Then ck.Value = v(i)("value")
+        If v(i).Exists("path") Then ck.Path = v(i)("path")
         Me.Add ck
     Next i
     Set LoadFromFile = Me

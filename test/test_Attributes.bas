@@ -59,18 +59,45 @@ End Sub
 
 Sub test_css_property()
     Dim driver As SeleniumVBA.WebDriver
+    Dim html As String
 
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
     
-    driver.NavigateTo "https://example.com"
+    html = html & "<html><head>"
+    html = html & "    <title>Example Domain</title>"
+    html = html & "    <style type='text/css'>"
+    html = html & "    body {"
+    html = html & "        background-color: #f0f0f2;"
+    html = html & "        margin: 0;"
+    html = html & "        padding: 0;"
+    html = html & "        font-family: 'Segoe UI'"
+    html = html & "    }"
+    html = html & "    div {"
+    html = html & "        width: 600px;"
+    html = html & "        margin: 5em auto;"
+    html = html & "        padding: 2em;"
+    html = html & "        background-color: #fdfdff;"
+    html = html & "        border-radius: 0.5em;"
+    html = html & "        box-shadow: 2px 3px 7px 2px rgba(0,0,0,0.02);"
+    html = html & "    }"
+    html = html & "    </style>"
+    html = html & "</head>"
+    html = html & "<body>"
+    html = html & "<div id='mydiv'>"
+    html = html & "    <h1>Example Domain</h1>"
+    html = html & "    <p>This domain is for use in illustrative examples in documents</p>"
+    html = html & "</div>"
+    html = html & "</body></html>"
+    
+    driver.NavigateToString html
     
     driver.Wait
     
-    Debug.Assert driver.FindElementByTagName("html").GetCSSProperty("background-color") = "rgba(0, 0, 0, 0)"
-    Debug.Assert driver.FindElementByTagName("html").GetCSSProperty("font-family") = """Times New Roman"""
+    Debug.Assert driver.FindElementByID("mydiv").GetCSSProperty("background-color") = "rgba(253, 253, 255, 1)"
+    Debug.Assert driver.FindElementByTagName("body").GetCSSProperty("font-family") = """Segoe UI"""
     
     driver.Wait
     

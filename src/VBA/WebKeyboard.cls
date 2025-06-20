@@ -13,7 +13,7 @@ Attribute VB_Description = "This class is used to automate keyboard actions"
 '@PredeclaredId
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.4
+' SeleniumVBA v6.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -62,7 +62,6 @@ Private mClearKey As String
 Private mReturnKey As String
 Private mEnterKey As String
 Private mShiftKey As String
-Private mControlKey As String
 Private mCtrlKey As String
 Private mAltKey As String
 Private mPauseKey As String
@@ -449,7 +448,6 @@ Private Sub Class_Initialize()
     mReturnKey = ChrW$(&HE006&)
     mEnterKey = ChrW$(&HE007&)
     mShiftKey = ChrW$(&HE008&)
-    mControlKey = ChrW$(&HE009&)
     mCtrlKey = ChrW$(&HE009&)
     mAltKey = ChrW$(&HE00A&)
     mPauseKey = ChrW$(&HE00B&)

@@ -24,11 +24,11 @@ Sub test_executeScript()
     
     driver.Wait 1000
     driver.ActiveWindow.Maximize
-    driver.Wait
+    driver.Wait 2000
     
     'if script results in a WebElement object, then ExecuteScript returns same
     Set webElem = driver.ExecuteScript("return document.querySelector('body > ul > li:nth-child(24) > a')")
-    
+
     'arguments are specified in ParamArray list where first parameter value is associated
     'with arguments[0], second parameter value is associated with arguments[1], etc
     driver.ExecuteScript "arguments[0].scrollIntoView(arguments[1]);", webElem, True
@@ -38,7 +38,7 @@ Sub test_executeScript()
     'ExecuteScript returns a single WebElements object if script results in a collection of WebElement objects
     Dim anchorElems As SeleniumVBA.WebElements
     Set anchorElems = driver.ExecuteScript("return document.getElementsByTagName(arguments[0])", "a")
-    Debug.Assert anchorElems.Count = 232
+    Debug.Assert anchorElems.Count = 233
     
     driver.CloseBrowser
     driver.Shutdown

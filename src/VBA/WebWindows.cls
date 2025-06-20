@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage a collection of WebWind
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.4
+' SeleniumVBA v6.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

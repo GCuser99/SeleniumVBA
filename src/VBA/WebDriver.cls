@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.4
+' SeleniumVBA v6.5
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1221,24 +1221,6 @@ Attribute GetTagName.VB_Description = "Gets the tag name of the element"
     GetTagName = execute(tCMD.CMD_GET_ELEMENT_TAG_NAME, data)("value")
 End Function
 
-'@Description("Selects a dropdown option element with the specified value attribute")
-Public Sub SelectByValue(ByVal val As String, element As WebElement)
-Attribute SelectByValue.VB_Description = "Selects a dropdown option element with the specified value attribute"
-    Dim elem As WebElement
-    
-    Set elem = FindElement(By.TagName, "option[value =" & """" & val & """" & "]", element)
-    If Not IsSelected(elem) Then elem.Click
-End Sub
-
-'@Description("Selects a dropdown option element with the specified visible text")
-Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
-Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option element with the specified visible text"
-    Dim elem As WebElement
-
-    Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
-    If Not IsSelected(elem) Then elem.Click
-End Sub
-
 '@Description("Returns all selected option elements for the specified dropdown element")
 Public Function GetAllSelectedOptions(element As WebElement) As WebElements
 Attribute GetAllSelectedOptions.VB_Description = "Returns all selected option elements for the specified dropdown element"
@@ -1302,11 +1284,29 @@ Attribute IsMultiSelect.VB_Description = "Returns a boolean indicating if the el
     IsMultiSelect = HasAttribute("multiple", selectElement)
 End Function
 
+'@Description("Selects a dropdown option element with the specified value attribute")
+Public Sub SelectByValue(ByVal val As String, element As WebElement)
+Attribute SelectByValue.VB_Description = "Selects a dropdown option element with the specified value attribute"
+    Dim elem As WebElement
+    
+    Set elem = FindElement(By.TagName, "option[value =" & """" & val & """" & "]", element)
+    If Not IsSelected(elem) Then elem.Click
+End Sub
+
 '@Description("Selects a dropdown option element with the specified index")
 Public Sub SelectByIndex(ByVal index As Long, element As WebElement)
 Attribute SelectByIndex.VB_Description = "Selects a dropdown option element with the specified index"
     SetFocus element
     ExecuteScript "arguments[0].options[" & CStr(index - baseDomIdx) & "].selected = true;", element
+End Sub
+
+'@Description("Selects a dropdown option element with the specified visible text")
+Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
+Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option element with the specified visible text"
+    Dim elem As WebElement
+
+    Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
+    If Not IsSelected(elem) Then elem.Click
 End Sub
 
 '@Description("Selects all multi-select dropdown option elements")
@@ -2685,9 +2685,9 @@ Attribute ActiveWindow.VB_Description = "Returns the active WebWindow object"
     Set ActiveWindow.WebDriver = Me
 End Function
 
-'@Description("Sets the default download folder path - for Edge and Chrome browsers only")
+'@Description("Sets the default download folder path - for Edge and Chrome browsers only. It must be invoked AFTER OpenBrowser command.")
 Public Sub SetDownloadFolder(Optional ByVal folderPath As String = ".\")
-Attribute SetDownloadFolder.VB_Description = "Sets the default download folder path - for Edge and Chrome browsers only"
+Attribute SetDownloadFolder.VB_Description = "Sets the default download folder path - for Edge and Chrome browsers only. It must be invoked AFTER OpenBrowser command."
     'redirect the download location AFTER capabilities have been set - can be called multiple times in same session!!
     Dim params As New Dictionary
     If browser_ = Firefox Then
@@ -2800,7 +2800,7 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     'check if it's a WebDriver error
     If isResponseError(response) Then
         If raiseError Then 'report to user now
-            Debug.Print getResponseErrorMessage(response)
+            'Debug.Print getResponseErrorMessage(response)
             Err.Raise clientStatus, "WebDriver", getResponseErrorMessage(response)
         Else
             response("value").Add "errorNumber", clientStatus
@@ -3768,4 +3768,3 @@ Private Sub Class_Terminate()
     'delete temp files if they were created
     If cleanupTempFiles Then DeleteFiles ResolvePath("%TEMP%\seleniumVBAtmp*.vbs", False)
 End Sub
-

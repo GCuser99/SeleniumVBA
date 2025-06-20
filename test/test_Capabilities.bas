@@ -314,65 +314,18 @@ End Sub
 Sub test_remoteDebugger()
     'This test demonstrates how to connect to an existing Edge\Chrome browser instance and automate tasks.
     'An example usage case - you need to manually login to a website first and then run some automation tasks.
-    'Below creates a shortcut on the user's Desktop to the browser's executable on port 9222 using the default profile.
-    'Then we open the browser before starting the WebDriver - in a typical use case all of above would be performed manually.
-    'Then we start WebDriver, setting the debugger address to port 9222 and perform automated tasks using SeleniumVBA.
-    
-    'To manually create a shortcut on Desktop type this into a new shortcut location:
-    '"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --remote-debugging-port=9222 --profile-directory=Default
-    '"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --profile-directory=Default
+    '
+    'The pre-existing browser instance must be started on port 9222 for this to work.
+    '
+    'For more info, see: https://github.com/GCuser99/SeleniumVBA/wiki#using-chrome-debugger-mode
     
     Dim driver As SeleniumVBA.WebDriver
-    Dim keys As SeleniumVBA.WebKeyboard
     Dim caps As SeleniumVBA.WebCapabilities
-    Dim wshell As Object
-    Dim browser As String
-    Dim keySeq As String
     
-    Set keys = SeleniumVBA.New_WebKeyboard
     Set driver = SeleniumVBA.New_WebDriver
     
-    Set wshell = CreateObject("WScript.Shell")
-    
-    browser = "chrome" '"chrome" or "msedge"
-    
-    '--------------------------------------------------------------------------------------------
-    'In typical use case this section would be performed manually
-    'If you manually created the Desktop shortcut shown earlier, and opened your browser via the shortcut
-    'then this code block is redundant. It is here for testing only.
-    Select Case browser
-    Case "chrome"
-        'first must kill existing chrome processes
-        wshell.Run "taskkill /f /t /im chrome.exe", 0, True
-        'create a shortcut on the Desktop
-        With wshell.CreateShortcut(wshell.SpecialFolders("Desktop") & "\Chrome_test.lnk")
-            .targetPath = Environ("ProgramFiles") & "\Google\Chrome\Application\chrome.exe"
-            .WorkingDirectory = .targetPath
-            .Arguments = "--remote-debugging-port=9222 --profile-directory=Default"
-            .Save
-        End With
-        'open the shortcut made above
-        wshell.Run wshell.SpecialFolders("Desktop") & "\" & "Chrome_test.lnk"
-    Case "msedge"
-        'first must kill existing edge processes
-        wshell.Run "taskkill /f /t /im msedge.exe", 0, True
-        'create a shortcut on the Desktop
-        With wshell.CreateShortcut(wshell.SpecialFolders("Desktop") & "\Edge_test.lnk")
-            .targetPath = Environ("programfiles(x86)") & "\Microsoft\Edge\Application\msedge.exe"
-            .WorkingDirectory = .targetPath
-            .Arguments = "--remote-debugging-port=9222 --profile-directory=Default"
-            .Save
-        End With
-        'open the shortcut made above
-        wshell.Run wshell.SpecialFolders("Desktop") & "\" & "Edge_test.lnk"
-    End Select
-    '--------------------------------------------------------------------------------------------
-    
     'now we start automating the existing browser instance
-    Select Case browser
-    Case "chrome": driver.StartChrome
-    Case "msedge": driver.StartEdge
-    End Select
+    driver.StartChrome
     
     Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
     
@@ -380,17 +333,24 @@ Sub test_remoteDebugger()
     caps.SetDebuggerAddress "localhost:9222"
     
     driver.OpenBrowser caps
-    
-    driver.NavigateTo "https://www.wikipedia.org/"
-    driver.Wait 1000
-    
-    keySeq = "Leonardo da VinJci" & keys.LeftKey & keys.LeftKey & keys.LeftKey & keys.DeleteKey & keys.ReturnKey
-    
-    driver.FindElement(By.ID, "searchInput").SendKeys keySeq
 
-    driver.Wait 1500
+    'for Edge and Chrome only - can't set in capabilities when running in Debugger mode!
+    driver.SetDownloadFolder "%USERPROFILE%\Downloads"
     
-    driver.CloseBrowser
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/downloads/download.html"
+    driver.Wait 500
+    
+    driver.DeleteFiles "%USERPROFILE%\Downloads\file_1.txt", "%USERPROFILE%\Downloads\file_2.jpg"
+    
+    driver.FindElementByCssSelector("#file-1").Click
+    driver.WaitForDownload "%USERPROFILE%\Downloads\file_1.txt"
+    
+    driver.FindElementByCssSelector("#file-2").Click
+    driver.WaitForDownload "%USERPROFILE%\Downloads\file_2.jpg"
+    
+    'this will close the pre-existing browser window if required (thanks to @hanamichi7777)
+    'driver.ExecuteCDP "Browser.close"
+            
     driver.Shutdown
 End Sub
 
@@ -448,6 +408,8 @@ Sub test_set_user_agent()
     caps.SetUserAgent userAgent
     
     driver.OpenBrowser caps, invisible:=True
+    
+    driver.ImplicitMaxWait = 2000
     
     'to see a full list of headers navigate to https://www.httpbin.org/headers
     driver.NavigateTo "https://www.whatismybrowser.com/detect/what-is-my-user-agent/"

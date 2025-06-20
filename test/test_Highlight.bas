@@ -82,6 +82,8 @@ Sub test_highlight2()
     driver.StartEdge
     driver.OpenBrowser
     
+    driver.ImplicitMaxWait = 1000
+    
     html = "<html><head><title>Test Highlight Elements</title></head><body><table border='1' id='mytable'>" _
     & "<tr><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td></tr>" _
     & "<tr><td>Blue</td><td>Red</td><td>Blue</td><td>Red</td><td>Blue</td></tr>" _
@@ -91,8 +93,6 @@ Sub test_highlight2()
     & "</table></body></html>"
     
     driver.NavigateToString html
-    
-    driver.ImplicitMaxWait = 1000
     
     'split the table cells into two groups Red and Blue
     With driver.FindElements(By.TagName, "td")

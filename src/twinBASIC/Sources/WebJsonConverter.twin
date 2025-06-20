@@ -469,6 +469,7 @@ Public Class WebJsonConverter
     
     'https://www.vbforums.com/showthread.php?640664-RESOLVED-Decimal-separator
     Private Function DecimalSep() As String
+        'DecimalSep =Mid$(CStr(1.1), 2, 1) 'alt via Cristian Buse
         DecimalSep = Format$(0, ".")
     End Function
 

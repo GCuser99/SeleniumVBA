@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.4
+    ' SeleniumVBA v6.5
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -2522,7 +2522,7 @@ Public Class WebDriver
         Set ActiveWindow.WebDriver = Me
     End Function
 
-    [Description("Sets the default download folder path - for Edge and Chrome browsers only")]
+    [Description("Sets the default download folder path - for Edge and Chrome browsers only. It must be invoked AFTER OpenBrowser command.")]
     Public Sub SetDownloadFolder(Optional ByVal folderPath As String = ".\")
         'redirect the download location AFTER capabilities have been set - can be called multiple times in same session!!
         Dim params As New Dictionary

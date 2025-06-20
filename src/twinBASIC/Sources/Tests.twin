@@ -1,5 +1,357 @@
 Private Module Tests
     
+    Sub test_error()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim html As String
+        Dim elem As SeleniumVBA.WebElement
+    
+        Set driver = SeleniumVBA.New_WebDriver
+    
+        driver.StartChrome
+    
+        On Error Resume Next
+        driver.ImplicitMaxWait = 2000
+        Debug.Assert Err.Description = "invalid session id"
+        On Error GoTo 0
+    
+        driver.OpenBrowser
+    
+        On Error Resume Next
+        driver.ImplicitMaxWait = -999
+        Debug.Assert Left(Err.Description, 54) = "invalid argument: value must be a non-negative integer"
+        On Error GoTo 0
+    
+        'create a radio button sample
+        html = "<!DOCTYPE html><html><head><title>Test Radio Button</title></head><body>"
+        html = html & "<h1>Display Radio Buttons</h1>"
+        html = html & "<form action='/action_page.php'>"
+        html = html & "  <p>Please select your favorite Web language:</p>"
+        html = html & "  <input type='radio' id='html' name='fav_language' value='HTML'>"
+        html = html & "  <label for='html'>HTML</label><br>"
+        html = html & "  <input type='radio' id='css' name='fav_language' value='CSS'>"
+        html = html & "  <label for='css'>CSS</label><br>"
+        html = html & "  <input type='radio' id='javascript' name='fav_language' value='JavaScript'>"
+        html = html & "  <label for='javascript'>JavaScript</label>"
+        html = html & "</form>"
+        html = html & "</body></html>"
+    
+        driver.NavigateToString html
+        driver.ActiveWindow.Maximize
+    
+        driver.Wait 1000
+    
+        On Error Resume Next
+        Set elem = driver.FindElement(By.ID, "css1")
+        Debug.Assert Left(Err.Description, 93) = "no such element: Unable to locate element: {""method"":""css selector"",""selector"":""[id=""css1""]""}"
+        On Error GoTo 0
+        
+        'this error shows "automation error" from compiled DLL
+        'in 32-bit mode, the error shows 'Application-defined or object-defined error' from the IDE
+        On Error Resume Next
+        Set elem = driver.FindElement(By.ID, "css").FindElementByID("xxxx")
+        Debug.Assert Left(Err.Description, 93) = "no such element: Unable to locate element: {""method"":""css selector"",""selector"":""[id=""xxxx""]""}"
+        On Error GoTo 0
+    
+        driver.Wait 1000
+    
+        'this error shows "automation error" from compiled DLL
+        On Error Resume Next
+        driver.FindElement(By.ID, "css").Clear
+        Debug.Assert Left(Err.Description, 21) = "invalid element state"
+        On Error GoTo 0
+        
+        'this error shows "automation error" from compiled DLL
+        On Error Resume Next
+        Set elem = driver.FindElement(By.ID, "css")
+        elem.Clear
+        Debug.Assert Left(Err.Description, 21) = "invalid element state"
+        On Error GoTo 0
+    
+        On Error Resume Next
+        driver.NavigateTo "bad_url"
+        Debug.Assert Left(Err.Description, 16) = "invalid argument"
+        On Error GoTo 0
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_sendkeys()
+        Dim driver As New WebDriver
+        Dim input1 As WebElement
+        Dim display_keys As WebElement
+        Dim keys As New WebKeyboard
+        Dim html As String
+
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        html = "<html>" & vbCrLf
+        html = html & "    <head>" & vbCrLf
+        html = html & "        <title>Test SendKeys</title>" & vbCrLf
+        html = html & "        <style>" & vbCrLf
+        html = html & "            #display_keys {color: red;}" & vbCrLf
+        html = html & "            #display_key {color: blue;}" & vbCrLf
+        html = html & "            #display_keyCode {color: blue;}" & vbCrLf
+        html = html & "            #display_code {color: blue;}" & vbCrLf
+        html = html & "            #display_location {color: blue;}" & vbCrLf
+        html = html & "            #display_ctrlKey {color: blue;}" & vbCrLf
+        html = html & "            #display_shiftKey {color: blue;}" & vbCrLf
+        html = html & "            #display_altKey {color: blue;}" & vbCrLf
+        html = html & "            #display_metaKey {color: blue;}" & vbCrLf
+        html = html & "        </style>" & vbCrLf
+        html = html & "    </head>" & vbCrLf
+        html = html & "    <body>" & vbCrLf
+        html = html & "        <div><div>Type Keys and Hit Enter to Process:</div><input type='text' id='input1'>" & vbCrLf
+        html = html & "        <div id='display_keys'></div></div>" & vbCrLf
+        html = html & "        <p></p><p></p>" & vbCrLf
+        html = html & "        <div><div>Type Single Key for Info:</div><input type='text' id='input2'></div>" & vbCrLf
+        html = html & "        <div id='display_key'></div>" & vbCrLf
+        html = html & "        <div id='display_code'></div>" & vbCrLf
+        html = html & "        <div id='display_keyCode'></div>" & vbCrLf
+        html = html & "        <div id='display_location'></div>" & vbCrLf
+        html = html & "        <div id='display_ctrlKey'></div>" & vbCrLf
+        html = html & "        <div id='display_shiftKey'></div>" & vbCrLf
+        html = html & "        <div id='display_altKey'></div>" & vbCrLf
+        html = html & "        <div id='display_metaKey'></div>" & vbCrLf
+        html = html & "        <script>" & vbCrLf
+        html = html & "            const input1 = document.getElementById('input1');" & vbCrLf
+        html = html & "            const input2 = document.getElementById('input2');" & vbCrLf
+        html = html & "            const display_keys = document.getElementById('display_keys');" & vbCrLf
+        html = html & "            const display_key = document.getElementById('display_key');" & vbCrLf
+        html = html & "            const display_code = document.getElementById('display_code');" & vbCrLf
+        html = html & "            const display_keyCode = document.getElementById('display_keyCode');" & vbCrLf
+        html = html & "            const display_location = document.getElementById('display_location');" & vbCrLf
+        html = html & "            const display_ctrlKey = document.getElementById('display_ctrlKey');" & vbCrLf
+        html = html & "            const display_shiftKey = document.getElementById('display_shiftKey');" & vbCrLf
+        html = html & "            const display_altKey = document.getElementById('display_altKey');" & vbCrLf
+        html = html & "            const display_metaKey = document.getElementById('display_metaKey');" & vbCrLf
+        html = html & "            input1.addEventListener('keydown', function(event) {" & vbCrLf
+        html = html & "                if (event.key === 'Enter') {" & vbCrLf
+        html = html & "                    display_keys.textContent = input1.value;" & vbCrLf
+        html = html & "                    input1.value = ''; // Clear the input field" & vbCrLf
+        html = html & "                }" & vbCrLf
+        html = html & "            });" & vbCrLf
+        html = html & "            input2.addEventListener('keydown', function(event) {" & vbCrLf
+        html = html & "                display_key.textContent = 'key: ' + event.key;" & vbCrLf
+        html = html & "                display_code.textContent = 'code: ' + event.code;" & vbCrLf
+        html = html & "                display_keyCode.textContent = 'keyCode: ' + event.keyCode;" & vbCrLf
+        html = html & "                display_location.textContent = 'location: ' + event.location;" & vbCrLf
+        html = html & "                display_ctrlKey.textContent = 'ctrlKey: ' + event.ctrlKey;" & vbCrLf
+        html = html & "                display_shiftKey.textContent = 'shiftKey: ' + event.shiftKey;" & vbCrLf
+        html = html & "                display_altKey.textContent = 'altKey: ' + event.altKey;" & vbCrLf
+        html = html & "                display_metaKey.textContent = 'metaKey: ' + event.metaKey;" & vbCrLf
+        html = html & "            });" & vbCrLf
+        html = html & "        </script>" & vbCrLf
+        html = html & "    </body>" & vbCrLf
+        html = html & "</html>" & vbCrLf
+
+        driver.NavigateToString html
+        driver.Wait 1000
+        Set input1 = driver.FindElementByID("input1")
+        Set display_keys = driver.FindElementByID("display_keys")
+
+        input1.SendKeys "abcdefghijklmnopqrstuvwxyz" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "abcdefghijklmnopqrstuvwxyz"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "ABCDEFGHIJKLMNOPQRSTUVWXYZ" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "`1234567890-=[]\;',./" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "`1234567890-=[]\;',./"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "~!@#$%^&*()_+{}|:""<>?" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "~!@#$%^&*()_+{}|:""<>?"
+    
+        driver.Wait 500
+    
+        input1.SendKeys keys.ShiftKey & "abcdefghijklmnopqrstuvwxyz" & keys.ShiftKey & keys.EnterKey
+        Debug.Assert display_keys.GetText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    
+        driver.Wait 500
+    
+        input1.SendKeys keys.ShiftKey & "ABCDEFGHIJKLMNOPQRSTUVWXYZ" & keys.ShiftKey & keys.EnterKey
+        Debug.Assert display_keys.GetText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    
+        driver.Wait 500
+
+        input1.SendKeys keys.ShiftKey & "`1234567890-=[]\;',./" & keys.ShiftKey & keys.EnterKey
+        Debug.Assert display_keys.GetText = "~!@#$%^&*()_+{}|:""<>?"
+    
+        driver.Wait 500
+    
+        input1.SendKeys keys.ShiftKey & "~!@#$%^&*()_+{}|:""<>?" & keys.ShiftKey & keys.EnterKey
+        Debug.Assert display_keys.GetText = "~!@#$%^&*()_+{}|:""<>?"
+    
+        driver.Wait 500
+    
+        input1.SendKeys keys.ShiftKey & "this is" & keys.ShiftKey & " Mike" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "THIS IS Mike"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.ShiftKey & keys.Repeat(keys.LeftKey, 5) & keys.ShiftKey & keys.DeleteKey & " Sally" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "this is Sally"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.CtrlKey & "A" & keys.CtrlKey & keys.DeleteKey & "all clear" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "all clear"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.CtrlKey & "a" & keys.CtrlKey & keys.DeleteKey & "all clear" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "all clear"
+    
+        driver.Wait 500
+    
+        input1.SendKeys keys.ShiftKey & "this is" & keys.NullKey & keys.ShiftKey & " Mike" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "THIS IS MIKE"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.EnterKey
+        Debug.Assert display_keys.GetText = "this is Mike"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike"
+        input1.SendKeys keys.EnterKey, False
+        Debug.Assert display_keys.GetText = "this is Mike"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.CtrlKey & "a" & keys.CtrlKey & keys.CtrlKey & "c" & keys.CtrlKey & keys.DeleteKey & keys.EnterKey
+        input1.SendKeys keys.CtrlKey & "v" & keys.CtrlKey & keys.EnterKey
+        Debug.Assert display_keys.GetText = "this is Mike"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.Chord(keys.CtrlKey, "a") & keys.Chord(keys.CtrlKey, "c") & keys.DeleteKey & keys.EnterKey()
+        input1.SendKeys keys.Chord(keys.CtrlKey, "v") & keys.EnterKey
+        Debug.Assert display_keys.GetText = "this is Mike"
+    
+        driver.Wait 500
+    
+        input1.SendKeys "this is Mike" & keys.Chord(keys.CtrlKey, "A") & keys.Chord(keys.CtrlKey, "C") & keys.DeleteKey & keys.EnterKey()
+        input1.SendKeys keys.Chord(keys.CtrlKey, "V") & keys.EnterKey
+        Debug.Assert display_keys.GetText = "this is Mike"
+    
+        driver.Wait 500
+    
+        Dim input2 As WebElement
+        Dim display_key As WebElement
+        Dim display_code As WebElement
+        Dim display_keyCode As WebElement
+        Dim display_location As WebElement
+        Dim display_shiftKey As WebElement
+        Dim display_ctrlKey As WebElement
+        Dim display_altKey As WebElement
+        Dim display_metaKey As WebElement
+    
+        Set input2 = driver.FindElementByID("input2")
+        Set display_key = driver.FindElementByID("display_key")
+        Set display_code = driver.FindElementByID("display_code")
+        Set display_keyCode = driver.FindElementByID("display_keyCode")
+        Set display_location = driver.FindElementByID("display_location")
+        Set display_shiftKey = driver.FindElementByID("display_shiftKey")
+        Set display_ctrlKey = driver.FindElementByID("display_ctrlKey")
+        Set display_altKey = driver.FindElementByID("display_altKey")
+        Set display_metaKey = driver.FindElementByID("display_metaKey")
+    
+        input2.SendKeys "a", True
+        Debug.Assert display_key.GetText = "key: a"
+        Debug.Assert display_code.GetText = "code: KeyA"
+        Debug.Assert display_keyCode.GetText = "keyCode: 65"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: false"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: false"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+    
+        driver.Wait 500
+    
+        input2.SendKeys "A", True
+        Debug.Assert display_key.GetText = "key: A"
+        Debug.Assert display_code.GetText = "code: KeyA"
+        Debug.Assert display_keyCode.GetText = "keyCode: 65"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: true"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: false"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+    
+        driver.Wait 500
+    
+        input2.SendKeys keys.ShiftKey & "a", True
+        Debug.Assert display_key.GetText = "key: A"
+        Debug.Assert display_code.GetText = "code: KeyA"
+        Debug.Assert display_keyCode.GetText = "keyCode: 65"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: true"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: false"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+    
+        driver.Wait 500
+    
+        input2.SendKeys keys.ShiftKey & "A", True
+        Debug.Assert display_key.GetText = "key: A"
+        Debug.Assert display_code.GetText = "code: KeyA"
+        Debug.Assert display_keyCode.GetText = "keyCode: 65"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: true"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: false"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+    
+        driver.Wait 500
+    
+        input2.SendKeys keys.CtrlKey & "a", True
+        Debug.Assert display_key.GetText = "key: a"
+        Debug.Assert display_code.GetText = "code: KeyA"
+        Debug.Assert display_keyCode.GetText = "keyCode: 65"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: false"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: true"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+    
+        driver.Wait 500
+    
+        input2.SendKeys keys.EnterKey, True
+        Debug.Assert display_key.GetText = "key: Enter"
+        Debug.Assert display_code.GetText = "code: Enter"
+        Debug.Assert display_keyCode.GetText = "keyCode: 13"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: false"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: false"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+    
+        driver.Wait 500
+    
+        input2.SendKeys keys.CtrlShiftKeys & keys.HomeKey, True
+        Debug.Assert display_key.GetText = "key: Home"
+        Debug.Assert display_code.GetText = "code: Home"
+        Debug.Assert display_keyCode.GetText = "keyCode: 36"
+        Debug.Assert display_location.GetText = "location: 0"
+        Debug.Assert display_shiftKey.GetText = "shiftKey: true"
+        Debug.Assert display_ctrlKey.GetText = "ctrlKey: true"
+        Debug.Assert display_altKey.GetText = "altKey: false"
+        Debug.Assert display_metaKey.GetText = "metaKey: false"
+
+        driver.Wait 1000
+        driver.Shutdown
+    End Sub
+    
+    
     Sub test_session_cookie()
         Dim driver As SeleniumVBA.WebDriver
         Dim cks As SeleniumVBA.WebCookies
@@ -640,32 +992,6 @@ Private Module Tests
         driver.Shutdown
     End Sub
     
-    Sub test_Sendkeys()
-        Dim driver As WebDriver
-        Dim keys As WebKeyboard
-        Dim keySeq As String
-    
-        Set driver = New WebDriver
-        Set keys = New WebKeyboard
-
-        driver.StartEdge
-    
-        driver.OpenBrowser
-    
-        driver.ImplicitMaxWait = 2000
-    
-        driver.NavigateTo "https://www.wikipedia.org/"
-    
-        keySeq = "Leonardo da VinJci" & keys.Repeat(keys.LeftKey, 3) & keys.DeleteKey & keys.ReturnKey
-    
-        driver.FindElement(By.ID, "searchInput").SendKeys keySeq
-
-        driver.Wait 1500
-    
-        driver.CloseBrowser
-        driver.Shutdown
-    End Sub
-    
     Sub test_table_to_array_large()
         Dim driver As WebDriver
         Dim table() As Variant
@@ -1217,5 +1543,128 @@ Private Module Tests
         driver.CloseBrowser
         driver.Shutdown
     End Sub
+    
+    Sub test_large_table_to_array()
+        Dim driver As WebDriver
+        Dim table() As Variant
+        Dim html As String
+        Dim i As Long, j As Long
+    
+        Set driver = New WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        'build the large table page (in this case having 20,000 cells)
+        html = "<html><head><title>Test Table To Array</title></head><body><table border='1' id='mytable'><tbody>"
+        For i = 1 To 200
+            html = html & "<tr>"
+            For j = 1 To 100
+                html = html & "<td>" & i & "." & j & "</td>"
+            Next j
+            html = html & "</tr>"
+        Next i
+        html = html & "</tbody></table></body></html>"
+        driver.NavigateToString html
+    
+        'this is super-fast due to generating the table in-browser using JavaScript
+        table = driver.FindElement(By.ID, "mytable").TableToArray(createSpanData:=False)
+    
+        Debug.Assert table(7, 30) = "7.30"
+        Debug.Assert table(99, 2) = "99.2"
+    
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_Alerts2()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim html As String
+    
+        Set driver = SeleniumVBA.New_WebDriver
+        
+        driver.StartChrome
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 2000
+    
+        html = "<html lang=""en"">" & vbCrLf
+        html = html & "    <head>" & vbCrLf
+        html = html & "        <title>Test Alerts</title>" & vbCrLf
+        html = html & "    </head>" & vbCrLf
+        html = html & "    <body>" & vbCrLf
+        html = html & "        <div><div></div></div>" & vbCrLf
+        html = html & "        <div>" & vbCrLf
+        html = html & "            <div id=""content"">" & vbCrLf
+        html = html & "                <script>" & vbCrLf
+        html = html & "                    function jsAlert() {" & vbCrLf
+        html = html & "                        alert('I am a JS Alert');" & vbCrLf
+        html = html & "                        log('You successfully clicked an alert');" & vbCrLf
+        html = html & "                    }" & vbCrLf
+        html = html & "                    function jsConfirm() {" & vbCrLf
+        html = html & "                        var c = confirm('I am a JS Confirm');" & vbCrLf
+        html = html & "                        var result = c === true ? 'Ok' : 'Cancel';" & vbCrLf
+        html = html & "                        log('You clicked: ' + result);" & vbCrLf
+        html = html & "                    }" & vbCrLf
+        html = html & "                    function jsPrompt() {" & vbCrLf
+        html = html & "                        var p = prompt('I am a JS prompt');" & vbCrLf
+        html = html & "                        log('You entered: ' + p);" & vbCrLf
+        html = html & "                    }" & vbCrLf
+        html = html & "                    function log(msg) {" & vbCrLf
+        html = html & "                        var result = document.getElementById('result');" & vbCrLf
+        html = html & "                        result.innerHTML = msg;" & vbCrLf
+        html = html & "                    }" & vbCrLf
+        html = html & "                </script>" & vbCrLf
+        html = html & "                <div class=""example"">" & vbCrLf
+        html = html & "                    <h3>JavaScript Alerts</h3>" & vbCrLf
+        html = html & "                    <p>Here are some examples of different JavaScript alerts which can be troublesome for automation</p>" & vbCrLf
+        html = html & "                    <ul style=""list-style-type: none;"">" & vbCrLf
+        html = html & "                        <li><button onclick=""jsAlert()"">Click for JS Alert</button></li>" & vbCrLf
+        html = html & "                        <li><button onclick=""jsConfirm()"">Click for JS Confirm</button></li>" & vbCrLf
+        html = html & "                        <li><button onclick=""jsPrompt()"">Click for JS Prompt</button></li>" & vbCrLf
+        html = html & "                    </ul>" & vbCrLf
+        html = html & "                    <h4>Result:</h4>" & vbCrLf
+        html = html & "                    <p id=""result"" style=""color:green"">You entered:</p>" & vbCrLf
+        html = html & "                </div>" & vbCrLf
+        html = html & "            </div>" & vbCrLf
+        html = html & "        </div>" & vbCrLf
+        html = html & "    </body>" & vbCrLf
+        html = html & "</html>"
+
+
+        driver.NavigateToString html
+    
+        'find and then click on an element that throws a prompt-type alert
+        driver.FindElement(By.XPath, "//*[@id='content']/div/ul/li[3]/button").Click
+        
+        'SwitchToAlert waits up to a user-specified max time (default = 10 secs)
+        'for alert to show, and then returns a WebAlert object for interaction
+        driver.SwitchToAlert.SendKeys("hola mi nombre es Jose").Accept
+    
+        Debug.Assert driver.FindElementByID("result").GetText = "You entered: hola mi nombre es Jose"
+        
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_replace()
+        Dim regex As StaticRegex.RegexTy
+
+        StaticRegex.InitializeRegex regex, pattern:="(\d+)(\D+)"
+        Debug.Assert StaticRegex.Replace(regex, replacer:="$1", haystack:="123abc", localMatch:=True) = "123"
+    
+        StaticRegex.InitializeRegex regex, pattern:="(\d+)(\D+)"
+        Debug.Assert StaticRegex.Replace(regex, replacer:="$1", haystack:="123abc", localMatch:=False) = "123"
+    
+        StaticRegex.InitializeRegex regex, pattern:="(\d*)(\D*)"
+        Debug.Assert StaticRegex.Replace(regex, replacer:="$1", haystack:="123abc", localMatch:=True) = "123"
+    
+        StaticRegex.InitializeRegex regex, pattern:="(\d*)(\D*)"
+        Debug.Assert StaticRegex.Replace(regex, replacer:="$1", haystack:="123abc", localMatch:=False) = "123"
+        
+        StaticRegex.InitializeRegex regex, pattern:="(\d*)(\D?)"
+        Debug.Assert StaticRegex.Replace(regex, replacer:="$1", haystack:="123abc", localMatch:=False) = "123"
+    End Sub
+    
       
 End Module

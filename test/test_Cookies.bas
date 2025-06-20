@@ -79,6 +79,8 @@ Sub test_session_cookie()
     driver.Windows.SwitchToByTitle "Session cookie destination*"
     Debug.Assert driver.ExecuteScript("return document.body.style.backgroundColor;") = "rgb(128, 128, 255)"
     
+    driver.DeleteFiles "cookies.txt"
+    
     driver.CloseBrowser
     driver.Shutdown
 End Sub

@@ -101,6 +101,7 @@ End Sub
 
 Sub test_Alerts2()
     Dim driver As SeleniumVBA.WebDriver
+    Dim html As String
     
     Set driver = SeleniumVBA.New_WebDriver
         
@@ -109,7 +110,51 @@ Sub test_Alerts2()
     
     driver.ImplicitMaxWait = 2000
     
-    driver.NavigateTo "https://the-internet.herokuapp.com/javascript_alerts"
+    html = "<html lang=""en"">" & vbCrLf
+    html = html & "    <head>" & vbCrLf
+    html = html & "        <title>Test Alerts</title>" & vbCrLf
+    html = html & "    </head>" & vbCrLf
+    html = html & "    <body>" & vbCrLf
+    html = html & "        <div><div></div></div>" & vbCrLf
+    html = html & "        <div>" & vbCrLf
+    html = html & "            <div id=""content"">" & vbCrLf
+    html = html & "                <script>" & vbCrLf
+    html = html & "                    function jsAlert() {" & vbCrLf
+    html = html & "                        alert('I am a JS Alert');" & vbCrLf
+    html = html & "                        log('You successfully clicked an alert');" & vbCrLf
+    html = html & "                    }" & vbCrLf
+    html = html & "                    function jsConfirm() {" & vbCrLf
+    html = html & "                        var c = confirm('I am a JS Confirm');" & vbCrLf
+    html = html & "                        var result = c === true ? 'Ok' : 'Cancel';" & vbCrLf
+    html = html & "                        log('You clicked: ' + result);" & vbCrLf
+    html = html & "                    }" & vbCrLf
+    html = html & "                    function jsPrompt() {" & vbCrLf
+    html = html & "                        var p = prompt('I am a JS prompt');" & vbCrLf
+    html = html & "                        log('You entered: ' + p);" & vbCrLf
+    html = html & "                    }" & vbCrLf
+    html = html & "                    function log(msg) {" & vbCrLf
+    html = html & "                        var result = document.getElementById('result');" & vbCrLf
+    html = html & "                        result.innerHTML = msg;" & vbCrLf
+    html = html & "                    }" & vbCrLf
+    html = html & "                </script>" & vbCrLf
+    html = html & "                <div class=""example"">" & vbCrLf
+    html = html & "                    <h3>JavaScript Alerts</h3>" & vbCrLf
+    html = html & "                    <p>Here are some examples of different JavaScript alerts which can be troublesome for automation</p>" & vbCrLf
+    html = html & "                    <ul style=""list-style-type: none;"">" & vbCrLf
+    html = html & "                        <li><button onclick=""jsAlert()"">Click for JS Alert</button></li>" & vbCrLf
+    html = html & "                        <li><button onclick=""jsConfirm()"">Click for JS Confirm</button></li>" & vbCrLf
+    html = html & "                        <li><button onclick=""jsPrompt()"">Click for JS Prompt</button></li>" & vbCrLf
+    html = html & "                    </ul>" & vbCrLf
+    html = html & "                    <h4>Result:</h4>" & vbCrLf
+    html = html & "                    <p id=""result"" style=""color:green"">You entered:</p>" & vbCrLf
+    html = html & "                </div>" & vbCrLf
+    html = html & "            </div>" & vbCrLf
+    html = html & "        </div>" & vbCrLf
+    html = html & "    </body>" & vbCrLf
+    html = html & "</html>"
+
+
+    driver.NavigateToString html
     
     'find and then click on an element that throws a prompt-type alert
     driver.FindElement(By.XPath, "//*[@id='content']/div/ul/li[3]/button").Click

@@ -5,7 +5,7 @@
 Public Class WebDriverManager
 
     ' ==========================================================================
-    ' SeleniumVBA v6.4
+    ' SeleniumVBA v6.5
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -271,7 +271,7 @@ Public Class WebDriverManager
             Exit Function
         End If
         
-        If browser = svbaBrowser.Edge Then
+        If browser = svbaBrowser.Edge Or browser = svbaBrowser.Chrome Then
             'see if it can be found from embedded extended file properties first - much faster and less disruptive
             resp = findVersionInString(fso.GetFileVersion(driverPath), browser)
             If resp <> vbNullString Then
@@ -913,7 +913,7 @@ Public Class WebDriverManager
         selectVersionPart = verParts(partNumber - 1)
     End Function
 
-    Private Function countVersionParts(ByVal versionString As String) As String
+    Private Function countVersionParts(ByVal versionString As String) As Long
         countVersionParts = UBound(VBA.Split(versionString, ".")) + 1
     End Function
 

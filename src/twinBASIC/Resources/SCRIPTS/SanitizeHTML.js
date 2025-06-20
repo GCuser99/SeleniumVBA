@@ -116,4 +116,3 @@ function sanitizeHTML(str) {
 }
  
 return sanitizeHTML(arguments[0]);
- 

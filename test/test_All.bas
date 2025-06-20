@@ -21,7 +21,8 @@ Sub test_full_suite()
     test_Capabilities.test_invisible
     test_Capabilities.test_kiosk_printing
     test_Capabilities.test_pageLoadStrategy
-    test_Capabilities.test_remoteDebugger 'this leaves browser open - must close manually
+    'this requires a pre-existing browser launched on port 9222
+    'test_Capabilities.test_remoteDebugger
     test_Capabilities.test_set_user_agent
     test_Capabilities.test_unhandled_prompts
     test_Capabilities.test_geolocation_with_incognito
@@ -88,7 +89,7 @@ Sub test_full_suite()
     test_Scroll.test_element_scroll
     test_Scroll.test_deep_scrollIntoView
     
-    test_Sendkeys.test_Sendkeys
+    test_sendkeys.test_sendkeys
     
     test_settings.test_settings
     
@@ -97,7 +98,7 @@ Sub test_full_suite()
     
     test_Tables.test_table
     test_Tables.test_table_to_array
-    test_Tables.test_table_to_array_large
+    test_Tables.test_large_table_to_array
     test_Tables.test_table_to_array_formatting
     
     'these two require answering prompts
@@ -107,7 +108,6 @@ Sub test_full_suite()
     test_Wait.test_ImplicitMaxWait
     test_Wait.test_WaitForDownload
     test_Wait.test_WaitUntilDisplayed
-    test_Wait.test_WaitUntilDisplayed2
     test_Wait.test_WaitUntilNotDisplayed
     test_Wait.test_WaitUntilNotPresent
     
