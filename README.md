@@ -1,4 +1,4 @@
-<img src="https://github.com/GCuser99/SeleniumVBA/blob/main/dev/logo/logo.png" alt="SeleniumVBA" width=33% height=33%>
+<img src="https://github.com/GCuser99/SeleniumVBA/blob/main/dev/logo/logo.png" alt="SeleniumVBA" width=33%>
 
 A comprehensive Selenium wrapper for browser automation developed for MS Office VBA running in Windows
 
