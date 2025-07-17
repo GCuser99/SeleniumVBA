@@ -348,7 +348,7 @@ Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver ver
     
     Select Case browser
     Case svbaBrowser.Edge
-        Url = "https://msedgedriver.azureedge.net/LATEST_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
+        Url = "https://msedgedriver.microsoft.com/LATEST_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
         respTxt = requestData(Url)
         If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
         GetLatestDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
@@ -396,7 +396,7 @@ Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent c
 
         'search for major version, decrementing by one until success
         Do While verMajor >= 75
-            Url = "https://msedgedriver.azureedge.net/LATEST_RELEASE_" & verMajor & "_WINDOWS"
+            Url = "https://msedgedriver.microsoft.com/LATEST_RELEASE_" & verMajor & "_WINDOWS"
             
             respTxt = requestData(Url)
             
@@ -596,7 +596,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
             tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
         End If
     Case svbaBrowser.Edge
-        Url = "https://msedgedriver.azureedge.net/" & driverVersion & "/edgedriver_" & platformString & ".zip"
+        Url = "https://msedgedriver.microsoft.com/" & driverVersion & "/edgedriver_" & platformString & ".zip"
         tmpInstallZipPath = tmpInstallFolder & "edgedriver_" & platformString & ".zip"
         tmpZipDriverFilename = "msedgedriver.exe"
         tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
