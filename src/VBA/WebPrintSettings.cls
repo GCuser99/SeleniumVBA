@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage print settings for gene
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.5
+' SeleniumVBA v6.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

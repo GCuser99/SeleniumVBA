@@ -16,7 +16,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 - Improved performance/reliability by executing expensive/complex code using in-browser JavaScript
 - NavigateToString allowing direct navigation to HTML strings to help facilitate testing and issue debugging
-- Featured on [Sancarn](https://github.com/sancarn)'s curated [Awesome VBA](https://github.com/sancarn/awesome-vba?tab=readme-ov-file#web-tools) list [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
+- Featured on [Sancarn](https://github.com/sancarn)'s curated [Awesome VBA list](https://github.com/sancarn/awesome-vba?tab=readme-ov-file#web-tools) [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 
 ## Setup
 

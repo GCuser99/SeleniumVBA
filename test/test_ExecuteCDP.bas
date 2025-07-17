@@ -93,6 +93,8 @@ Sub test_cdp_enhanced_geolocation()
     'refresh the page...
     driver.Refresh
     
+    driver.Wait 1000
+    
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
     Debug.Assert driver.FindElementByID("lat-value").GetText <> 41.1621429

@@ -5,7 +5,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.5
+    ' SeleniumVBA v6.6
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -3086,7 +3086,6 @@ Public Class WebDriver
         GetTime timeStart 'in counts
         'calculate time to quit in counts based on max time to wait in MS
         timeEnd = timeStart + timeMStoCounts(Max(maxWaitTimeMS, 0))
-        GetTime timeStart
     
         data.Add "id", element.elementId
     

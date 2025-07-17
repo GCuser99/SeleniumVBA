@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.5
+' SeleniumVBA v6.6
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -3261,7 +3261,6 @@ Private Function waitForIsCommand(cmd As Variant, element As WebElement, ByVal m
     GetTime timeStart 'in currency
     'calculate time to quit in currency based on max time to wait in MS
     timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
-    GetTime timeStart
     
     data.Add "id", element.elementId
     
