@@ -15,5 +15,5 @@ Note: To reference the add-in from another workbook:
 
 
 
-If referencing the add-in from another workbook, you must instantiate SeleniumVBA objects using the Class Factory syntax as show in the [Object Instantiation Section](https://github.com/GCuser99/SeleniumVBA/wiki#object-instantiation)of the Wiki.
+If referencing the add-in from another workbook, you must instantiate SeleniumVBA objects using the Class Factory syntax as show in the [Object Instantiation Section](https://github.com/GCuser99/SeleniumVBA/wiki#object-instantiation) of the Wiki.
 
