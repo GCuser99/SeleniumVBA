@@ -154,7 +154,8 @@ Private Function getLocalOneDrivePath(ByVal targetPath As String) As String
         objReg.GetStringValue HKCU, rPath & subKey, "UrlNamespace", urlNamespace
         If InStr(targetPath, urlNamespace) > 0 Then
             objReg.GetStringValue HKCU, rPath & subKey, "MountPoint", mountPoint
-            secPart = Replace$(Mid$(targetPath, Len(urlNamespace)), "/", "\")
+            secPart = Replace$(Mid$(targetPath, Len(urlNamespace) + 1), "/", "\") '+1
+            Dim firstSecPart As String: firstSecPart = secPart
             targetPath = mountPoint & secPart
             Do Until Dir(targetPath, vbDirectory) <> "" Or InStr(2, secPart, "\") = 0
                 secPart = Mid$(secPart, InStr(2, secPart, "\"))
@@ -163,6 +164,7 @@ Private Function getLocalOneDrivePath(ByVal targetPath As String) As String
             Exit For
         End If
     Next subKey
+    If firstSecPart = secPart Then targetPath = mountPoint 'root directory
     
     Dim fso As New FileSystemObject
     If Not (fso.FileExists(targetPath) Or fso.FolderExists(targetPath)) Then
@@ -594,3 +596,4 @@ Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
     binaryStream.Close
     readByteArrayFromFile = bytearray
 End Function
+
