@@ -152,7 +152,7 @@ Private Function getLocalOneDrivePath(ByVal targetPath As String) As String
     objReg.EnumKey HKCU, rPath, subKeys
     For Each subKey In subKeys
         objReg.GetStringValue HKCU, rPath & subKey, "UrlNamespace", urlNamespace
-        If InStr(targetPath, urlNamespace) > 0 Then
+        If urlNamespace <> "" And InStr(targetPath, urlNamespace) > 0 Then
             objReg.GetStringValue HKCU, rPath & subKey, "MountPoint", mountPoint
             secPart = Replace$(Mid$(targetPath, Len(urlNamespace)), "/", "\")
             targetPath = mountPoint & secPart
