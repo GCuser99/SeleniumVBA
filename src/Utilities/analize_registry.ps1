@@ -1,11 +1,12 @@
 # This script will scan the registry for all keys associated with SeleniumVBA install,
 # create a log file, and optionally delete them (not recommended - uninstall via Inno Setup unins000.exe)
 
-
-$ProgIDPattern = "SeleniumVBA.*"
+$ProgID = "SeleniumVBA"
 $GuidPrefix = "38ED0FFA-E3F3-41C4-B601-"
 $LogPath = ".\COM_Registry_Log.txt"
 $Delete = $false
+
+$ProgIDPattern = "$ProgID.*"
 
 $log = New-Object System.Collections.Generic.List[string]
 function Log($msg) {
@@ -101,7 +102,7 @@ function Get-OfficeVersion($app) {
         Sort-Object -Property PSChildName -Descending
 
     foreach ($version in $versions) {
-        $testPath = "$key\$($version.PSChildName)\$app\Security\Trusted Locations\SeleniumVBA"
+        $testPath = "$key\$($version.PSChildName)\$app\Security\Trusted Locations\$ProgID"
         if (Test-Path -Path $testPath) {
             return $version.PSChildName
         }
@@ -109,14 +110,11 @@ function Get-OfficeVersion($app) {
     return $null
 }
 
-# On small laptop:
-# Computer\HKEY_CURRENT_USER\Software\Microsoft\Office\16.0\Excel\Security\Trusted Locations\SeleniumVBA
-
 # Delete Trusted Location key
 function FindTrustedLocation($app) {
     $version = Get-OfficeVersion $app
     if ($version) {
-        $keyPath = "HKCU:\Software\Microsoft\Office\$version\$app\Security\Trusted Locations\SeleniumVBA"
+        $keyPath = "HKCU:\Software\Microsoft\Office\$version\$app\Security\Trusted Locations\$ProgID"
         if (Test-Path -Path $keyPath) {
             Log "Found Trusted Location: $keyPath"
             if ($Delete) {
