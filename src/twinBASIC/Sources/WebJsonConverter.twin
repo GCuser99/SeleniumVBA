@@ -1,5 +1,7 @@
 [COMCreatable(True)]
 [PredeclaredId(True)]
+[ClassId("38ED0FFA-E3F3-41C4-B601-3AB4606E3539")]
+[InterfaceId("38ED0FFA-E3F3-41C4-B601-C6FE0FF78720")]
 [Hidden(False)]
 Public Class WebJsonConverter
 

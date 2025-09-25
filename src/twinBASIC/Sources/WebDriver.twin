@@ -1,11 +1,13 @@
 [COMCreatable(True)]
 [PredeclaredId(False)]
 [Hidden(False)]
+[ClassId("38ED0FFA-E3F3-41C4-B601-0D7E1048404D")]
+[InterfaceId("38ED0FFA-E3F3-41C4-B601-A7C848D442B2")]
 [Description("This class provides the main mechanism to control/automate a browser application")]
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.6
+    ' SeleniumVBA v6.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -718,7 +720,7 @@ Public Class WebDriver
         Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
     End Function
 
-    [Description("Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")]
+    [Description("DEPRECATED - Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")]
     Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
         'WARNING: this could crash host app with MWB AV real-time protection
         Dim i As Long
@@ -2071,7 +2073,6 @@ Public Class WebDriver
         'loop until file exists
         Do
             If fso.FileExists(filePath) Then Exit Do
-        
             sleep 50  'ms
             GetTime timeNow
             If timeNow > timeEnd Then GoTo MaxTimeExceeded
@@ -2079,8 +2080,10 @@ Public Class WebDriver
     
         'the file exists but now make sure it is finished writing (closed)
         Do
-            If FileClosed(filePath) Then Exit Sub
-        
+            If FileClosed(filePath) Then
+                If browser_ = Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
+                Exit Sub
+            End If
             sleep 50  'ms
             'SleepWinAPI 50 'ms
             'DoEvents 'yield to other processes

@@ -781,11 +781,10 @@ Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
  
     ' Length with be at least 16 characters and assume will be less than 100 characters
     If json_Length >= 16 And json_Length <= 100 Then
-        Dim regEx As RegExp
+        Dim oRegExp As New RegExp
         On Error GoTo EH
-        Set regEx = New RegExp
-        regEx.Pattern = "^((\+|-)?\d+)(\.((\d+)?))?((e|E)((\+|-)?)\d+)?$"
-        json_StringIsLargeNumber = regEx.test(json_String)
+        oRegExp.Pattern = "^((\+|-)?\d+)(\.((\d+)?))?((e|E)((\+|-)?)\d+)?$"
+        json_StringIsLargeNumber = oRegExp.test(json_String)
     End If
     Exit Function
 EH:

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.6
+' SeleniumVBA v6.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -279,6 +279,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
     
     Set fso = New FileSystemObject
+    
     If Not fso.FileExists(driverPath) Then
         GetInstalledDriverVersion = verDriverNotFound
         Exit Function
@@ -797,45 +798,45 @@ End Function
 Private Function findLatestChromeVersionFromBuild(ByVal jsonString As String, ByVal browserBuild As String) As String
     'this function assumes that input json is ordered from oldest to newest build/version numbers
     'it finds the MOST RECENT version of chrome driver that is compatible with the input browser build
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
-    Dim match As VBScript_RegExp_55.match
+    Dim oRegExp As New RegExp
+    Dim oMatches As MatchCollection
+    Dim oMatch As match
     Dim lastVersion As String
 
     oRegExp.Global = True
     oRegExp.Pattern = """(\d+\.\d+\.\d+)"":{""version"":""(\d+\.\d+\.\d+\.\d+)"""
-    Set matches = oRegExp.execute(jsonString)
+    Set oMatches = oRegExp.execute(jsonString)
     'find the maximum build that is less than or equal to installed browser build
-    For Each match In matches
-        If compareVersions(match.SubMatches(0), browserBuild) = 1 Then
+    For Each oMatch In oMatches
+        If compareVersions(oMatch.SubMatches(0), browserBuild) = 1 Then
             findLatestChromeVersionFromBuild = lastVersion
             Exit Function
         End If
-        lastVersion = match.SubMatches(1)
-    Next match
+        lastVersion = oMatch.SubMatches(1)
+    Next oMatch
     'if here then return last version in the file
     findLatestChromeVersionFromBuild = lastVersion
 End Function
 
 Private Function findLatestFirefoxVersion(ByVal jsonString As String) As String
     'this function finds the latest Firefox driver version number
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
+    Dim oRegExp As New RegExp
+    Dim oMatches As MatchCollection
     
     oRegExp.Global = False
     oRegExp.Pattern = "geckodriver-v(\d+\.\d+\.\d+)-win32\.zip"
 
-    Set matches = oRegExp.execute(jsonString)
+    Set oMatches = oRegExp.execute(jsonString)
     
-    If matches.Count = 0 Then findLatestFirefoxVersion = "Error: Release Not Found": Exit Function
+    If oMatches.Count = 0 Then findLatestFirefoxVersion = "Error: Release Not Found": Exit Function
     
-    findLatestFirefoxVersion = matches(0).SubMatches(0)
+    findLatestFirefoxVersion = oMatches(0).SubMatches(0)
 End Function
 
 Private Function findVersionInString(ByVal stringToSearch As String, ByVal browser As svbaBrowser) As String
     'this function parses the input string for the version number substring
-    Dim oRegExp As VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
+    Dim oRegExp As New RegExp
+    Dim oMatches As MatchCollection
     Dim searchPattern As String
 
     Select Case browser
@@ -846,12 +847,11 @@ Private Function findVersionInString(ByVal stringToSearch As String, ByVal brows
     End Select
     
     On Error GoTo EH
-    Set oRegExp = New VBScript_RegExp_55.RegExp
     oRegExp.Global = False
     oRegExp.Pattern = searchPattern
 
-    Set matches = oRegExp.execute(stringToSearch)
-    If matches.Count > 0 Then findVersionInString = matches(0)
+    Set oMatches = oRegExp.execute(stringToSearch)
+    If oMatches.Count > 0 Then findVersionInString = oMatches(0)
     Exit Function
 EH:
     Err.Raise 1, , "Error in findVersionInString of WebDriverManager: VBScript_RegExp failed - make sure that it is installed on your Windows system and is not being blocked by AV software."

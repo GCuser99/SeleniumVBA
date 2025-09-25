@@ -100,10 +100,10 @@ Sub test_file_download()
     
     driver.FindElementByCssSelector("#file-1").Click
     driver.WaitForDownload ".\file_1.txt"
-    
+
     driver.FindElementByCssSelector("#file-2").Click
     driver.WaitForDownload ".\file_2.jpg"
-    
+
     driver.DeleteFiles ".\file_1.txt", ".\file_2.jpg"
             
     driver.CloseBrowser

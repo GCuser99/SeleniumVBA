@@ -1,11 +1,12 @@
 [COMCreatable(False)]
 [PredeclaredId(False)]
 [Hidden(False)]
+[InterfaceId("38ED0FFA-E3F3-41C4-B601-4FEE4BB3BBEB")]
 [Description("This class is used for exposing a shadow root DOM subtree that is rendered separately from a document's main DOM tree - must be instantiated using WebDriver's GetShadowRoot method")]
 Public Class WebShadowRoot
 
     ' ==========================================================================
-    ' SeleniumVBA v6.6
+    ' SeleniumVBA v6.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

@@ -1,5 +1,3 @@
-// This installer script references Bill Stewart's UninsIS DLL version 1.5.0.
-// see https://github.com/Bill-Stewart/UninsIS
 // With this installer, the user can (re)install the DLL in a location
 // of their choice (DisableDirPage=no). If the user had already
 // installed an older (or even same or newer) version compared to the one
@@ -22,9 +20,6 @@
 #define RequirementsFilePath ".\readme.rtf"
 #define SetupOutputFolderPath "..\..\..\dist" 
 #define AppVersion GetVersionNumbersString(DLL64FilePath)
-// The following definition points to the path of 
-// Bill Stewart's UninsIS.dll
-#define UninstallDLLFilePath ".\UninsIS\UninsIS.dll"
 
 [Setup]
 AppId={{#AppGUID}
@@ -91,11 +86,10 @@ Source: {#UtilitiesPath}\cleanup_drivers.ps1; DestDir: {app}\utilities; Flags: i
 Source: {#UtilitiesPath}\create_update_ini_file.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
 Source: {#UtilitiesPath}\launch_chrome_in_debugger_mode.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
 Source: {#UtilitiesPath}\launch_edge_in_debugger_mode.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
+Source: {#UtilitiesPath}\analize_registry.ps1; DestDir: {app}\utilities; Flags: ignoreversion; Components: pkg_utils;
 Source: {#LicenseFilePath} ; DestDir: "{app}"; Flags: ignoreversion ; Components: pkg_core;
 Source: {#RequirementsFilePath} ; DestDir: "{app}"; Flags: ignoreversion ; Components: pkg_core;
 ; Source: "Readme.txt"; DestDir: "{app}"; Flags: isreadme
-; For importing DLL functions at setup
-Source: {#UninstallDLLFilePath}; Flags: dontcopy
 
 [Icons]
 Name: "{autodesktop}\SeleniumVBA - Shortcut"; Filename: "{app}"
@@ -113,272 +107,380 @@ Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Access}.0\
 
 [Code]
 const
-  AppPathsKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths';
+  APPPATHSKEY = 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths';
   OFFICE_UNKNOWN_BIT = -1;
   OFFICE_32_BIT = 0;
   OFFICE_64_BIT = 6;
 
-Function GetBinaryType(ApplicationName: string; var BinaryType: Integer): Boolean;
+// API call to determine bitness of an executable
+function GetBinaryType(ApplicationName: string; var BinaryType: Integer): Boolean;
   external 'GetBinaryTypeW@kernel32.dll stdcall';
 
-// The following code from Martin Prikryl - see: 
+// The following code from Martin Prikryl - see
 // https://stackoverflow.com/questions/47431008/getting-the-version-and-platform-of-office-application-from-windows-registry#47443674
-Function GetOfficeBitness():Integer;
-  Var OfficeApps: array[1..2] of string; 
-  Var i: Integer;
-  Var OfficeAppPath: String;
-  Var BinaryType: Integer;
-  Var KeyFound: Boolean;
-  Begin
-    //find the Office app binary path from Registry - 
-    //first try Excel, and if that fails then Access, then Word, etc
-    //once path is found, then use API to determine bitness of app
-    Result := OFFICE_UNKNOWN_BIT;
-
-    OfficeApps[1]:= 'excel.exe';
-    OfficeApps[2]:= 'MSACESS.EXE';
-    //OfficeApps[3]:= 'Winword.exe';
-    //OfficeApps[4]:= 'powerpnt.exe';
-    //OfficeApps[5]:= 'OUTLOOK.exe';
-
-    For i:=1 To High(OfficeApps) Do
-      Begin
-        KeyFound := RegQueryStringValue(HKLM, AppPathsKey + '\' + OfficeApps[i], '', OfficeAppPath);
-        If KeyFound Then Break;
-      End;
-    
-    If KeyFound Then
-      Begin
-        // find the bitness of the application binary 
-        if GetBinaryType(OfficeAppPath, BinaryType) Then Result:=BinaryType;       
-      End;
-  End;
-
-Function InstallX64(): Boolean;
-  Begin
-    Result := (GetOfficeBitness = OFFICE_64_BIT);
-  End;
-
-Function InstallX32: Boolean;
-  Begin
-    Result := IsWin64 And (GetOfficeBitness = OFFICE_32_BIT);
-  End;
-
-// The following three functions from:
-// https://github.com/florentbr/SeleniumBasic/blob/master/SeleniumBasicSetup.iss
-//Computer\HKEY_CLASSES_ROOT\Excel.Application\CurVer
-//Computer\HKEY_CLASSES_ROOT\Access.Application\CurVer
-
-Function HasExcel(): Boolean;
-  Begin
-    Result := RegKeyExists(HKCR, 'Excel.Application');
-  End;
-
-Function HasAccess(): Boolean;
-  Begin
-    Result := RegKeyExists(HKCR, 'Access.Application');
-  End;
-
-Function BoolToStr(const value: Boolean): String;
-  Begin
-    If value Then Result := 'True' Else Result := 'False';
-  End;
-
-// The following procedures are needed for UninsIS package
-
-// Import IsISPackageInstalled() function from UninsIS.dll at setup time
-function DLLIsISPackageInstalled(AppId: string; Is64BitInstallMode,
-  IsAdminInstallMode: DWORD): DWORD;
-  external 'IsISPackageInstalled@files:UninsIS.dll stdcall setuponly';
-
-// Import CompareISPackageVersion() function from UninsIS.dll at setup time
-function DLLCompareISPackageVersion(AppId, InstallingVersion: string;
-  Is64BitInstallMode, IsAdminInstallMode: DWORD): Integer;
-  external 'CompareISPackageVersion@files:UninsIS.dll stdcall setuponly';
-
-// Import GetISPackageVersion() function from UninsIS.dll at setup time
-function DLLGetISPackageVersion(AppId, Version: string;
-  NumChars, Is64BitInstallMode, IsAdminInstallMode: DWORD): DWORD;
-  external 'GetISPackageVersion@files:UninsIS.dll stdcall setuponly';
-
-// Import UninstallISPackage() function from UninsIS.dll at setup time
-function DLLUninstallISPackage(AppId: string; Is64BitInstallMode,
-  IsAdminInstallMode: DWORD): DWORD;
-  external 'UninstallISPackage@files:UninsIS.dll stdcall setuponly';
-
-// Wrapper for UninsIS.dll IsISPackageInstalled() function
-// Returns true if package is detected as installed, or false otherwise
-function IsISPackageInstalled(): Boolean;
-begin
-  result := DLLIsISPackageInstalled('{#AppGUID}',  // AppId
-    DWORD(Is64BitInstallMode()),                   // Is64BitInstallMode
-    DWORD(IsAdminInstallMode())) = 1;              // IsAdminInstallMode
-  if result then
-    Log('UninsIS.dll - Package detected as installed')
-  else
-    Log('UninsIS.dll - Package not detected as installed');
-end;
-
-// Wrapper for UninsIS.dll GetISPackageVersion() function
-function GetISPackageVersion(): string;
+function GetOfficeBitness(): Integer;
 var
-  NumChars: DWORD;
-  OutStr: string;
+  officeApps: array[1..2] of string;
+  i: Integer;
+  officeAppPath: string;
+  binaryType: Integer;
+  keyFound: Boolean;
 begin
-  result := '';
-  // First call: Get number of characters needed for version string
-  NumChars := DLLGetISPackageVersion('{#AppGUID}',  // AppId
-    '',                                             // Version
-    0,                                              // NumChars
-    DWORD(Is64BitInstallMode()),                    // Is64BitInstallMode
-    DWORD(IsAdminInstallMode()));                   // IsAdminInstallMode
-  // Allocate string to receive output
-  SetLength(OutStr, NumChars);
-  // Second call: Get version number string
-  if DLLGetISPackageVersion('{#AppGUID}',  // AppID
-    OutStr,                                // Version
-    NumChars,                              // NumChars
-    DWORD(Is64BitInstallMode()),           // Is64BitInstallMode
-    DWORD(IsAdminInstallMode())) > 0 then  // IsAdminInstallMode
+  // Find the Office app binary path from Registry -
+  //first try Excel, and if that fails then Access, then Word, etc 
+  //once path is found, then use API to determine bitness of app
+  Result := OFFICE_UNKNOWN_BIT;
+
+  officeApps[1] := 'excel.exe';
+  officeApps[2] := 'MSACESS.EXE';
+  //OfficeApps[3]:= 'Winword.exe'; 
+  //OfficeApps[4]:= 'powerpnt.exe'; 
+  //OfficeApps[5]:= 'OUTLOOK.exe';
+
+  for i := 1 to High(officeApps) do
   begin
-    result := OutStr;
+    keyFound := RegQueryStringValue(HKLM, APPPATHSKEY + '\' + officeApps[i], '', officeAppPath);
+    if keyFound then Break;
+  end;
+
+  if keyFound then
+  begin
+    // find the bitness of the application binary
+    if GetBinaryType(officeAppPath, binaryType) then
+      Result := binaryType;
   end;
 end;
 
-// Wrapper for UninsIS.dll CompareISPackageVersion() function
-// Returns:
-// < 0 if version we are installing is < installed version
-// 0   if version we are installing is = installed version
-// > 0 if version we are installing is > installed version
-function CompareISPackageVersion(): Integer;
+function InstallX64(): Boolean;
 begin
-  result := DLLCompareISPackageVersion('{#AppGUID}',  // AppId
-    '{#AppVersion}',                                  // InstallingVersion
-    DWORD(Is64BitInstallMode()),                      // Is64BitInstallMode
-    DWORD(IsAdminInstallMode()));                     // IsAdminInstallMode
-  if result < 0 then
-    Log('UninsIS.dll - This version {#AppVersion} older than installed version')
-  else if result = 0 then
-    Log('UninsIS.dll - This version {#AppVersion} same as installed version')
-  else
-    Log('UninsIS.dll - This version {#AppVersion} newer than installed version');
+  Result := (GetOfficeBitness = OFFICE_64_BIT);
 end;
 
-// Wrapper for UninsIS.dll UninstallISPackage() function
-// Returns 0 for success, non-zero for failure
-function UninstallISPackage(): DWORD;
+function InstallX32: Boolean;
 begin
-  result := DLLUninstallISPackage('{#AppGUID}',  // AppId
-    DWORD(Is64BitInstallMode()),                 // Is64BitInstallMode
-    DWORD(IsAdminInstallMode()));                // IsAdminInstallMode
-  if result = 0 then
-    Log('UninsIS.dll - Installed package uninstall completed successfully')
+  Result := IsWin64 and (GetOfficeBitness = OFFICE_32_BIT);
+end;
+
+// The following three functions from: 
+// https://github.com/florentbr/SeleniumBasic/blob/master/SeleniumBasicSetup.iss 
+// Computer\HKEY_CLASSES_ROOT\Excel.Application\CurVer 
+// Computer\HKEY_CLASSES_ROOT\Access.Application\CurVer
+
+function HasExcel(): Boolean;
+begin
+  Result := RegKeyExists(HKCR, 'Excel.Application');
+end;
+
+function HasAccess(): Boolean;
+begin
+  Result := RegKeyExists(HKCR, 'Access.Application');
+end;
+
+function BoolToStr(const value: Boolean): string;
+begin
+  if value then
+    Result := 'True'
   else
-    Log('UninsIS.dll - installed package uninstall did not complete successfully');
+    Result := 'False';
+end;
+
+// Office version detection notes 
+// Only if 2007 then we can rule out 64 bit. 2010, 2013, 2016, 
+// and 365 all have both 32 and 64 bit versions 
+// MS not supporting 2013 after April 2023 
+// first get the path to executables: 
+// HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\excel.exe 
+// HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\MSACCESS.EXE 
+// these above should yield something like: 
+// C:\Program Files\Microsoft Office\root\Office16\MSACCESS.EXE 
+// C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE 
+// then use GetBinaryType to discover bitness 
+// Check if the OS/Office requirements have been met - if not warn user
+
+function InitializeSetup(): Boolean;
+var
+  officeBitness: Integer;
+  answer: Integer;
+begin
+  if not IsWin64 then
+  begin
+    answer := MsgBox(
+      'Setup has determined that your OS is not 64-bit Windows, which is a requirement of this installation. Do you still want to proceed?',
+      mbConfirmation, MB_YESNO);
+    if answer = IDYES then
+      Result := True
+    else
+    begin
+      Result := False;
+      Exit;
+    end;
+  end;
+
+  officeBitness := GetOfficeBitness;
+
+  case officeBitness of
+    OFFICE_UNKNOWN_BIT:
+    begin
+      answer := MsgBox(
+        'MS Office bitness could not be determined. Are you sure that you want to proceed with the installation?',
+        mbConfirmation, MB_YESNO);
+      if answer = IDYES then
+        Result := True
+      else
+        Result := False;
+    end;
+    OFFICE_32_BIT:
+      Result := True;
+    OFFICE_64_BIT:
+      Result := True;
+  else
+    begin
+      answer := MsgBox(
+        'The installed version of MS Office was found but is not compatible with this installation. Are you sure that you want to proceed?',
+        mbConfirmation, MB_YESNO);
+      if answer = IDYES then
+        Result := True
+      else
+        Result := False;
+    end;
+  end;
+end;
+
+function GetOfficeVersion(app: string): string;
+var
+  ver: string;
+  i: Integer;
+begin
+  if RegQueryStringValue(HKCR, app + '.Application\CurVer', '', ver) then
+  begin
+    for i := 1 to Length(ver) do
+    begin
+      if (ver[i] >= '0') and (ver[i] <= '9') then
+        Result := Result + ver[i];
+    end;
+  end;
+end;
+
+// The following workflow is based on Bill Stewart's UninsIS DLL version
+// see https://github.com/Bill-Stewart/UninsIS 
+// Refactored/simplified to run directly as IS script (versus pre-compiled DLL) 
+
+// Get Registry path root
+function GetUninstallRegRoot(isAdmin: Boolean): Integer;
+begin
+  if isAdmin then
+    Result := HKEY_LOCAL_MACHINE
+  else
+    Result := HKEY_CURRENT_USER;
+end;
+
+// Builds IS uninstall Registry key
+function GetUninstallRegKey(appId: string; is64Bit, isAdmin: Boolean): string;
+begin
+  if is64Bit and IsWin64 then
+    Result := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + appId + '_is1'
+  else
+    Result := 'Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\' + appId + '_is1';
+
+  if not IsWin64 then
+    Result := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + appId + '_is1';
+end;
+
+// Determines if IS uninstall Registry key exists
+function IsISPackageInstalled(appId: string; is64Bit, isAdmin: Boolean): Boolean;
+begin
+  Result := RegKeyExists(GetUninstallRegRoot(isAdmin), GetUninstallRegKey(appId, is64Bit, isAdmin));
+end;
+
+// Reads the IS uninstall Registry key value holding the application install version
+function GetISPackageVersion(appId: string; is64Bit, isAdmin: Boolean): string;
+begin
+  if not RegQueryStringValue(GetUninstallRegRoot(isAdmin),
+    GetUninstallRegKey(appId, is64Bit, isAdmin), 'DisplayVersion', Result) then
+    Result := '';
+end;
+
+// Extracts the Nth numeric component from a dotted version string
+function ParseVersionPart(const ver: string; index: Integer): Integer;
+var
+  p, startPos, partIndex: Integer;
+  s: string;
+begin
+  Result := 0;
+  startPos := 1;
+  partIndex := 0;
+
+  for p := 1 to Length(ver) + 1 do
+  begin
+    if (p > Length(ver)) or (ver[p] = '.') then
+    begin
+      if partIndex = index then
+      begin
+        s := Copy(ver, startPos, p - startPos);
+        Result := StrToIntDef(s, 0);
+        Exit;
+      end;
+      Inc(partIndex);
+      startPos := p + 1;
+    end;
+  end;
+end;
+
+// Compare two dotted version strings
+function CompareVersionStrings(const ver1, ver2: string): Integer;
+var
+  i, v1, v2: Integer;
+begin
+  Result := 0;
+  for i := 0 to 3 do
+  begin
+    v1 := ParseVersionPart(ver1, i);
+    v2 := ParseVersionPart(ver2, i);
+    if v1 < v2 then
+    begin
+      Result := -1;
+      Exit;
+    end
+    else if v1 > v2 then
+    begin
+      Result := 1;
+      Exit;
+    end;
+  end;
+end;
+
+// Returns: 
+// < 0 if version we are installing is < installed version 
+// 0 if version we are installing is = installed version 
+// > 0 if version we are installing is > installed version
+function CompareISPackageVersion(appId, installingVersion: string; is64Bit, isAdmin: Boolean): Integer;
+var
+  installedVersion: string;
+begin
+  installedVersion := GetISPackageVersion(appId, is64Bit, isAdmin);
+  if installedVersion = '' then
+    Result := 0
+  else
+    Result := CompareVersionStrings(installingVersion, installedVersion);
+end;
+
+// Returns the path of the current (pre-existing) unins000.exe file
+function GetUninstallString(appId: string; is64Bit, isAdmin: Boolean): string;
+begin
+  if not RegQueryStringValue(GetUninstallRegRoot(isAdmin),
+    GetUninstallRegKey(appId, is64Bit, isAdmin), 'UninstallString', Result) then
+    Result := '';
+end;
+
+// Returns true if package is detected as uninstalled, or false otherwise
+function UninstallISPackage(appId: string; is64Bit, isAdmin: Boolean): Boolean;
+var
+  uninstExe: string;
+  resultCode, i: Integer;
+  uninstallArgs: string;
+begin
+  Result := False;
+  uninstExe := GetUninstallString(appId, is64Bit, isAdmin);
+  if uninstExe = '' then
+    Exit;
+
+  // Extract the EXE path from the uninstall string (strip quotes if present)
+  if (Length(uninstExe) > 0) and (uninstExe[1] = '"') then
+  begin
+    Delete(uninstExe, 1, 1);
+    uninstExe := Copy(uninstExe, 1, Pos('"', uninstExe) - 1);
+  end
+  else
+  begin
+    // If no quotes, take up to first space
+    if Pos(' ', uninstExe) > 0 then
+      uninstExe := Copy(uninstExe, 1, Pos(' ', uninstExe) - 1);
+  end;
+
+  // Run the uninstaller silently
+  uninstallArgs := '/SILENT /SUPPRESSMSGBOXES /NORESTART';
+  if Exec(uninstExe, uninstallArgs, '', SW_SHOW, ewWaitUntilTerminated, resultCode) then
+  begin
+    if resultCode = 0 then
+    begin
+      // Wait for the uninstaller EXE to delete itself (max ~30 seconds)
+      for i := 0 to 300 do
+      begin
+        if not FileExists(uninstExe) then
+        begin
+          Result := True;
+          Break;
+        end;
+        Log('Waiting for Uninstall to complete');
+        Sleep(100);
+      end;
+    end;
+  end;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): string;
-
-var oldInstallDir: String; newInstallDir: String;
-var isDifferentLocation: Boolean;
-var isDifferentVersion: Boolean;
-var isInstalled: Boolean;
-var alwaysUninstall: Boolean;
+var
+  oldInstallDir: string;
+  newInstallDir: string;
+  isDifferentLocation: Boolean;
+  isDifferentVersion: Boolean;
+  isInstalled: Boolean;
+  alwaysUninstall: Boolean;
+  res: Boolean;
+  is64BitInstall: Boolean;
+  isAdminInstall: Boolean;
 begin
-  // set alwaysUninstall to true if uninstall
+  // Set alwaysUninstall to true if uninstall
   // should run regardless of version and location compare
 
-  // if IsISPackageInstalled() then
-  // begin
-  //  Version := GetISPackageVersion();
-  //  MsgBox('Package installed; version = ' + Version, mbInformation, MB_OK);
+  // if IsISPackageInstalled() then 
+  // begin 
+  // Version := GetISPackageVersion(); 
+  // MsgBox('Package installed; version = ' + Version, mbInformation, MB_OK); 
   // end;
 
-  alwaysUninstall := false;
-  isDifferentLocation := false;
-  isDifferentVersion := false;
+  alwaysUninstall := False;
+  isDifferentLocation := False;
+  isDifferentVersion := False;
 
   oldInstallDir := WizardForm.PrevAppDir;
   newInstallDir := ExpandConstant('{app}');
-  
-  if oldInstallDir <> newInstallDir then isDifferentLocation := true;
+  if oldInstallDir <> newInstallDir then
+    isDifferentLocation := True;
 
-  if CompareISPackageVersion() <> 0  then isDifferentVersion := true;
+  is64BitInstall := Is64BitInstallMode();
+  isAdminInstall := IsAdminInstallMode();
 
-  isInstalled := IsISPackageInstalled()
+  if CompareISPackageVersion('{#AppGUID}', '{#AppVersion}', is64BitInstall, isAdminInstall) <> 0 then
+    isDifferentVersion := True;
+
+  isInstalled := IsISPackageInstalled('{#AppGUID}', is64BitInstall, isAdminInstall);
 
   if isInstalled then
+  begin
+    if isDifferentLocation or isDifferentVersion or alwaysUninstall then
     begin
-      if isDifferentLocation or isDifferentVersion or alwaysUninstall then
-        UninstallISPackage();
+      res := UninstallISPackage('{#AppGUID}', is64BitInstall, isAdminInstall);
+      if res then
+        Log('Previous version successfully uninstalled')
+      else
+        Log('Previous version not uninstalled');
     end;
+  end;
 
-  // log some results for debugging
-  // Log('Is DLL already installed= ' + BoolToStr(isInstalled));
-  // Log('Is DLL install location different than previous= ' + BoolToStr(isDifferentLocation));
-  // Log('Is DLL version different than previous= ' + BoolToStr(isDifferentVersion));
+  // Log some results for debugging
+  Log('Old Install Dir= ' + oldInstallDir);
+  Log('New Install Dir= ' + newInstallDir);
+  Log('Is Admin install mode= ' + BoolToStr(IsAdminInstallMode()));
+  Log('Is 64-bit install mode= ' + BoolToStr(Is64BitInstallMode()));
+  Log('Is DLL already installed= ' + BoolToStr(isInstalled));
+  Log('Is DLL install location different than previous= ' + BoolToStr(isDifferentLocation));
+  Log('Is DLL version different than previous= ' + BoolToStr(isDifferentVersion));
 
-  result := '';
+  Result := '';
 end;
 
-// Office version detection notes
-// Only if 2007 then we can rule out 64 bit. 2010, 2013, 2016, 
-// and 365 all have both 32 and 64 bit versions
-// MS not supporting 2013 after April 2023
 
-//first get the path to executables:
-//HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\excel.exe
-//HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\MSACCESS.EXE
-//these above should yield something like:
-//C:\Program Files\Microsoft Office\root\Office16\MSACCESS.EXE
-//C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE
-//then use GetBinaryType to discover bitness
-
-// Check if the OS/Office requirements have been met - if not warn user 
-Function InitializeSetup(): Boolean;
-  Var OfficeBitness: Integer;
-  Var answer: Integer;
-  Begin
-    if Not IsWin64 then
-      Begin
-        answer := MsgBox('Setup has determined that your OS is not 64-bit Windows, which is a requirement of this installation. Do you still want to proceed?', mbConfirmation, MB_YESNO); 
-        If answer = IDYES Then
-          Begin
-            Result:=True;
-          End 
-        Else
-          Begin
-            Result := False;
-            Exit;
-          End; 
-      End;
-    OfficeBitness:= GetOfficeBitness
-    Case OfficeBitness of  
-      OFFICE_UNKNOWN_BIT : Begin 
-        answer := MsgBox('MS Office bitness could not be determined. Are you sure that you want to proceed with the installation?', mbConfirmation, MB_YESNO); 
-        if answer = IDYES then Result:=True else Result := False End;
-      OFFICE_32_BIT : Begin 
-        Result:=True; End; 
-      OFFICE_64_BIT : Begin 
-        Result:=True; End;
-    Else
-        Begin
-          answer := MsgBox('The installed version of MS Office was found but is not compatible with this installation. Are you sure that you want to proceed?', mbConfirmation, MB_YESNO); 
-          if answer = IDYES then Result:=True else Result := False;
-        End;      
-    End;
-  End;
-
-Function GetOfficeVersion(app: String): String;
-  Var ver: String; i: Integer;
-  Begin
-    If RegQueryStringValue(HKCR, app + '.Application\CurVer', '', ver) Then Begin
-      For i := 1 To Length(ver) Do Begin
-        If (ver[i] >= '0') And (ver[i] <= '9') Then
-          Result := Result + ver[i];
-      End;
-    End;
-  End;
 
 
 

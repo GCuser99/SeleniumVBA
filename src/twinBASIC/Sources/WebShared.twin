@@ -1,7 +1,7 @@
 Private Module WebShared
 
     ' ==========================================================================
-    ' SeleniumVBA v6.6
+    ' SeleniumVBA v6.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -143,9 +143,10 @@ Private Module WebShared
         objReg.EnumKey HKCU, rPath, subKeys
         For Each subKey In subKeys
             objReg.GetStringValue HKCU, rPath & subKey, "UrlNamespace", urlNamespace
-            If InStr(targetPath, urlNamespace) > 0 Then
+            If urlNamespace <> "" And InStr(targetPath & "/", urlNamespace) > 0 Then
                 objReg.GetStringValue HKCU, rPath & subKey, "MountPoint", mountPoint
-                secPart = VBA.Replace$(Mid$(targetPath, Len(urlNamespace)), "/", "\")
+                secPart = VBA.Replace$(Mid$(targetPath, Len(urlNamespace) + 1), "/", "\")
+                Dim firstSecPart As String: firstSecPart = secPart
                 targetPath = mountPoint & secPart
                 Do Until Dir(targetPath, vbDirectory) <> "" Or InStr(2, secPart, "\") = 0
                     secPart = Mid$(secPart, InStr(2, secPart, "\"))
@@ -154,6 +155,7 @@ Private Module WebShared
                 Exit For
             End If
         Next subKey
+        If firstSecPart = secPart Then targetPath = mountPoint 'OneDrivePersonal root folder
     
         Dim fso As New FileSystemObject
         If Not (fso.FileExists(targetPath) Or fso.FolderExists(targetPath)) Then

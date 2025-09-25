@@ -38,7 +38,7 @@ Sub test_executeScript()
     'ExecuteScript returns a single WebElements object if script results in a collection of WebElement objects
     Dim anchorElems As SeleniumVBA.WebElements
     Set anchorElems = driver.ExecuteScript("return document.getElementsByTagName(arguments[0])", "a")
-    Debug.Assert anchorElems.Count = 233
+    Debug.Assert anchorElems.Count = 235
     
     driver.CloseBrowser
     driver.Shutdown

@@ -105,6 +105,8 @@ Sub test_windows_SwitchToByTitle()
     
     Set childWindow = driver.Windows.SwitchToByTitle("New Window")
     
+    driver.Wait 'small delay to let window switch
+    
     Debug.Assert driver.ActiveWindow.Title = "New Window"
     Debug.Assert childWindow.Title = "New Window"
     
@@ -135,6 +137,9 @@ Sub test_windows_SwitchToByUrl()
     Debug.Print driver.ActiveWindow.Url 'prints "https://the-internet.herokuapp.com/windows"
     
     Set childWindow = driver.Windows.SwitchToByUrl("https://the-internet.herokuapp.com/windows/new")
+    
+    driver.Wait 'small delay to let window switch
+    
     Debug.Assert driver.ActiveWindow.Url = "https://the-internet.herokuapp.com/windows/new"
     Debug.Assert childWindow.Url = "https://the-internet.herokuapp.com/windows/new"
     
@@ -166,6 +171,9 @@ Sub test_windows_SwitchToNext()
     
     'switch to the next open window in the collection AFTER the current active window
     Set childWindow = driver.Windows.SwitchToNext
+    
+    driver.Wait 'small delay to let window switch
+    
     Debug.Assert driver.ActiveWindow.Title = "New Window"
     Debug.Assert childWindow.Title = "New Window"
     
@@ -232,6 +240,9 @@ Sub test_windows_CloseIt()
     Debug.Assert driver.ActiveWindow.Title = "The Internet"
     
     Set childWindow = driver.Windows.SwitchToNext
+    
+    driver.Wait 'small delay to let window switch
+    
     Debug.Assert driver.ActiveWindow.Title = "New Window"
     
     childWindow.CloseIt 'this automatically activates the mainWindow upon close
@@ -322,6 +333,8 @@ Sub test_url_encoding()
     
     driver.Windows.SwitchToByUrl "about:blank"
     driver.Windows.SwitchToByUrl urlEncoded
+    
+    driver.Wait 'small delay to let window switch
     
     Debug.Print "the active window's encoded url: " & driver.ActiveWindow.Url()
     Debug.Print "the active window's decoded url: " & driver.ActiveWindow.Url(decode:=True)

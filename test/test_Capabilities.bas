@@ -154,6 +154,7 @@ End Sub
 Sub test_unhandled_prompts()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
+    Dim html As String
     
     Set driver = SeleniumVBA.New_WebDriver
     
@@ -166,14 +167,16 @@ Sub test_unhandled_prompts()
     caps.SetUnhandledPromptBehavior svbaAccept
     
     driver.OpenBrowser caps
+    
+    html = "<!DOCTYPE html><html><head><title>Blank</title></head><body><div>Blank</div></body></html>"
 
-    driver.NavigateTo "https://www.google.com"
+    driver.NavigateToString html
     
     driver.ExecuteScript "alert('Hi!');"
     
     driver.Wait 1000
     
-    Debug.Assert driver.ActiveWindow.Title = "Google"
+    Debug.Assert driver.ActiveWindow.Title = "Blank"
     
     driver.CloseBrowser
     driver.Shutdown

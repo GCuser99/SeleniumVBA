@@ -1,10 +1,12 @@
 [COMCreatable(True)]
 [PredeclaredId(True)]
 [Hidden(False)]
+[ClassId("38ED0FFA-E3F3-41C4-B601-6310B5930B47")]
+[InterfaceId("38ED0FFA-E3F3-41C4-B601-710170BBE513")]
 [Description("This class is used to automate keyboard actions")]
 Public Class WebKeyboard
     ' ==========================================================================
-    ' SeleniumVBA v6.6
+    ' SeleniumVBA v6.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

@@ -240,7 +240,7 @@ Sub test_cdp_random_other_stuff()
     'create a browser navigation history
     driver.NavigateTo "https://www.wikipedia.org/"
     driver.Wait 500
-    driver.NavigateTo "https://www.google.com/"
+    driver.NavigateTo "https://www.selenium.dev/selenium/web/alerts.html"
     driver.Wait 500
     driver.NavigateTo "https://www.wikipedia.org/"
     
@@ -249,7 +249,7 @@ Sub test_cdp_random_other_stuff()
     Set resp = driver.ExecuteCDP("Page.getNavigationHistory")
     Debug.Assert resp("value")("entries")(1)("url") = "data:,"
     Debug.Assert resp("value")("entries")(2)("url") = "https://www.wikipedia.org/"
-    Debug.Assert resp("value")("entries")(3)("url") = "https://www.google.com/"
+    Debug.Assert resp("value")("entries")(3)("url") = "https://www.selenium.dev/selenium/web/alerts.html"
     Debug.Assert resp("value")("entries")(4)("url") = "https://www.wikipedia.org/"
     
     'use cdp reset browser history

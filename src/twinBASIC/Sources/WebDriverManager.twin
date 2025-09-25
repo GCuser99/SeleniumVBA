@@ -1,11 +1,13 @@
 [COMCreatable(True)]
 [PredeclaredId(False)]
 [Hidden(False)]
+[ClassId("38ED0FFA-E3F3-41C4-B601-09F741F5B8F9")]
+[InterfaceId("38ED0FFA-E3F3-41C4-B601-CFA1C4154DC4")]
 [Description("This class is used to maintain Selenium driver/browser version alignment")]
 Public Class WebDriverManager
 
     ' ==========================================================================
-    ' SeleniumVBA v6.6
+    ' SeleniumVBA v6.7
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

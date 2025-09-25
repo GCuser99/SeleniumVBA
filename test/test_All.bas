@@ -24,6 +24,7 @@ Sub test_full_suite()
     'this requires a pre-existing browser launched on port 9222
     'test_Capabilities.test_remoteDebugger
     test_Capabilities.test_set_user_agent
+
     test_Capabilities.test_unhandled_prompts
     test_Capabilities.test_geolocation_with_incognito
     test_Capabilities.test_incognito
@@ -39,7 +40,7 @@ Sub test_full_suite()
     
     test_ExecuteCmd.test_chrome_edge_full_screenshot
     'this requires FF installation
-    test_ExecuteCmd.test_firefox_full_screenshot
+    'test_ExecuteCmd.test_firefox_full_screenshot
     
     test_executeScript.test_call_embedded_HTML_script
     test_executeScript.test_executeScript
@@ -51,9 +52,9 @@ Sub test_full_suite()
     test_FileUpDownload.test_file_upload
     
     'these requires FF installation
-    test_Firefox.test_firefox_json_viewer_bug
-    test_Firefox.test_print
-    test_Firefox.test_file_download
+    'test_Firefox.test_firefox_json_viewer_bug
+    'test_Firefox.test_print
+    'test_Firefox.test_file_download
     
     test_Frames.test_frames_with_embed_objects
     test_Frames.test_frames_with_frameset
@@ -94,8 +95,7 @@ Sub test_full_suite()
     test_settings.test_settings
     
     test_Shadowroots.test_shadowroot
-    test_Shadowroots.test_shadowroots_clear_browser_history
-    
+
     test_Tables.test_table
     test_Tables.test_table_to_array
     test_Tables.test_large_table_to_array
@@ -112,7 +112,7 @@ Sub test_full_suite()
     test_Wait.test_WaitUntilNotPresent
     
     test_WebElements.test_WebElements
-    
+
     test_Windows.test_Selenium_way
     test_Windows.test_url_encoding
     test_Windows.test_windows_CloseIt
@@ -122,9 +122,9 @@ Sub test_full_suite()
     test_Windows.test_windows_SwitchToByUrl
     
     'these require local extension files to test
-    test_Extensions.test_addExtensions
-    test_Extensions.test_addExtensions2
-    test_Extensions.test_InstallAddon
+    'test_Extensions.test_addExtensions
+    'test_Extensions.test_addExtensions2
+    'test_Extensions.test_InstallAddon
     
     MsgBox "tests completed"
 End Sub

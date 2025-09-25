@@ -1,6 +1,8 @@
 [COMCreatable(True)]
 [PredeclaredId(True)]
 [Hidden(False)]
+[ClassId("38ED0FFA-E3F3-41C4-B601-22746279DEF7")]
+[InterfaceId("38ED0FFA-E3F3-41C4-B601-D29F4AA0A785")]
 [Description("This class is used for compatibility with the VBA version of SeleniumVBA - use New instead to instantiate if using the ActiveX DLL")]
 Public Class ClassFactory
 

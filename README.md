@@ -117,7 +117,7 @@ This project is an extensively modified/extended version of uezo's [TinySelenium
 
 [twinBASIC](https://twinbasic.com/preview.html) by Wayne Phillips
 
-[Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell and [UninsIS](https://github.com/Bill-Stewart/UninsIS) by Bill Stewart
+[Inno Setup](https://jrsoftware.org/isinfo.php) by Jordan Russell
 
 [vba-regex](https://github.com/sihlfall/vba-regex) by sihlfall
 

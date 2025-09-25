@@ -1,1 +1,0 @@
-The Inno Setup script has a dependency to a DLL called [UninsIS](https://github.com/Bill-Stewart/UninsIS) that must be copied to this directory.

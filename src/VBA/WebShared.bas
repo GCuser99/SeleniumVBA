@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.6
+' SeleniumVBA v6.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -245,14 +245,15 @@ Private Function activeVBAProjectFolderPath() As String
                     result = GetWindowText(hWnd, StrPtr(caption), bufferLen + 1)
                     caption = Left$(caption, InStr(caption, vbNullChar) - 1)
                     'extract filename from the caption
-                    Dim oRegex As New RegExp
-                    oRegex.Pattern = "^Microsoft Visual Basic[^-]*- (.*\.xl\w{1,2})(?:|(?:| -) \[.*\])$"
-                    Dim regexRes As MatchCollection
-                    Set regexRes = oRegex.execute(caption)
-                    If regexRes.Count = 1 Then
+                    Dim oRegExp As New RegExp
+                    
+                    oRegExp.Pattern = "^Microsoft Visual Basic[^-]*- (.*\.xl\w{1,2})(?:|(?:| -) \[.*\])$"
+                    Dim oMatches As MatchCollection
+                    Set oMatches = oRegExp.execute(caption)
+                    If oMatches.Count = 1 Then
                         'found vbe window and succesfully parsed caption
                         Dim sFilename As String
-                        sFilename = regexRes.Item(0).SubMatches(0)
+                        sFilename = oMatches.Item(0).SubMatches(0)
                         'the following returns vbNullString if workbook has not been saved (has no valid path yet)
                         activeVBAProjectFolderPath = oApp.Workbooks(sFilename).Path
                         If activeVBAProjectFolderPath = vbNullString Then Err.Raise 1, , "Error: unable to get the active VBProject path - make sure the parent document has been saved."
@@ -267,8 +268,8 @@ Private Function activeVBAProjectFolderPath() As String
 
                         'detect open but "uninitialized" VBE window looking for a pattern like this:
                         'Microsoft Visual Basic for Applications - [Module1 (Code)]
-                        oRegex.Pattern = "^Microsoft Visual Basic[^-]*- \[.*\]$"
-                        If oRegex.test(caption) Then
+                        oRegExp.Pattern = "^Microsoft Visual Basic[^-]*- \[.*\]$"
+                        If oRegExp.test(caption) Then
                             'found embedded ActiveX control with open but uninitialized VBE window
                             'the uninitialized VBE window was found so done with loop - finish processing this case after exiting loop
                             Exit Do
@@ -503,22 +504,22 @@ End Function
 'this is used to convert an escaped unicode string (e.g. "\u00A9") into the
 'single (wide) character equiv. This conversion is required by WebJsonConverter.
 Public Function unEscapeUnicode(ByRef keyString As Variant) As String
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
-    Dim matches As VBScript_RegExp_55.MatchCollection
-    Dim match As VBScript_RegExp_55.match
+    Dim oRegExp As New RegExp
+    Dim oMatches As MatchCollection
+    Dim oMatch As match
     Dim unEscapedValue As String
     
     oRegExp.Global = True
 
     'process escaped unicode
     oRegExp.Pattern = "\\u([0-9a-fA-F]{4})"
-    Set matches = oRegExp.execute(keyString)
-    If matches.Count > 0 Then
-        For Each match In matches
-            unEscapedValue = ChrW$(val("&H" & match.SubMatches(0)))
+    Set oMatches = oRegExp.execute(keyString)
+    If oMatches.Count > 0 Then
+        For Each oMatch In oMatches
+            unEscapedValue = ChrW$(val("&H" & oMatch.SubMatches(0)))
             'replace match with unescaped value
-            keyString = Replace$(keyString, match.Value, unEscapedValue, Count:=1)
-        Next match
+            keyString = Replace$(keyString, oMatch.Value, unEscapedValue, Count:=1)
+        Next oMatch
     End If
     unEscapeUnicode = keyString
 End Function
@@ -596,5 +597,3 @@ Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
     binaryStream.Close
     readByteArrayFromFile = bytearray
 End Function
-
-

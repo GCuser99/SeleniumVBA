@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.6
+' SeleniumVBA v6.7
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -755,9 +755,9 @@ Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements tha
     Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
 End Function
 
-'@Description("Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")
+'@Description("DEPRECATED - Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")
 Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
-Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows"
+Attribute SendKeysToOS.VB_Description = "DEPRECATED - Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows"
     'WARNING: this could crash host app with MWB AV real-time protection
     Dim i As Long
     Dim modKeys As Collection
@@ -778,24 +778,24 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
         sendPackage.Add keyString
     Else
         'search for chords, parse, and then map the input key sequence(s) to VBA/VBScript SendKeys format
-        Dim oRegExp As New VBScript_RegExp_55.RegExp
-        Dim matches As VBScript_RegExp_55.MatchCollection
-        Dim match As VBScript_RegExp_55.match
+        Dim oRegExp As New RegExp
+        Dim oMatches As MatchCollection
+        Dim oMatch As match
         Dim modKeyString As String
 
         oRegExp.Global = True
         oRegExp.Pattern = "(([" & ChrW$(&HE008&) & "-" & ChrW$(&HE00A&) & "])+)(.*?)" & ChrW$(&HE000&)
         
-        Set matches = oRegExp.execute(keyString)
+        Set oMatches = oRegExp.execute(keyString)
         
         'check if we have cords
-        If matches.Count > 0 Then
+        If oMatches.Count > 0 Then
             'process cords and keys between cords
             endMatchPosLast = 0
-            For Each match In matches
+            For Each oMatch In oMatches
                 
-                startMatchPos = match.FirstIndex + 1 'regexp is zero-based so add 1
-                matchLength = match.Length
+                startMatchPos = oMatch.FirstIndex + 1 'regexp is zero-based so add 1
+                matchLength = oMatch.Length
                 endMatchPos = startMatchPos + matchLength - 1
                 
                 If startMatchPos - 1 > endMatchPosLast Then
@@ -804,7 +804,7 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
                 End If
                 'now do the cord action
                 'handle more than one modifier keys
-                Set modKeys = splitKeyString(match.SubMatches(0))
+                Set modKeys = splitKeyString(oMatch.SubMatches(0))
                 
                 modKeyString = vbNullString
                 'press the modifiers down
@@ -812,10 +812,10 @@ Attribute SendKeysToOS.VB_Description = "Sends a key sequence to the active or s
                     modKeyString = modKeyString & osKeyMapper(modKeys(i))
                 Next i
                 
-                sendPackage.Add modKeyString & "(" & osKeyMapper(match.SubMatches(2)) & ")"
+                sendPackage.Add modKeyString & "(" & osKeyMapper(oMatch.SubMatches(2)) & ")"
                 
                 endMatchPosLast = endMatchPos
-            Next match
+            Next oMatch
             
             If Len(keyString) > endMatchPosLast Then
                 'last non-cord action
@@ -2204,7 +2204,6 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     'loop until file exists
     Do
         If fso.FileExists(filePath) Then Exit Do
-        
         sleep 50  'ms
         GetTime timeNow
         If timeNow > timeEnd Then GoTo MaxTimeExceeded
@@ -2212,11 +2211,11 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     
     'the file exists but now make sure it is finished writing (closed)
     Do
-        If FileClosed(filePath) Then Exit Sub
-        
+        If FileClosed(filePath) Then
+            If browser_ = Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
+            Exit Sub
+        End If
         sleep 50  'ms
-        'SleepWinAPI 50 'ms
-        'DoEvents 'yield to other processes
         GetTime timeNow
     Loop Until timeNow > timeEnd
     
@@ -3136,7 +3135,7 @@ Private Function FileClosed(ByVal filePath As String) As Boolean
 End Function
 
 Private Function osKeyMapper(ByVal keyString As String) As String
-    Dim oRegExp As New VBScript_RegExp_55.RegExp
+    Dim oRegExp As New RegExp
     Dim mappedValue As String
     Dim i As Long
     Dim key As String
