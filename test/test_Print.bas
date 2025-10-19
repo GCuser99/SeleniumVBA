@@ -12,8 +12,6 @@ Sub test_print()
     Set settings = SeleniumVBA.New_WebPrintSettings
     Set keys = SeleniumVBA.New_WebKeyboard
     
-    'driver.DefaultIOFolder = ThisWorkbook.path '(this is the default)
-
     driver.StartEdge
     driver.OpenBrowser
     
@@ -22,7 +20,17 @@ Sub test_print()
     
     driver.FindElement(By.ID, "searchInput").SendKeys "Leonardo da Vinci" & keys.EnterKey
     
-    driver.Wait 1000
+    'insure that the entire page is loaded using simulated scrolling
+    'not needed in this particular case but could be useful in "lazy load"
+    'situations such as in https://www.yahoo.co.jp/
+    Dim scrollHeight As Long, lastScrollHeight As Long
+    scrollHeight = driver.GetScrollHeight
+    Do
+        driver.ScrollToBottom enSpeed:=jump_instant
+        driver.Wait 500
+        lastScrollHeight = scrollHeight
+        scrollHeight = driver.GetScrollHeight
+    Loop Until scrollHeight = lastScrollHeight
     
     settings.Units = svbaInches
     settings.MarginsAll = 0.4

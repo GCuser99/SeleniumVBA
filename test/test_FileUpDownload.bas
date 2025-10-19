@@ -28,6 +28,8 @@ Sub test_file_upload()
     driver.FindElement(By.CssSelector, "#go").Click
     
     driver.Wait 1000
+    
+    driver.DeleteFiles ".\file_1.txt"
             
     driver.CloseBrowser
     driver.Shutdown
@@ -105,58 +107,70 @@ End Sub
 Sub test_download_resource()
     Dim driver As SeleniumVBA.WebDriver
     Dim element As SeleniumVBA.WebElement
+    Dim fso As New FileSystemObject
 
     Set driver = SeleniumVBA.New_WebDriver
 
     driver.StartEdge
     driver.OpenBrowser
-    
+
     driver.ImplicitMaxWait = 2000
-    
+
     'img element with only src attribute
     driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
     Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
     element.DownloadResource ("src")
-    driver.WaitForDownload "logo.png", 1000
-    
+    Debug.Assert fso.FileExists(driver.ResolvePath("logo.png"))
+    driver.DeleteFiles "logo.png"
+
     driver.ActiveWindow.Maximize
 
     'img element with srcset attribute
     driver.NavigateTo "https://mdn.github.io/learning-area/html/multimedia-and-embedding/responsive-images/responsive.html"
     Set element = driver.FindElement(By.CssSelector, "body > main > section > img")
     element.DownloadResource ("srcset")
-    driver.WaitForDownload "elva-fairy-800w.jpg", 1000
-    
+    Debug.Assert fso.FileExists(driver.ResolvePath("elva-fairy-800w.jpg"))
+    driver.DeleteFiles "elva-fairy-800w.jpg"
+
     'download the default src attribute
     element.DownloadResource ("src")
-    driver.WaitForDownload "elva-fairy-800w.jpg", 1000
-    
+    Debug.Assert fso.FileExists(driver.ResolvePath("elva-fairy-800w.jpg"))
+    driver.DeleteFiles "elva-fairy-800w.jpg"
+
     'source elements with srcset attributes
     Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(1)")
     element.DownloadResource ("srcset")
-    driver.WaitForDownload "elva-480w-close-portrait.jpg", 1000
+    Debug.Assert fso.FileExists(driver.ResolvePath("elva-480w-close-portrait.jpg"))
+    driver.DeleteFiles "elva-480w-close-portrait.jpg"
     
+    'source elements with srcset attributes
     Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(2)")
     element.DownloadResource ("srcset")
-    driver.WaitForDownload "elva-800w.jpg", 1000
-    
+    Debug.Assert fso.FileExists(driver.ResolvePath("elva-800w.jpg"))
+    driver.DeleteFiles "elva-800w.jpg"
+
     'img element with only src attribute
     driver.NavigateTo "https://html.com/attributes/img-srcset/"
     Set element = driver.FindElement(By.CssSelector, "#post-1847 > div > div:nth-child(46) > img")
     element.DownloadResource ("src")
-    driver.WaitForDownload "flamingo-fallback.jpg", 1000
+    Debug.Assert fso.FileExists(driver.ResolvePath("flamingo-fallback.jpg"))
+    driver.DeleteFiles "flamingo-fallback.jpg"
     
     'img element with srcset attribute
     driver.NavigateTo "https://webkit.org/demos/srcset/"
     Set element = driver.FindElement(By.CssSelector, "body > img")
     element.DownloadResource ("srcset")
-    driver.WaitForDownload "image-4x.png", 1000
+    Debug.Assert fso.FileExists(driver.ResolvePath("image-4x.png"))
+    driver.DeleteFiles "image-4x.png"
     
-    element.DownloadResource ("src")
-    driver.WaitForDownload "image-src.png", 1000
-    
-    driver.DeleteFiles "image-src.png", "image-4x.png", "flamingo-fallback.jpg", "elva-480w-close-portrait.jpg", "elva-800w.jpg", "elva-fairy-800w.jpg", "logo.png"
-    
+    'video source element with src attribute
+    driver.NavigateTo "https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_video"
+    driver.SwitchToFrame driver.FindElement(By.ID, "iframeResult")
+    Set element = driver.FindElement(By.CssSelector, "body > video > source:nth-child(1)")
+    element.DownloadResource
+    Debug.Assert fso.FileExists(driver.ResolvePath("mov_bbb.mp4"))
+    driver.DeleteFiles "mov_bbb.mp4"
+
     driver.CloseBrowser
     driver.Shutdown
 End Sub

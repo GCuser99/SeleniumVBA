@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.7
+' SeleniumVBA v6.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -294,6 +294,7 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
         End If
     End If
     
+    'following for Firefox only
     Set wsh = New IWshRuntimeLibrary.WshShell
     resp = wsh.Exec(Chr$(34) & driverPath & Chr$(34) & " --version").StdOut.ReadAll
     GetInstalledDriverVersion = findVersionInString(resp, browser)
@@ -544,7 +545,7 @@ End Function
 Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVersion As String, Optional ByVal driverPath As Variant, Optional ByVal platform As svbaPlatform = svbaSystem)
 Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the specified Driver version"
     Dim Url As String
-    Dim fso As New IWshRuntimeLibrary.FileSystemObject
+    Dim fso As New FileSystemObject
     Dim shll As New Shell32.Shell
     Dim driverFolder As String
     Dim driverFileName As String
@@ -615,7 +616,9 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
         fso.CreateFolder tmpInstallFolder
     End If
     
-    UrlDownloadToFile 0&, StrPtr(Url), StrPtr(tmpInstallZipPath), 0&, 0&
+    If Not WebShared.downloadToFile(Url, tmpInstallZipPath) Then
+        Err.Raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
+    End If
     
     'make sure driver zip file was created successfully
     If Not fso.FileExists(tmpInstallZipPath) Then
@@ -630,7 +633,7 @@ Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the 
 
     'check if driver exists and if it does, make sure it isn't in use before overwrite
     If fso.FileExists(driverPath) Then
-        If isProcessRunning(driverFileName) Then taskKillByImage (driverFileName): WebShared.SleepWinAPI 100
+        If isProcessRunning(driverFileName) Then WebShared.taskTerminate "im", driverFileName: WebShared.SleepWinAPI 100
     End If
 
     'copy file from temp folder to driver path
@@ -689,20 +692,20 @@ Private Sub deleteDriver(ByVal driverPath As String)
     driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
     driverFileName = fso.GetFileName(driverPath)
     If fso.FileExists(driverPath) Then
-        If isProcessRunning(driverFileName) Then taskKillByImage (driverFileName)
+        If isProcessRunning(driverFileName) Then WebShared.taskTerminate "im", driverFileName
         WebShared.SleepWinAPI 100
         fso.DeleteFile driverPath, True
     End If
 End Sub
 
 Private Function isProcessRunning(ByVal process As String) As Boolean
-    Dim objServices As WbemScripting.SWbemServices
-    Dim objProcessList As WbemScripting.SWbemObjectSet
+    Dim services As Object
+    Dim processList As Object
     
-    Set objServices = GetObject("winmgmts:")
-    Set objProcessList = objServices.ExecQuery("select * from win32_process where name='" & process & "'")
+    Set services = GetObject("winmgmts:")
+    Set processList = services.ExecQuery("select * from win32_process where name='" & process & "'")
     
-    isProcessRunning = (objProcessList.Count > 0)
+    isProcessRunning = (processList.Count > 0)
 End Function
 
 Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20) As Variant
@@ -716,7 +719,7 @@ Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20
         On Error Resume Next
         client.Open "GET", Url, False
         
-        client.send
+        client.Send
         
         While client.readyState <> 4
             DoEvents
@@ -758,11 +761,6 @@ Private Function getBrowserString(ByVal val As svbaBrowser) As String
     Case svbaBrowser.Firefox
         getBrowserString = "Firefox"
     End Select
-End Function
-
-Private Function taskKillByImage(ByVal taskName As String) As Variant
-    Dim wsh As New IWshRuntimeLibrary.WshShell
-    taskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
 End Function
 
 Private Function getPlatformString(ByVal platform As svbaPlatform) As String

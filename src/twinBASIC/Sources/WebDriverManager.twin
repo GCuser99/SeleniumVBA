@@ -7,7 +7,7 @@
 Public Class WebDriverManager
 
     ' ==========================================================================
-    ' SeleniumVBA v6.7
+    ' SeleniumVBA v6.8
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -526,7 +526,7 @@ Public Class WebDriverManager
     [Description("Downloads and installs the specified Driver version")]
     Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVersion As String, Optional ByVal driverPath As Variant, Optional ByVal platform As svbaPlatform = svbaSystem)
         Dim Url As String
-        Dim fso As New IWshRuntimeLibrary.FileSystemObject
+        Dim fso As New FileSystemObject
         Dim shll As New Shell32.Shell
         Dim driverFolder As String
         Dim driverFileName As String
@@ -597,7 +597,9 @@ Public Class WebDriverManager
             fso.CreateFolder tmpInstallFolder
         End If
     
-        UrlDownloadToFile(Nothing, Url, tmpInstallZipPath, 0&, Nothing)
+        If Not downloadToFile(Url, tmpInstallZipPath) Then
+            Err.Raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
+        End If
     
         'make sure driver zip file was created successfully
         If Not fso.FileExists(tmpInstallZipPath) Then
@@ -612,7 +614,7 @@ Public Class WebDriverManager
 
         'check if driver exists and if it does, make sure it isn't in use before overwrite
         If fso.FileExists(driverPath) Then
-            If isProcessRunning(driverFileName) Then taskKillByImage (driverFileName): WebShared.SleepWinAPI 100
+            If isProcessRunning(driverFileName) Then WebShared.taskTerminate "im", driverFileName: WebShared.SleepWinAPI 100
         End If
 
         'copy file from temp folder to driver path
@@ -665,20 +667,20 @@ Public Class WebDriverManager
         driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
         driverFileName = fso.GetFileName(driverPath)
         If fso.FileExists(driverPath) Then
-            If isProcessRunning(driverFileName) Then taskKillByImage (driverFileName)
+            If isProcessRunning(driverFileName) Then WebShared.taskTerminate "im", driverFileName
             WebShared.SleepWinAPI 100
             fso.DeleteFile driverPath, True
         End If
     End Sub
 
     Private Function isProcessRunning(ByVal process As String) As Boolean
-        Dim objServices As WbemScripting.SWbemServices
-        Dim objProcessList As WbemScripting.SWbemObjectSet
+        Dim services As Object
+        Dim processList As Object
     
-        Set objServices = GetObject("winmgmts:")
-        Set objProcessList = objServices.ExecQuery("select * from win32_process where name='" & process & "'")
+        Set services = GetObject("winmgmts:")
+        Set processList = services.ExecQuery("select * from win32_process where name='" & process & "'")
     
-        isProcessRunning = (objProcessList.Count > 0)
+        isProcessRunning = (processList.Count > 0)
     End Function
 
     Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20) As Variant
@@ -734,11 +736,6 @@ Public Class WebDriverManager
         Case svbaBrowser.Firefox
             getBrowserString = "Firefox"
         End Select
-    End Function
-
-    Private Function taskKillByImage(ByVal taskName As String) As Variant
-        Dim wsh As New IWshRuntimeLibrary.WshShell
-        taskKillByImage = wsh.Run("taskkill /f /t /im " & taskName, 0, True)
     End Function
 
     Private Function getPlatformString(ByVal platform As svbaPlatform) As String

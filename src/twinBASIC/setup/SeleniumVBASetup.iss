@@ -2,9 +2,10 @@
 // of their choice (DisableDirPage=no). If the user had already
 // installed an older (or even same or newer) version compared to the one
 // user is currently installing, and then decides to change the
-// install location, this installer (with help from UninsIS) will first
-// uninstall the previously installed version from the old location,
-// so that there is only one version on the system at any one point in time. 
+// install location, this installer will first uninstall the
+// previously installed version from the old location, so that there
+// is only one version on the system at any one point in time.
+ 
 #define AppName "SeleniumVBA"
 #define AppGUID "{38ED0FFA-E3F3-41C4-B601-B8B2BC442ACD}"
 #define AppPublisher "GCUser99"

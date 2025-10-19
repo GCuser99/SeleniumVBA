@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.7
+' SeleniumVBA v6.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -73,6 +73,143 @@ Private Enum CRYPT_STRING_OPTIONS
     CRYPT_STRING_NOCRLF = &H40000000    'Do not append any new line characters to the encoded string.
     CRYPT_STRING_NOCR = &H80000000      'this will use vbLF for new line character (as opposed to default vbCrLf), compatible with MSXML2
 End Enum
+
+'file download-related stuff
+Private Declare PtrSafe Function WinHttpGetProxyForUrl Lib "WinHttp" (ByVal hSession As LongPtr, ByVal lpcwszUrl As LongPtr, pAutoProxyOptions As WINHTTP_AUTOPROXY_OPTIONS, pProxyInfo As WINHTTP_PROXY_INFO) As Long
+Private Declare PtrSafe Function WinHttpOpen Lib "WinHttp" (ByVal pszAgentW As LongPtr, ByVal dwAccessType As Long, ByVal pszProxyW As LongPtr, ByVal pszProxyBypassW As LongPtr, ByVal dwFlags As Long) As LongPtr
+Private Declare PtrSafe Function WinHttpCloseHandle Lib "WinHttp" (ByVal hInternet As LongPtr) As Long
+Private Declare PtrSafe Function WinHttpGetIEProxyConfigForCurrentUser Lib "winhttp.dll" (ByRef pProxyConfig As WINHTTP_CURRENT_USER_IE_PROXY_CONFIG) As Long
+Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
+Private Declare PtrSafe Function lstrlenW Lib "kernel32" (lpString As Any) As Long
+Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
+      
+Private Type WINHTTP_AUTOPROXY_OPTIONS
+    dwFlags As Long
+    dwAutoDetectFlags As Long
+    lpszAutoConfigUrl As LongPtr
+    lpvReserved As LongPtr
+    dwReserved As Long
+    fAutoLogonIfChallenged As Long
+End Type
+
+Private Type WINHTTP_PROXY_INFO
+    dwAccessType As Long
+    lpszProxy As LongPtr
+    lpszProxyBypass As LongPtr
+End Type
+
+Private Type WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
+    fAutoDetect As Long
+    lpszAutoConfigUrl As LongPtr
+    lpszProxy As LongPtr
+    lpszProxyBypass As LongPtr
+End Type
+
+Private Const WINHTTP_AUTOPROXY_AUTO_DETECT As Long = &H1
+Private Const WINHTTP_AUTOPROXY_CONFIG_URL As Long = &H2
+Private Const WINHTTP_AUTO_DETECT_TYPE_DHCP As Long = &H1
+Private Const WINHTTP_AUTO_DETECT_TYPE_DNS_A As Long = &H2
+Private Const WINHTTP_ACCESS_TYPE_NO_PROXY As Long = 1
+Private Const HTTPREQUEST_PROXYSETTING_PROXY As Long = 2
+
+' Convert pointer to string (used in downloadToFile)
+Private Function ptrToStr(ByVal lpsz As LongPtr) As String
+    Dim Length As Long
+    If lpsz = 0 Then Exit Function
+    Length = lstrlenW(ByVal lpsz)
+    If Length > 0 Then
+        ptrToStr = Space$(Length)
+        CopyMemory ByVal StrPtr(ptrToStr), ByVal lpsz, Length * 2 ' Unicode = 2 bytes/char
+    End If
+End Function
+
+Public Function downloadToFile(ByVal Url As String, ByVal filePath As String, Optional ByVal timeout As Long = 30000) As Boolean
+    Dim http As Object
+    Dim bytes() As Byte
+    Dim ieProxy As WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
+    Dim autoProxyOptions As WINHTTP_AUTOPROXY_OPTIONS
+    Dim proxyInfo As WINHTTP_PROXY_INFO
+    Dim hSession As LongPtr
+    Dim proxyStr As String
+    Dim bypassStr As String
+    
+    On Error GoTo ErrHandler
+    
+    Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
+    http.setTimeouts 0, 60000, 30000, timeout
+    
+    ' Try IE proxy settings first
+    If WinHttpGetIEProxyConfigForCurrentUser(ieProxy) <> 0 Then
+        
+        ' Handle static proxy
+        If ieProxy.lpszProxy <> 0 Then
+            proxyStr = ptrToStr(ieProxy.lpszProxy)
+            If ieProxy.lpszProxyBypass <> 0 Then bypassStr = ptrToStr(ieProxy.lpszProxyBypass)
+            http.setProxy HTTPREQUEST_PROXYSETTING_PROXY, proxyStr, bypassStr
+            GoTo ProxyConfigured
+        End If
+        
+        ' Handle PAC file or auto-detect
+        If ieProxy.lpszAutoConfigUrl <> 0 Or ieProxy.fAutoDetect <> 0 Then
+            hSession = WinHttpOpen(0, WINHTTP_ACCESS_TYPE_NO_PROXY, 0, 0, 0)
+            
+            If hSession <> 0 Then
+                ' Configure auto-proxy options
+                If ieProxy.fAutoDetect <> 0 Then
+                    autoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT
+                    autoProxyOptions.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP Or WINHTTP_AUTO_DETECT_TYPE_DNS_A
+                End If
+                
+                If ieProxy.lpszAutoConfigUrl <> 0 Then
+                    autoProxyOptions.dwFlags = autoProxyOptions.dwFlags Or WINHTTP_AUTOPROXY_CONFIG_URL
+                    autoProxyOptions.lpszAutoConfigUrl = ieProxy.lpszAutoConfigUrl
+                End If
+                
+                autoProxyOptions.fAutoLogonIfChallenged = 1
+                
+                ' Get proxy for this specific URL
+                If WinHttpGetProxyForUrl(hSession, StrPtr(Url), autoProxyOptions, proxyInfo) <> 0 Then
+                    If proxyInfo.lpszProxy <> 0 Then
+                        proxyStr = ptrToStr(proxyInfo.lpszProxy)
+                        If proxyInfo.lpszProxyBypass <> 0 Then bypassStr = ptrToStr(proxyInfo.lpszProxyBypass)
+                        http.setProxy HTTPREQUEST_PROXYSETTING_PROXY, proxyStr, bypassStr
+                    End If
+                End If
+                
+                ' Free proxy info strings
+                If proxyInfo.lpszProxy <> 0 Then GlobalFree proxyInfo.lpszProxy
+                If proxyInfo.lpszProxyBypass <> 0 Then GlobalFree proxyInfo.lpszProxyBypass
+                
+                WinHttpCloseHandle hSession
+            End If
+        End If
+        
+ProxyConfigured:
+        ' Free IE proxy config strings
+        If ieProxy.lpszProxy <> 0 Then GlobalFree ieProxy.lpszProxy
+        If ieProxy.lpszProxyBypass <> 0 Then GlobalFree ieProxy.lpszProxyBypass
+        If ieProxy.lpszAutoConfigUrl <> 0 Then GlobalFree ieProxy.lpszAutoConfigUrl
+    End If
+    
+    ' Send request
+    http.Open "GET", Url, False
+    http.setRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    http.Send
+    
+    ' Check status and save response to file
+    If http.Status >= 200 And http.Status < 300 Then
+        bytes = http.ResponseBody
+        saveByteArrayToFile bytes, filePath
+        downloadToFile = True
+    Else
+        Debug.Print "HTTP error: " & http.Status
+    End If
+    
+    Exit Function
+    
+ErrHandler:
+    Debug.Print "Error: " & Err.Description
+End Function
 
 Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString, Optional ByVal targetExists As Boolean = True) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
@@ -566,7 +703,7 @@ End Function
 
 Public Sub saveByteArrayToFile(bytearray() As Byte, ByVal filePath As String)
     'we are using ADODB.Stream instead of native Open because later does not support unicode filePaths
-    Dim binaryStream As New ADODB.stream
+    Dim binaryStream As New ADODB.Stream
     'specify stream type - we want to save binary data.
     binaryStream.Type = adTypeBinary
   
@@ -581,7 +718,7 @@ End Sub
 
 Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
     'we are using ADODB.Stream instead of native Open because later does not support unicode filePaths
-    Dim binaryStream As New ADODB.stream
+    Dim binaryStream As New ADODB.Stream
     Dim bytearray() As Byte
 
     'specify stream type - we want to read binary data.
@@ -596,4 +733,9 @@ Public Function readByteArrayFromFile(ByVal filePath As String) As Byte()
   
     binaryStream.Close
     readByteArrayFromFile = bytearray
+End Function
+
+Public Function taskTerminate(ByVal method As String, ByVal pidOrImageName As String) As Boolean
+    Dim wsh As New IWshRuntimeLibrary.WshShell
+    taskTerminate = wsh.Run("taskkill /f /t /" & method & " " & pidOrImageName, 0, True)
 End Function

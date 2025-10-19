@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.7
+' SeleniumVBA v6.8
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -121,8 +121,8 @@ End Enum
 Private setHightlightFoundElems_Settings As Collection
 Private lastElems As WebElements
 
-'save processID for Firefox shutdown
-Private processID As String
+'save processId for Firefox shutdown
+Private processId As String
 
 'system constants for identifing web elements
 Private Const ELEMENT_KEY As String = "element-6066-11e4-a52e-4f735466cecf"
@@ -376,9 +376,7 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
     If browser_ = svbaBrowser.Firefox Then
         'for firefox, if previous session is still open on same port, then will get "Session is already started"
         'on OpenBrowser so kill all driver instances on the assigned port
-        'could use KillDriver on Chrome/Edge too, but since they support multi-sessions on same port, this will eliminate
-        'that functionality if important
-        killDriver browser_, localHostPort
+        shutDownGeckoDriver localHostPort
     End If
     
     driverPath = WebShared.getFullLocalPath(driverPath, defaultDriverFolder_, True)
@@ -401,20 +399,15 @@ Private Sub start(ByVal browser As svbaBrowser, ByVal driverPath As String, ByVa
         Case svbaBrowser.Edge, svbaBrowser.Chrome
             serviceArgs = " --verbose --log-path=" & Chr$(34) & logFilePath & Chr$(34)
         Case svbaBrowser.Firefox
-            'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
-            'apparently firefox does not support command line argument for specifying log file path
-            'so using cmd.exe to redirect log from console window
-            'WARNING: this option could crash host app with MWB AV real-time protection
-            serviceArgs = " -vv"" > " & Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
-            commandStr = Chr$(34) & Environ("comspec") & Chr$(34) & " /c " & """"
+            Err.Raise 1, "WebDriver", "Logging not supported by the Firefox browser."
         End Select
     End If
     
     commandStr = commandStr & Chr$(34) & driverPath & Chr$(34) & " --port=" & localHostPort & serviceArgs
     
-    processID = Shell(commandStr, appWinStyle)
+    processId = Shell(commandStr, appWinStyle)
 
-    If processID = 0 Then Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+    If processId = 0 Then Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     
     'store WebDriver url value for later use
     driverUrl_ = "http://localhost:" & localHostPort
@@ -435,7 +428,7 @@ Attribute Shutdown.VB_Description = "Shuts down all driver instances attached to
         'firefox does not recognize shutdown command, so need to roll our own...
         'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
         If sessionId_ <> vbNullString Then CloseBrowser
-        taskKillByPid processID
+        WebShared.taskTerminate "pid", processId
     End Select
     
     'need to set this global used by Highlight to nothing or else WebDriver class' terminate event may not fire
@@ -754,159 +747,6 @@ Public Function FindElementsByPartialLinkText(ByVal val As String, Optional pare
 Attribute FindElementsByPartialLinkText.VB_Description = "Finds all elements that satisfy the specified partial link text value"
     Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
 End Function
-
-'@Description("DEPRECATED - Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")
-Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
-Attribute SendKeysToOS.VB_Description = "DEPRECATED - Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows"
-    'WARNING: this could crash host app with MWB AV real-time protection
-    Dim i As Long
-    Dim modKeys As Collection
-    Dim endMatchPos As Long
-    Dim startMatchPos As Long
-    Dim matchLength As Long
-    Dim endMatchPosLast As Long
-    Dim startTime As Long
-    Dim winActivated As Boolean
-    Dim sendPackage As New Collection
-    
-    'replace possible escaped special key strings with single (wide) character equivalents
-    keyString = unEscapeUnicode(keyString)
-    
-    'check if we have special keys
-    If Not (keyString Like "*[" & ChrW$(&HE000&) & "-" & ChrW$(&HE05D&) & "]*") Then
-        'no special keys or chords
-        sendPackage.Add keyString
-    Else
-        'search for chords, parse, and then map the input key sequence(s) to VBA/VBScript SendKeys format
-        Dim oRegExp As New RegExp
-        Dim oMatches As MatchCollection
-        Dim oMatch As match
-        Dim modKeyString As String
-
-        oRegExp.Global = True
-        oRegExp.Pattern = "(([" & ChrW$(&HE008&) & "-" & ChrW$(&HE00A&) & "])+)(.*?)" & ChrW$(&HE000&)
-        
-        Set oMatches = oRegExp.execute(keyString)
-        
-        'check if we have cords
-        If oMatches.Count > 0 Then
-            'process cords and keys between cords
-            endMatchPosLast = 0
-            For Each oMatch In oMatches
-                
-                startMatchPos = oMatch.FirstIndex + 1 'regexp is zero-based so add 1
-                matchLength = oMatch.Length
-                endMatchPos = startMatchPos + matchLength - 1
-                
-                If startMatchPos - 1 > endMatchPosLast Then
-                    'non-cord action
-                    sendPackage.Add osKeyMapper(Mid$(keyString, endMatchPosLast + 1, startMatchPos - endMatchPosLast - 1))
-                End If
-                'now do the cord action
-                'handle more than one modifier keys
-                Set modKeys = splitKeyString(oMatch.SubMatches(0))
-                
-                modKeyString = vbNullString
-                'press the modifiers down
-                For i = 1 To modKeys.Count
-                    modKeyString = modKeyString & osKeyMapper(modKeys(i))
-                Next i
-                
-                sendPackage.Add modKeyString & "(" & osKeyMapper(oMatch.SubMatches(2)) & ")"
-                
-                endMatchPosLast = endMatchPos
-            Next oMatch
-            
-            If Len(keyString) > endMatchPosLast Then
-                'last non-cord action
-                sendPackage.Add osKeyMapper(Mid$(keyString, endMatchPosLast + 1, Len(keyString) - endMatchPosLast))
-            End If
-        Else 'no cords so send keys in one call
-            sendPackage.Add osKeyMapper(keyString)
-        End If
-    End If
-    
-    If runOnSeparateThread Then
-        'create the vbs script file to run on a separate thread
-        Dim vbs As String
-        
-        vbs = "Set WshShell = WScript.CreateObject(""WScript.Shell"")" & vbCrLf
-        
-        'wait specified amount of time before executing script
-        If timeDelayMS > 0 Then vbs = vbs & "WScript.Sleep " & timeDelayMS & vbCrLf
-    
-        If windowTitle <> vbNullString Then
-            'user is after a particular window
-            If waitForWindow Then
-                vbs = vbs & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
-                vbs = vbs & "startTime = Timer()" & vbCrLf
-                vbs = vbs & "Do Until winActivated" & vbCrLf
-                vbs = vbs & vbTab & "WScript.Sleep 100" & vbCrLf
-                vbs = vbs & vbTab & "If 1000*(Timer()-startTime) > " & maxTimeToWaitMS & " Then Exit Do" & vbCrLf
-                vbs = vbs & vbTab & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
-                vbs = vbs & "Loop" & vbCrLf
-            Else
-                vbs = vbs & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
-            End If
-
-            vbs = vbs & "If winActivated Then" & vbCrLf
-            For i = 1 To sendPackage.Count
-                vbs = vbs & vbTab & "WshShell.SendKeys """ & sendPackage(i) & """, False" & vbCrLf
-            Next i
-            vbs = vbs & "End If" & vbCrLf
-        Else
-            'no window specified so send keys to active window
-            'unfortunately, there seems to be no means in VBScript of making sure we are not sending to the VBIDE
-            'in this case so hopefully user is not in debug mode
-            For i = 1 To sendPackage.Count
-                vbs = vbs & "WshShell.SendKeys """ & sendPackage(i) & """, False" & vbCrLf
-            Next i
-        End If
-        
-        'save the vbs string to user's temp file
-        Dim filePath As String
-        filePath = ResolvePath("%TEMP%\seleniumVBAtmp" & Timer() & ".vbs", False)
-        
-        SaveStringToFile vbs, filePath
-        
-        'launch the script!
-        Shell "WScript """ & filePath & """ , vbNormalFocus"
-        
-        'remember to clean up later on WebDriver terminate event
-        cleanupTempFiles = True
-    Else
-        'not running on separate thread, so use native VBA instead of VBSript
-        If timeDelayMS > 0 Then WebShared.sleep timeDelayMS
-        
-        If windowTitle <> vbNullString Then
-            If waitForWindow Then
-                winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
-                startTime = VBA.Timer()
-                Do Until winActivated
-                    WebShared.sleep 100
-                    If 1000 * (Timer() - startTime) > maxTimeToWaitMS Then Exit Do
-                    winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
-                Loop
-            Else
-                winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
-            End If
-            
-            If winActivated Then
-                For i = 1 To sendPackage.Count
-                    VBA.SendKeys sendPackage(i), False  'send the keys
-                Next i
-            End If
-        Else
-            'no window specified so send keys to active window
-            'but make sure we are not sending to the IDE if debugging!!!!
-            If Not IsActiveWindowVBIDE Then
-                For i = 1 To sendPackage.Count
-                    VBA.SendKeys sendPackage(i), False   'send the keys
-                Next i
-            End If
-        End If
-    End If
-End Sub
 
 '@Description("Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys and chords")
 Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = False)
@@ -2212,7 +2052,7 @@ Attribute WaitForDownload.VB_Description = "Waits until file is finished downloa
     'the file exists but now make sure it is finished writing (closed)
     Do
         If FileClosed(filePath) Then
-            If browser_ = Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
+            If browser_ = svbaBrowser.Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
             Exit Sub
         End If
         sleep 50  'ms
@@ -2604,7 +2444,6 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
     Dim fso As New FileSystemObject
     Dim filePath As String
     Dim fileName As String
-    Dim ret As Long
     
     'get the resource url
     Url = ExecuteScript(getScript("GetResourceUrl.js"), element, srcAttribute)
@@ -2620,18 +2459,17 @@ Attribute DownloadResource.VB_Description = "Downloads a resource (such as an im
         fileName = fso.GetFileName(Url)
         'strip off query params if they exist
         'and cat with full path of user input
-        filePath = fileOrFolderPath & "\" & Split(fileName, "?")(0)
+        filePath = fileOrFolderPath & "\" & VBA.Split(fileName, "?")(0)
     Else 'its a file path
         filePath = fileOrFolderPath
         If Not fso.FolderExists(fso.GetParentFolderName(filePath)) Then
             Err.Raise 1, "WebDriver", "Error in DownloadResource method: specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
         End If
     End If
-
-    'download the url to file path
-    ret = UrlDownloadToFile(0&, StrPtr(Url), StrPtr(filePath), 0&, 0&)
-
-    If ret <> 0 Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
+    
+    If Not WebShared.downloadToFile(Url, filePath) Then
+        Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not download Url"
+    End If
 End Sub
 
 '@Description("Saves a base 64 encoded string to a file in binary format")
@@ -2689,7 +2527,7 @@ Public Sub SetDownloadFolder(Optional ByVal folderPath As String = ".\")
 Attribute SetDownloadFolder.VB_Description = "Sets the default download folder path - for Edge and Chrome browsers only. It must be invoked AFTER OpenBrowser command."
     'redirect the download location AFTER capabilities have been set - can be called multiple times in same session!!
     Dim params As New Dictionary
-    If browser_ = Firefox Then
+    If browser_ = svbaBrowser.Firefox Then
         'GeckoDriver lack of support for cdp endpoint - https://groups.google.com/a/mozilla.org/g/dev-webdriver/c/DcYrCVCWMLU
         Err.Raise 1, , "Error in SetDownloadFolder - this method can only be used with Edge and Chrome. Use WebCapabilities SetDownloadPrefs instead."
     End If
@@ -2768,9 +2606,9 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     Case "POST"
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
-        client.send WebJsonConverter.ConvertToJson(cmdArgs)
+        client.Send WebJsonConverter.ConvertToJson(cmdArgs)
     Case "GET", "DELETE"
-        client.send
+        client.Send
     Case Else
         Err.Raise 1, "WebDriver", "WebDriver command method must be either ""POST"", ""GET"", or ""DELETE""."
     End Select
@@ -2866,56 +2704,22 @@ Private Function objToWebElements(elementOrElements As Object) As WebElements
     End Select
 End Function
 
-Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Long = 0)
+Private Sub shutDownGeckoDriver(ByVal port As Long)
     'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
-    Dim objService As WbemScripting.SWbemServices
-    Dim objDriverList As WbemScripting.SWbemObjectSet
-    Dim objParentList As WbemScripting.SWbemObjectSet
-    Dim objDriver As WbemScripting.SWbemObject
-    Dim objParent As WbemScripting.SWbemObject
-    Dim sImageName As String
-    Dim pid As String
-    
-    Select Case browser
-    Case svbaBrowser.Chrome
-        sImageName = "chromedriver%"
-    Case svbaBrowser.Edge
-        sImageName = "msedgedriver%"
-    Case svbaBrowser.Firefox
-        sImageName = "geckodriver%"
-    End Select
-    
-    Set objService = GetObject("winmgmts:\\.\root\CIMV2")
-    
-    Set objDriverList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE Name like '" & sImageName & "'")
-    
-    For Each objDriver In objDriverList
-        If port > 0 Then
-            If InStr(objDriver.commandLine, CStr(port)) = 0 Then GoTo 10
-        End If
-        Set objParentList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE ProcessID = '" & objDriver.ParentProcessId & "'")
-        If objParentList.Count > 0 Then
-            Set objParent = objParentList.ItemIndex(0)
-            Select Case LCase$(objParent.Name)
-            Case "cmd.exe"
-                'driver was called using cmd.exe so we kill the parent process and all subprocesses (/t parameter)
-                pid = objParent.processID
-            Case Else '"excel.exe"
-                'driver was called directly using shell and so will kill it and all subprocesses (/t parameter)
-                pid = objDriver.processID
-            End Select
-        Else 'its a stranded process (parent may have already been quit)
-            pid = objDriver.processID
-        End If
-        taskKillByPid pid
-10:
-    Next objDriver
-End Sub
+    Dim svc As WbemScripting.SWbemServices
+    Dim driverList As WbemScripting.SWbemObjectSet
+    Dim driver As WbemScripting.SWbemObject
 
-Private Function taskKillByPid(ByVal pid As String) As Variant
-    Dim wsh As New IWshRuntimeLibrary.WshShell
-    taskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
-End Function
+    Set svc = GetObject("winmgmts:\\.\root\CIMV2")
+    
+    Set driverList = svc.ExecQuery("SELECT * FROM Win32_Process" & " WHERE Name like 'geckodriver%'")
+    
+    For Each driver In driverList
+        If InStr(driver.commandLine, CStr(port)) > 0 Then
+            WebShared.taskTerminate "pid", driver.processId
+        End If
+    Next driver
+End Sub
 
 Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
     Dim str As String
@@ -3421,7 +3225,6 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "}" & vbCrLf
         script = script & "// Convert table element to an array (vba collection)" & vbCrLf
         script = script & "return htmlTableToArray(table, arguments[1], arguments[2], arguments[3], arguments[4]);" & vbCrLf
-        script = script & vbCrLf
     Case "SanitizeHTML.js"
         script = vbNullString
         script = script & "function sanitizeHTML(str) {" & vbCrLf
@@ -3542,7 +3345,6 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "}" & vbCrLf
         script = script & " " & vbCrLf
         script = script & "return sanitizeHTML(arguments[0]);" & vbCrLf
-        script = script & " " & vbCrLf
     Case "ScrollIntoView.js"
         script = vbNullString
         script = script & "// Determine through an element's css properties if it is scrollable (overflow content)" & vbCrLf
@@ -3609,7 +3411,6 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "        clearTimeout (timeoutId); // clear the timeout when the Promise race finishes" & vbCrLf
         script = script & "    });" & vbCrLf
         script = script & "}" & vbCrLf
-        script = script & vbCrLf
     Case "Scroll.js"
         script = vbNullString
         script = script & "// Determine if the element is the document root" & vbCrLf
@@ -3661,12 +3462,11 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "        clearTimeout (timeoutId); // clear the timeout when the Promise race finishes" & vbCrLf
         script = script & "    });" & vbCrLf
         script = script & "}" & vbCrLf
-        script = script & vbCrLf
     Case "GetResourceUrl.js"
         script = vbNullString
         script = script & "function getAbsolutePath(src) {" & vbCrLf
-        script = script & "    // return new URL(src, window.location.href).href;" & vbCrLf
-        script = script & "    return URL.parse(src, window.location.href).href;" & vbCrLf
+        script = script & "// Resolve relative URLs against the current page location" & vbCrLf
+        script = script & "return new URL(src, window.location.href).href;" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & vbCrLf
         script = script & "const elem = arguments[0]; " & vbCrLf
@@ -3674,48 +3474,53 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "const tagName = elem.tagName;" & vbCrLf
         script = script & vbCrLf
         script = script & "// make sure attribute exists for element" & vbCrLf
-        script = script & "if (!elem.hasAttribute(attr)) {return 'Error in DownloadResource method: could not find Attribute ';}" & vbCrLf
-        script = script & "    " & vbCrLf
+        script = script & "if (!elem.hasAttribute(attr)) {" & vbCrLf
+        script = script & "return 'Error in DownloadResource method: could not find Attribute ' + attr;" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & vbCrLf
         script = script & "let resUrl;" & vbCrLf
         script = script & vbCrLf
         script = script & "// if srcset attribute for IMG tag then find the highest quality image" & vbCrLf
         script = script & "if (tagName.toUpperCase() === 'IMG' && attr.toLowerCase() === 'srcset') {" & vbCrLf
         script = script & "    " & vbCrLf
-        script = script & "    const srcset = elem.getAttribute(attr);" & vbCrLf
+        script = script & "const srcset = elem.getAttribute(attr);" & vbCrLf
         script = script & "    " & vbCrLf
-        script = script & "    // Parse the srcset string:" & vbCrLf
-        script = script & "    const sources = srcset.split(',').map(source => {" & vbCrLf
-        script = script & "        const [url, descriptor] = source.trim().split(' ');" & vbCrLf
-        script = script & "        return { url, descriptor };" & vbCrLf
-        script = script & "    });    " & vbCrLf
+        script = script & "// Parse the srcset string into {url, descriptor} objects" & vbCrLf
+        script = script & "const sources = srcset.split(',').map(source => {" & vbCrLf
+        script = script & "    // split on whitespace; descriptor may be missing" & vbCrLf
+        script = script & "    const [url, descriptor = ""0w""] = source.trim().split(/\s+/);" & vbCrLf
+        script = script & "    return { url, descriptor };" & vbCrLf
+        script = script & "});    " & vbCrLf
         script = script & vbCrLf
-        script = script & "    // Determine the highest quality image:" & vbCrLf
-        script = script & "    let highestQuality = sources[0]; " & vbCrLf
+        script = script & "// Initialize with the first candidate" & vbCrLf
+        script = script & "let highestQuality = sources[0]; " & vbCrLf
         script = script & vbCrLf
-        script = script & "    for (const source of sources) {" & vbCrLf
-        script = script & "        if (source.descriptor.endsWith('x')) {" & vbCrLf
-        script = script & "            const pixelRatio = parseFloat(source.descriptor);" & vbCrLf
-        script = script & "            if (pixelRatio > parseFloat(highestQuality.descriptor)) {" & vbCrLf
-        script = script & "                highestQuality = source;" & vbCrLf
-        script = script & "            }" & vbCrLf
-        script = script & "        } else if (source.descriptor.endsWith('w')) {" & vbCrLf
-        script = script & "            const width = parseInt(source.descriptor);" & vbCrLf
-        script = script & "            if (width > parseInt(highestQuality.descriptor)) {" & vbCrLf
-        script = script & "                highestQuality = source;" & vbCrLf
-        script = script & "            }" & vbCrLf
+        script = script & "// Loop through candidates to find the highest quality" & vbCrLf
+        script = script & "for (const source of sources) {" & vbCrLf
+        script = script & "    if (source.descriptor.endsWith('x')) {" & vbCrLf
+        script = script & "        // Handle pixel density descriptors (e.g. ""2x"")" & vbCrLf
+        script = script & "        const pixelRatio = parseFloat(source.descriptor);" & vbCrLf
+        script = script & "        if (parseFloat(highestQuality.descriptor) < pixelRatio) {" & vbCrLf
+        script = script & "            highestQuality = source;" & vbCrLf
+        script = script & "        }" & vbCrLf
+        script = script & "    } else if (source.descriptor.endsWith('w')) {" & vbCrLf
+        script = script & "        // Handle width descriptors (e.g. ""1200w"")" & vbCrLf
+        script = script & "        const width = parseInt(source.descriptor, 10);" & vbCrLf
+        script = script & "        if (parseInt(highestQuality.descriptor, 10) < width) {" & vbCrLf
+        script = script & "            highestQuality = source;" & vbCrLf
         script = script & "        }" & vbCrLf
         script = script & "    }" & vbCrLf
-        script = script & "    resUrl = highestQuality.url;" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "resUrl = highestQuality.url;" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & "else {" & vbCrLf
-        script = script & "    resUrl = elem.getAttribute(attr);" & vbCrLf
+        script = script & "// Otherwise just use the attribute value directly (e.g. ""src"")" & vbCrLf
+        script = script & "resUrl = elem.getAttribute(attr);" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & vbCrLf
         script = script & "// Resolve the URL in case it is relative" & vbCrLf
         script = script & "const absolutePath = getAbsolutePath(resUrl);" & vbCrLf
-        script = script & vbCrLf
         script = script & "return absolutePath;" & vbCrLf
-        script = script & vbCrLf
     Case "GetScrollContainer.js"
         script = vbNullString
         script = script & "// Determine through an element's css properties if it is scrollable (overflow content)" & vbCrLf

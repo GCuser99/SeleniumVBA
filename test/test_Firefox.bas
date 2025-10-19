@@ -18,60 +18,6 @@ Option Private Module
 '- GetSessionsInfo not functional
 '- PrintScale method of PrintSettings class does not seem to have effect
 
-Sub test_logging()
-    'WARNING: FF logging could crash host app with MWB AV real-time protection
-    Dim driver As SeleniumVBA.WebDriver
-    Dim fruits As SeleniumVBA.WebElement
-    Dim html As String
-
-    Set driver = SeleniumVBA.New_WebDriver
-
-    'True enables verbose logging
-    driver.StartFirefox , , True
-    driver.OpenBrowser
-    
-    html = "<!DOCTYPE html><html><head><title>Test Select</title></head><body>"
-    html = html & "<div>Select your preference:</div>"
-    html = html & "<select multiple='' id='fruits'>"
-    html = html & "<option value='banana'>Banana</option>"
-    html = html & "<option value='apple'>Apple</option>"
-    html = html & "<option value='orange'>Orange</option>"
-    html = html & "<option value='grape'>Grape</option>"
-    html = html & "</select>"
-    html = html & "</body></html>"
-    
-    driver.NavigateToString html
-    
-    driver.Wait
-    
-    Set fruits = driver.FindElement(By.ID, "fruits")
-    
-    If fruits.IsMultiSelect Then
-        fruits.SelectByVisibleText "Banana"
-        driver.Wait
-        fruits.SelectByIndex 2 'Apple
-        driver.Wait
-        fruits.SelectByValue "orange"
-        driver.Wait
-        fruits.DeSelectAll
-        driver.Wait
-        fruits.SelectAll
-        driver.Wait
-        fruits.DeSelectByVisibleText "Banana"
-        driver.Wait
-        fruits.DeSelectByIndex 2 'Apple
-        driver.Wait
-        fruits.DeSelectByValue "orange"
-        driver.Wait
-        Debug.Assert fruits.GetSelectedOption.GetText = "Grape"
-    End If
-    
-    driver.DeleteFiles "firefox.log"
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
 Sub test_file_download()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities

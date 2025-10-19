@@ -7,7 +7,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.7
+    ' SeleniumVBA v6.8
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -116,8 +116,8 @@ Public Class WebDriver
     Private setHightlightFoundElems_Settings As Collection
     Private lastElems As WebElements
 
-    'save processID for Firefox shutdown
-    Private processID As String
+    'save processId for Firefox shutdown
+    Private processId As String
 
     'system constants for identifing web elements
     Private Const ELEMENT_KEY As String = "element-6066-11e4-a52e-4f735466cecf"
@@ -367,9 +367,7 @@ Public Class WebDriver
         If browser_ = svbaBrowser.Firefox Then
             'for firefox, if previous session is still open on same port, then will get "Session is already started"
             'on OpenBrowser so kill all driver instances on the assigned port
-            'could use KillDriver on Chrome/Edge too, but since they support multi-sessions on same port, this will eliminate
-            'that functionality if important
-            killDriver browser_, localHostPort
+            shutDownGeckoDriver localHostPort
         End If
     
         driverPath = WebShared.getFullLocalPath(driverPath, defaultDriverFolder_, True)
@@ -392,20 +390,15 @@ Public Class WebDriver
             Case svbaBrowser.Edge, svbaBrowser.Chrome
                 serviceArgs = " --verbose --log-path=" & Chr$(34) & logFilePath & Chr$(34)
             Case svbaBrowser.Firefox
-                'https://firefox-source-docs.mozilla.org/testing/geckodriver/TraceLogs.html
-                'apparently firefox does not support command line argument for specifying log file path
-                'so using cmd.exe to redirect log from console window
-                'WARNING: this option could crash host app with MWB AV real-time protection
-                serviceArgs = " -vv"" > " & VBA.Replace$(logFilePath, " ", "^ ") 'need to escape spaces in log path
-                commandStr = Chr$(34) & Environ("comspec") & Chr$(34) & " /c " & """"
+                Err.Raise 1, "WebDriver", "Logging not supported by the Firefox browser."
             End Select
         End If
     
         commandStr = commandStr & Chr$(34) & driverPath & Chr$(34) & " --port=" & localHostPort & serviceArgs
     
-        processID = Shell(commandStr, appWinStyle)
+        processId = Shell(commandStr, appWinStyle)
 
-        If processID = 0 Then Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
+        If processId = 0 Then Err.Raise 1, "WebDriver", "Failed in starting Selenium WebDriver." & vbNewLine & "WebDriver path: " & commandStr
     
         'store WebDriver url value for later use
         driverUrl_ = "http://localhost:" & localHostPort
@@ -425,7 +418,7 @@ Public Class WebDriver
             'firefox does not recognize shutdown command, so need to roll our own...
             'exit as gracefully as possible - first be sure user closed the browser, and if not, then let's do it here
             If sessionId_ <> vbNullString Then CloseBrowser
-            taskKillByPid processID
+           WebShared.taskTerminate "pid", processId
         End Select
     
         'need to set this global used by Highlight to nothing or else WebDriver class' terminate event may not fire
@@ -719,157 +712,6 @@ Public Class WebDriver
     Public Function FindElementsByPartialLinkText(ByVal val As String, Optional parentElement As WebElement) As WebElements
         Set FindElementsByPartialLinkText = FindElements(By.PartialLinkText, val, parentElement)
     End Function
-
-    [Description("DEPRECATED - Sends a key sequence to the active or specified OS window - see WebKeyboard class for how to send special keys and chords. This method can optionally run on a delayed separate thread to interact with inline execution-blocking windows")]
-    Public Sub SendKeysToOS(ByVal keyString As String, Optional ByVal timeDelayMS As Long = 0, Optional ByVal windowTitle As String = vbNullString, Optional ByVal runOnSeparateThread As Boolean = False, Optional ByVal waitForWindow As Boolean = False, Optional ByVal maxTimeToWaitMS As Long = 10000)
-        'WARNING: this could crash host app with MWB AV real-time protection
-        Dim i As Long
-        Dim modKeys As Collection
-        Dim endMatchPos As Long
-        Dim startMatchPos As Long
-        Dim matchLength As Long
-        Dim endMatchPosLast As Long
-        Dim startTime As Long
-        Dim winActivated As Boolean
-        Dim sendPackage As New Collection
-    
-        'replace possible escaped special key strings with single (wide) character equivalents
-        keyString = unEscapeUnicode(keyString)
-    
-        'check if we have special keys
-        If Not (keyString Like "*[" & ChrW$(&HE000&) & "-" & ChrW$(&HE05D&) & "]*") Then
-            'no special keys or chords
-            sendPackage.Add keyString
-        Else
-            'search for chords, parse, and then map the input key sequence(s) to VBA/VBScript SendKeys format
-            Dim oRegExp As New RegExp
-            Dim matches As MatchCollection
-            Dim match As Match
-            Dim modKeyString As String
-
-            oRegExp.Global = True
-            oRegExp.Pattern = "(([" & ChrW$(&HE008&) & "-" & ChrW$(&HE00A&) & "])+)(.*?)" & ChrW$(&HE000&)
-        
-            Set matches = oRegExp.Execute(keyString)
-        
-            'check if we have cords
-            If matches.Count > 0 Then
-                'process cords and keys between cords
-                endMatchPosLast = 0
-                For Each match In matches
-                
-                    startMatchPos = match.FirstIndex + 1 'regexp is zero-based so add 1
-                    matchLength = match.Length
-                    endMatchPos = startMatchPos + matchLength - 1
-                
-                    If startMatchPos - 1 > endMatchPosLast Then
-                        'non-cord action
-                        sendPackage.Add osKeyMapper(Mid$(keyString, endMatchPosLast + 1, startMatchPos - endMatchPosLast - 1))
-                    End If
-                    'now do the cord action
-                    'handle more than one modifier keys
-                    Set modKeys = splitKeyString(match.SubMatches(0))
-                
-                    modKeyString = vbNullString
-                    'press the modifiers down
-                    For i = 1 To modKeys.Count
-                        modKeyString = modKeyString & osKeyMapper(modKeys(i))
-                    Next i
-                
-                    sendPackage.Add modKeyString & "(" & osKeyMapper(match.SubMatches(2)) & ")"
-                
-                    endMatchPosLast = endMatchPos
-                Next match
-            
-                If Len(keyString) > endMatchPosLast Then
-                    'last non-cord action
-                    sendPackage.Add osKeyMapper(Mid$(keyString, endMatchPosLast + 1, Len(keyString) - endMatchPosLast))
-                End If
-            Else 'no cords so send keys in one call
-                sendPackage.Add osKeyMapper(keyString)
-            End If
-        End If
-    
-        If runOnSeparateThread Then
-            'create the vbs script file to run on a separate thread
-            Dim vbs As String
-        
-            vbs = "Set WshShell = WScript.CreateObject(""WScript.Shell"")" & vbCrLf
-        
-            'wait specified amount of time before executing script
-            If timeDelayMS > 0 Then vbs = vbs & "WScript.Sleep " & timeDelayMS & vbCrLf
-    
-            If windowTitle <> vbNullString Then
-                'user is after a particular window
-                If waitForWindow Then
-                    vbs = vbs & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
-                    vbs = vbs & "startTime = Timer()" & vbCrLf
-                    vbs = vbs & "Do Until winActivated" & vbCrLf
-                    vbs = vbs & vbTab & "WScript.Sleep 100" & vbCrLf
-                    vbs = vbs & vbTab & "If 1000*(Timer()-startTime) > " & maxTimeToWaitMS & " Then Exit Do" & vbCrLf
-                    vbs = vbs & vbTab & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
-                    vbs = vbs & "Loop" & vbCrLf
-                Else
-                    vbs = vbs & "winActivated = WshShell.AppActivate(""" & windowTitle & """, False)" & vbCrLf
-                End If
-
-                vbs = vbs & "If winActivated Then" & vbCrLf
-                For i = 1 To sendPackage.Count
-                    vbs = vbs & vbTab & "WshShell.SendKeys """ & sendPackage(i) & """, False" & vbCrLf
-                Next i
-                vbs = vbs & "End If" & vbCrLf
-            Else
-                'no window specified so send keys to active window
-                'unfortunately, there seems to be no means in VBScript of making sure we are not sending to the VBIDE
-                'in this case so hopefully user is not in debug mode
-                For i = 1 To sendPackage.Count
-                    vbs = vbs & "WshShell.SendKeys """ & sendPackage(i) & """, False" & vbCrLf
-                Next i
-            End If
-        
-            'save the vbs string to user's temp file
-            Dim filePath As String
-            filePath = ResolvePath("%TEMP%\seleniumVBAtmp" & Timer() & ".vbs", False)
-            SaveStringToFile vbs, filePath
-        
-            'launch the script!
-            Shell "WScript """ & filePath & """ , vbNormalFocus"
-        
-            'remember to clean up later on WebDriver terminate event
-            cleanupTempFiles = True
-        Else
-            'not running on separate thread, so use native VBA instead of VBSript
-            If timeDelayMS > 0 Then WebShared.sleep timeDelayMS
-        
-            If windowTitle <> vbNullString Then
-                If waitForWindow Then
-                    winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
-                    startTime = VBA.Timer()
-                    Do Until winActivated
-                        WebShared.sleep 100
-                        If 1000 * (Timer() - startTime) > maxTimeToWaitMS Then Exit Do
-                        winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
-                    Loop
-                Else
-                    winActivated = WebShared.AppActivate(windowTitle, False) 'try to activate the window
-                End If
-            
-                If winActivated Then
-                    For i = 1 To sendPackage.Count
-                        VBA.SendKeys sendPackage(i), False  'send the keys
-                    Next i
-                End If
-            Else
-                'no window specified so send keys to active window
-                'but make sure we are not sending to the IDE if debugging!!!!
-                If Not IsActiveWindowVBIDE Then
-                    For i = 1 To sendPackage.Count
-                        VBA.SendKeys sendPackage(i), False   'send the keys
-                    Next i
-                End If
-            End If
-        End If
-    End Sub
 
     [Description("Sends a key sequence to the specified element - see WebKeyboard class for how to send special keys and chords")]
     Public Sub SendKeys(element As WebElement, ByVal keys As String, Optional ByVal clearBeforeTyping As Boolean = False)
@@ -2081,7 +1923,7 @@ Public Class WebDriver
         'the file exists but now make sure it is finished writing (closed)
         Do
             If FileClosed(filePath) Then
-                If browser_ = Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
+                If browser_ = svbaBrowser.Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
                 Exit Sub
             End If
             sleep 50  'ms
@@ -2450,7 +2292,6 @@ Public Class WebDriver
         Dim fso As New FileSystemObject
         Dim filePath As String
         Dim fileName As String
-        Dim ret As Long
         
         'get the resource url
         Url = ExecuteScript(getScript("GetResourceUrl.js"), element, srcAttribute)
@@ -2473,11 +2314,10 @@ Public Class WebDriver
                 Err.Raise 1, "WebDriver", "Error in DownloadResource method: specified folder path for saving file does not exist:" & vbNewLine & vbNewLine & fso.GetParentFolderName(filePath)
             End If
         End If
-    
-        'download the url to file path
-        ret = UrlDownloadToFile(Nothing, Url, filePath, 0&, Nothing)
-    
-        If ret <> 0 Then Err.Raise 1, "WebDriver", "Error in DownloadResource method: cannot download from " & Url & " to " & filePath
+        
+        If Not downloadToFile(Url, filePath) Then
+            Err.Raise 1, "WebDriver", "Error in DownloadResource method: could not download Url"
+        End If
     End Sub
     
     [Description("Saves a base 64 encoded string to a file in binary format")]
@@ -2529,7 +2369,7 @@ Public Class WebDriver
     Public Sub SetDownloadFolder(Optional ByVal folderPath As String = ".\")
         'redirect the download location AFTER capabilities have been set - can be called multiple times in same session!!
         Dim params As New Dictionary
-        If browser_ = Firefox Then
+        If browser_ = svbaBrowser.Firefox Then
             'GeckoDriver lack of support for cdp endpoint - https://groups.google.com/a/mozilla.org/g/dev-webdriver/c/DcYrCVCWMLU
             Err.Raise 1, , "Error in SetDownloadFolder - this method can only be used with Edge and Chrome. Use WebCapabilities SetDownloadPrefs instead."
         End If
@@ -2703,56 +2543,22 @@ Public Class WebDriver
         End Select
     End Function
 
-    Private Sub killDriver(ByVal browser As svbaBrowser, Optional ByVal port As Long = 0)
+    Private Sub shutDownGeckoDriver(ByVal port As Long)
         'https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
-        Dim objService As WbemScripting.SWbemServices
-        Dim objDriverList As WbemScripting.SWbemObjectSet
-        Dim objParentList As WbemScripting.SWbemObjectSet
-        Dim objDriver As WbemScripting.SWbemObject
-        Dim objParent As WbemScripting.SWbemObject
-        Dim sImageName As String
-        Dim pid As String
-    
-        Select Case browser
-        Case svbaBrowser.Chrome
-            sImageName = "chromedriver%"
-        Case svbaBrowser.Edge
-            sImageName = "msedgedriver%"
-        Case svbaBrowser.Firefox
-            sImageName = "geckodriver%"
-        End Select
-    
-        Set objService = GetObject("winmgmts:\\.\root\CIMV2")
-    
-        Set objDriverList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE Name like '" & sImageName & "'")
-    
-        For Each objDriver In objDriverList
-            If port > 0 Then
-                If InStr(objDriver.commandLine, CStr(port)) = 0 Then GoTo 10
-            End If
-            Set objParentList = objService.ExecQuery("SELECT * FROM Win32_Process" & " WHERE ProcessID = '" & objDriver.ParentProcessId & "'")
-            If objParentList.Count > 0 Then
-                Set objParent = objParentList.ItemIndex(0)
-                Select Case LCase$(objParent.Name)
-                Case "cmd.exe"
-                    'driver was called using cmd.exe so we kill the parent process and all subprocesses (/t parameter)
-                    pid = objParent.processID
-                Case Else '"excel.exe"
-                    'driver was called directly using shell and so will kill it and all subprocesses (/t parameter)
-                    pid = objDriver.processID
-                End Select
-            Else 'its a stranded process (parent may have already been quit)
-                pid = objDriver.processID
-            End If
-            taskKillByPid pid
-    10:
-        Next objDriver
-    End Sub
+        Dim svc As WbemScripting.SWbemServices
+        Dim driverList As WbemScripting.SWbemObjectSet
+        Dim driver As WbemScripting.SWbemObject
 
-    Private Function taskKillByPid(ByVal pid As String) As Variant
-        Dim wsh As New IWshRuntimeLibrary.WshShell
-        taskKillByPid = wsh.Run("taskkill /f /t /pid " & pid, 0, True)
-    End Function
+        Set svc = GetObject("winmgmts:\\.\root\CIMV2")
+    
+        Set driverList = svc.ExecQuery("SELECT * FROM Win32_Process" & " WHERE Name like 'geckodriver%'")
+    
+        For Each driver In driverList
+            If InStr(driver.commandLine, CStr(port)) > 0 Then
+                WebShared.taskTerminate "pid", driver.processId
+            End If
+        Next driver
+    End Sub
 
     Private Function getXMLStringFromPage(Optional ByVal prettyPrint As Boolean = False) As String
         Dim str As String

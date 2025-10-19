@@ -47,7 +47,7 @@ Sub test_error1()
     Debug.Assert Left(Err.Description, 93) = "no such element: Unable to locate element: {""method"":""css selector"",""selector"":""[id=""css1""]""}"
     On Error GoTo 0
     
-    'this wrongly returns "automation error" as description for twinBASIC DLL as of SeleniumVBA v6.7
+    'this wrongly returns "automation error" as description for twinBASIC DLL as of SeleniumVBA v6.8
     On Error Resume Next
     Set elem = driver.FindElement(By.ID, "css")
     Set elem = elem.FindElementByID("xxxx")
@@ -55,7 +55,7 @@ Sub test_error1()
     Debug.Assert Left(Err.Description, 93) = "no such element: Unable to locate element: {""method"":""css selector"",""selector"":""[id=""xxxx""]""}"
     On Error GoTo 0
     
-    'this wrongly returns "automation error" as description for twinBASIC DLL as of SeleniumVBA v6.7
+    'this wrongly returns "automation error" as description for twinBASIC DLL as of SeleniumVBA v6.8
     On Error Resume Next
     Set elem = driver.FindElement(By.ID, "css").FindElementByID("xxxx")
     Debug.Assert Err.Number = 404
@@ -64,7 +64,7 @@ Sub test_error1()
     
     driver.Wait 1000
     
-    'this wrongly returns "automation error" as description for twinBASIC DLL as of SeleniumVBA v6.7
+    'this wrongly returns "automation error" as description for twinBASIC DLL as of SeleniumVBA v6.8
     On Error Resume Next
     driver.FindElement(By.ID, "css").Clear
     Debug.Assert Err.Number = 400

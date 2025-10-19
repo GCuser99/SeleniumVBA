@@ -40,27 +40,6 @@ try {
 }
 }
 
-# For 64-bit:
-# HKEY_CLASSES_ROOT\TypeLib\{38ED0FFA
-# HKEY_CLASSES_ROOT\SeleniumVBA
-# HKEY_CLASSES_ROOT\CLSID\{38ED0FFA
-# HKEY_CLASSES_ROOT\Interface\{38ED0FFA
-# HKEY_CLASSES_ROOT\WOW6432Node\TypeLib\{38ED0FFA
-# HKEY_CURRENT_USER\Software\Classes\SeleniumVBA
-# HKEY_CURRENT_USER\Software\Classes\CLSID\{38ED0FFA
-# HKEY_CURRENT_USER\Software\Classes\Interface\{38ED0FFA
-# HKEY_CURRENT_USER\Software\Classes\TypeLib\{38ED0FFA
-
-# For 32-bit:
-# HKEY_CLASSES_ROOT\TypeLib\{38ED0FFA
-# HKEY_CLASSES_ROOT\SeleniumVBA
-# HKEY_CLASSES_ROOT\WOW6432Node\CLSID\{38ED0FFA
-# HKEY_CLASSES_ROOT\WOW6432Node\Interface\{38ED0FFA
-# HKEY_CLASSES_ROOT\Wow6432Node\TypeLib\{38ED0FFA
-# HKEY_CURRENT_USER\Software\Classes\SeleniumVBA
-# HKEY_CURRENT_USER\Software\Classes\TypeLib\{38ED0FFA
-
-
 # Registry hives to scan
 $hives = @(
 "HKCR",
@@ -94,23 +73,45 @@ foreach ($hive in $hives) {
     }
 }
 
-# Detect Office version from Excel and Access
+# Detect Office version
 function Get-OfficeVersion($app) {
-    $key = "HKCU:\Software\Microsoft\Office"
-    $versions = Get-ChildItem -Path $key -ErrorAction SilentlyContinue |
-        Where-Object { $_.PSChildName -match '^\d+\.\d+$' } |
-        Sort-Object -Property PSChildName -Descending
+    $roots = @(
+        "HKCU:\Software\Microsoft\Office",
+        "HKLM:\Software\Microsoft\Office",
+        "HKLM:\Software\WOW6432Node\Microsoft\Office"  # 32‑bit Office on 64‑bit Windows
+    )
+    $latest = $null
+    foreach ($root in $roots) {
+        if (-not (Test-Path $root)) { continue }
+        $versions = Get-ChildItem -Path $root -ErrorAction SilentlyContinue |
+            Where-Object { $_.PSChildName -match '^\d+\.\d+$' } |
+            Sort-Object -Property {[version]$_.PSChildName} -Descending
 
-    foreach ($version in $versions) {
-        $testPath = "$key\$($version.PSChildName)\$app\Security\Trusted Locations\$ProgID"
-        if (Test-Path -Path $testPath) {
-            return $version.PSChildName
+        foreach ($version in $versions) {
+            $strictPath = "$root\$($version.PSChildName)\$app\Security\Trusted Locations"
+            $broadPath  = "$root\$($version.PSChildName)\$app"
+
+            if (Test-Path $strictPath) {
+		$latest = $version.PSChildName  # confirmed initialized
+		Log "Found Office version: $latest" 
+		Log "Office installed on: $root" 
+                return $latest  
+            }
+            elseif (-not $latest -and (Test-Path $broadPath)) {
+                $latest = $version.PSChildName  # fallback candidate
+            }
         }
     }
-    return $null
+    if ($latest) {
+        Log "Found Office version: $version.PSChildName" 
+        Log "Office installed on: $root"
+    } else {
+        Log "Office install not found"
+    }
+    return $latest
 }
 
-# Delete Trusted Location key
+# Find Trusted Location key
 function FindTrustedLocation($app) {
     $version = Get-OfficeVersion $app
     if ($version) {
@@ -130,14 +131,13 @@ function FindTrustedLocation($app) {
         }
 
     } else {
-        Log "No Trusted Location found for $app"
+        Log "No Trusted Location or Office version found for $app"
     }
 }
 
-# Run cleanup
+# Find trusted locations for Excel and Access
 FindTrustedLocation "Excel"
 FindTrustedLocation "Access"
-
 
 # Save log to file
 $log | Out-File -FilePath $LogPath -Encoding UTF8

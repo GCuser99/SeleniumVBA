@@ -16,7 +16,6 @@ Sub test_full_suite()
     test_Attributes.test_element_aria
     
     test_Authentication.test_BasicAuthentication
-    test_Authentication.test_CDP_BasicAuthentication
 
     test_Capabilities.test_invisible
     test_Capabilities.test_kiosk_printing

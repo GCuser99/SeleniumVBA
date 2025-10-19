@@ -1,5 +1,5 @@
 Private Module Tests
-    
+   
     Sub test_error()
         Dim driver As SeleniumVBA.WebDriver
         Dim html As String
@@ -432,10 +432,10 @@ Private Module Tests
         driver.Shutdown
     End Sub
     
-    
     Sub test_DownloadResource()
         Dim driver As SeleniumVBA.WebDriver
         Dim element As SeleniumVBA.WebElement
+        Dim fso As New FileSystemObject
 
         Set driver = SeleniumVBA.New_WebDriver
 
@@ -448,6 +448,8 @@ Private Module Tests
         driver.NavigateTo "https://github.com/GCuser99/SeleniumVBA/wiki"
         Set element = driver.FindElement(By.CssSelector, "img[alt='SeleniumVBA'")
         element.DownloadResource ("src")
+        Debug.Assert fso.FileExists(driver.ResolvePath("logo.png"))
+        driver.DeleteFiles "logo.png"
     
         driver.ActiveWindow.Maximize
 
@@ -455,27 +457,53 @@ Private Module Tests
         driver.NavigateTo "https://mdn.github.io/learning-area/html/multimedia-and-embedding/responsive-images/responsive.html"
         Set element = driver.FindElement(By.CssSelector, "body > main > section > img")
         element.DownloadResource ("srcset")
+        Debug.Assert fso.FileExists(driver.ResolvePath("elva-fairy-800w.jpg"))
+        driver.DeleteFiles "elva-fairy-800w.jpg"
     
         'download the default src attribute
         element.DownloadResource ("src")
+        Debug.Assert fso.FileExists(driver.ResolvePath("elva-fairy-800w.jpg"))
+        driver.DeleteFiles "elva-fairy-800w.jpg"
     
         'source elements with srcset attributes
         Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(1)")
         element.DownloadResource ("srcset")
+        Debug.Assert fso.FileExists(driver.ResolvePath("elva-480w-close-portrait.jpg"))
+        driver.DeleteFiles "elva-480w-close-portrait.jpg"
+        
+        'source elements with srcset attributes
         Set element = driver.FindElement(By.CssSelector, "body > main > section > picture > source:nth-child(2)")
         element.DownloadResource ("srcset")
-    
+        Debug.Assert fso.FileExists(driver.ResolvePath("elva-800w.jpg"))
+        driver.DeleteFiles "elva-800w.jpg"
+
         'img element with only src attribute
         driver.NavigateTo "https://html.com/attributes/img-srcset/"
         Set element = driver.FindElement(By.CssSelector, "#post-1847 > div > div:nth-child(46) > img")
         element.DownloadResource ("src")
-    
+        Debug.Assert fso.FileExists(driver.ResolvePath("flamingo-fallback.jpg"))
+        driver.DeleteFiles "flamingo-fallback.jpg"
+        
+        'script element with src attribute
+        Set element = driver.FindElement(By.CssSelector, "body > script:nth-child(13)")
+        element.DownloadResource
+        Debug.Assert fso.FileExists(driver.ResolvePath("157X1553360.skimlinks.js"))
+        driver.DeleteFiles "157X1553360.skimlinks.js"
+        
         'img element with srcset attribute
         driver.NavigateTo "https://webkit.org/demos/srcset/"
         Set element = driver.FindElement(By.CssSelector, "body > img")
         element.DownloadResource ("srcset")
-    
-        driver.DeleteFiles "image-4x.png", "flamingo-fallback.jpg", "elva-480w-close-portrait.jpg", "elva-800w.jpg", "elva-fairy-800w.jpg", "logo.png"
+        Debug.Assert fso.FileExists(driver.ResolvePath("image-4x.png"))
+        driver.DeleteFiles "image-4x.png"
+        
+        'video source element with src attribute
+        driver.NavigateTo "https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_video"
+        driver.SwitchToFrame(driver.FindElement(By.ID, "iframeResult"))
+        Set element = driver.FindElement(By.CssSelector, "body > video > source:nth-child(1)")
+        element.DownloadResource()
+        Debug.Assert fso.FileExists(driver.ResolvePath("mov_bbb.mp4"))
+        driver.DeleteFiles "mov_bbb.mp4"
     
         driver.CloseBrowser
         driver.Shutdown
@@ -956,40 +984,6 @@ Private Module Tests
         'or refreshes/updates while keeping valid entries of an existing one
         'to set the ini file entries to system default values, use keepExistingValues:=False
         driver.CreateSettingsFile keepExistingValues:=True
-    End Sub
-    
-    Sub test_Authentication()
-        Dim driver As SeleniumVBA.WebDriver
-        Dim elem As SeleniumVBA.WebElement
-        Dim creds As String
-        Dim keys As SeleniumVBA.WebKeyboard
-    
-        Set driver = SeleniumVBA.New_WebDriver
-        Set keys = SeleniumVBA.New_WebKeyboard
-    
-        driver.StartChrome
-        driver.OpenBrowser
-    
-        driver.ImplicitMaxWait = 10000
-    
-        driver.NavigateTo "http://the-internet.herokuapp.com/basic_auth"
-    
-        'no need to run on a separate thread in this case as the login popup does
-        'not block execution while waiting for user response...
-        creds = "admin" & keys.TabKey & "admin" & keys.EnterKey 'username and password
-        driver.SendKeysToOS _
-            keyString:=creds, _
-            timeDelayMS:=0, _
-            windowTitle:="", _
-            runOnSeparateThread:=False, _
-            waitForWindow:=False
-    
-        If driver.IsPresent(By.CssSelector, "#content > div > p", elemFound:=elem) Then
-            Debug.Print elem.GetText
-        End If
-  
-        driver.CloseBrowser
-        driver.Shutdown
     End Sub
     
     Sub test_table_to_array_large()

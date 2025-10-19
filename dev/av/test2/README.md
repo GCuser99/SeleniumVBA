@@ -1,5 +1,4 @@
-This version removes the following functionality from SeleniumVBA for AV false-positive testing:
+This version modifies the following functionality from SeleniumVBA for AV false-positive testing:
 
-* Logging
-* SendKeysToOS
 * MS VBScript Regular Expression 5.5 reference removed
+* All tests removed
