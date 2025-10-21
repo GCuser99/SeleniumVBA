@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.8
+' SeleniumVBA v6.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

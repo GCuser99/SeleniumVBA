@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.8
+' SeleniumVBA v6.9
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -60,8 +60,6 @@ Private Declare PtrSafe Function GetWindowThreadProcessId Lib "user32" (ByVal hW
 Private Declare PtrSafe Function GetForegroundWindow Lib "user32" () As LongPtr
 
 Private Declare PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringW" (ByVal lpApplicationName As LongPtr, ByVal lpKeyName As LongPtr, ByVal lpDefault As LongPtr, lpReturnedString As Any, ByVal nSize As Long, ByVal lpFileName As LongPtr) As Long
-
-Public Declare PtrSafe Function UrlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileW" (ByVal pCaller As Long, ByVal szURL As LongPtr, ByVal szFileName As LongPtr, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 
 'https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptbinarytostringw
 Private Declare PtrSafe Function CryptBinaryToStringW Lib "crypt32" (pbBinary As Any, ByVal cbBinary As Long, ByVal dwFlags As CRYPT_STRING_OPTIONS, ByVal pszString As LongPtr, pcchString As Long) As Long

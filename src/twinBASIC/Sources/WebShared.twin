@@ -1,7 +1,7 @@
 Private Module WebShared
 
     ' ==========================================================================
-    ' SeleniumVBA v6.8
+    ' SeleniumVBA v6.9
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -57,7 +57,6 @@ Private Module WebShared
     Private DeclareWide PtrSafe Function GetWindowText Lib "user32" Alias "GetWindowTextW" (ByVal hWnd As LongPtr, ByVal lpString As String, ByVal nMaxCount As Long) As Long
     Private Declare PtrSafe Function GetForegroundWindow Lib "user32" () As LongPtr
     Private DeclareWide PtrSafe Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringW" (ByVal lpAppName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFileName As String) As Long
-    Public DeclareWide PtrSafe Function UrlDownloadToFile Lib "urlmon" Alias "URLDownloadToFileW" (ByVal pCaller As stdole.IUnknown, ByVal szURL As String, ByVal szFile As String, ByVal dwReserved As Long, ByVal lpfnCB As stdole.IUnknown) As Long
 
     Public Enum BOOL
         CFALSE
