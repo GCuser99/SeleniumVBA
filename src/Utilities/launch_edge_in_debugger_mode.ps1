@@ -31,7 +31,6 @@ foreach ($path in $msedgePaths) {
     try {
         $msedgeExe = (Get-ItemProperty -Path $path).'(default)'
         if (Test-Path $msedgeExe) {
-            $msedgeExe
             break
         }
     } catch {
@@ -39,5 +38,17 @@ foreach ($path in $msedgePaths) {
     }
 }
 
-# Launch Edge in Debugger mode
-Start-Process -FilePath $msedgeExe -ArgumentList "--remote-debugging-port=9222 --user-data-dir=`"$userDataDir`""
+# Define Edge command-line arguments here
+$msedgeArgs = @(
+    "--remote-debugging-port=9222"
+    "--user-data-dir=`"$userDataDir`""
+    "--disable-popup-blocking"
+    "--no-first-run"
+)
+
+# Join arguments into a single string
+$arguments = $msedgeArgs -join " "
+
+# Launch Chrome with arguments
+Start-Process -FilePath $msedgeExe -ArgumentList $arguments
+Write-Output "Launched Edge with arguments: $arguments"

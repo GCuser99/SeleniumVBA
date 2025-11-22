@@ -36,6 +36,12 @@ Sub test_print()
     settings.MarginsAll = 0.4
     settings.Orientation = svbaPortrait
     settings.PrintScale = 1
+    
+    settings.DisplayHeaderFooter = True
+    'the following is close to the default header and footer - not needed but provided for example:
+    'settings.HeaderTemplate = "<div style='font-size:10px; width:100%; display:flex; justify-content:space-between; align-items:center; padding:0 40px;'><span class='date' style='flex:1; text-align:left;'></span><span class='title' style='flex:1; text-align:center;'></span><span style='flex:1;'></span></div>"
+    'settings.FooterTemplate = "<div style='font-size:10px; width:100%; display:flex; justify-content:space-between; padding:0 40px;'><span class='url'></span><span><span class='pageNumber'></span>/<span class='totalPages'></span></span></div>"
+    
     'settings.PageRanges "1-2"  'prints the first 2 pages
     'settings.PageRanges 1, 2   'prints the first 2 pages
     'settings.PageRanges 2       'prints only the 2nd page

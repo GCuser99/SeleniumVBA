@@ -25,7 +25,7 @@ const timeoutPromise = new Promise((resolve, _) => {
 
 // processing starts here...
 var elem = arguments[0];
-if (typeof elem === 'string') {var elem =  document.documentElement;};
+if (typeof elem === 'string') {var elem =  document.scrollingElement;};
 const scrollType = arguments[1];
 const options = JSON.parse(arguments[2]);
 var container = elem;

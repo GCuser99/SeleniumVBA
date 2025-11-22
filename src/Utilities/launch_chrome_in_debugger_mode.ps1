@@ -31,7 +31,6 @@ foreach ($path in $chromePaths) {
     try {
         $chromeExe = (Get-ItemProperty -Path $path).'(default)'
         if (Test-Path $chromeExe) {
-            $chromeExe
             break
         }
     } catch {
@@ -39,5 +38,17 @@ foreach ($path in $chromePaths) {
     }
 }
 
-# Launch Chrome in Debugger mode
-Start-Process -FilePath $chromeExe -ArgumentList "--remote-debugging-port=9222 --user-data-dir=`"$userDataDir`""
+# Define Chrome command-line arguments here
+$chromeArgs = @(
+    "--remote-debugging-port=9222"
+    "--user-data-dir=`"$userDataDir`""
+    "--disable-popup-blocking"
+    "--no-first-run"
+)
+
+# Join arguments into a single string
+$arguments = $chromeArgs -join " "
+
+# Launch Chrome with arguments
+Start-Process -FilePath $chromeExe -ArgumentList $arguments
+Write-Output "Launched Chrome with arguments: $arguments"

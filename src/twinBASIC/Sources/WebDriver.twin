@@ -7,7 +7,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v6.9
+    ' SeleniumVBA v7.0
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -1267,11 +1267,16 @@ Public Class WebDriver
     
         filePath = ResolvePath(filePath, False)
     
-        If settings IsNot Nothing Then Set data = settings.ToDictionary
-    
-        pdfstr = execute(tCMD.CMD_PRINT_PAGE, data)("value")
-
-        saveByteArrayToFile decodeBase64(pdfstr), filePath
+        If settings IsNot Nothing Then Set data = settings.ToDictionary(browser_)
+        Select Case browser_
+            Case Chrome, Edge
+                Dim result As Dictionary
+                Set result = ExecuteCDP("Page.printToPDF", data)
+                Me.SaveBase64StringToFile(result("value")("data"), filePath)
+            Case Firefox
+                pdfstr = execute(tCMD.CMD_PRINT_PAGE, data)("value")
+                saveByteArrayToFile decodeBase64(pdfstr), filePath
+        End Select
     End Sub
 
     [Description("Returns a dictionary containing x, y, width, height, left, top, right, and bottom of the element's rectangle")]
@@ -2274,8 +2279,12 @@ Public Class WebDriver
         entryCol.Add "background=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "background", False, useDefaultValue)
         entryCol.Add "orientation=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", "svbaPortrait", useDefaultValue)
         entryCol.Add "print_scale=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
-        entryCol.Add "shrink_to_fit=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
-        
+        entryCol.Add "shrink_to_fit=" & readIniFileEntry(iniFilePath, " PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
+        entryCol.Add "header_template=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "header_template", vbNullString, useDefaultValue)
+        entryCol.Add "footer_template=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "footer_template", vbNullString, useDefaultValue)
+        entryCol.Add "display_header_footer=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "display_header_footer", False, useDefaultValue)
+        entryCol.Add "generate_tagged_pdf=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "generate_tagged_pdf", False, useDefaultValue)
+        entryCol.Add "generate_document_outline=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "generate_document_outline", False, useDefaultValue)
         
         Set ts = fso.CreateTextFile(iniFilePath, True, True)
     

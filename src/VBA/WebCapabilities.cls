@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.9
+' SeleniumVBA v7.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -342,6 +342,17 @@ Attribute RunIncognito.VB_Description = "Runs incognito/private argument mode"
         Me.AddArguments "--inprivate"
     Case svbaBrowser.Firefox
         Me.AddArguments "-private"
+    End Select
+End Sub
+
+'@Description("Runs guest argument mode")
+Public Sub RunAsGuest()
+Attribute RunAsGuest.VB_Description = "Runs guest argument mode"
+    Select Case browser_
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        Me.AddArguments "--guest"
+    Case svbaBrowser.Firefox
+        Err.Raise 1, "WebCapabilities", "The RunAsGuest method is not supported by the Firefox browser."
     End Select
 End Sub
 

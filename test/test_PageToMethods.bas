@@ -19,7 +19,7 @@ Sub test_PageToHTMLMethods()
     'use DOM to parse htmlDocument here if desired....
     'html DOM can much faster than Selenium if complicated parse is needed
     Set htmlDoc = driver.PageToHTMLDoc(sanitize:=False)
-    numNodes = htmlDoc.body.ChildNodes.Length
+    numNodes = htmlDoc.body.ChildNodes.length
     
     'save raw page to html file
     driver.PageToHTMLFile "source_raw.html", sanitize:=False
@@ -27,7 +27,7 @@ Sub test_PageToHTMLMethods()
     'note that santization leaves DOM tree intact
     Set htmlDoc = driver.PageToHTMLDoc(sanitize:=True)
     
-    Debug.Assert htmlDoc.body.ChildNodes.Length = numNodes
+    Debug.Assert htmlDoc.body.ChildNodes.length = numNodes
 
     'save sanitized page to html file
     driver.PageToHTMLFile "source_sanitized.html", sanitize:=True

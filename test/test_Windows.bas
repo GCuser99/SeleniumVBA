@@ -189,7 +189,13 @@ Sub test_windows_SwitchToNew()
     Set driver = SeleniumVBA.New_WebDriver
     
     driver.StartChrome
-    driver.OpenBrowser
+    
+    Dim caps As WebCapabilities
+    
+    Set caps = driver.CreateCapabilities
+    caps.RunAsGuest
+    
+    driver.OpenBrowser caps
     
     driver.NavigateTo "http://the-internet.herokuapp.com/windows"
     

@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.9
+' SeleniumVBA v7.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -1342,11 +1342,16 @@ Attribute PrintToPDF.VB_Description = "Prints the current webpage window to a sp
     
     filePath = ResolvePath(filePath, False)
     
-    If Not settings Is Nothing Then Set data = settings.ToDictionary
-    
-    pdfstr = execute(tCMD.CMD_PRINT_PAGE, data)("value")
-
-    saveByteArrayToFile decodeBase64(pdfstr), filePath
+    If Not settings Is Nothing Then Set data = settings.ToDictionary(browser_)
+    Select Case browser_
+        Case Chrome, Edge
+            Dim result As Dictionary
+            Set result = ExecuteCDP("Page.printToPDF", data)
+            SaveBase64StringToFile result("value")("data"), filePath
+        Case Firefox
+            pdfstr = execute(tCMD.CMD_PRINT_PAGE, data)("value")
+            saveByteArrayToFile decodeBase64(pdfstr), filePath
+    End Select
 End Sub
 
 '@Description("Returns a dictionary containing x, y, width, height, left, top, right, and bottom of the element's rectangle")
@@ -2427,6 +2432,11 @@ Attribute CreateSettingsFile.VB_Description = "Creates/updates the optional INI 
     entryCol.Add "orientation=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "orientation", "svbaPortrait", useDefaultValue)
     entryCol.Add "print_scale=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1, useDefaultValue)
     entryCol.Add "shrink_to_fit=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True, useDefaultValue)
+    entryCol.Add "header_template=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "header_template", vbNullString, useDefaultValue)
+    entryCol.Add "footer_template=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "footer_template", vbNullString, useDefaultValue)
+    entryCol.Add "display_header_footer=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "display_header_footer", False, useDefaultValue)
+    entryCol.Add "generate_tagged_pdf=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "generate_tagged_pdf", False, useDefaultValue)
+    entryCol.Add "generate_document_outline=" & readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "generate_document_outline", False, useDefaultValue)
     
     Set ts = fso.CreateTextFile(iniFilePath, True, True)
     
@@ -3440,7 +3450,7 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & vbCrLf
         script = script & "// processing starts here..." & vbCrLf
         script = script & "var elem = arguments[0];" & vbCrLf
-        script = script & "if (typeof elem === 'string') {var elem =  document.documentElement;};" & vbCrLf
+        script = script & "if (typeof elem === 'string') {var elem =  document.scrollingElement;};" & vbCrLf
         script = script & "const scrollType = arguments[1];" & vbCrLf
         script = script & "const options = JSON.parse(arguments[2]);" & vbCrLf
         script = script & "var container = elem;" & vbCrLf

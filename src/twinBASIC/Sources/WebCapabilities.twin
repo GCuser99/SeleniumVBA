@@ -6,7 +6,7 @@
 Public Class WebCapabilities
 
     ' ==========================================================================
-    ' SeleniumVBA v6.9
+    ' SeleniumVBA v7.0
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -320,6 +320,16 @@ Public Class WebCapabilities
             Me.AddArguments "--inprivate"
         Case svbaBrowser.Firefox
             Me.AddArguments "-private"
+        End Select
+    End Sub
+    
+    [Description("Runs guest argument mode")]
+    Public Sub RunAsGuest()
+        Select Case browser_
+        Case svbaBrowser.Chrome, svbaBrowser.Edge
+            Me.AddArguments "--guest"
+        Case svbaBrowser.Firefox
+            Err.Raise 1, "WebCapabilities", "The RunAsGuest method is not supported by the Firefox browser."
         End Select
     End Sub
 

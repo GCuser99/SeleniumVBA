@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage print settings for gene
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.9
+' SeleniumVBA v7.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -60,6 +60,13 @@ Private mPageRanges() As Variant
 Private mPrintScale  As Single
 Private mShrinkToFit As Boolean
 Private mUnits As svbaUnits
+
+'CDP extensions - Edge/Chrome only:
+Private mHeaderTemplate As String
+Private mFooterTemplate As String
+Private mDisplayHeaderFooter As Boolean
+Private mGenerateTaggedPDF As Boolean
+Private mGenerateDocumentOutline As Boolean
 
 Public Enum svbaOrientation
     svbaLandscape = 0
@@ -185,41 +192,131 @@ Public Property Let ShrinkToFit(ByVal val As Boolean)
     mShrinkToFit = val
 End Property
 
-Friend Function ToDictionary() As Dictionary
+'@Description("Sets or gets whether to display Footer and Header")
+Public Property Get DisplayHeaderFooter() As Boolean
+Attribute DisplayHeaderFooter.VB_Description = "Sets or gets whether to display Footer and Header"
+    DisplayHeaderFooter = mDisplayHeaderFooter
+End Property
+Public Property Let DisplayHeaderFooter(ByVal val As Boolean)
+    mDisplayHeaderFooter = val
+End Property
+
+'@Description("Sets or gets the header template in HTML format")
+Public Property Get HeaderTemplate() As String
+Attribute HeaderTemplate.VB_Description = "Sets or gets the the header template in HTML format"
+    HeaderTemplate = mHeaderTemplate
+End Property
+Public Property Let HeaderTemplate(ByVal val As String)
+    mHeaderTemplate = val
+End Property
+
+'@Description("Sets or gets the footer template in HTML format")
+Public Property Get FooterTemplate() As String
+Attribute FooterTemplate.VB_Description = "Sets or gets the shrink-to-fit property"
+    FooterTemplate = mFooterTemplate
+End Property
+Public Property Let FooterTemplate(ByVal val As String)
+    mFooterTemplate = val
+End Property
+
+'@Description("Sets or gets whether to embed a document outline into the PDF")
+Public Property Get GenerateDocumentOutline() As Boolean
+Attribute GenerateDocumentOutline.VB_Description = "Sets or gets whether to embed a document outline into the PDF"
+    GenerateDocumentOutline = mGenerateDocumentOutline
+End Property
+Public Property Let GenerateDocumentOutline(ByVal val As Boolean)
+    mGenerateDocumentOutline = val
+End Property
+
+'@Description("Sets or gets whether to generate a tagged PDF")
+Public Property Get GenerateTaggedPDF() As Boolean
+Attribute GenerateTaggedPDF.VB_Description = "Sets or gets whether to generate a tagged PDF"
+    GenerateTaggedPDF = mGenerateTaggedPDF
+End Property
+Public Property Let GenerateTaggedPDF(ByVal val As Boolean)
+    mGenerateTaggedPDF = val
+End Property
+
+Friend Function ToDictionary(browser_ As svbaBrowser) As Dictionary
     Dim margins As New Dictionary
     Dim page As New Dictionary
     Dim data As New Dictionary
-    
-    Dim ufact As Single
-    If mUnits = svbaInches Then ufact = 2.54 Else ufact = 1
-    
-    margins.Add "bottom", mMarginBottom * ufact
-    margins.Add "left", mMarginLeft * ufact
-    margins.Add "right", mMarginRight * ufact
-    margins.Add "top", mMarginTop * ufact
-    
-    page.Add "height", mPageHeight * ufact
-    page.Add "width", mPageWidth * ufact
-    
-    data.Add "background", mBackground
-    
-    If mOrientation = svbaPortrait Then
-        data.Add "orientation", "portrait"
-    Else
-        data.Add "orientation", "landscape"
-    End If
-    
     Dim i As Long
-    For i = 0 To UBound(mPageRanges)
-        mPageRanges(i) = CStr(mPageRanges(i))
-    Next i
+
+    Dim ufact As Single
+
+    Select Case browser_
+        Case Chrome, Edge
+            'Note: CDP assumes incoming dimensions are in inches
+            If mUnits = svbaInches Then ufact = 1 Else ufact = 2.54
+
+            data.Add "marginTop", mMarginTop * ufact 'defaults to .4
+            data.Add "marginBottom", mMarginBottom * ufact 'defaults to .4
+            data.Add "marginLeft", mMarginLeft * ufact 'defaults to .4
+            data.Add "marginRight", mMarginRight * ufact 'defaults to .4
+
+            data.Add "paperWidth", mPageWidth * ufact 'defaults to 8.5
+            data.Add "paperHeight", mPageHeight * ufact 'defaults to 11
+
+            data.Add "printBackground", mBackground 'defaults to False
+
+            If mOrientation = svbaPortrait Then
+                data.Add "landscape", False 'defaults to False
+            Else
+                data.Add "landscape", True 'defaults to False
+            End If
+
+            Dim pageRangeString As String
     
-    data.Add "margin", margins
-    data.Add "page", page
-    data.Add "pageRanges", mPageRanges 'eg. Array("1-2", "4-7", 13, "15")
-    data.Add "scale", mPrintScale
-    data.Add "shrinkToFit", mShrinkToFit
-    
+            If UBound(mPageRanges) >= 0 Then
+                pageRangeString = CStr(mPageRanges(0))
+                For i = 1 To UBound(mPageRanges)
+                    pageRangeString = pageRangeString & ", " & CStr(mPageRanges(i))
+                Next i
+            End If
+            data.Add "pageRanges", pageRangeString 'defaults to "" example'1-5, 8, 11-13'
+            data.Add "scale", mPrintScale 'defaults to 1
+            data.Add "preferCSSPageSize", Not mShrinkToFit 'defaults to False
+            If mHeaderTemplate <> "" Or mFooterTemplate <> "" Then
+                data.Add "displayHeaderFooter", True 'defaults to False
+            Else
+                data.Add "displayHeaderFooter", mDisplayHeaderFooter 'defaults to False
+            End If
+            data.Add "headerTemplate", mHeaderTemplate 'defaults to ""
+            data.Add "footerTemplate", mFooterTemplate 'defaults to ""
+            data.Add "transferMode", "ReturnAsBase64" 'defaults to ReturnAsStream
+            data.Add "generateTaggedPDF", mGenerateTaggedPDF 'defaults to false
+            data.Add "generateDocumentOutline", mGenerateDocumentOutline 'defaults to False
+        Case Firefox
+            'Note: Selenium WebDriver assumes incoming dimensions are in centimeters
+            If mUnits = svbaInches Then ufact = 2.54 Else ufact = 1
+            margins.Add "bottom", mMarginBottom * ufact
+            margins.Add "left", mMarginLeft * ufact
+            margins.Add "right", mMarginRight * ufact
+            margins.Add "top", mMarginTop * ufact
+
+            page.Add "height", mPageHeight * ufact
+            page.Add "width", mPageWidth * ufact
+
+            data.Add "background", mBackground
+
+            If mOrientation = svbaPortrait Then
+                data.Add "orientation", "portrait"
+            Else
+                data.Add "orientation", "landscape"
+            End If
+
+            For i = 0 To UBound(mPageRanges)
+                mPageRanges(i) = CStr(mPageRanges(i))
+            Next i
+
+            data.Add "margin", margins
+            data.Add "page", page
+            data.Add "pageRanges", mPageRanges 'eg. Array("1-2", "4-7", 13, "15")
+            data.Add "scale", mPrintScale
+            data.Add "shrinkToFit", mShrinkToFit
+    End Select
+
     Set ToDictionary = data
 End Function
 
@@ -243,4 +340,10 @@ Private Sub Class_Initialize()
     mPageRanges = Array()
     mPrintScale = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "print_scale", 1)
     mShrinkToFit = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "shrink_to_fit", True)
+    
+    mHeaderTemplate = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "header_template", vbNullString)
+    mFooterTemplate = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "footer_template", vbNullString)
+    mDisplayHeaderFooter = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "display_header_footer", False)
+    mGenerateTaggedPDF = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "generate_tagged_pdf", False)
+    mGenerateDocumentOutline = readIniFileEntry(iniFilePath, "PDF_DEFAULT_PRINT_SETTINGS", "generate_document_outline", False)
 End Sub

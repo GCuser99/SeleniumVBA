@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v6.9
+' SeleniumVBA v7.0
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -79,8 +79,8 @@ Private Declare PtrSafe Function WinHttpCloseHandle Lib "WinHttp" (ByVal hIntern
 Private Declare PtrSafe Function WinHttpGetIEProxyConfigForCurrentUser Lib "winhttp.dll" (ByRef pProxyConfig As WINHTTP_CURRENT_USER_IE_PROXY_CONFIG) As Long
 Private Declare PtrSafe Function GlobalFree Lib "kernel32" (ByVal hMem As LongPtr) As LongPtr
 Private Declare PtrSafe Function lstrlenW Lib "kernel32" (lpString As Any) As Long
-Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
-      
+Private Declare PtrSafe Function lstrcpyW Lib "kernel32" (ByVal lpString1 As LongPtr, ByVal lpString2 As LongPtr) As LongPtr
+
 Private Type WINHTTP_AUTOPROXY_OPTIONS
     dwFlags As Long
     dwAutoDetectFlags As Long
@@ -110,14 +110,17 @@ Private Const WINHTTP_AUTO_DETECT_TYPE_DNS_A As Long = &H2
 Private Const WINHTTP_ACCESS_TYPE_NO_PROXY As Long = 1
 Private Const HTTPREQUEST_PROXYSETTING_PROXY As Long = 2
 
-' Convert pointer to string (used in downloadToFile)
+' Converts a pointer to a Unicode string using lstrcpyW
 Private Function ptrToStr(ByVal lpsz As LongPtr) As String
-    Dim Length As Long
+    Dim length As Long
     If lpsz = 0 Then Exit Function
-    Length = lstrlenW(ByVal lpsz)
-    If Length > 0 Then
-        ptrToStr = Space$(Length)
-        CopyMemory ByVal StrPtr(ptrToStr), ByVal lpsz, Length * 2 ' Unicode = 2 bytes/char
+    ' Get the length of the Unicode string (in characters)
+    length = lstrlenW(ByVal lpsz)
+    If length > 0 Then
+        ' Allocate a string buffer
+        ptrToStr = String$(length, vbNullChar)
+        ' Copy the Unicode string from unmanaged memory to the VBA string buffer
+        lstrcpyW StrPtr(ptrToStr), lpsz
     End If
 End Function
 
