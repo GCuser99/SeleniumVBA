@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.0
+' SeleniumVBA v7.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2026, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -140,6 +140,13 @@ End Sub
 Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
 Attribute SetUnhandledPromptBehavior.VB_Description = "Sets the unhandledPromptBehavior capability - defaults to dismiss and notify"
     Me.SetCapability "unhandledPromptBehavior", getAlertHandlingString(val)
+End Sub
+
+'@Description("Enables BiDirectional WebDriver Protocol")
+Public Sub EnableBiDiMode()
+Attribute EnableBiDiMode.VB_Description = "Enables BiDirectional WebDriver Protocol"
+    Me.SetCapability "webSocketUrl", True
+    WebJsonConverter.OptionsKeepStringifiedNumbersAsStrings = True
 End Sub
 
 '-------------------------------------------------------------------------

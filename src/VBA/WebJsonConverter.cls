@@ -20,6 +20,7 @@ Attribute VB_Exposed = True
 '    not escaped, which is not required by WebDriver server
 '    improved json_StringIsLargeNumber logic using Regexp to handle non-number strings like 123E45678901234567
 '    Changed the way numbers are converted to String in ConvertToJson to handle system decimal separators that are not "."
+'    Added KeepStringifiedNumbersAsStrings option to support WebDriver BiDi
 ' ==========================================================================
 ' VBA-JSON v2.3.1
 ' (c) Tim Hall - https://github.com/VBA-tools/VBA-JSON
@@ -132,6 +133,8 @@ Private Type json_Options
     
     'Added by GCUser99 - default is not to convert, as WebDriver server can handle Unicode characters
     ConvertUnicodeToEscapedString As Boolean
+    'Added by GCUser99 to support WebDriver BiDi - default is to convert
+    KeepStringifiedNumbersAsStrings As Boolean
 End Type
 
 Private JsonOptions As json_Options
@@ -163,6 +166,14 @@ Public Property Let OptionsConvertUnicodeToEscapedString(ByVal val As Boolean)
 End Property
 Public Property Get OptionsConvertUnicodeToEscapedString() As Boolean
     OptionsConvertUnicodeToEscapedString = JsonOptions.ConvertUnicodeToEscapedString
+End Property
+
+'Added by GCUser99
+Public Property Let OptionsKeepStringifiedNumbersAsStrings(ByVal val As Boolean)
+    JsonOptions.KeepStringifiedNumbersAsStrings = val
+End Property
+Public Property Get OptionsKeepStringifiedNumbersAsStrings() As Boolean
+    OptionsKeepStringifiedNumbersAsStrings = JsonOptions.KeepStringifiedNumbersAsStrings
 End Property
 
 ' ============================================= '
@@ -246,7 +257,7 @@ Public Function ConvertToJson(ByVal jsonValue As Variant, Optional ByVal Whitesp
         ConvertToJson = """" & json_DateStr & """"
     Case VBA.vbString
         ' String (or large number encoded as string)
-        If (Not JsonOptions.UseDoubleForLargeNumbers) And json_StringIsLargeNumber(jsonValue) Then
+        If (Not JsonOptions.UseDoubleForLargeNumbers) And json_StringIsLargeNumber(jsonValue) And (Not JsonOptions.KeepStringifiedNumbersAsStrings) Then
             ConvertToJson = jsonValue
         Else
             ConvertToJson = """" & json_Encode(jsonValue) & """"

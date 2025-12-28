@@ -66,7 +66,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Components]
 
-Name: "pkg_core"; Description: "SeleniumVBA ActiveX Dll"; Types: full compact custom; Flags: fixed;
+Name: "pkg_core"; Description: "{#AppName} ActiveX Dll"; Types: full compact custom; Flags: fixed;
 Name: "pkg_utils";  Description: "PowerShell Utilities"; Types: full compact custom; Flags: fixed;
 Name: "pkg_docs";  Description: "MS Excel and Access Test Documents"; Types: full compact custom;
   
@@ -93,7 +93,7 @@ Source: {#RequirementsFilePath} ; DestDir: "{app}"; Flags: ignoreversion ; Compo
 ; Source: "Readme.txt"; DestDir: "{app}"; Flags: isreadme
 
 [Icons]
-Name: "{autodesktop}\SeleniumVBA - Shortcut"; Filename: "{app}"
+Name: "{autodesktop}\{#AppName} - Shortcut"; Filename: "{app}"
 Name: "{app}\wiki help documentation"; Filename: "{#AppHelpURL}"
 
 [Run]

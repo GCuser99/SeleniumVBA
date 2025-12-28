@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.0
+' SeleniumVBA v7.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2026, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -542,6 +542,41 @@ Attribute NavigateToString.VB_Description = "Navigates browser to page represent
     dataUrl = ExecuteScript(getScript("HTMLToData.js"), html)
     NavigateToString = NavigateTo(dataUrl, timeOutms, raiseError)
 End Function
+
+'@Description("Waits until all tracked network requests have completed, polling until the page reaches a network-idle state or a timeout occurs")
+Public Sub WaitForIdleNetwork(Optional ByVal idleTime As Long = 1500, Optional ByVal maxTimeToWait As Long = 30000)
+Attribute WaitForIdleNetwork.VB_Description = "Waits until all tracked network requests have completed, polling until the page reaches a network-idle state or a timeout occurs"
+    Dim script As String
+    script = getScript("WaitForIdleNetwork.js")
+    If (ExecuteScript(script, idleTime, maxTimeToWait) Like "Error*") Then
+        Err.Raise 404, , "Error in WaitForIdleNetwork: Maximum time exceeded while waiting for idle state"
+    End If
+End Sub
+
+'@Description("Waits until all active jQuery AJAX requests have completed, polling until the page reaches a jQuery-idle state or a timeout occurs")
+Public Sub WaitForIdleJQuery(Optional ByVal maxTimeToWait As Long = 30000)
+Attribute WaitForIdleJQuery.VB_Description = "Waits until all active jQuery AJAX requests have completed, polling until the page reaches a jQuery-idle state or a timeout occurs"
+    Dim script As String
+    script = getScript("WaitForIdleJQuery.js")
+    If (ExecuteScriptAsync(script, maxTimeToWait, 50) Like "Error*") Then
+        Err.Raise 404, , "Error in WaitForIdleJQuery: Maximum time exceeded while waiting for idle state"
+    End If
+End Sub
+
+'@Description("Waits until the DOM has stopped mutating, polling until the DOM container reaches a stable state or a timeout occurs. If container is omitted, then document is used.")
+Public Sub WaitForIdleDOM(Optional ByVal idleTime As Long = 50, Optional ByVal maxTimeToWait As Long = 30000, Optional container As WebElement)
+Attribute WaitForIdleDOM.VB_Description = "Waits until the DOM has stopped mutating, polling until the DOM container reaches a stable state or a timeout occurs. If container is omitted, then document is used."
+    Dim script As String, result As String
+    script = getScript("WaitForIdleDOM.js")
+    If container Is Nothing Then
+        result = ExecuteScript(script, "document", idleTime, maxTimeToWait)
+    Else
+        result = ExecuteScript(script, container, idleTime, maxTimeToWait)
+    End If
+    If result Like "Error*" Then
+        Err.Raise 404, , "Error in WaitForIdleDOM: Maximum time exceeded while waiting for idle state"
+    End If
+End Sub
 
 '@Description("Finds the first element for a given selector and value")
 Public Function FindElement(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElement
@@ -1098,18 +1133,18 @@ End Function
 Public Sub DeSelectByValue(ByVal val As String, element As WebElement)
 Attribute DeSelectByValue.VB_Description = "Deselects the dropdown option element having the specified value attribute"
     Dim elem As WebElement
-
+    If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi select option element"
     Set elem = FindElement(By.CssSelector, "option[value =" & """" & val & """" & "]", element)
-    If IsSelected(elem) Then elem.Click
+    If IsSelected(elem) Then elem.Click (WebKeyboard.CtrlKey)
 End Sub
 
 '@Description("Deselects the dropdown option element having the specified visible text")
 Public Sub DeSelectByVisibleText(ByVal text As String, element As WebElement)
 Attribute DeSelectByVisibleText.VB_Description = "Deselects the dropdown option element having the specified visible text"
     Dim elem As WebElement
-    
+    If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi select option element"
     Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
-    If IsSelected(elem) Then elem.Click
+    If IsSelected(elem) Then elem.Click (WebKeyboard.CtrlKey)
 End Sub
 
 '@Description("Returns a boolean indicating if the dropdown option element is selected")
@@ -1128,7 +1163,6 @@ End Function
 Public Sub SelectByValue(ByVal val As String, element As WebElement)
 Attribute SelectByValue.VB_Description = "Selects a dropdown option element with the specified value attribute"
     Dim elem As WebElement
-    
     Set elem = FindElement(By.TagName, "option[value =" & """" & val & """" & "]", element)
     If Not IsSelected(elem) Then elem.Click
 End Sub
@@ -1136,15 +1170,15 @@ End Sub
 '@Description("Selects a dropdown option element with the specified index")
 Public Sub SelectByIndex(ByVal index As Long, element As WebElement)
 Attribute SelectByIndex.VB_Description = "Selects a dropdown option element with the specified index"
-    SetFocus element
-    ExecuteScript "arguments[0].options[" & CStr(index - baseDomIdx) & "].selected = true;", element
+    Dim elems As WebElements
+    Set elems = FindElements(By.CssSelector, "option", element)
+    If Not IsSelected(elems(index)) Then elems(index).Click
 End Sub
 
 '@Description("Selects a dropdown option element with the specified visible text")
 Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
 Attribute SelectByVisibleText.VB_Description = "Selects a dropdown option element with the specified visible text"
     Dim elem As WebElement
-
     Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
     If Not IsSelected(elem) Then elem.Click
 End Sub
@@ -1154,10 +1188,10 @@ Public Sub SelectAll(element As WebElement)
 Attribute SelectAll.VB_Description = "Selects all multi-select dropdown option elements"
     Dim elems As WebElements
     Dim i As Long
+    If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
     Set elems = FindElements(By.CssSelector, "option", element)
-    SetFocus element
     For i = 1 To elems.Count
-        ExecuteScript "arguments[0].options[" & CStr(i - 1) & "].selected = true;", element
+        If Not IsSelected(elems(i)) Then elems(i).Click
     Next i
 End Sub
 
@@ -1166,10 +1200,10 @@ Public Sub DeSelectAll(element As WebElement)
 Attribute DeSelectAll.VB_Description = "Deselects all dropdown option elements"
     Dim elems As WebElements
     Dim i As Long
+    If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
     Set elems = FindElements(By.CssSelector, "option", element)
-    SetFocus element
     For i = 1 To elems.Count
-        ExecuteScript "arguments[0].options[" & CStr(i - 1) & "].selected = false;", element
+        If IsSelected(elems(i)) Then elems(i).Click (WebKeyboard.CtrlKey)
     Next i
 End Sub
 
@@ -1177,11 +1211,9 @@ End Sub
 Public Sub DeSelectByIndex(ByVal index As Long, element As WebElement)
 Attribute DeSelectByIndex.VB_Description = "Deselects a dropdown option element with the specified index"
     Dim elems As WebElements
+    If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
     Set elems = FindElements(By.CssSelector, "option", element)
-    If IsSelected(elems(index - baseDomIdx + 1)) Then
-        ExecuteScript "return arguments[0].selectedIndex = " & CStr(index - baseDomIdx), elems(index - baseDomIdx + 1)
-        elems(index - baseDomIdx + 1).Click
-    End If
+    If IsSelected(elems(index)) Then elems(index).Click (WebKeyboard.CtrlKey)
 End Sub
 
 '@Description("Executes a java script synchronously")
@@ -1774,6 +1806,20 @@ Attribute GetScrollWidth.VB_Description = "Gets the width of the current scrolla
         GetScrollWidth = ExecuteScript("return arguments[0].scrollWidth;", scrollableElem)
     End If
 End Function
+
+'@Description("Scrolls to bottom of a lazy-loading page")
+Public Sub ScrollDownUntilExhausted(Optional ByVal idleTime As Long = 500, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_smooth, Optional scrollableElem As WebElement)
+Attribute ScrollDownUntilExhausted.VB_Description = "Scrolls to bottom of a lazy-loading page"
+    Dim scrollheight As Double
+    Dim lastScrollHeight As Double
+    scrollheight = Me.GetScrollHeight(scrollableElem)
+    Do
+        Me.ScrollToBottom enSpeed, scrollableElem
+        Wait idleTime
+        lastScrollHeight = scrollheight
+        scrollheight = Me.GetScrollHeight(scrollableElem)
+    Loop Until scrollheight = lastScrollHeight
+End Sub
 
 '@Description("Returns the collection of cookies for the current webpage")
 Public Function GetAllCookies() As WebCookies
@@ -3573,11 +3619,109 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "    return 'data:text/html,' + encodeURIComponent(cleanedString.toWellFormed());" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & "return toDataURI(arguments[0]);" & vbCrLf
+    Case "WaitForIdleDOM.js"
+        script = vbNullString
+        script = script & "async function waitForIdleDOM(root, idleMs = 50, timeout = 30000) {" & vbCrLf
+        script = script & "try {" & vbCrLf
+        script = script & "  // Normalize root argument" & vbCrLf
+        script = script & "  if (root === 'document') {" & vbCrLf
+        script = script & "    root = document;" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & "  if (!root || !(root instanceof Node)) {" & vbCrLf
+        script = script & "    return 'Error: invalid root node';" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & "  let lastMutation = Date.now();" & vbCrLf
+        script = script & "  const observer = new MutationObserver(() => {" & vbCrLf
+        script = script & "    lastMutation = Date.now();" & vbCrLf
+        script = script & "  });" & vbCrLf
+        script = script & "  observer.observe(root, {" & vbCrLf
+        script = script & "    subtree: true," & vbCrLf
+        script = script & "    childList: true," & vbCrLf
+        script = script & "    attributes: true," & vbCrLf
+        script = script & "    characterData: true" & vbCrLf
+        script = script & "  });" & vbCrLf
+        script = script & "  const checkInterval = Math.min(25, idleMs);" & vbCrLf
+        script = script & "  return await new Promise(resolve => {" & vbCrLf
+        script = script & "    const interval = setInterval(() => {" & vbCrLf
+        script = script & "      if (Date.now() - lastMutation >= idleMs) {" & vbCrLf
+        script = script & "        cleanup();" & vbCrLf
+        script = script & "        resolve('done');" & vbCrLf
+        script = script & "      }" & vbCrLf
+        script = script & "    }, checkInterval);" & vbCrLf
+        script = script & "    const safety = setTimeout(() => {" & vbCrLf
+        script = script & "      cleanup();" & vbCrLf
+        script = script & "      resolve('Error: timeout waiting for DOM idle');" & vbCrLf
+        script = script & "    }, timeout);" & vbCrLf
+        script = script & "    function cleanup() {" & vbCrLf
+        script = script & "      clearInterval(interval);" & vbCrLf
+        script = script & "      clearTimeout(safety);" & vbCrLf
+        script = script & "      observer.disconnect();" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "  });" & vbCrLf
+        script = script & "} catch (err) {" & vbCrLf
+        script = script & "  return `Error: ${err && err.message ? err.message : String(err)}`;" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "return waitForIdleDOM(arguments[0], arguments[1], arguments[2]);" & vbCrLf
+    Case "WaitForIdleNetwork.js"
+        script = vbNullString
+        script = script & "function waitForIdleNetwork (idleTimeout=1500, maxTimeout=30000){" & vbCrLf
+        script = script & "return new Promise((resolve, reject) => {" & vbCrLf
+        script = script & "  let req = 0, timer = null, settled = false;" & vbCrLf
+        script = script & "  const checkInterval = 100;" & vbCrLf
+        script = script & "  const of = window.fetch;" & vbCrLf
+        script = script & "  const oo = XMLHttpRequest.prototype.open;" & vbCrLf
+        script = script & "  const os = XMLHttpRequest.prototype.send;" & vbCrLf
+        script = script & "  function resetTimer() { if (timer) clearTimeout(timer); }" & vbCrLf
+        script = script & "  function checkIdle() {" & vbCrLf
+        script = script & "    resetTimer();" & vbCrLf
+        script = script & "    if (req === 0) {" & vbCrLf
+        script = script & "      timer = setTimeout(() => {" & vbCrLf
+        script = script & "        window.fetch = of;" & vbCrLf
+        script = script & "        XMLHttpRequest.prototype.open = oo;" & vbCrLf
+        script = script & "        XMLHttpRequest.prototype.send = os;" & vbCrLf
+        script = script & "        if (!settled) { settled = true; clearTimeout(safety); resolve(); }" & vbCrLf
+        script = script & "      }, idleTimeout);" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & "  window.fetch = function(u, o) {" & vbCrLf
+        script = script & "    req++; resetTimer();" & vbCrLf
+        script = script & "    return of(u, o).finally(() => { req--; checkIdle(); });" & vbCrLf
+        script = script & "  };" & vbCrLf
+        script = script & "  XMLHttpRequest.prototype.open = function(...a) { return oo.apply(this, a); };" & vbCrLf
+        script = script & "  XMLHttpRequest.prototype.send = function(...a) {" & vbCrLf
+        script = script & "    req++; resetTimer();" & vbCrLf
+        script = script & "    this.addEventListener('loadend', () => { req--; checkIdle(); });" & vbCrLf
+        script = script & "    return os.apply(this, a);" & vbCrLf
+        script = script & "  };" & vbCrLf
+        script = script & "  setTimeout(checkIdle, checkInterval);" & vbCrLf
+        script = script & "  const safety = setTimeout(() => {" & vbCrLf
+        script = script & "    if (!settled) { settled = true; reject(new Error(""networkIdle timeout"")); }" & vbCrLf
+        script = script & "  }, maxTimeout);" & vbCrLf
+        script = script & "});" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "return waitForIdleNetwork(arguments[0], arguments[1]);" & vbCrLf
+    Case "WaitForIdleJQuery.js"
+        script = vbNullString
+        script = script & "var callback = arguments[arguments.length - 1]; async function waitForIdleJQuery(timeout = 10000, poll = 50) {" & vbCrLf
+        script = script & "if (!window.jQuery || typeof jQuery.active !== ""number"") {" & vbCrLf
+        script = script & "  return 'jQuery not present or jQuery.active unavailable';" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "const start = Date.now();" & vbCrLf
+        script = script & "while (jQuery.active > 0) {" & vbCrLf
+        script = script & "  if (Date.now() - start > timeout) {" & vbCrLf
+        script = script & "    return 'Error: timeout waiting for jQuery idle';" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & "  await new Promise(r => setTimeout(r, poll));" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "return 'done';" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "return waitForIdleJQuery(arguments[0], arguments[1]).then(callback);" & vbCrLf
     End Select
     getScript = script
 End Function
 
 Private Sub Class_Terminate()
-    'delete temp files if they were created
-    If cleanupTempFiles Then DeleteFiles ResolvePath("%TEMP%\seleniumVBAtmp*.vbs", False)
+    'in case this was set to true in EnableBiDi method of WebCapabilities class
+    WebJsonConverter.OptionsKeepStringifiedNumbersAsStrings = False
 End Sub

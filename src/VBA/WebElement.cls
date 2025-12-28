@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.0
+' SeleniumVBA v7.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -27,7 +27,7 @@ Attribute VB_Description = "This class provides a mechanism to represent webpage
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2026, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -464,6 +464,12 @@ Attribute GetScrollWidth.VB_Description = "Gets the width of of this scrollable 
     GetScrollWidth = driver_.GetScrollWidth(Me)
 End Function
 
+'@Description("Scrolls to bottom of a lazy-loading scrollable element.")
+Public Sub ScrollDownUntilExhausted(Optional ByVal idleTime As Long = 500, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_smooth)
+Attribute ScrollDownUntilExhausted.VB_Description = "Scrolls to bottom of a lazy-loading scrollable element."
+    driver_.ScrollDownUntilExhausted idleTime, enSpeed, Me
+End Sub
+
 '@Description("Gets the shadow root hosted by this element")
 Public Function GetShadowRoot() As WebShadowRoot
 Attribute GetShadowRoot.VB_Description = "Gets the shadow root hosted by this element"
@@ -493,6 +499,12 @@ Public Function WaitUntilNotDisplayed(Optional ByVal maxWaitTimeMS As Long = 100
 Attribute WaitUntilNotDisplayed.VB_Description = "Waits until this element is not displayed (not interactable)"
     Set WaitUntilNotDisplayed = driver_.WaitUntilNotDisplayed(Me, maxWaitTimeMS)
 End Function
+
+'@Description("Waits until the DOM for this container has stopped mutating, polling until the DOM tree reaches a stable state or a timeout occurs")
+Public Sub WaitForIdleDOM(Optional ByVal idleTime As Long = 50, Optional ByVal maxTimeToWait As Long = 30000)
+Attribute WaitForIdleDOM.VB_Description = "Waits until the DOM for this container has stopped mutating, polling until the DOM tree reaches a stable state or a timeout occurs"
+    driver_.WaitForIdleDOM idleTime, maxTimeToWait, Me
+End Sub
 
 '@Description("Returns the parent of this element")
 Public Function GetParentElement() As WebElement

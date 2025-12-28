@@ -14,8 +14,7 @@ A comprehensive Selenium wrapper for browser automation developed for MS Office 
 
 **What's New?**
 
-- Improved performance/reliability by executing expensive/complex code using in-browser JavaScript
-- NavigateToString allowing direct navigation to HTML strings to help facilitate testing and issue debugging
+- Now [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) compatible - see [hanamichi77777](https://github.com/hanamichi77777)'s WebDriver BiDi for SeleniumVBA [GitHub repo](https://github.com/hanamichi77777/WebDriverBiDi-via-VBA-test)
 - Featured on [Sancarn](https://github.com/sancarn)'s curated [Awesome VBA list](https://github.com/sancarn/awesome-vba?tab=readme-ov-file#web-tools) [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 
 ## Setup

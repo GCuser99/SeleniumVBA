@@ -1,5 +1,199 @@
 Private Module Tests
    
+    Public Sub test_select222()
+        Dim driver As WebDriver
+        Dim elem As WebElement
+
+        Set driver = New WebDriver
+        driver.StartChrome
+        
+        driver.OpenBrowser
+    
+        driver.ImplicitMaxWait = 10000
+
+        driver.NavigateTo "http://keylopment.com/faq/2357"
+        
+        Set elem = driver.FindElementByXPath("//select[@name='calselect']")
+        
+        'this selects, updates calendar, and passes the test below
+        'With driver.Actions
+        '    .MouseMoveTo(elem).Click.SendKeys(ChmKeys.Down & ChmKeys.Down & ChmKeys.Down & ChmKeys.Enter)
+        '    .Perform
+        'End With
+        
+        'elem.SelectByValue "20260301" 'works
+        'driver.Wait 500 'this is needed
+        
+        'driver.SelectByIndex 4, elem
+        'driver.Wait 500 'this is needed
+        Dim body As WebElement
+        Set body = driver.FindElementByTagName("body")
+        
+        elem.SelectByVisibleText "2026年03月" 'works
+        StopWatch.StartIt
+        'driver.WaitForIdleDOM(container:=body)
+        driver.WaitForIdleDOM()
+        Debug.Print StopWatch.StopIt
+        driver.WaitForIdleJQuery(1000)
+        
+        StopWatch.StartIt
+        driver.WaitForIdleDOM(container:=body)
+        'driver.WaitForIdleDOM()
+        Debug.Print StopWatch.StopIt
+        
+        
+        'driver.Wait 1000
+        Debug.Assert driver.FindElementByXPath("//h3[@class='title-level03']").GetText = "2026年03月"
+        
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Sub test_select()
+        Dim driver As SeleniumVBA.WebDriver
+        Dim selectElem As SeleniumVBA.WebElement
+        Dim textElem As SeleniumVBA.WebElement
+        Dim html As String
+
+        Set driver = SeleniumVBA.New_WebDriver
+
+        driver.StartEdge
+        driver.OpenBrowser
+    
+        html = vbNullString
+        html = html & "<!DOCTYPE html>" & vbCrLf
+        html = html & "<html>" & vbCrLf
+        html = html & "<head>" & vbCrLf
+        html = html & "    <title>Test Select</title>" & vbCrLf
+        html = html & "    <script>" & vbCrLf
+        html = html & "        function updateSelection(selectEl, outputId) {" & vbCrLf
+        html = html & "            const selectedTexts = Array.from(selectEl.selectedOptions)" & vbCrLf
+        html = html & "                .map(opt => opt.text);" & vbCrLf
+        html = html & "            document.getElementById(outputId).textContent =" & vbCrLf
+        html = html & "                selectedTexts.length" & vbCrLf
+        html = html & "                    ? selectedTexts.join("", "")" & vbCrLf
+        html = html & "                    : ""(nothing selected)"";" & vbCrLf
+        html = html & "        }" & vbCrLf
+        html = html & "    </script>" & vbCrLf
+        html = html & "</head>" & vbCrLf
+        html = html & "<body>" & vbCrLf
+        html = html & vbCrLf
+        html = html & "    <div>Select your preference:</div>" & vbCrLf
+        html = html & "    <select id=""fruits""" & vbCrLf
+        html = html & "            onchange=""updateSelection(this, 'out_fruits')"">" & vbCrLf
+        html = html & "        <option value=""banana"">Banana</option>" & vbCrLf
+        html = html & "        <option value=""apple"">Apple</option>" & vbCrLf
+        html = html & "        <option value=""orange"">Orange</option>" & vbCrLf
+        html = html & "        <option value=""grape"">Grape</option>" & vbCrLf
+        html = html & "        <option value=""lcgrape"">grape</option>" & vbCrLf
+        html = html & "    </select>" & vbCrLf
+        html = html & "    <div id=""out_fruits""></div>" & vbCrLf
+        html = html & vbCrLf
+        html = html & "    <div>Select your preference:</div>" & vbCrLf
+        html = html & "    <select multiple id=""fruits_multi""" & vbCrLf
+        html = html & "            onchange=""updateSelection(this, 'out_fruits_multi')"">" & vbCrLf
+        html = html & "        <option value=""default"" disabled>Choose which one</option>" & vbCrLf
+        html = html & "        <option value=""banana"">Banana</option>" & vbCrLf
+        html = html & "        <option value=""apple"">Apple</option>" & vbCrLf
+        html = html & "        <option value=""orange"">Orange</option>" & vbCrLf
+        html = html & "        <option value=""grape"">Grape</option>" & vbCrLf
+        html = html & "    </select>" & vbCrLf
+        html = html & "    <div id=""out_fruits_multi""></div>" & vbCrLf
+        html = html & vbCrLf
+        html = html & "    <div>Select your preference:</div>" & vbCrLf
+        html = html & "    <select id=""fruits_default""" & vbCrLf
+        html = html & "            onchange=""updateSelection(this, 'out_fruits_default')"">" & vbCrLf
+        html = html & "        <option value=""default"" disabled selected>Choose which one</option>" & vbCrLf
+        html = html & "        <option value=""banana"">Banana</option>" & vbCrLf
+        html = html & "        <option value=""apple"">Apple</option>" & vbCrLf
+        html = html & "        <option value=""orange"">Orange</option>" & vbCrLf
+        html = html & "        <option value=""grape"">Grape</option>" & vbCrLf
+        html = html & "    </select>" & vbCrLf
+        html = html & "    <div id=""out_fruits_default""></div>" & vbCrLf
+        html = html & vbCrLf
+        html = html & "</body>" & vbCrLf
+        html = html & "</html>" & vbCrLf
+        html = html & vbCrLf
+        
+        driver.NavigateToString html
+        driver.Wait(1000)
+        
+        Set selectElem = driver.FindElementByID("fruits")
+        Set textElem = driver.FindElementByID("out_fruits")
+        selectElem.SelectByValue("orange")
+        Debug.Assert textElem.GetText = "Orange"
+        selectElem.SelectByVisibleText("grape")
+        Debug.Assert textElem.GetText = "grape"
+        selectElem.SelectByVisibleText("Grape")
+        Debug.Assert textElem.GetText = "Grape"
+        selectElem.SelectByIndex(1)
+        Debug.Assert textElem.GetText = "Banana"
+        Debug.Assert selectElem.GetSelectedOption.IsSelected
+        
+        Set selectElem = driver.FindElementByID("fruits_multi")
+        Set textElem = driver.FindElementByID("out_fruits_multi")
+        selectElem.SelectByValue("orange")
+        selectElem.SelectByVisibleText("Apple")
+        Debug.Assert textElem.GetText = "Apple, Orange"
+
+        selectElem.SelectAll
+        Debug.Assert textElem.GetText = "Banana, Apple, Orange, Grape"
+        selectElem.DeSelectByValue("orange")
+        Debug.Assert textElem.GetText = "Banana, Apple, Grape"
+        selectElem.DeSelectAll
+        Debug.Assert textElem.GetText = "(nothing selected)"
+        selectElem.SelectByIndex(2)
+        selectElem.SelectByIndex(3)
+        selectElem.DeSelectByIndex(2)
+        Debug.Assert textElem.GetText = "Apple"
+        
+        Set selectElem = driver.FindElementByID("fruits_default")
+        Set textElem = driver.FindElementByID("out_fruits_default")
+        selectElem.SelectByValue("orange")
+        Debug.Assert textElem.GetText = "Orange"
+        selectElem.SelectByIndex(2)
+        Debug.Assert textElem.GetText = "Banana"
+        
+        On Error Resume Next
+        selectElem.DeSelectByIndex(2)
+        Debug.Assert Err.Description = "Error in WebDiver: Not allowed for a non-multi-select option element"
+        On Error GoTo 0
+        
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
+    Public Sub test_wait_for_idle_state()
+        Dim driver As WebDriver
+        Dim elms_title1 As WebElements ' List of article elements immediately after navigation
+        Dim elms_title2 As WebElements ' List of article elements after waiting with WaitForIdelState
+        Dim elms_title3 As WebElements ' List of article elements after waiting 3 seconds more
+        Set driver = New WebDriver
+
+        driver.StartChrome
+
+        driver.OpenBrowser
+
+        driver.ImplicitMaxWait = 10000
+
+        driver.NavigateTo "https://note.com/topic/novel"
+    
+        Set elms_title1 = driver.FindElementsByCssSelector(".a-link.m-largeNoteWrapper__link.fn")
+
+        driver.WaitForIdleNetwork 1500
+    
+        Set elms_title2 = driver.FindElementsByCssSelector(".a-link.m-largeNoteWrapper__link.fn")
+    
+        driver.Wait 3000
+    
+        Set elms_title3 = driver.FindElementsByCssSelector(".a-link.m-largeNoteWrapper__link.fn")
+
+        Debug.Assert elms_title1.Count < elms_title2.Count
+        Debug.Assert elms_title2.Count = elms_title3.Count 'Idle state achieved
+        driver.CloseBrowser
+        driver.Shutdown
+    End Sub
+    
     Sub test_error()
         Dim driver As SeleniumVBA.WebDriver
         Dim html As String

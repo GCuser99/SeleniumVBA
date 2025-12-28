@@ -1,7 +1,7 @@
 Private Module Utils
 
     ' ==========================================================================
-    ' SeleniumVBA v7.0
+    ' SeleniumVBA v7.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -508,6 +508,42 @@ Private Module Utils
         tmp = VBA.Replace$(getScript("HTMLToData.js"), Chr$(34), Chr$(34) & Chr$(34))
         v = VBA.Split(tmp, vbLf)
         s = s & "Case ""HTMLToData.js""" & vbCrLf
+        s = s & vbTab & "script = vbNullString" & vbCrLf
+        For i = LBound(v) To UBound(v)
+            If v(i) = vbNullString Then
+                s = s & vbTab & "script = script & vbCrLf" & vbCrLf
+            Else
+                s = s & vbTab & "script = script & """ & v(i) & """ & vbCrLf" & vbCrLf
+            End If
+        Next i
+        
+        tmp = VBA.Replace$(getScript("WaitForIdleDOM.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
+        s = s & "Case ""WaitForIdleDOM.js""" & vbCrLf
+        s = s & vbTab & "script = vbNullString" & vbCrLf
+        For i = LBound(v) To UBound(v)
+            If v(i) = vbNullString Then
+                s = s & vbTab & "script = script & vbCrLf" & vbCrLf
+            Else
+                s = s & vbTab & "script = script & """ & v(i) & """ & vbCrLf" & vbCrLf
+            End If
+        Next i
+        
+        tmp = VBA.Replace$(getScript("WaitForIdleNetwork.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
+        s = s & "Case ""WaitForIdleNetwork.js""" & vbCrLf
+        s = s & vbTab & "script = vbNullString" & vbCrLf
+        For i = LBound(v) To UBound(v)
+            If v(i) = vbNullString Then
+                s = s & vbTab & "script = script & vbCrLf" & vbCrLf
+            Else
+                s = s & vbTab & "script = script & """ & v(i) & """ & vbCrLf" & vbCrLf
+            End If
+        Next i
+        
+        tmp = VBA.Replace$(getScript("WaitForIdleJQuery.js"), Chr$(34), Chr$(34) & Chr$(34))
+        v = VBA.Split(tmp, vbLf)
+        s = s & "Case ""WaitForIdleJQuery.js""" & vbCrLf
         s = s & vbTab & "script = vbNullString" & vbCrLf
         For i = LBound(v) To UBound(v)
             If v(i) = vbNullString Then

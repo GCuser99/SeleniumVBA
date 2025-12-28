@@ -199,3 +199,32 @@ Sub test_WaitForDownload()
     driver.Shutdown
 End Sub
 
+Sub test_wait_for_idle_state()
+    Dim driver As New WebDriver
+    Dim elms_title1 As WebElements ' List of article elements immediately after navigation
+    Dim elms_title2 As WebElements ' List of article elements after waiting with WaitForIdelState
+    Dim elms_title3 As WebElements ' List of article elements after waiting 3 seconds more
+
+    driver.StartChrome
+    driver.OpenBrowser
+
+    driver.ImplicitMaxWait = 10000
+
+    driver.NavigateTo "https://note.com/topic/novel"
+    
+    Set elms_title1 = driver.FindElementsByCssSelector(".a-link.m-largeNoteWrapper__link.fn")
+
+    driver.WaitForIdleNetwork 1500
+    
+    Set elms_title2 = driver.FindElementsByCssSelector(".a-link.m-largeNoteWrapper__link.fn")
+    
+    driver.Wait 3000
+    
+    Set elms_title3 = driver.FindElementsByCssSelector(".a-link.m-largeNoteWrapper__link.fn")
+
+    Debug.Assert elms_title1.Count < elms_title2.Count
+    Debug.Assert elms_title2.Count = elms_title3.Count 'idle state achieved
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub

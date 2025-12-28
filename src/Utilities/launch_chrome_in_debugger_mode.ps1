@@ -40,8 +40,10 @@ foreach ($path in $chromePaths) {
 
 # Define Chrome command-line arguments here
 $chromeArgs = @(
-    "--remote-debugging-port=9222"
+    "--remote-debugging-port=0"
+    "--homepage `"about:blank`""
     "--user-data-dir=`"$userDataDir`""
+    "--profile-directory=`"Default`""
     "--disable-popup-blocking"
     "--no-first-run"
 )

@@ -3,7 +3,7 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 '@ModuleDescription "This class is used for object instantiation when referencing SeleniumVBA externally from another code project"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.0
+' SeleniumVBA v7.1
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -16,7 +16,7 @@ Attribute VB_Description = "This class is used for object instantiation when ref
 ' ==========================================================================
 ' MIT License
 '
-' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+' Copyright (c) 2023-2026, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
 '
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal

@@ -14,7 +14,7 @@ Sub test_addExtensions()
     
     'temporary work-around for this issue: https://github.com/SeleniumHQ/selenium/issues/15788
     caps.AddArguments "--disable-features=DisableLoadExtensionCommandLineSwitch"
-
+    caps.AddArguments "--enable-unsafe-extension-debugging"
     'this will load a local crx file extension(s) (Chrome/Edge only)
     caps.AddExtensions Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\" & "TickTick-Todo-Task-List-Chrome-Web-Store.crx"
     
@@ -40,6 +40,7 @@ Sub test_addExtensions2()
     
     'temporary work-around for this issue: https://github.com/SeleniumHQ/selenium/issues/15788
     caps.AddArguments "--disable-features=DisableLoadExtensionCommandLineSwitch"
+    caps.AddArguments "--enable-unsafe-extension-debugging"
 
     'this will load an unpacked extension from Chrome's User Data extensions directory
     caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\ajkhmmldknmfjnmeedkbkkojgobmljda\1.5.9_0"

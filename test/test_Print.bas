@@ -23,14 +23,7 @@ Sub test_print()
     'insure that the entire page is loaded using simulated scrolling
     'not needed in this particular case but could be useful in "lazy load"
     'situations such as in https://www.yahoo.co.jp/
-    Dim scrollHeight As Long, lastScrollHeight As Long
-    scrollHeight = driver.GetScrollHeight
-    Do
-        driver.ScrollToBottom enSpeed:=jump_instant
-        driver.Wait 500
-        lastScrollHeight = scrollHeight
-        scrollHeight = driver.GetScrollHeight
-    Loop Until scrollHeight = lastScrollHeight
+    'driver.ScrollDownUntilExhausted
     
     settings.Units = svbaInches
     settings.MarginsAll = 0.4

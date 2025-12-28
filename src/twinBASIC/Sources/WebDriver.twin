@@ -7,7 +7,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v7.0
+    ' SeleniumVBA v7.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -22,7 +22,7 @@ Public Class WebDriver
     ' ==========================================================================
     ' MIT License
     '
-    ' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2023-2026, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
     ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
     '
     ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -527,6 +527,38 @@ Public Class WebDriver
         dataUrl = ExecuteScript(getScript("HTMLToData.js"), html)
         NavigateToString = NavigateTo(dataUrl, timeOutms, raiseError)
     End Function
+    
+    [Description("Waits until all tracked network requests have completed, polling until the page reaches a network‑idle state or a timeout occurs")]
+    Public Sub WaitForIdleNetwork(Optional ByVal idleTime As Long = 1500, Optional ByVal maxTimeToWait As Long = 30000)
+        Dim script As String
+        script = getScript("WaitForIdleNetwork.js")
+        If ExecuteScript(script, idleTime, maxTimeToWait) Like "Error*" Then
+            Err.Raise 404, , "Error in WaitForIdleNetwork: Maximum time exceeded while waiting for idle state"
+        End If
+    End Sub
+    
+    [Description("Waits until all active jQuery AJAX requests have completed, polling until the page reaches a jQuery‑idle state or a timeout occurs")]
+    Public Sub WaitForIdleJQuery(Optional ByVal maxTimeToWait As Long = 30000)
+        Dim script As String
+        script = getScript("WaitForIdleJQuery.js")
+        If ExecuteScriptAsync(script, maxTimeToWait, 50) Like "Error*" Then
+            Err.Raise 404, , "Error in WaitForIdleJQuery: Maximum time exceeded while waiting for idle state"
+        End If
+    End Sub
+    
+    [Description("Waits until the DOM has stopped mutating, polling until the DOM container reaches a stable state or a timeout occurs. If container is omitted, then document is used.")]
+    Public Sub WaitForIdleDOM(Optional ByVal idleTime As Long = 50, Optional ByVal maxTimeToWait As Long = 30000, Optional container As WebElement)
+        Dim script As String, result As String
+        script = getScript("WaitForIdleDOM.js")
+        If container Is Nothing Then
+            result = ExecuteScript(script, "document", idleTime, maxTimeToWait)
+        Else
+            result = ExecuteScript(script, container, idleTime, maxTimeToWait)
+        End If
+        If result Like "Error*" Then
+            Err.Raise 404, , "Error in WaitForIdleDOM: Maximum time exceeded while waiting for idle state"
+        End If
+    End Sub
 
     [Description("Finds the first element for a given selector and value")]
     Public Function FindElement(by_ As By, ByVal val As String, Optional parentElement As WebElement) As WebElement
@@ -1004,22 +1036,6 @@ Public Class WebDriver
         GetTagName = execute(tCMD.CMD_GET_ELEMENT_TAG_NAME, data)("value")
     End Function
 
-    [Description("Selects a dropdown option element with the specified value attribute")]
-    Public Sub SelectByValue(ByVal val As String, element As WebElement)
-        Dim elem As WebElement
-    
-        Set elem = FindElement(By.TagName, "option[value =" & """" & val & """" & "]", element)
-        If Not IsSelected(elem) Then elem.Click
-    End Sub
-
-    [Description("Selects a dropdown option element with the specified visible text")]
-    Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
-        Dim elem As WebElement
-
-        Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
-        If Not IsSelected(elem) Then elem.Click
-    End Sub
-
     [Description("Returns all selected option elements for the specified dropdown element")]
     Public Function GetAllSelectedOptions(element As WebElement) As WebElements
         Dim elems As WebElements
@@ -1054,17 +1070,17 @@ Public Class WebDriver
     [Description("Deselects the dropdown option element having the specified value attribute")]
     Public Sub DeSelectByValue(ByVal val As String, element As WebElement)
         Dim elem As WebElement
-
+        If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
         Set elem = FindElement(By.CssSelector, "option[value =" & """" & val & """" & "]", element)
-        If IsSelected(elem) Then elem.Click
+        If IsSelected(elem) Then elem.Click(WebKeyboard.CtrlKey)
     End Sub
 
     [Description("Deselects the dropdown option element having the specified visible text")]
     Public Sub DeSelectByVisibleText(ByVal text As String, element As WebElement)
         Dim elem As WebElement
-    
+        If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
         Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
-        If IsSelected(elem) Then elem.Click
+        If IsSelected(elem) Then elem.Click(WebKeyboard.CtrlKey)
     End Sub
 
     [Description("Returns a boolean indicating if the dropdown option element is selected")]
@@ -1076,43 +1092,56 @@ Public Class WebDriver
     Public Function IsMultiSelect(selectElement As WebElement) As Boolean
         IsMultiSelect = HasAttribute("multiple", selectElement)
     End Function
-
+    
+    [Description("Selects a dropdown option element with the specified value attribute")]
+    Public Sub SelectByValue(ByVal val As String, element As WebElement)
+        Dim elem As WebElement
+        Set elem = FindElement(By.TagName, "option[value =" & """" & val & """" & "]", element)
+        If Not IsSelected(elem) Then elem.Click
+    End Sub
+    
     [Description("Selects a dropdown option element with the specified index")]
     Public Sub SelectByIndex(ByVal index As Long, element As WebElement)
-        SetFocus element
-        ExecuteScript "arguments[0].options[" & CStr(index - baseDomIdx) & "].selected = true;", element
+        Dim elems As WebElements
+        Set elems = FindElements(By.CssSelector, "option", element)
+        If Not IsSelected(elems(index)) Then elems(index).Click
+    End Sub
+
+    [Description("Selects a dropdown option element with the specified visible text")]
+    Public Sub SelectByVisibleText(ByVal text As String, element As WebElement)
+        Dim elem As WebElement
+        Set elem = FindElement(By.XPath, ".//option[normalize-space(.) = " & """" & text & """" & "]", element)
+        If Not IsSelected(elem) Then elem.Click
     End Sub
 
     [Description("Selects all multi-select dropdown option elements")]
     Public Sub SelectAll(element As WebElement)
         Dim elems As WebElements
         Dim i As Long
+        If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
         Set elems = FindElements(By.CssSelector, "option", element)
-        SetFocus element
         For i = 1 To elems.Count
-            ExecuteScript "arguments[0].options[" & CStr(i - 1) & "].selected = true;", element
+            If Not IsSelected(elems(i)) Then elems(i).Click
         Next i
     End Sub
-
+    
     [Description("Deselects all dropdown option elements")]
     Public Sub DeSelectAll(element As WebElement)
         Dim elems As WebElements
         Dim i As Long
+        If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
         Set elems = FindElements(By.CssSelector, "option", element)
-        SetFocus element
         For i = 1 To elems.Count
-            ExecuteScript "arguments[0].options[" & CStr(i - 1) & "].selected = false;", element
+            If IsSelected(elems(i)) Then elems(i).Click (WebKeyboard.CtrlKey)
         Next i
     End Sub
 
     [Description("Deselects a dropdown option element with the specified index")]
     Public Sub DeSelectByIndex(ByVal index As Long, element As WebElement)
         Dim elems As WebElements
+        If Not IsMultiSelect(element) Then Err.Raise 1, , "Error in WebDiver: Not allowed for a non-multi-select option element"
         Set elems = FindElements(By.CssSelector, "option", element)
-        If IsSelected(elems(index - baseDomIdx + 1)) Then
-            ExecuteScript "return arguments[0].selectedIndex = " & CStr(index - baseDomIdx), elems(index - baseDomIdx + 1)
-            elems(index - baseDomIdx + 1).Click
-        End If
+        If IsSelected(elems(index)) Then elems(index).Click(WebKeyboard.CtrlKey)
     End Sub
 
     [Description("Executes a java script synchronously")]
@@ -1664,6 +1693,19 @@ Public Class WebDriver
             GetScrollWidth = ExecuteScript("return arguments[0].scrollWidth;", scrollableElem)
         End If
     End Function
+    
+    [Description("Scrolls to bottom of a lazy-loading page.")]
+    Public Sub ScrollDownUntilExhausted(Optional ByVal idleTime As Long = 500, Optional ByVal enSpeed As ScrollIntoViewOptions_speed = jump_smooth, Optional scrollableElem As WebElement)
+        Dim scrollheight As Double
+        Dim lastScrollHeight As Double
+        scrollheight = Me.GetScrollHeight(scrollableElem)
+        Do
+            Me.ScrollToBottom enSpeed, scrollableElem
+            Wait idleTime
+            lastScrollHeight = scrollheight
+            scrollheight = Me.GetScrollHeight(scrollableElem)
+        Loop Until scrollheight = lastScrollHeight
+    End Sub
 
     [Description("Returns the collection of cookies for the current webpage")]
     Public Function GetAllCookies() As WebCookies
@@ -2945,8 +2987,8 @@ Public Class WebDriver
     End Function
     
     Private Sub Class_Terminate()
-        'delete temp files if they were created
-        If cleanupTempFiles Then DeleteFiles ResolvePath("%TEMP%\seleniumVBAtmp*.vbs", False)
+        'in case this was set to true in EnableBiDi method of WebCapabilities class
+        WebJsonConverter.OptionsKeepStringifiedNumbersAsStrings = False
     End Sub
     
 End Class

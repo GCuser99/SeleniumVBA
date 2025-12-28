@@ -6,7 +6,7 @@
 Public Class WebCapabilities
 
     ' ==========================================================================
-    ' SeleniumVBA v7.0
+    ' SeleniumVBA v7.1
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -21,7 +21,7 @@ Public Class WebCapabilities
     ' ==========================================================================
     ' MIT License
     '
-    ' Copyright (c) 2023-2025, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
+    ' Copyright (c) 2023-2026, GCUser99 and 6DiegoDiego9 (https://github.com/GCuser99/SeleniumVBA)
     ' Copyright (c) 2021, uezo (https://github.com/uezo/TinySeleniumVBA)
     '
     ' Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -130,6 +130,12 @@ Public Class WebCapabilities
     [Description("Sets the unhandledPromptBehavior capability - defaults to dismiss and notify")]
     Public Sub SetUnhandledPromptBehavior(ByVal val As svbaAlertHandling)
         Me.SetCapability "unhandledPromptBehavior", getAlertHandlingString(val)
+    End Sub
+    
+    [Description("Enables BiDirectional WebDriver Protocol")]
+    Public Sub EnableBiDiMode()
+        Me.SetCapability "webSocketUrl", True
+        WebJsonConverter.OptionsKeepStringifiedNumbersAsStrings = True
     End Sub
 
     '-------------------------------------------------------------------------
@@ -642,5 +648,5 @@ Public Class WebCapabilities
             createFolderPath = False
         End If
     End Function
-    
+
 End Class

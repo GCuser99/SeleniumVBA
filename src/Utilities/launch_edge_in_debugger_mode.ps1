@@ -41,7 +41,9 @@ foreach ($path in $msedgePaths) {
 # Define Edge command-line arguments here
 $msedgeArgs = @(
     "--remote-debugging-port=9222"
+    "--homepage `"about:blank`""
     "--user-data-dir=`"$userDataDir`""
+    "--profile-directory=`"Default`""
     "--disable-popup-blocking"
     "--no-first-run"
 )
