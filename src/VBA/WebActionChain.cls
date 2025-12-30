@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to emulate a human interaction se
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.1
+' SeleniumVBA v7.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

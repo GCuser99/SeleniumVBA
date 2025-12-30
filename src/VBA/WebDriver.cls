@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.1
+' SeleniumVBA v7.2
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -69,6 +69,8 @@ Private Const baseDomIdx As Integer = 1
 Private sessionId_ As String
 Private driverUrl_ As String
 Private browser_ As svbaBrowser
+'For BiDi compatibility - holds connection string if BiDi mode enabled
+Private webSocketUrl_ As String
 
 'holds defaults for command window style, default io folder, and default driver folder
 Private appWinStyle As VbAppWinStyle
@@ -477,6 +479,11 @@ Attribute OpenBrowser.VB_Description = "Opens browser instance with specified ca
     
     sessionId_ = resp("sessionId")
     
+    'capture websocket connection info if in BiDi mode
+    If resp("capabilities").Exists("webSocketUrl") Then
+        webSocketUrl_ = resp("capabilities")("webSocketUrl")
+    End If
+    
     'set timeouts if different from sys defaults
     If curImplicitWait <> sysImplicitWait Then ImplicitMaxWait = curImplicitWait
     If curScriptTimeout <> sysScriptTimeout Then ScriptTimeout = curScriptTimeout
@@ -489,6 +496,12 @@ Attribute CloseBrowser.VB_Description = "Closes browser without terminating driv
     execute tCMD.CMD_QUIT
     sessionId_ = vbNullString
 End Sub
+
+'@Description("Access point for BiDi (WebDriver Bi-Directional) features.")
+Public Property Get GetWebSocketUrl() As String
+Attribute GetWebSocketUrl.VB_Description = "Access point for BiDi (WebDriver Bi-Directional) features."
+    GetWebSocketUrl = webSocketUrl_
+End Property
 
 '@Description("Navigates browser to a specified webpage and returns true if no timeout or other error")
 Public Function NavigateTo(ByVal Url As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean

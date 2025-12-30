@@ -6,7 +6,7 @@
 [Description("This class is used for managing a collection of WebElement objects")]
 Public Class WebElements
     ' ==========================================================================
-    ' SeleniumVBA v7.1
+    ' SeleniumVBA v7.2
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

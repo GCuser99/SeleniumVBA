@@ -5,7 +5,7 @@
 [Description("This class is used to manage a collection of WebWindow objects - must be instantiated using WebDriver's Windows method")]
 Public Class WebWindows
     ' ==========================================================================
-    ' SeleniumVBA v7.1
+    ' SeleniumVBA v7.2
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '

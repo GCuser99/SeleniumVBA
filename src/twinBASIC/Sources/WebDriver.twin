@@ -7,7 +7,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v7.1
+    ' SeleniumVBA v7.2
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -64,6 +64,8 @@ Public Class WebDriver
     Private sessionId_ As String
     Private driverUrl_ As String
     Private browser_ As svbaBrowser
+    'For BiDi compatibility - holds connection string if BiDi mode enabled
+    Private webSocketUrl_ As String
 
     'holds defaults for command window style, default io folder, and default driver folder
     Private appWinStyle As VbAppWinStyle
@@ -465,6 +467,11 @@ Public Class WebDriver
         End If
     
         sessionId_ = resp("sessionId")
+        
+        'capture websocket connection info if in BiDi mode
+        If resp("capabilities").Exists("webSocketUrl") Then
+            webSocketUrl_ = resp("capabilities")("webSocketUrl")
+        End If
     
         'set timeouts if different from sys defaults
         If curImplicitWait <> sysImplicitWait Then ImplicitMaxWait = curImplicitWait
@@ -477,6 +484,11 @@ Public Class WebDriver
         execute tCMD.CMD_QUIT
         sessionId_ = vbNullString
     End Sub
+    
+    [Description("Access point for BiDi (WebDriver Bi-Directional) features.")]
+    Public Property Get GetWebSocketUrl() As String
+        GetWebSocketUrl = webSocketUrl_
+    End Property
 
     [Description("Navigates browser to a specified webpage and returns true if no timeout or other error")]
     Public Function NavigateTo(ByVal Url As String, Optional ByVal timeOutms As Long = -1, Optional ByVal raiseError As Boolean = True) As Boolean

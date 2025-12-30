@@ -447,3 +447,27 @@ Sub test_pageLoadStrategy()
     driver.Shutdown
 End Sub
 
+Sub test_bidi()
+    'tests BiDi compatibility
+    Dim driver As SeleniumVBA.WebDriver
+    Dim caps As SeleniumVBA.WebCapabilities
+
+    Set driver = SeleniumVBA.New_WebDriver
+    
+    driver.StartChrome
+    
+    Set caps = driver.CreateCapabilities()
+    
+    'enable BiDi
+    caps.EnableBiDiMode
+
+    driver.OpenBrowser caps
+    
+    'return the websocket url needed by BiDi for connection
+    Debug.Assert driver.GetWebSocketUrl Like "ws://localhost:*"
+    
+    driver.NavigateTo "https://www.wikipedia.org/"
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
