@@ -7,7 +7,7 @@
 Public Class WebDriver
 
     ' ==========================================================================
-    ' SeleniumVBA v7.2
+    ' SeleniumVBA v7.3
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -2459,7 +2459,15 @@ Public Class WebDriver
     
         execute tCMD.CMD_INSTALL_ADDON_FF, data
     End Sub
-
+    
+    [Description("Installs an updated driver if out-of-date with browser version. System default is True. If used, this property must be set before executing one of the StartXXXXX methods.")]
+    Public Property Let AutoDriverUpdate(ByVal v As Boolean)
+        checkDriverBrowserVersionAlignment = v
+    End Property
+    Public Property Get AutoDriverUpdate() As Boolean
+        AutoDriverUpdate = checkDriverBrowserVersionAlignment
+    End Property
+    
     Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
         Dim cmdMethod As String
         Dim cmdPath As String

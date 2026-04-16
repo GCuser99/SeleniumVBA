@@ -6,7 +6,7 @@
 Public Class WebCapabilities
 
     ' ==========================================================================
-    ' SeleniumVBA v7.2
+    ' SeleniumVBA v7.3
     '
     ' A Selenium wrapper for browser automation developed for MS Office VBA
     '
@@ -172,30 +172,6 @@ Public Class WebCapabilities
         Dim varry() As Variant
         varry = addList
         addToOptionList "windowTypes", paramListToStringArray(varry)
-    End Sub
-
-    [Description("Adds a list of option extensions")]
-    Public Sub AddExtensions(ParamArray addList() As Variant)
-        Dim varry() As Variant
-        Dim pathList() As String
-        Dim extList() As String
-        Dim i As Long
-        Dim fso As New FileSystemObject
-        Dim filePath As String
-        Select Case browser_
-        Case svbaBrowser.Chrome, svbaBrowser.Edge
-            varry = addList
-            pathList = paramListToStringArray(varry)
-            ReDim extList(1 To UBound(pathList))
-            For i = 1 To UBound(pathList)
-                filePath = driver_.ResolvePath (pathList(i), True)
-                If Not fso.FileExists(filePath) Then Err.Raise 1, "WebCapabilities", "The extension file path :" & vbNewLine & vbNewLine & filePath & vbNewLine & vbNewLine & "does not exist - please correct the path provided."
-                extList(i) = encodeBase64(readByteArrayFromFile(filePath), , False)
-            Next i
-            addToOptionList "extensions", extList
-        Case svbaBrowser.Firefox
-            Err.Raise 1, "WebCapabilities", "The AddExtensions method is not supported by the Firefox browser - use InstallAddon method of Webdriver class instead"
-        End Select
     End Sub
 
     [Description("Sets the path to the browser executable in a non-standard location")]

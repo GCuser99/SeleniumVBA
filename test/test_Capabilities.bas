@@ -448,7 +448,12 @@ Sub test_pageLoadStrategy()
 End Sub
 
 Sub test_bidi()
-    'tests BiDi compatibility
+    'tests BiDi compatibility only
+    'this shows the mechanics of how to connect to BiDi
+    'for actually using BiDi, you must have code that provides
+    'a websocket connection and exposes a BiDi object model
+    'one such code can be found here:
+    'https://github.com/hanamichi77777/WebDriverBiDi-via-VBA-test
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities
 

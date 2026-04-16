@@ -4,7 +4,7 @@ This repository folder makes available 3 different SeleniumVBA solutions, depend
 
 - **An MS Excel Workbook called SeleniumVBA.xlsm.** This file contains all of the source and test modules and can optionally be changed to an Addin (.xlam) so that it can be called from another Excel workbook.
 - **An MS Access database called SeleniumVBA.accdb.** Like the Excel version, this file contains all of the source and test modules and can optionally be called from another MS Access database.
-- **An ActiveX DLL called SeleniumVBA_win64.dll/SeleniumVBA_win32.dll.** This DLL can be installed and registered using the SeleniumVBADLLSetup.exe setup program. Once installed, the SeleniumVBA code library can be referenced by your VBA projects in either MS Excel, MS Access, or MS VBScript to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (in Beta) [twinBASIC](https://twinbasic.com) compiler.
+- **An ActiveX DLL called SeleniumVBA_win64.dll/SeleniumVBA_win32.dll.** This DLL can be installed and registered using the SeleniumVBADLLSetup.exe setup program. Once installed, the SeleniumVBA code library can be referenced by your VBA projects in either MS Excel or MS Access to expose the SeleniumVBA object model without having to manage the SeleniumVBA source code. The ActiveX DLL was compiled using the (in Beta) [twinBASIC](https://twinbasic.com) compiler.
 
 All three solutions above allow for storing and referencing SeleniumVBA functionality from a centralized file location. This can be of use if the user does not intend to integrate the SeleniumVBA source directly into their own code and wants a convenient means of updating SeleniumVBA with newer versions of the code library.
 
@@ -16,7 +16,7 @@ Below is a table showing the compatibility for each solution with various versio
 |Access DB|Not|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 |ActiveX DLL*|32-bit**|32/64-bit|32/64-bit|32/64-bit|32/64-bit|32/64-bit|
 
-*the [twinBASIC](https://twinbasic.com) ActiveX DLL can be called from MS VBScript, as well as MS Excel and MS Access
+*the [twinBASIC](https://twinbasic.com) ActiveX DLL can be called from MS Excel and MS Access
 
 **only limited testing
 
@@ -35,7 +35,7 @@ Instructions for referencing add-in versions of SeleniumVBA from another MS Exce
 
 ### ActiveX DLL Installation:
 
-For the [twinBASIC](https://twinbasic.com) ActiveX DLL, more detailed instructions on how to install and use the DLL will be presented during installation. The setup program, which was compiled using Inno Setup, will install and register the DLL, and copy test Excel, Access, and VBScript documents to the installation folder.
+For the [twinBASIC](https://twinbasic.com) ActiveX DLL, more detailed instructions on how to install and use the DLL will be presented during installation. The setup program, which was compiled using Inno Setup, will install and register the DLL, and copy test Excel and Access documents to the installation folder.
 
 The [twinBASIC](https://twinbasic.com) ActiveX DLL solution requires no dependencies (such as .Net Framework).
 

@@ -46,6 +46,7 @@ $chromeArgs = @(
     "--profile-directory=`"Default`""
     "--disable-popup-blocking"
     "--no-first-run"
+    "--disable-blink-features=AutomationControlled"
 )
 
 # Join arguments into a single string

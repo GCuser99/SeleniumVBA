@@ -120,9 +120,7 @@ Sub test_full_suite()
     test_Windows.test_windows_SwitchToByTitle
     test_Windows.test_windows_SwitchToByUrl
     
-    'these require local extension files to test
-    'test_Extensions.test_addExtensions
-    'test_Extensions.test_addExtensions2
+    'this requires local extension files to test
     'test_Extensions.test_InstallAddon
     
     MsgBox "tests completed"

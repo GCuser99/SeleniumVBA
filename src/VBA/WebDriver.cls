@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.2
+' SeleniumVBA v7.3
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -2626,6 +2626,15 @@ Attribute InstallAddon.VB_Description = "Installs a browser addon (extension) su
     
     execute tCMD.CMD_INSTALL_ADDON_FF, data
 End Sub
+
+'@Description("Installs an updated driver if out-of-date with browser version. System default is True. If used, this property must be set before executing one of the StartXXXXX methods.")
+Public Property Let AutoDriverUpdate(ByVal v As Boolean)
+Attribute AutoDriverUpdate.VB_Description = "Installs an updated driver if out-of-date with browser version. System default is True. If used, this property must be set before executing one of the StartXXXXX methods."
+    checkDriverBrowserVersionAlignment = v
+End Property
+Public Property Get AutoDriverUpdate() As Boolean
+    AutoDriverUpdate = checkDriverBrowserVersionAlignment
+End Property
 
 Friend Function execute(driverCommand As Variant, Optional parameters As Dictionary = Nothing, Optional ByVal raiseError As Boolean = True, Optional ByVal receiveTimeout As Long = -1) As Dictionary
     Dim cmdMethod As String

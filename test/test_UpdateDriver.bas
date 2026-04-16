@@ -47,3 +47,53 @@ Sub test_updateDriversForSeleniumBasic()
     MsgBox mngr.AlignChromeDriverWithBrowser("chromedriver.exe")
     MsgBox mngr.AlignFirefoxDriverWithBrowser("geckodriver.exe")
 End Sub
+
+Sub test_turn_auto_updating_off()
+    Dim driver As SeleniumVBA.WebDriver
+    Dim html As String
+    Dim mngr As SeleniumVBA.WebDriverManager
+    Dim versionBefore As String
+    Dim versionAfter As String
+    
+    Set driver = SeleniumVBA.New_WebDriver
+    Set mngr = SeleniumVBA.New_WebDriverManager
+    
+    driver.AutoDriverUpdate = False
+    
+    versionBefore = mngr.GetInstalledDriverVersion(Chrome)
+    driver.StartChrome
+    versionAfter = mngr.GetInstalledDriverVersion(Chrome)
+    Debug.Assert versionBefore = versionAfter
+    
+    driver.OpenBrowser
+    
+    'create a radio button sample
+    html = "<!DOCTYPE html><html><head><title>Test Radio Button</title></head><body>"
+    html = html & "<h1>Display Radio Buttons</h1>"
+    html = html & "<form action='/action_page.php'>"
+    html = html & "  <p>Please select your favorite Web language:</p>"
+    html = html & "  <input type='radio' id='html' name='fav_language' value='HTML'>"
+    html = html & "  <label for='html'>HTML</label><br>"
+    html = html & "  <input type='radio' id='css' name='fav_language' value='CSS'>"
+    html = html & "  <label for='css'>CSS</label><br>"
+    html = html & "  <input type='radio' id='javascript' name='fav_language' value='JavaScript'>"
+    html = html & "  <label for='javascript'>JavaScript</label>"
+    html = html & "</form>"
+    html = html & "</body></html>"
+    
+    driver.NavigateToString html
+    driver.ActiveWindow.Maximize
+    
+    driver.Wait 1000
+    
+    driver.FindElement(By.ID, "css").Click
+    
+    Debug.Assert driver.FindElement(By.ID, "css").IsSelected
+    
+    driver.Wait 1000
+    
+    driver.CloseBrowser
+    driver.Shutdown
+End Sub
+
+

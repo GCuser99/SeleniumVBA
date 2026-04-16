@@ -3,57 +3,7 @@ Option Explicit
 Option Private Module
 '@folder("SeleniumVBA.Testing")
 
-Sub test_addExtensions()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-
-    Set driver = SeleniumVBA.New_WebDriver
-    driver.StartChrome
-
-    Set caps = driver.CreateCapabilities()
-    
-    'temporary work-around for this issue: https://github.com/SeleniumHQ/selenium/issues/15788
-    caps.AddArguments "--disable-features=DisableLoadExtensionCommandLineSwitch"
-    caps.AddArguments "--enable-unsafe-extension-debugging"
-    'this will load a local crx file extension(s) (Chrome/Edge only)
-    caps.AddExtensions Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\" & "TickTick-Todo-Task-List-Chrome-Web-Store.crx"
-    
-    driver.OpenBrowser caps
-
-    driver.NavigateTo "https://www.wikipedia.org/"
-    
-    driver.Wait 1000
-
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
-Sub test_addExtensions2()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-
-    Set driver = SeleniumVBA.New_WebDriver
-    
-    driver.StartChrome
-
-    Set caps = driver.CreateCapabilities()
-    
-    'temporary work-around for this issue: https://github.com/SeleniumHQ/selenium/issues/15788
-    caps.AddArguments "--disable-features=DisableLoadExtensionCommandLineSwitch"
-    caps.AddArguments "--enable-unsafe-extension-debugging"
-
-    'this will load an unpacked extension from Chrome's User Data extensions directory
-    caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\ajkhmmldknmfjnmeedkbkkojgobmljda\1.5.9_0"
-
-    driver.OpenBrowser caps
-
-    driver.NavigateTo "https://www.wikipedia.org/"
-    
-    driver.Wait 1000
-
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
+'Note: To add extensions to Chrome and Edge browsers, you must use the BiDi add-on (see https://github.com/hanamichi77777/WebDriverBiDi-via-VBA-test)
 
 Sub test_InstallAddon()
     Dim driver As SeleniumVBA.WebDriver

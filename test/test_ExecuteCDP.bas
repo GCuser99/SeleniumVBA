@@ -82,10 +82,10 @@ Sub test_cdp_enhanced_geolocation()
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
+    driver.Wait 2000
+    
     Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
     Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
-    
-    driver.Wait 1000
     
     'now clear the override...
     driver.ExecuteCDP "Emulation.clearGeolocationOverride"
@@ -97,10 +97,10 @@ Sub test_cdp_enhanced_geolocation()
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
+    driver.Wait 3000
+    
     Debug.Assert driver.FindElementByID("lat-value").GetText <> 41.1621429
     Debug.Assert driver.FindElementByID("long-value").GetText <> -8.6219537
-    
-    driver.Wait 1000
     
     driver.FindElementByXPath("//*[@id='map-link']/a").Click
     

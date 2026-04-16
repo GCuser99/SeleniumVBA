@@ -1,54 +1,5 @@
 Private Module Tests
    
-    Public Sub test_select222()
-        Dim driver As WebDriver
-        Dim elem As WebElement
-
-        Set driver = New WebDriver
-        driver.StartChrome
-        
-        driver.OpenBrowser
-    
-        driver.ImplicitMaxWait = 10000
-
-        driver.NavigateTo "http://keylopment.com/faq/2357"
-        
-        Set elem = driver.FindElementByXPath("//select[@name='calselect']")
-        
-        'this selects, updates calendar, and passes the test below
-        'With driver.Actions
-        '    .MouseMoveTo(elem).Click.SendKeys(ChmKeys.Down & ChmKeys.Down & ChmKeys.Down & ChmKeys.Enter)
-        '    .Perform
-        'End With
-        
-        'elem.SelectByValue "20260301" 'works
-        'driver.Wait 500 'this is needed
-        
-        'driver.SelectByIndex 4, elem
-        'driver.Wait 500 'this is needed
-        Dim body As WebElement
-        Set body = driver.FindElementByTagName("body")
-        
-        elem.SelectByVisibleText "2026年03月" 'works
-        StopWatch.StartIt
-        'driver.WaitForIdleDOM(container:=body)
-        driver.WaitForIdleDOM()
-        Debug.Print StopWatch.StopIt
-        driver.WaitForIdleJQuery(1000)
-        
-        StopWatch.StartIt
-        driver.WaitForIdleDOM(container:=body)
-        'driver.WaitForIdleDOM()
-        Debug.Print StopWatch.StopIt
-        
-        
-        'driver.Wait 1000
-        Debug.Assert driver.FindElementByXPath("//h3[@class='title-level03']").GetText = "2026年03月"
-        
-        driver.CloseBrowser
-        driver.Shutdown
-    End Sub
-    
     Sub test_select()
         Dim driver As SeleniumVBA.WebDriver
         Dim selectElem As SeleniumVBA.WebElement
@@ -1086,30 +1037,6 @@ Private Module Tests
         driver.InstallAddon Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\darkreader-4.9.94.xpi"
 
         driver.Wait 3000
-    
-        driver.CloseBrowser
-        driver.Shutdown
-    End Sub
-    
-    Sub test_addExtensions()
-        Dim driver As WebDriver
-        Dim caps As WebCapabilities
-    
-        Set driver = New WebDriver
-    
-        driver.StartChrome
-    
-        Set caps = driver.CreateCapabilities()
-    
-        'this will add a local crx file extension(s)
-        caps.AddExtensions Environ("USERPROFILE") & "\Documents\SeleniumVBA\extensions\" & "TickTick-Todo-Task-List-Chrome-Web-Store.crx"
-    
-        'use this alternative to add an extension from Chrome's User Data extensions directory
-        'caps.AddArguments "--load-extension=" & Environ("LOCALAPPDATA") & "\Google\Chrome\User Data\Default\Extensions\abcdefghijklmnopqrstuvwxyzabcdef\2.3.1_0"
-
-        driver.OpenBrowser caps
-    
-        driver.NavigateTo "https://www.wikipedia.org/"
     
         driver.CloseBrowser
         driver.Shutdown
