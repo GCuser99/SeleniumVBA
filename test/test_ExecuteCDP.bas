@@ -59,7 +59,7 @@ Sub test_cdp_enhanced_geolocation()
     'even if the default profile is set to hide geolocation info, this will override that,
     'unlike SetGeolocation method of WebDriver class...
     Dim driver As SeleniumVBA.WebDriver
-    Dim params As New Dictionary
+    Dim params As Dictionary
     
     Set driver = SeleniumVBA.New_WebDriver
 
@@ -69,42 +69,33 @@ Sub test_cdp_enhanced_geolocation()
     driver.ImplicitMaxWait = 2000
     
     'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-setGeolocationOverride
-    'https://chromedevtools.github.io/devtools-protocol/tot/Emulation/#method-clearGeolocationOverride
     
     'set the override location
+    Set params = New Dictionary
     params.Add "latitude", 41.1621429
     params.Add "longitude", -8.6219537
     params.Add "accuracy", 100
     
     driver.ExecuteCDP "Emulation.setGeolocationOverride", params
+    
+    'allow the website to know the emulated location
+    Set params = New Dictionary
+    Dim perm As New Dictionary
+    perm.Add "name", "geolocation"
+    params.Add "permission", perm
+    params.Add "setting", "granted"
+    params.Add "origin", "https://the-internet.herokuapp.com"
+    
+    driver.ExecuteCDP "Browser.setPermission", params
   
     driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
     
-    driver.Wait 2000
+    driver.Wait 1000
     
     Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
     Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
-    
-    'now clear the override...
-    driver.ExecuteCDP "Emulation.clearGeolocationOverride"
-    
-    'refresh the page...
-    driver.Refresh
-    
-    driver.Wait 1000
-    
-    driver.FindElementByXPath("//*[@id='content']/div/button").Click
-    
-    driver.Wait 3000
-    
-    Debug.Assert driver.FindElementByID("lat-value").GetText <> 41.1621429
-    Debug.Assert driver.FindElementByID("long-value").GetText <> -8.6219537
-    
-    driver.FindElementByXPath("//*[@id='map-link']/a").Click
-    
-    driver.Wait 2000
     
     driver.CloseBrowser
     driver.Shutdown

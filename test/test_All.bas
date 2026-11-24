@@ -25,7 +25,6 @@ Sub test_full_suite()
     test_Capabilities.test_set_user_agent
 
     test_Capabilities.test_unhandled_prompts
-    test_Capabilities.test_geolocation_with_incognito
     test_Capabilities.test_incognito
     test_Capabilities.test_initialize_caps_from_file
     
@@ -40,7 +39,7 @@ Sub test_full_suite()
     test_ExecuteCmd.test_chrome_edge_full_screenshot
     'this requires FF installation
     'test_ExecuteCmd.test_firefox_full_screenshot
-    
+
     test_executeScript.test_call_embedded_HTML_script
     test_executeScript.test_executeScript
     test_executeScript.test_executeScriptAsync
@@ -109,6 +108,9 @@ Sub test_full_suite()
     test_Wait.test_WaitUntilDisplayed
     test_Wait.test_WaitUntilNotDisplayed
     test_Wait.test_WaitUntilNotPresent
+    test_Wait.test_WaitForJQuery
+    test_Wait.test_WaitForIdleNetworkAndDOM
+    test_Wait.test_WaitForIdleDOM
     
     test_WebElements.test_WebElements
 

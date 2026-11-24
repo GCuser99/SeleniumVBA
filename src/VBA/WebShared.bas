@@ -1,7 +1,7 @@
 Attribute VB_Name = "WebShared"
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.3
+' SeleniumVBA v7.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -124,94 +124,108 @@ Private Function ptrToStr(ByVal lpsz As LongPtr) As String
     End If
 End Function
 
-Public Function downloadToFile(ByVal Url As String, ByVal filePath As String, Optional ByVal timeout As Long = 30000) As Boolean
+Public Function downloadToFile(ByVal Url As String, ByVal filePath As String, Optional ByVal timeout As Long = 30000, Optional ByRef errMsg As String) As Boolean
+    'returns True on success; on failure returns False and (optionally) the reason in errMsg
     Dim http As Object
     Dim bytes() As Byte
-    Dim ieProxy As WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
-    Dim autoProxyOptions As WINHTTP_AUTOPROXY_OPTIONS
-    Dim proxyInfo As WINHTTP_PROXY_INFO
-    Dim hSession As LongPtr
-    Dim proxyStr As String
-    Dim bypassStr As String
-    
+
+    errMsg = vbNullString
     On Error GoTo ErrHandler
-    
+
     Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
     http.setTimeouts 0, 60000, 30000, timeout
-    
-    ' Try IE proxy settings first
-    If WinHttpGetIEProxyConfigForCurrentUser(ieProxy) <> 0 Then
-        
-        ' Handle static proxy
-        If ieProxy.lpszProxy <> 0 Then
-            proxyStr = ptrToStr(ieProxy.lpszProxy)
-            If ieProxy.lpszProxyBypass <> 0 Then bypassStr = ptrToStr(ieProxy.lpszProxyBypass)
-            http.setProxy HTTPREQUEST_PROXYSETTING_PROXY, proxyStr, bypassStr
-            GoTo ProxyConfigured
-        End If
-        
-        ' Handle PAC file or auto-detect
-        If ieProxy.lpszAutoConfigUrl <> 0 Or ieProxy.fAutoDetect <> 0 Then
-            hSession = WinHttpOpen(0, WINHTTP_ACCESS_TYPE_NO_PROXY, 0, 0, 0)
-            
-            If hSession <> 0 Then
-                ' Configure auto-proxy options
-                If ieProxy.fAutoDetect <> 0 Then
-                    autoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT
-                    autoProxyOptions.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP Or WINHTTP_AUTO_DETECT_TYPE_DNS_A
-                End If
-                
-                If ieProxy.lpszAutoConfigUrl <> 0 Then
-                    autoProxyOptions.dwFlags = autoProxyOptions.dwFlags Or WINHTTP_AUTOPROXY_CONFIG_URL
-                    autoProxyOptions.lpszAutoConfigUrl = ieProxy.lpszAutoConfigUrl
-                End If
-                
-                autoProxyOptions.fAutoLogonIfChallenged = 1
-                
-                ' Get proxy for this specific URL
-                If WinHttpGetProxyForUrl(hSession, StrPtr(Url), autoProxyOptions, proxyInfo) <> 0 Then
-                    If proxyInfo.lpszProxy <> 0 Then
-                        proxyStr = ptrToStr(proxyInfo.lpszProxy)
-                        If proxyInfo.lpszProxyBypass <> 0 Then bypassStr = ptrToStr(proxyInfo.lpszProxyBypass)
-                        http.setProxy HTTPREQUEST_PROXYSETTING_PROXY, proxyStr, bypassStr
-                    End If
-                End If
-                
-                ' Free proxy info strings
-                If proxyInfo.lpszProxy <> 0 Then GlobalFree proxyInfo.lpszProxy
-                If proxyInfo.lpszProxyBypass <> 0 Then GlobalFree proxyInfo.lpszProxyBypass
-                
-                WinHttpCloseHandle hSession
-            End If
-        End If
-        
-ProxyConfigured:
-        ' Free IE proxy config strings
-        If ieProxy.lpszProxy <> 0 Then GlobalFree ieProxy.lpszProxy
-        If ieProxy.lpszProxyBypass <> 0 Then GlobalFree ieProxy.lpszProxyBypass
-        If ieProxy.lpszAutoConfigUrl <> 0 Then GlobalFree ieProxy.lpszAutoConfigUrl
-    End If
-    
+
+    'configure the current user's proxy (static, PAC file or auto-detect) - an error here
+    'fails the download, but only after all WinHTTP allocations have been freed
+    applySystemProxy http, Url
+
     ' Send request
     http.Open "GET", Url, False
     http.setRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-    http.Send
-    
+    http.send
+
     ' Check status and save response to file
-    If http.Status >= 200 And http.Status < 300 Then
+    If http.status >= 200 And http.status < 300 Then
         bytes = http.ResponseBody
         saveByteArrayToFile bytes, filePath
         downloadToFile = True
     Else
-        Debug.Print "HTTP error: " & http.Status
+        errMsg = "HTTP " & http.status & " " & http.statusText & " (" & Url & ")"
+        Debug.Print "HTTP error: " & http.status
     End If
-    
+
     Exit Function
-    
+
 ErrHandler:
+    'e.g. proxy auth required, TLS failure, timeout, name not resolved, file write failure
+    errMsg = Err.Description & " [0x" & Hex$(Err.Number) & "] (" & Url & ")"
     Debug.Print "Error: " & Err.Description
 End Function
 
+Private Sub applySystemProxy(ByVal http As Object, ByVal Url As String)
+    'configures http with the current user's proxy (static, PAC file or auto-detect).
+    'everything WinHTTP allocates is freed on every path; errors are then raised to the caller
+    Dim ieProxy As WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
+    Dim autoProxyOptions As WINHTTP_AUTOPROXY_OPTIONS
+    Dim proxyInfo As WINHTTP_PROXY_INFO
+    Dim hSession As LongPtr
+    Dim bypassStr As String
+    Dim errNum As Long, errSrc As String, errDesc As String
+
+    On Error GoTo cleanup
+
+    ' Try IE proxy settings first
+    If WinHttpGetIEProxyConfigForCurrentUser(ieProxy) = 0 Then Exit Sub   'failed - nothing was allocated
+
+    If ieProxy.lpszProxy <> 0 Then
+        ' Handle static proxy
+        If ieProxy.lpszProxyBypass <> 0 Then bypassStr = ptrToStr(ieProxy.lpszProxyBypass)
+        http.setProxy HTTPREQUEST_PROXYSETTING_PROXY, ptrToStr(ieProxy.lpszProxy), bypassStr
+    ElseIf ieProxy.lpszAutoConfigUrl <> 0 Or ieProxy.fAutoDetect <> 0 Then
+        ' Handle PAC file or auto-detect
+        hSession = WinHttpOpen(0, WINHTTP_ACCESS_TYPE_NO_PROXY, 0, 0, 0)
+
+        If hSession <> 0 Then
+            ' Configure auto-proxy options
+            If ieProxy.fAutoDetect <> 0 Then
+                autoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT
+                autoProxyOptions.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP Or WINHTTP_AUTO_DETECT_TYPE_DNS_A
+            End If
+
+            If ieProxy.lpszAutoConfigUrl <> 0 Then
+                autoProxyOptions.dwFlags = autoProxyOptions.dwFlags Or WINHTTP_AUTOPROXY_CONFIG_URL
+                autoProxyOptions.lpszAutoConfigUrl = ieProxy.lpszAutoConfigUrl
+            End If
+
+            autoProxyOptions.fAutoLogonIfChallenged = 1
+
+            ' Get proxy for this specific URL
+            If WinHttpGetProxyForUrl(hSession, StrPtr(Url), autoProxyOptions, proxyInfo) <> 0 Then
+                If proxyInfo.lpszProxy <> 0 Then
+                    If proxyInfo.lpszProxyBypass <> 0 Then bypassStr = ptrToStr(proxyInfo.lpszProxyBypass)
+                    http.setProxy HTTPREQUEST_PROXYSETTING_PROXY, ptrToStr(proxyInfo.lpszProxy), bypassStr
+                End If
+            End If
+        End If
+    End If
+
+cleanup:
+    'reached on success AND on error - release everything WinHTTP allocated
+    errNum = Err.Number: errSrc = Err.Source: errDesc = Err.Description   '0 if we got here normally
+    On Error GoTo -1            'clear handler state if we arrived here via an error
+    On Error Resume Next
+    If proxyInfo.lpszProxy <> 0 Then GlobalFree proxyInfo.lpszProxy
+    If proxyInfo.lpszProxyBypass <> 0 Then GlobalFree proxyInfo.lpszProxyBypass
+    If hSession <> 0 Then WinHttpCloseHandle hSession
+    If ieProxy.lpszProxy <> 0 Then GlobalFree ieProxy.lpszProxy
+    If ieProxy.lpszProxyBypass <> 0 Then GlobalFree ieProxy.lpszProxyBypass
+    If ieProxy.lpszAutoConfigUrl <> 0 Then GlobalFree ieProxy.lpszAutoConfigUrl
+    On Error GoTo 0
+
+    'preserve original behavior: a proxy-setup error fails the download (now after cleanup)
+    If errNum <> 0 Then Err.Raise errNum, errSrc, errDesc
+End Sub
+    
 Public Function getFullLocalPath(ByVal inputPath As String, Optional ByVal basePath As String = vbNullString, Optional ByVal targetExists As Boolean = True) As String
     'Returns an absolute path from a relative path and a fully qualified base path.
     'basePath defaults to the folder path of the document that holds the Active VBA Project
@@ -483,7 +497,7 @@ Public Function getBrowserNameString(ByVal browser As svbaBrowser) As String
     End Select
 End Function
 
-Private Function expandEnvironVariable(ByVal inputPath As String) As String
+Public Function expandEnvironVariable(ByVal inputPath As String) As String
     'this searches input path for %[Environ Variable]% pattern and if found, then replaces with the path equivalent
     Dim wsh As New IWshRuntimeLibrary.WshShell
     expandEnvironVariable = wsh.ExpandEnvironmentStrings(inputPath)

@@ -1,0 +1,1139 @@
+{
+	"rootFolder": "/SeleniumVBA",
+	"fs_expandedFolders": [
+		"/SeleniumVBA",
+		"/SeleniumVBA/Resources",
+		"/SeleniumVBA/Resources/SCRIPTS",
+		"/SeleniumVBA/Sources"
+	],
+	"openEditors": [
+		{
+			"uri": "/SeleniumVBA/Sources/WebShared.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 76,
+							"column": 35
+						},
+						"position": {
+							"lineNumber": 76,
+							"column": 35
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 121,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -8
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": true,
+					"editor.contrib.folding": {
+						"lineCount": 386,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Resources/NOTES/ReadMe.txt",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": true,
+						"selectionStart": {
+							"lineNumber": 14,
+							"column": 48
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 14,
+						"provider": "indent",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/ClassFactory.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 4,
+							"column": 13
+						},
+						"position": {
+							"lineNumber": 4,
+							"column": 13
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": true,
+					"editor.contrib.folding": {
+						"lineCount": 45,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebDriver.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 2491,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 2491,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 2548,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -9
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 3148,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/Tests.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 23,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 23,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 5,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -4
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 1738,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": true
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebElement.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 440,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 440,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 437,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -13
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 451,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/Utils.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 356,
+							"column": 22
+						},
+						"position": {
+							"lineNumber": 356,
+							"column": 22
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 341,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -5
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": true,
+					"editor.contrib.folding": {
+						"lineCount": 543,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Resources/SCRIPTS/FetchUrl.js",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 33,
+							"column": 19
+						},
+						"position": {
+							"lineNumber": 33,
+							"column": 19
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 9,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -6
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 34,
+						"provider": "indent",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Resources/SCRIPTS/ScrollIntoView.js",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 23,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -4
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 64,
+						"provider": "indent",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Resources/SCRIPTS/GetResourceUrl.js",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 10,
+							"column": 42
+						},
+						"position": {
+							"lineNumber": 10,
+							"column": 42
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 26,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 57,
+						"provider": "indent",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/DLLExports.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 3,
+							"column": 3
+						},
+						"position": {
+							"lineNumber": 3,
+							"column": 3
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 83,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/StaticRegex.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 4411,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebActionChain.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 1212,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebAlert.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 96,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebCapabilities.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 637,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebCookie.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 156,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebCookies.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 170,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebDriverManager.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 602,
+							"column": 15
+						},
+						"position": {
+							"lineNumber": 602,
+							"column": 15
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 519,
+						"column": 1
+					},
+					"firstPositionDeltaTop": -4
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": true,
+					"editor.contrib.folding": {
+						"lineCount": 925,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebElements.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 138,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebJsonConverter.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 1059,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebKeyboard.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 436,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebPrintSettings.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 232,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebShadowRoot.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 84,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebWindow.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 1,
+							"column": 1
+						},
+						"position": {
+							"lineNumber": 1,
+							"column": 1
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": false,
+					"editor.contrib.folding": {
+						"lineCount": 382,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		},
+		{
+			"uri": "/SeleniumVBA/Sources/WebWindows.twin",
+			"state": {
+				"cursorState": [
+					{
+						"inSelectionMode": false,
+						"selectionStart": {
+							"lineNumber": 5,
+							"column": 83
+						},
+						"position": {
+							"lineNumber": 5,
+							"column": 83
+						}
+					}
+				],
+				"viewState": {
+					"scrollLeft": 0,
+					"firstPosition": {
+						"lineNumber": 1,
+						"column": 1
+					},
+					"firstPositionDeltaTop": 0
+				},
+				"contributionsState": {
+					"editor.contrib.wordHighlighter": true,
+					"editor.contrib.folding": {
+						"lineCount": 269,
+						"provider": "syntax",
+						"foldedImports": false
+					}
+				}
+			},
+			"isSelected": false
+		}
+	],
+	"debugConsoleEntryHistory": [
+		"run est",
+		"print App.modulepath",
+		"app.lastbuildpath",
+		"print app.lastbuildpath",
+		"print app.path",
+		"print ${SourcePath}",
+		"print osKeyMapper(keyString)",
+		"print &HE008&",
+		"print &HE008",
+		"ChrW$(&HE008&)",
+		"print ChrW$(&HE008&)",
+		"print environ(\"USERPROFILE\")",
+		"print Format$(1000, \"#,#\")",
+		"print htmlDoc.documentMode",
+		"print chr$(34)",
+		"print commandstr",
+		"print callerApplicationObject=nothing",
+		"print app.Build",
+		"print app.isinide",
+		"print \"<?xml version=\" & Chr$(34) & \"1.0\" & Chr$(34) & \"?>\" _                 & \"<xsl:stylesheet version=\" & Chr$(34) & \"1.0\" & Chr$(34) _                 & \"                xmlns:xsl=\" & Chr$(34) & \"http://www.w3.org/1999/XSL/Transform\" & Chr$(34) & \">\" _                 & \"<xsl:strip-space elements=\" & Chr$(34) & \"*\" & Chr$(34) & \" />\" _                 & \"<xsl:output method=\" & Chr$(34) & \"xml\" & Chr$(34) & \" indent=\" & Chr$(34) & \"yes\" & Chr$(34) & vbNullString _                 & \"            encoding=\" & Chr$(34) & \"UTF-8\" & Chr$(34) & \"/>\" _                 & \" <xsl:template match=\" & Chr$(34) & \"node() | @*\" & Chr$(34) & \">\" _                 & \"  <xsl:copy>\" _                 & \"   <xsl:apply-templates select=\" & Chr$(34) & \"node() | @*\" & Chr$(34) & \" />\" _                 & \"  </xsl:copy>\" _                 & \" </xsl:template>\" _                 & \"</xsl:stylesheet>\"",
+		"print len(json_String)",
+		"print str",
+		"?Err.Description",
+		"?creatguid",
+		"?CreateGUID()",
+		"?0x8000",
+		"?&H8000",
+		"?Url"
+	],
+	"variables_expandedCache": {
+		"/Locals": true
+	},
+	"watches": [],
+	"watches_expandedCache": {},
+	"outlinePanelOptions": {
+		"showClassFields": true,
+		"showModuleVariables": true,
+		"showEnumerations": true,
+		"showUDTs": true,
+		"showDLLs": true,
+		"showConstructors": true,
+		"showProperties": true,
+		"showProcedures": true,
+		"showVariables": true,
+		"showParameters": true
+	},
+	"debugPanelOptions": {
+		"invertDirection": false,
+		"showTimestamps": true
+	},
+	"problemsPanelOptions": {
+		"showErrors": true,
+		"showWarnings": true
+	},
+	"history": [
+		{
+			"path": "/SeleniumVBA/Sources/WebShared.twin",
+			"positionId": "WebShared.DownloadToFile",
+			"lineNumber": 78,
+			"shortTime": "12:48",
+			"time": "2025-09-30T18:48:12.103Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/Tests.twin",
+			"positionId": "Tests.test_DownloadResource",
+			"lineNumber": 545,
+			"shortTime": "12:51",
+			"time": "2025-09-30T18:51:17.580Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/WebDriverManager.twin",
+			"positionId": "WebDriverManager.DownloadAndInstallDriver",
+			"lineNumber": 599,
+			"shortTime": "13:01",
+			"time": "2025-09-30T19:01:28.492Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/Tests.twin",
+			"positionId": "Tests.test_error",
+			"lineNumber": 70,
+			"shortTime": "15:59",
+			"time": "2025-09-30T21:59:03.763Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/WebDriver.twin",
+			"positionId": "WebDriver",
+			"lineNumber": 2491,
+			"shortTime": "15:59",
+			"time": "2025-09-30T21:59:36.624Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/WebElement.twin",
+			"positionId": "WebElement",
+			"lineNumber": 440,
+			"shortTime": "16:00",
+			"time": "2025-09-30T22:00:05.997Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/Tests.twin",
+			"positionId": "Tests.testVideoResource2",
+			"lineNumber": 23,
+			"shortTime": "16:01",
+			"time": "2025-09-30T22:01:48.667Z"
+		},
+		{
+			"path": "/SeleniumVBA/Sources/Tests.twin",
+			"positionId": "Tests",
+			"lineNumber": 23,
+			"shortTime": "16:01",
+			"time": "2025-09-30T22:01:48.975Z"
+		}
+	],
+	"toolWindows": [],
+	"bookmarks": {
+		"/SeleniumVBA/Sources/WebDriverManager.cls": {},
+		"/SeleniumVBA/Sources/WebWindow.cls": {},
+		"/SeleniumVBA/Sources/ClassFactory.cls": {},
+		"/SeleniumVBA/Sources/WebElements.cls": {},
+		"/SeleniumVBA/Sources/WebElement.cls": {},
+		"/SeleniumVBA/Sources/DLLExports.twin": {},
+		"/SeleniumVBA/Sources/WebShadowRoot.cls": {},
+		"/SeleniumVBA/Sources/WebAlert.cls": {},
+		"/SeleniumVBA/Sources/MyModule.twin": {},
+		"/SeleniumVBA/Sources/WebActionChain.cls": {},
+		"/SeleniumVBA/Sources/WebCapabilities.cls": {},
+		"/SeleniumVBA/Sources/WebCookie.cls": {},
+		"/SeleniumVBA/Sources/WebCookies.cls": {},
+		"/SeleniumVBA/Sources/WebWindows.cls": {},
+		"/SeleniumVBA/Sources/WebDriver.cls": {},
+		"/SeleniumVBA/Sources/tBUtils.bas": {},
+		"/SeleniumVBA/Sources/WebKeyboard.cls": {},
+		"/SeleniumVBA/Sources/WebPrintSettings.cls": {},
+		"/SeleniumVBA/Sources/WebShared.bas": {},
+		"/SeleniumVBA/Sources/MainModule.twin": {},
+		"/SeleniumVBA/Sources/ClassFactory2.twin": {},
+		"/SeleniumVBA/Sources/a_readme.bas": {},
+		"/SeleniumVBA/Sources/WebJsonConverter.cls": {},
+		"/SeleniumVBA/Sources/ReadMe": {},
+		"/SeleniumVBA/Sources/ClassFactory.bas": {},
+		"/SeleniumVBA/Sources/Tests.twin": {},
+		"/SeleniumVBA/Sources/Utils.bas": {},
+		"/SeleniumVBA/Sources/MyClass.twin": {},
+		"/SeleniumVBA/Sources/MyCreatableClass.twin": {},
+		"/SeleniumVBA/Sources/MyNotCreatableClass.twin": {},
+		"/SeleniumVBA/Sources/MyHiddenClass.twin": {},
+		"/SeleniumVBA/Sources/MyPredeclaredClass.twin": {},
+		"/SeleniumVBA/Sources/MyPrivateClass.twin": {},
+		"/SeleniumVBA/Sources/MyPredeclaredNotCreatableClass.twin": {},
+		"/SeleniumVBA/Sources/MyForm.tbform": {},
+		"/SeleniumVBA/Sources/MyForm.twin": {},
+		"/SeleniumVBA/Sources/WebKeyboard2.twin": {},
+		"/SeleniumVBA/Sources/WebKeyboard.twin": {},
+		"/SeleniumVBA/Sources/WebActionChain.twin": {},
+		"/SeleniumVBA/Sources/WebAlert.twin": {},
+		"/SeleniumVBA/Sources/WebCapabilities.twin": {},
+		"/SeleniumVBA/Sources/WebCookie.twin": {},
+		"/SeleniumVBA/Sources/WebCookies.twin": {},
+		"/SeleniumVBA/Sources/WebDriver.twin": {},
+		"/SeleniumVBA/Sources/WebDriverManager.twin": {},
+		"/SeleniumVBA/Sources/WebElement.twin": {},
+		"/SeleniumVBA/Sources/WebElements.twin": {},
+		"/SeleniumVBA/Sources/WebJsonConverter.twin": {},
+		"/SeleniumVBA/Sources/WebPrintSettings.twin": {},
+		"/SeleniumVBA/Sources/WebShadowRoot.twin": {},
+		"/SeleniumVBA/Sources/WebWindow.twin": {},
+		"/SeleniumVBA/Sources/WebWindows.twin": {},
+		"/SeleniumVBA/Sources/ClassFactory.twin": {},
+		"/SeleniumVBA/Sources/Utils.twin": {},
+		"/SeleniumVBA/Sources/WebShared.twin": {},
+		"/SeleniumVBA/Resources/INI": {},
+		"/SeleniumVBA/Resources/CUSTOM/SeleniumVBA.txt": {},
+		"/SeleniumVBA/Resources/CUSTOM/SeleniumVBA.ini": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/ScrollIntoView": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/ScrollableContainer.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/ScrollableContainer": {},
+		"/SeleniumVBA/Sources/StopWatch.cls": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/ScrollBy.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/ScrollTo.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/ScrollContainer.js": {},
+		"/SeleniumVBA/Sources/StaticRegex.bas": {},
+		"/SeleniumVBA/Sources/RegExp.twin": {},
+		"/SeleniumVBA/Sources/StaticRegex.twin": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/TableToArray.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/GetResourceUrl": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/MyFile": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/GetResourceUrl.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/GetImageString": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/GetImageString.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/GetAbsoluteUrl.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS/GetSrcsetImageUrl.js": {},
+		"/SeleniumVBA/Resources/JAVASCRIPTS": {},
+		"/SeleniumVBA/Resources/SCRIPTS/SetHightight.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/SetHightlight.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/SetHighlight2.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/TestWebElements.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/SetHighlight.js": {},
+		"/SeleniumVBA/Sources/Dictionary.cls": {},
+		"/SeleniumVBA/Resources/SCRIPTS/HTMLSourceToData.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/GetResourceUrl3.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/GetResourcesUrl3.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/FetchUrl2.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/GetResourceUrl2.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/GetResourceUrl.js": {},
+		"/SeleniumVBA/Resources/SCRIPTS/TestCDP.js": {},
+		"/SeleniumVBA/Resources/NOTES/Download_Res": {},
+		"/SeleniumVBA/Resources/SCRIPTS/GetImageUrl.js": {}
+	},
+	"searchInsidePackages": false,
+	"searchCaseSensitive": false,
+	"searchWholeWordOnly": true,
+	"objectExplorerExpandedNodes": [
+		65535,
+		0,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
+		7,
+		8,
+		9
+	],
+	"findReplaceHistory": {
+		"findHistory": [
+			".execute",
+			"msedgedriver.azureedge.net",
+			"SeleniumVBA v6.5",
+			"mDefaultDriverFolder",
+			"Public Enum",
+			"6B8506D3-2820-44A9-B840",
+			"EnumId",
+			"SeleniumVBA v6.6",
+			"getScript",
+			"SeleniumVBA v6.7"
+		],
+		"replaceHistory": [
+			"msedgedriver.microsoft.com",
+			"SeleniumVBA v6.6",
+			"38ED0FFA-E3F3-41C4-B601",
+			"SeleniumVBA v6.7",
+			"SeleniumVBA v6.8"
+		]
+	},
+	"findReplaceOptions": {
+		"InsidePackages": false,
+		"WholeWordOnly": false,
+		"MatchCase": true,
+		"PatternMatching": false,
+		"RegularExpressions": false
+	},
+	"memoryPanelsHistory": {}
+}

@@ -357,44 +357,6 @@ Sub test_remoteDebugger()
     driver.Shutdown
 End Sub
 
-Sub test_geolocation_with_incognito()
-    Dim driver As SeleniumVBA.WebDriver
-    Dim caps As SeleniumVBA.WebCapabilities
-    
-    Set driver = SeleniumVBA.New_WebDriver
-
-    driver.StartEdge
-    
-    Set caps = driver.CreateCapabilities(initializeFromSettingsFile:=False)
-    
-    'this may be needed when running in incognito mode, or
-    'when default profile does not allow geolocation awareness
-    caps.SetGeolocationAware True
-
-    driver.OpenBrowser caps:=caps, incognito:=True
-    
-    driver.ImplicitMaxWait = 2000
-    
-    'set the location
-    driver.SetGeolocation 41.1621429, -8.6219537
-  
-    driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
-    
-    driver.FindElementByXPath("//*[@id='content']/div/button").Click
-    
-    Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
-    Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
-    
-    driver.Wait 1000
-    
-    driver.FindElementByXPath("//*[@id='map-link']/a").Click
-    
-    driver.Wait 1000
-    
-    driver.CloseBrowser
-    driver.Shutdown
-End Sub
-
 Sub test_set_user_agent()
     Dim driver As SeleniumVBA.WebDriver
     Dim caps As SeleniumVBA.WebCapabilities

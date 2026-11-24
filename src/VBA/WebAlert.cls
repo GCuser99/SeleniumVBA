@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage browser alerts - must b
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.3
+' SeleniumVBA v7.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '

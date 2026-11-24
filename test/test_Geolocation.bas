@@ -15,9 +15,10 @@ Sub test_geolocation()
     
     driver.ImplicitMaxWait = 2000
     
-    'set the location
-    driver.SetGeolocation 41.1621429, -8.6219537
-  
+    'set the location and grant geolocation awareness
+    driver.SetGeolocation latitude:=41.1621429, longitude:=-8.6219537
+    driver.AllowGeolocation
+    
     driver.NavigateTo "https://the-internet.herokuapp.com/geolocation"
     
     driver.FindElementByXPath("//*[@id='content']/div/button").Click
@@ -25,13 +26,13 @@ Sub test_geolocation()
     Debug.Assert driver.FindElementByID("lat-value").GetText = 41.1621429
     Debug.Assert driver.FindElementByID("long-value").GetText = -8.6219537
     
-    driver.Wait 2000
+    Debug.Assert driver.GetGeolocation()("latitude") = 41.1621429
+    Debug.Assert driver.GetGeolocation()("longitude") = -8.6219537
     
     driver.FindElementByXPath("//*[@id='map-link']/a").Click
     
-    driver.Wait 5000
+    driver.Wait 3000
     
     driver.CloseBrowser
     driver.Shutdown
 End Sub
-

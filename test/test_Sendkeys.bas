@@ -116,6 +116,11 @@ Sub test_sendkeys()
     input1.SendKeys keys.ShiftKey & "~!@#$%^&*()_+{}|:""<>?" & keys.ShiftKey & keys.EnterKey
     Debug.Assert display_keys.GetText = "~!@#$%^&*()_+{}|:""<>?"
     
+    'test numeric-looking string
+    input1.SendKeys "12345678901234567890123"
+    input1.SendKeys keys.EnterKey
+    Debug.Assert display_keys.GetText = "12345678901234567890123"
+    
     driver.Wait
     
     input1.SendKeys keys.ShiftKey & "this is" & keys.ShiftKey & " Mike" & keys.EnterKey

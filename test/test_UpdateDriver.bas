@@ -24,11 +24,10 @@ Sub test_updateDrivers()
     'this checks if driver is installed, or if installed driver is compatibile
     'with installed browser, and then if needed, installs an updated driver
     Dim mngr As SeleniumVBA.WebDriverManager
-    
     Set mngr = SeleniumVBA.New_WebDriverManager
     
     'mngr.DefaultDriverFolder = [your binary folder path here] 'defaults to Downloads dir
-    
+
     MsgBox mngr.AlignEdgeDriverWithBrowser()
     MsgBox mngr.AlignChromeDriverWithBrowser()
     MsgBox mngr.AlignFirefoxDriverWithBrowser()

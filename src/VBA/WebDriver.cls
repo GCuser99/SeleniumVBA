@@ -12,7 +12,7 @@ Attribute VB_Description = "This class provides the main mechanism to control/au
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.3
+' SeleniumVBA v7.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -556,38 +556,127 @@ Attribute NavigateToString.VB_Description = "Navigates browser to page represent
     NavigateToString = NavigateTo(dataUrl, timeOutms, raiseError)
 End Function
 
-'@Description("Waits until all tracked network requests have completed, polling until the page reaches a network-idle state or a timeout occurs")
+' Runs one of the idle-waiter scripts with consistent timeout and error handling.
+' - Temporarily raises WebDriver's script timeout above maxTimeToWait, so the script's own
+'   timeout fires first, then restores it.
+' - Any timeout (reported by the script or by WebDriver) raises error 404.
+' - Other script errors ("Error..." results) raise error 5 with the script's message.
+' - Otherwise returns the script's result for the caller to inspect.
+' scriptName must be "<MethodName>.js": the method name is used in error messages.
+Private Function runIdleScript(ByVal scriptName As String, ByVal isAsync As Boolean, ByVal maxTimeToWait As Long, ParamArray args() As Variant) As Variant
+    Dim methodName As String, script As String, result As Variant
+    Dim prevTimeout As Long, timeoutRaised As Boolean
+    Dim errNum As Long, errDesc As String
+
+    methodName = Replace(scriptName, ".js", "")
+    If maxTimeToWait <= 0 Then
+        Err.Raise 5, "WebDriver", "Error in " & methodName & ": maxTimeToWait must be > 0"
+    End If
+    script = getScript(scriptName)
+
+    prevTimeout = ScriptTimeout
+    If prevTimeout < maxTimeToWait + 2000 Then
+        ScriptTimeout = maxTimeToWait + 2000
+        timeoutRaised = True
+    End If
+
+    On Error GoTo failed
+    ' A ParamArray can't be passed on to another ParamArray, so spread it explicitly
+    Select Case UBound(args)
+    Case -1
+        If isAsync Then result = ExecuteScriptAsync(script) Else result = ExecuteScript(script)
+    Case 0
+        If isAsync Then result = ExecuteScriptAsync(script, args(0)) Else result = ExecuteScript(script, args(0))
+    Case 1
+        If isAsync Then result = ExecuteScriptAsync(script, args(0), args(1)) Else result = ExecuteScript(script, args(0), args(1))
+    Case 2
+        If isAsync Then result = ExecuteScriptAsync(script, args(0), args(1), args(2)) Else result = ExecuteScript(script, args(0), args(1), args(2))
+    Case 3
+        If isAsync Then result = ExecuteScriptAsync(script, args(0), args(1), args(2), args(3)) Else result = ExecuteScript(script, args(0), args(1), args(2), args(3))
+    Case Else
+        Err.Raise 5, "WebDriver", "runIdleScript supports at most 4 script arguments"
+    End Select
+    GoTo finish
+
+failed:
+    ' e.g. "document unloaded" if the page navigated, or a rejected promise from the script
+    errNum = Err.Number
+    errDesc = Err.Description
+    Resume finish
+
+finish:
+    On Error GoTo 0                                  ' must come before any Err.Raise below
+    If timeoutRaised Then ScriptTimeout = prevTimeout
+
+    If errNum <> 0 Then
+        ' WaitForIdleNetwork rejects with "networkIdle timeout"; WebDriver's own limit says "script timeout"
+        If errDesc Like "*timeout*" Then
+            Err.Raise 404, "WebDriver", "Error in " & methodName & ": Maximum time exceeded while waiting for idle state"
+        End If
+        Err.Raise errNum, "WebDriver", "Error in " & methodName & ": " & errDesc
+    End If
+
+    If VarType(result) = vbString Then
+        If result Like "*timeout*" Then
+            Err.Raise 404, "WebDriver", "Error in " & methodName & ": Maximum time exceeded while waiting for idle state"
+        End If
+        If result Like "Error*" Then
+            Err.Raise 5, "WebDriver", "Error in " & methodName & ": " & result
+        End If
+    End If
+
+    runIdleScript = result
+End Function
+
+'@Description("DEPRECATED: Only sees requests that start after it is called; for requests triggered by an action, use InstallNetworkAndDOMHooks with WaitForIdleNetworkAndDOM. Waits until no new fetch/XHR request has started for idleTime ms. Raises error 404 on timeout.")
 Public Sub WaitForIdleNetwork(Optional ByVal idleTime As Long = 1500, Optional ByVal maxTimeToWait As Long = 30000)
-Attribute WaitForIdleNetwork.VB_Description = "Waits until all tracked network requests have completed, polling until the page reaches a network-idle state or a timeout occurs"
-    Dim script As String
-    script = getScript("WaitForIdleNetwork.js")
-    If (ExecuteScript(script, idleTime, maxTimeToWait) Like "Error*") Then
-        Err.Raise 404, , "Error in WaitForIdleNetwork: Maximum time exceeded while waiting for idle state"
-    End If
+Attribute WaitForIdleNetwork.VB_Description = "DEPRECATED: Only sees requests that start after it is called; for requests triggered by an action, use InstallNetworkAndDOMHooks with WaitForIdleNetworkAndDOM. Waits until all tracked network requests have completed, polling until the page reaches a network-idle state or a timeout occurs"
+    runIdleScript "WaitForIdleNetwork.js", False, maxTimeToWait, idleTime, maxTimeToWait
 End Sub
 
-'@Description("Waits until all active jQuery AJAX requests have completed, polling until the page reaches a jQuery-idle state or a timeout occurs")
-Public Sub WaitForIdleJQuery(Optional ByVal maxTimeToWait As Long = 30000)
-Attribute WaitForIdleJQuery.VB_Description = "Waits until all active jQuery AJAX requests have completed, polling until the page reaches a jQuery-idle state or a timeout occurs"
-    Dim script As String
-    script = getScript("WaitForIdleJQuery.js")
-    If (ExecuteScriptAsync(script, maxTimeToWait, 50) Like "Error*") Then
-        Err.Raise 404, , "Error in WaitForIdleJQuery: Maximum time exceeded while waiting for idle state"
-    End If
+'@Description("Waits until all active jQuery AJAX requests have completed and jQuery has stayed idle for settleTime ms. Does not track animations; use WaitForIdleDOM for those. Raises error 404 on timeout.")
+Public Sub WaitForIdleJQuery(Optional ByVal maxTimeToWait As Long = 30000, Optional ByVal settleTime As Long = 100)
+Attribute WaitForIdleJQuery.VB_Description = "Waits until all active jQuery AJAX requests have completed and jQuery has stayed idle for settleTime ms. Does not track animations; use WaitForIdleDOM for those. Raises error 404 on timeout."
+    runIdleScript "WaitForIdleJQuery.js", True, maxTimeToWait, maxTimeToWait, 50, settleTime
 End Sub
 
-'@Description("Waits until the DOM has stopped mutating, polling until the DOM container reaches a stable state or a timeout occurs. If container is omitted, then document is used.")
-Public Sub WaitForIdleDOM(Optional ByVal idleTime As Long = 50, Optional ByVal maxTimeToWait As Long = 30000, Optional container As WebElement)
-Attribute WaitForIdleDOM.VB_Description = "Waits until the DOM has stopped mutating, polling until the DOM container reaches a stable state or a timeout occurs. If container is omitted, then document is used."
-    Dim script As String, result As String
-    script = getScript("WaitForIdleDOM.js")
+'@Description("Waits until the DOM has stopped changing for idleTime ms. container can be a WebElement or a WebShadowRoot; if omitted, the whole document is watched. Changes inside shadow roots are only seen when the shadow root itself is passed as container. Raises error 404 on timeout.")
+Public Sub WaitForIdleDOM(Optional ByVal idleTime As Long = 50, Optional ByVal maxTimeToWait As Long = 30000, Optional container As Object = Nothing)
+Attribute WaitForIdleDOM.VB_Description = "Waits until the DOM has stopped changing for idleTime ms. container can be a WebElement or a WebShadowRoot; if omitted, the whole document is watched. Changes inside shadow roots are only seen when the shadow root itself is passed as container. Raises error 404 on timeout."
     If container Is Nothing Then
-        result = ExecuteScript(script, "document", idleTime, maxTimeToWait)
+        runIdleScript "WaitForIdleDOM.js", False, maxTimeToWait, "document", idleTime, maxTimeToWait
     Else
-        result = ExecuteScript(script, container, idleTime, maxTimeToWait)
+        Select Case TypeName(container)
+        Case "WebElement", "WebShadowRoot"
+            runIdleScript "WaitForIdleDOM.js", False, maxTimeToWait, container, idleTime, maxTimeToWait
+        Case Else
+            Err.Raise 5, "WebDriver", "Error in WaitForIdleDOM method: container must be a WebElement or WebShadowRoot"
+        End Select
     End If
-    If result Like "Error*" Then
-        Err.Raise 404, , "Error in WaitForIdleDOM: Maximum time exceeded while waiting for idle state"
+End Sub
+
+'@Description("Waits until there are no pending fetch/XHR requests and the DOM has not changed for idleTime ms. Requires InstallNetworkAndDOMHooks on the current page before the action being waited on. Raises error 404 on timeout, or 405 if the hooks are not installed on the current page (e.g. after navigation).")
+Public Sub WaitForIdleNetworkAndDOM(Optional ByVal idleTime As Long = 500, Optional ByVal maxTimeToWait As Long = 30000)
+Attribute WaitForIdleNetworkAndDOM.VB_Description = "Waits until there are no pending fetch/XHR requests and the DOM has not changed for idleTime ms. Requires InstallNetworkAndDOMHooks on the current page before the action being waited on. Raises error 404 on timeout, or 405 if the hooks are not installed on the current page (e.g. after navigation)."
+    If runIdleScript("WaitForIdleNetworkAndDOM.js", True, maxTimeToWait, idleTime, maxTimeToWait) = "not-armed" Then
+        Err.Raise 405, "WebDriver", "Error in WaitForIdleNetworkAndDOM: Hooks not installed on this page. Call InstallNetworkAndDOMHooks after navigating and before the action to wait on"
+    End If
+End Sub
+
+'@Description("Installs hooks on the current page that track pending fetch/XHR requests and DOM changes, for use by WaitForIdleNetworkAndDOM. Call after navigating and before the action to wait on; hooks are lost when the page navigates. 'ignoreList' is a URL substring or array of substrings for requests to ignore (e.g. long-polling, analytics). Calling again on the same page has no effect.")
+Public Sub InstallNetworkAndDOMHooks(Optional ByVal ignoreList As Variant)
+Attribute InstallNetworkAndDOMHooks.VB_Description = "Installs hooks on the current page that track pending fetch/XHR requests and DOM changes, for use by WaitForIdleNetworkAndDOM. Call after navigating and before the action to wait on; hooks are lost when the page navigates. 'ignoreList' is a URL substring or array of substrings for requests to ignore (e.g. long-polling, analytics). Calling again on the same page has no effect."
+    Dim script As String
+    script = getScript("InstallNetworkAndDOMHooks.js")
+
+    If IsMissing(ignoreList) Then
+        ExecuteScript script
+    ElseIf IsArray(ignoreList) Then
+        ExecuteScript script, ignoreList
+    ElseIf VarType(ignoreList) = vbString Then
+        ExecuteScript script, Array(ignoreList)   ' the script expects an array
+    Else
+        Err.Raise 5, "WebDriver", "ignoreList must be a string or an array of strings"
     End If
 End Sub
 
@@ -812,9 +901,10 @@ Attribute SendKeys.VB_Description = "Sends a key sequence to the specified eleme
     
     'replace possible escaped special key strings with single (wide) character equivalents
     keys = unEscapeUnicode(keys)
-
+    
     data("text") = keys
     Set data("value") = splitKeyString(keys)
+    
     execute tCMD.CMD_SEND_KEYS_TO_ELEMENT, data
 End Sub
 
@@ -1891,6 +1981,7 @@ Attribute SetCookie.VB_Description = "Sets a cookie object"
     Dim data As New Dictionary
     Dim saveSetting As Boolean
     If cookie.Name <> vbNullString And cookie.Value <> vbNullString Then
+        'The work-around below is not needed if using KeepStringifiedNumbersAsStrings in WebJsonConverter
         'value can take a number greater than 15 digits
         'for some unknown reason, Selenium WebDriver does not
         'like a number greater than 15 digits unless it is quoted
@@ -2089,43 +2180,55 @@ Attribute WaitUntilNotDisplayed.VB_Description = "Waits until element is not dis
     Err.Raise 1, "WebDriver", "Error in WaitUntilNotDisplayed method: maximum wait time exceeded while waiting for element to disappear."
 End Function
 
-'@Description("Waits until file is finished downloading")
+'@Description("Waits until a file exists and is finished being written (no longer locked), or until maxWaitTimeMS elapses. Raises if the wait times out.")
 Public Sub WaitForDownload(ByVal filePath As String, Optional ByVal maxWaitTimeMS As Long = 10000)
-Attribute WaitForDownload.VB_Description = "Waits until file is finished downloading"
-    'adapted from WaitNewFile in https://github.com/florentbr/SeleniumBasic/tree/master/Examples/Excel
-    Dim fso As New FileSystemObject
+Attribute WaitForDownload.VB_Description = "Waits until a file exists and is finished being written (no longer locked), or until maxWaitTimeMS elapses. Raises if the wait times out."
     Dim timeStart As Currency
     Dim timeEnd As Currency
     Dim timeNow As Currency
-    
-    filePath = ResolvePath(filePath, False)
-    
-    GetTime timeStart 'in currency
-    
-    'calculate time to quit in currency based on max time to wait in MS
+    Dim fso As New FileSystemObject
+
+    filePath = ResolvePath(filePath, False)      ' absolute from here on
+
+    GetTime timeStart                            ' in counts
     timeEnd = timeStart + timeMStoCurrency(Max(maxWaitTimeMS, 0))
-    
-    'loop until file exists
+
+    ' Phase 1: wait for the file to appear.
     Do
         If fso.FileExists(filePath) Then Exit Do
-        sleep 50  'ms
+        sleep 50
         GetTime timeNow
         If timeNow > timeEnd Then GoTo MaxTimeExceeded
     Loop
-    
-    'the file exists but now make sure it is finished writing (closed)
+
+    ' Phase 2: the file exists - wait until whatever is writing it lets go.
+    ' IsFileLocked is racy by nature, but that is exactly right in a poll loop:
+    ' a briefly wrong answer is corrected on the next iteration. A file that
+    ' vanishes mid-wait (e.g. a cancelled download cleaning up) is treated as
+    ' "not ready" so we keep waiting rather than crashing or falsely succeeding.
     Do
-        If FileClosed(filePath) Then
-            If browser_ = svbaBrowser.Firefox Then sleep 50 'small wait needed for firefox to avoid cancel download dialog
+        Dim locked As Boolean
+        On Error Resume Next
+        locked = IsFileLocked(filePath)          ' raises 53 if the file vanished
+        If Err.Number <> 0 Then locked = True     ' gone -> not ready -> keep waiting
+        On Error GoTo 0
+
+        If Not locked Then
+            ' Firefox needs a small extra beat here or its cancel-download
+            ' dialog can appear.
+            If browser_ = svbaBrowser.Firefox Then sleep 50
             Exit Sub
         End If
-        sleep 50  'ms
+
+        sleep 50
         GetTime timeNow
-    Loop Until timeNow > timeEnd
-    
+        If timeNow > timeEnd Then GoTo MaxTimeExceeded   ' explicit, matches Phase 1
+    Loop
+
 MaxTimeExceeded:
     Err.Raise 1, "WebDriver", "Error in WaitForDownload method: maximum wait time exceeded while waiting for file download."
 End Sub
+
 
 '@Description("Waits until an element is not present anymore")
 Public Sub WaitUntilNotPresent(by_ As By, ByVal val As String, Optional ByVal maxWaitTimeMS As Long = 10000)
@@ -2339,9 +2442,9 @@ Attribute PageToString.VB_Description = "Returns the current webpage source as a
     PageToString = Me.GetPageSource()
 End Function
 
-'@Description("Sets geolocation parameter values")
+'@Description("Sets geolocation parameter values. See AllowGeolocation for granting geolocation permission to websites.")
 Public Sub SetGeolocation(ByVal latitude As Double, ByVal longitude As Double, Optional ByVal altitude As Double = 0#, Optional ByVal accuracy As Double = 100#)
-Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
+Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values. See AllowGeolocation for granting geolocation permission to websites."
     Dim data As New Dictionary
     Dim location As New Dictionary
     location.Add "latitude", latitude
@@ -2350,6 +2453,19 @@ Attribute SetGeolocation.VB_Description = "Sets geolocation parameter values"
     location.Add "accuracy", accuracy
     data.Add "location", location
     execute tCMD.CMD_SET_GEOLOCATION, data
+End Sub
+
+'@Description("Grants permission to navigated websites to know the caller's location. If originUrl is omitted, then all navigated websites are included.")
+Public Sub AllowGeolocation(Optional ByVal originUrl As String)
+Attribute AllowGeolocation.VB_Description = "Grants permission to navigated websites to know the caller's location. If originUrl is omitted, then all navigated websites are included."
+    'allow websites to know the emulated location
+    Dim params As New Dictionary
+    Dim perm As New Dictionary
+    perm.Add "name", "geolocation"
+    params.Add "permission", perm
+    params.Add "setting", "granted"
+    If originUrl <> "" Then params.Add "origin", originUrl
+    ExecuteCDP "Browser.setPermission", params
 End Sub
 
 '@Description("Gets geolocation parameter values as a dictionay object")
@@ -2684,9 +2800,9 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
     Case "POST"
         client.setRequestHeader "Content-Type", "application/json; charset=utf-8"
         client.setRequestHeader "Cache-Control", "no-cache"
-        client.Send WebJsonConverter.ConvertToJson(cmdArgs)
+        client.send WebJsonConverter.ConvertToJson(cmdArgs)
     Case "GET", "DELETE"
-        client.Send
+        client.send
     Case Else
         Err.Raise 1, "WebDriver", "WebDriver command method must be either ""POST"", ""GET"", or ""DELETE""."
     End Select
@@ -2697,8 +2813,8 @@ Friend Function execute(driverCommand As Variant, Optional parameters As Diction
 
     On Error GoTo 0
     
-    clientResponseText = client.ResponseText
-    clientStatus = client.Status
+    clientResponseText = client.responseText
+    clientStatus = client.status
     
     'handle known non-standard/buggy WebDriver responses...
     If Left$(clientResponseText, 1) <> "{" And clientStatus = 405 Then
@@ -3009,121 +3125,12 @@ Private Function deserializeScriptResponse(responseValue As Object) As Object
     Set deserializeScriptResponse = responseValue
 End Function
 
-Private Function FileClosed(ByVal filePath As String) As Boolean
+Private Function IsFileLocked(ByVal filePath As String) As Boolean
+    'A hack using unicode capable FSO rather than a native Open trick which doesn't support unicode
     Dim fso As New FileSystemObject
     On Error Resume Next
     fso.MoveFile filePath, filePath
-    FileClosed = (Err.Number = 0)
-End Function
-
-Private Function osKeyMapper(ByVal keyString As String) As String
-    Dim oRegExp As New RegExp
-    Dim mappedValue As String
-    Dim i As Long
-    Dim key As String
-    Dim keyStringSave As String
-
-    'make map array static
-    Static map(0 To 93) As String
-    Static initMap As Boolean
-
-    If Not initMap Then
-        'create lookup array where index corresponds to Hex value of Selenium special key
-        map(0) = vbNullChar
-        map(1) = "{BREAK}" 'Cancel key - OS-specific keystroke sequence that performs a cancel action ^break
-        map(2) = "{HELP}"
-        map(3) = "{BACKSPACE}"
-        map(4) = "{TAB}"
-        map(5) = "{CLEAR}"
-        map(6) = "{ENTER}" 'Return
-        map(7) = "{ENTER}"
-        map(8) = "+" 'Shift
-        map(9) = "^" 'Ctrl
-        map(10) = "%" 'Alt
-        map(11) = "" 'The pause key
-        map(12) = "{ESCAPE}"
-        map(13) = Chr$(32) 'Space key
-        map(14) = "{PGUP}"
-        map(15) = "{PGDN}"
-        map(16) = "{END}"
-        map(17) = "{HOME}"
-        map(18) = "{LEFT} "
-        map(19) = "{UP} "
-        map(20) = "{RIGHT} "
-        map(21) = "{DOWN} "
-        map(22) = "{INSERT}"
-        map(23) = "{DELETE}"
-        map(24) = ";"
-        map(25) = "="
-        map(26) = "0"
-        map(27) = "1"
-        map(28) = "2"
-        map(29) = "3"
-        map(30) = "4"
-        map(31) = "5"
-        map(32) = "6"
-        map(33) = "7"
-        map(34) = "8"
-        map(35) = "9"
-        map(36) = "*"
-        map(37) = "+"
-        map(38) = ""
-        map(39) = "-"
-        map(40) = "."
-        map(41) = "/"
-        map(49) = "{F1}"
-        map(50) = "{F2}"
-        map(51) = "{F3}"
-        map(52) = "{F4}"
-        map(53) = "{F5}"
-        map(54) = "{F6}"
-        map(55) = "{F7}"
-        map(56) = "{F8}"
-        map(57) = "{F9}"
-        map(58) = "{F10}"
-        map(59) = "{F11}"
-        map(60) = "{F12}"
-        map(61) = "^{ESCAPE}" 'Meta or command key
-        map(64) = vbNullString ' ZenkakuHankaku Key
-        map(80) = "+"
-        map(81) = "^"
-        map(82) = "%"
-        map(83) = "^{ESCAPE}" 'Meta or Command key
-        map(84) = "{PGUP}"
-        map(85) = "{PGDN}"
-        map(86) = "{END}"
-        map(87) = "{HOME}"
-        map(88) = "{LEFT} "
-        map(89) = "{UP} "
-        map(90) = "{RIGHT} "
-        map(91) = "{DOWN} "
-        map(92) = "{INSERT}"
-        map(93) = "{DELETE}"
-        initMap = True
-    End If
-    
-    'replace possible escaped special key strings with single (wide) character equivalents
-    keyString = unEscapeUnicode(keyString)
-
-    'escape keys corresponding to special VBA SendKeys chars with brackets {}
-    oRegExp.Global = True
-    oRegExp.Pattern = "([+^%~{}\[\]()])"
-    keyString = oRegExp.Replace(keyString, "{$1}")
-    
-    'map potential Selenium special keys to VBA/VBScript Sendkeys counter-parts
-    keyStringSave = keyString
-    For i = 1 To Len(keyStringSave)
-        key = Mid$(keyStringSave, i, 1)
-        If AscWL(key) >= &HE000& And AscWL(key) <= &HE05D& Then
-            'we have a special key
-            mappedValue = map(AscWL(key) - &HE000&)
-            If mappedValue = vbNullString Then Err.Raise 1, , "Error in using SendKeysToOS - key " & "\u" & VBA.Right$("0000" & VBA.Hex$(AscW(key)), 4) & " not supported"
-            'replace Selenium special key occurrence with mapped VBA/VBScript version
-            keyString = Replace$(keyString, key, mappedValue, , 1)
-        End If
-    Next i
-
-    osKeyMapper = keyString
+    IsFileLocked = (Err.Number <> 0)
 End Function
 
 Private Function timeMStoCurrency(ByVal milliseconds As Long) As Currency
@@ -3163,6 +3170,7 @@ End Function
 
 Private Function collectionToArray(c As Variant) As Variant()
     Dim row As Collection, a() As Variant, j As Long, k As Long, cell As Variant
+    If c.Count = 0 Then Err.Raise 1, , "Error in TableToArray method: the table has no data rows (the table is empty, or all rows were skipped)"
     'assumes the incoming collection is "regular" shaped
     'use of for each is more performative
     ReDim a(1 To c.Count, 1 To c(1).Count)
@@ -3190,116 +3198,99 @@ Private Function getScript(ByVal scriptName As String) As String
     Case "TableToArray.js"
         script = vbNullString
         script = script & "function htmlTableToArray(table, skipHeader, skipFooter, createSpanData, ignoreCellFormatting) {" & vbCrLf
-        script = script & "    // This function recursively converts [nested] table[s] into an array [vba collection]" & vbCrLf
-        script = script & "        " & vbCrLf
-        script = script & "    let maxCols = 0;" & vbCrLf
-        script = script & "    // v is output array" & vbCrLf
-        script = script & "    let v = [];" & vbCrLf
-        script = script & "    // vrs is array to keep track of row span count if createSpanData = true" & vbCrLf
-        script = script & "    let vrs = [];" & vbCrLf
+        script = script & "// This function recursively converts [nested] table[s] into an array [vba collection]" & vbCrLf
+        script = script & "// Cells are placed on a grid: a cell skips columns already filled by row spans above it," & vbCrLf
+        script = script & "// and (if createSpanData = true) its value is copied over its whole rowspan x colspan area" & vbCrLf
+        script = script & "const rows = table.rows;" & vbCrLf
+        script = script & "let v = [];" & vbCrLf
+        script = script & "for (let r = 0; r < rows.length; r++) {" & vbCrLf
+        script = script & "    v[r] = [];" & vbCrLf
+        script = script & "}" & vbCrLf
         script = script & vbCrLf
-        script = script & "    // Calculate the maximum number of columns needed for the arrays" & vbCrLf
-        script = script & "    for (let row of table.rows) {" & vbCrLf
-        script = script & "        if (row.cells.length > maxCols) {" & vbCrLf
-        script = script & "            maxCols = row.cells.length;" & vbCrLf
-        script = script & "        }" & vbCrLf
-        script = script & "    }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "    // Initialize the v and vrs arrays" & vbCrLf
-        script = script & "    for (let i = 0; i < table.rows.length; i++) {" & vbCrLf
-        script = script & "        v[i] = new Array(maxCols);" & vbCrLf
-        script = script & "        if (createSpanData) {vrs[i] = new Array(maxCols).fill(1);}" & vbCrLf
-        script = script & "    }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "    // Extract cell data from each row and store it in the array" & vbCrLf
-        script = script & "    for (let row of table.rows) {" & vbCrLf
-        script = script & "        let colIdx = 0;" & vbCrLf
-        script = script & "        for (let cell of row.cells) {" & vbCrLf
-        script = script & "            let foundTable = false;" & vbCrLf
-        script = script & vbCrLf
-        script = script & "            // Check if the cell contains a table, process only the first table if found" & vbCrLf
-        script = script & "            if (cell.children.length > 0) {" & vbCrLf
-        script = script & "                for (let cellChild of cell.children) {" & vbCrLf
-        script = script & "                    if (cellChild.tagName.toUpperCase() === 'TABLE') {" & vbCrLf
-        script = script & "                        // We have a nested table..." & vbCrLf
-        script = script & "                        v[row.rowIndex][colIdx] = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData, ignoreCellFormatting);" & vbCrLf
-        script = script & "                        foundTable = true;" & vbCrLf
-        script = script & "                        break;" & vbCrLf
-        script = script & "                    }" & vbCrLf
-        script = script & "                }" & vbCrLf
-        script = script & "            }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "            // If no table found, store the text of the cell" & vbCrLf
-        script = script & "            if (!foundTable) {" & vbCrLf
-        script = script & "                // Store the contents of the cell in output array" & vbCrLf
-        script = script & "                if (ignoreCellFormatting) {" & vbCrLf
-        script = script & "                    // Store the complete text content, including hidden text" & vbCrLf
-        script = script & "                    v[row.rowIndex][colIdx] = cell.textContent.replace(/\xA0/g,' ');}" & vbCrLf
-        script = script & "                else {" & vbCrLf
-        script = script & "                    // Store the visible text content, including <br>'s and other white space formatting" & vbCrLf
-        script = script & "                    v[row.rowIndex][colIdx] = cell.innerText.replace(/\xA0/g,' ');" & vbCrLf
-        script = script & "                }" & vbCrLf
-        script = script & "                " & vbCrLf
-        script = script & "                // Handle col spans if createSpanData is true" & vbCrLf
-        script = script & "                if (createSpanData) {" & vbCrLf
-        script = script & "                    // Store row span data for use later" & vbCrLf
-        script = script & "                    vrs[row.rowIndex][colIdx] = cell.rowSpan;" & vbCrLf
-        script = script & "                    let colSpan = cell.colSpan;" & vbCrLf
-        script = script & "                    if (colSpan > 1) {" & vbCrLf
-        script = script & "                        // Propogate column span data" & vbCrLf
-        script = script & "                        for (let i = 1; i < colSpan; i++) {" & vbCrLf
-        script = script & "                            v[row.rowIndex][colIdx + i] = v[row.rowIndex][colIdx];" & vbCrLf
-        script = script & "                        }" & vbCrLf
-        script = script & "                        colIdx += colSpan - 1;" & vbCrLf
-        script = script & "                    }" & vbCrLf
-        script = script & "                }" & vbCrLf
-        script = script & "            }" & vbCrLf
-        script = script & "            colIdx += 1;" & vbCrLf
-        script = script & "        }" & vbCrLf
-        script = script & "    }" & vbCrLf
-        script = script & vbCrLf
-        script = script & "    // Handle row spans if createSpanData is true" & vbCrLf
-        script = script & "    if (createSpanData) {" & vbCrLf
-        script = script & "        // Propogate row span data if needed" & vbCrLf
-        script = script & "        for (let i = 0; i < v.length; i++) {" & vbCrLf
-        script = script & "            for (let j = 0; j < v[i].length; j++) {" & vbCrLf
-        script = script & "                let rowSpan = vrs[i][j];" & vbCrLf
-        script = script & "                if (rowSpan > 1) {" & vbCrLf
-        script = script & "                    for (let k = i + 1; k < i + rowSpan; k++) {" & vbCrLf
-        script = script & "                        // Insert a copy of cell data from row with span" & vbCrLf
-        script = script & "                        v[k].splice(j, 0, v[i][j]);" & vbCrLf
-        script = script & "                        v[k].pop();" & vbCrLf
-        script = script & "                        vrs[k].splice(j, 0, 1);" & vbCrLf
-        script = script & "                        vrs[k].pop();" & vbCrLf
-        script = script & "                    }" & vbCrLf
-        script = script & "                }" & vbCrLf
+        script = script & "for (let r = 0; r < rows.length; r++) {" & vbCrLf
+        script = script & "    let colIdx = 0;" & vbCrLf
+        script = script & "    for (let cell of rows[r].cells) {" & vbCrLf
+        script = script & "        // Skip columns already filled by a row span from a row above" & vbCrLf
+        script = script & "        if (createSpanData) {" & vbCrLf
+        script = script & "            while (v[r][colIdx] !== undefined) {" & vbCrLf
+        script = script & "                colIdx++;" & vbCrLf
         script = script & "            }" & vbCrLf
         script = script & "        }" & vbCrLf
-        script = script & "    }" & vbCrLf
         script = script & vbCrLf
-        script = script & "    // Remove the header and footer rows if called for" & vbCrLf
-        script = script & "    if (skipHeader) {" & vbCrLf
-        script = script & "        if (table.querySelector('thead') !== null) {" & vbCrLf
-        script = script & "            v.shift();" & vbCrLf
+        script = script & "        // Check if the cell contains a table, process only the first table if found" & vbCrLf
+        script = script & "        let value = null;" & vbCrLf
+        script = script & "        let foundTable = false;" & vbCrLf
+        script = script & "        for (let cellChild of cell.children) {" & vbCrLf
+        script = script & "            if (cellChild.tagName.toUpperCase() === 'TABLE') {" & vbCrLf
+        script = script & "                // We have a nested table..." & vbCrLf
+        script = script & "                value = htmlTableToArray(cellChild, skipHeader, skipFooter, createSpanData, ignoreCellFormatting);" & vbCrLf
+        script = script & "                foundTable = true;" & vbCrLf
+        script = script & "                break;" & vbCrLf
+        script = script & "            }" & vbCrLf
+        script = script & "        }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "        // If no table found, store the text of the cell" & vbCrLf
+        script = script & "        if (!foundTable) {" & vbCrLf
+        script = script & "            if (ignoreCellFormatting) {" & vbCrLf
+        script = script & "                // Store the complete text content, including hidden text" & vbCrLf
+        script = script & "                value = cell.textContent.replace(/\xA0/g, ' ');" & vbCrLf
+        script = script & "            } else {" & vbCrLf
+        script = script & "                // Store the visible text content, including <br>'s and other white space formatting" & vbCrLf
+        script = script & "                value = cell.innerText.replace(/\xA0/g, ' ');" & vbCrLf
+        script = script & "            }" & vbCrLf
+        script = script & "        }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "        if (createSpanData) {" & vbCrLf
+        script = script & "            // Copy the value over the whole rowspan x colspan area" & vbCrLf
+        script = script & "            const rowSpan = Math.max(1, cell.rowSpan);" & vbCrLf
+        script = script & "            const colSpan = Math.max(1, cell.colSpan);" & vbCrLf
+        script = script & "            for (let i = 0; i < rowSpan && r + i < rows.length; i++) {" & vbCrLf
+        script = script & "                for (let j = 0; j < colSpan; j++) {" & vbCrLf
+        script = script & "                    v[r + i][colIdx + j] = value;" & vbCrLf
+        script = script & "                }" & vbCrLf
+        script = script & "            }" & vbCrLf
+        script = script & "            colIdx += colSpan;" & vbCrLf
+        script = script & "        } else {" & vbCrLf
+        script = script & "            v[r][colIdx] = value;" & vbCrLf
+        script = script & "            colIdx++;" & vbCrLf
         script = script & "        }" & vbCrLf
         script = script & "    }" & vbCrLf
-        script = script & "    if (skipFooter) {" & vbCrLf
-        script = script & "        if (table.querySelector('tfoot') !== null) {" & vbCrLf
-        script = script & "            v.pop();" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & vbCrLf
+        script = script & "// Make every row the same width" & vbCrLf
+        script = script & "let maxCols = 0;" & vbCrLf
+        script = script & "for (let row of v) {" & vbCrLf
+        script = script & "    if (row.length > maxCols) {" & vbCrLf
+        script = script & "        maxCols = row.length;" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "for (let row of v) {" & vbCrLf
+        script = script & "    for (let j = 0; j < maxCols; j++) {" & vbCrLf
+        script = script & "        if (row[j] === undefined) {" & vbCrLf
+        script = script & "            row[j] = null;" & vbCrLf
         script = script & "        }" & vbCrLf
         script = script & "    }" & vbCrLf
-        script = script & "    return v;" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & vbCrLf
+        script = script & "// Remove the header and footer rows if called for" & vbCrLf
+        script = script & "if (skipHeader && table.tHead) {" & vbCrLf
+        script = script & "    v.splice(0, table.tHead.rows.length);" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "if (skipFooter && table.tFoot) {" & vbCrLf
+        script = script & "    v.splice(v.length - table.tFoot.rows.length);" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & "return v;" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & vbCrLf
         script = script & "const elem = arguments[0];" & vbCrLf
         script = script & vbCrLf
         script = script & "// Handle case if incoming element's tag is tbody" & vbCrLf
         script = script & "if (elem.tagName.toUpperCase() === 'TABLE') {" & vbCrLf
-        script = script & "    var table = elem;}" & vbCrLf
+        script = script & "var table = elem;}" & vbCrLf
         script = script & "else if (elem.tagName.toUpperCase() === 'TBODY'){" & vbCrLf
-        script = script & "    var table = elem.parentElement;}" & vbCrLf
+        script = script & "var table = elem.parentElement;}" & vbCrLf
         script = script & "else {" & vbCrLf
-        script = script & "    return false;" & vbCrLf
+        script = script & "return false;" & vbCrLf
         script = script & "}" & vbCrLf
         script = script & "// Convert table element to an array (vba collection)" & vbCrLf
         script = script & "return htmlTableToArray(table, arguments[1], arguments[2], arguments[3], arguments[4]);" & vbCrLf
@@ -3725,25 +3716,130 @@ Private Function getScript(ByVal scriptName As String) As String
         script = script & "return waitForIdleNetwork(arguments[0], arguments[1]);" & vbCrLf
     Case "WaitForIdleJQuery.js"
         script = vbNullString
-        script = script & "var callback = arguments[arguments.length - 1]; async function waitForIdleJQuery(timeout = 10000, poll = 50) {" & vbCrLf
-        script = script & "if (!window.jQuery || typeof jQuery.active !== ""number"") {" & vbCrLf
-        script = script & "  return 'jQuery not present or jQuery.active unavailable';" & vbCrLf
-        script = script & "}" & vbCrLf
-        script = script & "const start = Date.now();" & vbCrLf
-        script = script & "while (jQuery.active > 0) {" & vbCrLf
-        script = script & "  if (Date.now() - start > timeout) {" & vbCrLf
-        script = script & "    return 'Error: timeout waiting for jQuery idle';" & vbCrLf
+        script = script & "// Args (all optional): [0] timeout ms, [1] poll ms, [2] settle ms. The last argument is always the WebDriver callback." & vbCrLf
+        script = script & "var callback = arguments[arguments.length - 1];" & vbCrLf
+        script = script & "var userArgs = Array.prototype.slice.call(arguments, 0, arguments.length - 1);" & vbCrLf
+        script = script & vbCrLf
+        script = script & "async function waitForIdleJQuery(timeout = 10000, poll = 50, settle = 100) {" & vbCrLf
+        script = script & "  const start = performance.now();" & vbCrLf
+        script = script & "  let idleSince = null;" & vbCrLf
+        script = script & "  while (true) {" & vbCrLf
+        script = script & "    const jq = window.jQuery; // re-read each poll; page may load/replace jQuery" & vbCrLf
+        script = script & "    if (!jq || typeof jq.active !== ""number"") {" & vbCrLf
+        script = script & "      return 'jQuery not present or jQuery.active unavailable';" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "    const now = performance.now();" & vbCrLf
+        script = script & "    if (jq.active === 0) {" & vbCrLf
+        script = script & "      if (idleSince === null) idleSince = now;" & vbCrLf
+        script = script & "      if (now - idleSince >= settle) return 'done';" & vbCrLf
+        script = script & "    } else {" & vbCrLf
+        script = script & "      idleSince = null; // a new request started during the settle window" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "    if (now - start > timeout) {" & vbCrLf
+        script = script & "      return jq.active === 0" & vbCrLf
+        script = script & "        ? 'done' // idle but settle window not yet complete: don't report a false timeout" & vbCrLf
+        script = script & "        : 'Error: timeout waiting for jQuery idle (jQuery.active = ' + jq.active + ')';" & vbCrLf
+        script = script & "    }" & vbCrLf
+        script = script & "    await new Promise(r => setTimeout(r, poll));" & vbCrLf
         script = script & "  }" & vbCrLf
-        script = script & "  await new Promise(r => setTimeout(r, poll));" & vbCrLf
         script = script & "}" & vbCrLf
-        script = script & "return 'done';" & vbCrLf
+        script = script & vbCrLf
+        script = script & "waitForIdleJQuery.apply(null, userArgs).then(" & vbCrLf
+        script = script & "  callback," & vbCrLf
+        script = script & "  e => callback('Error: exception in WaitForIdleJQuery: ' + (e && e.message ? e.message : e))" & vbCrLf
+        script = script & ");" & vbCrLf
+    Case "InstallNetworkAndDOMHooks.js"
+        script = vbNullString
+        script = script & "// Args (optional): [0] array of URL substrings to ignore (long-polling, analytics, websockets-over-HTTP, etc.)" & vbCrLf
+        script = script & "if (!window.__niw) { (function (ignore) {" & vbCrLf
+        script = script & "  ignore = Array.isArray(ignore) ? ignore : [];" & vbCrLf
+        script = script & "  var s = { req: 0, lastAct: Date.now(), onchange: null };" & vbCrLf
+        script = script & "  function skip(url) {" & vbCrLf
+        script = script & "    url = String(url || '');" & vbCrLf
+        script = script & "    return ignore.some(function (p) { return url.indexOf(p) !== -1; });" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & "  // Every request start/end and every DOM mutation counts as ""activity""" & vbCrLf
+        script = script & "  function bump(d) { s.req += d; s.lastAct = Date.now(); if (s.onchange) s.onchange(); }" & vbCrLf
+        script = script & "  function tracked(p) { // decrement exactly once when promise p settles" & vbCrLf
+        script = script & "    return p.finally(function () { bump(-1); });" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "  var of = window.fetch;" & vbCrLf
+        script = script & "  if (of) {" & vbCrLf
+        script = script & "    window.fetch = function (input) {" & vbCrLf
+        script = script & "      if (skip(input && input.url ? input.url : input)) return of.apply(this, arguments);" & vbCrLf
+        script = script & "      bump(1);" & vbCrLf
+        script = script & "      try { return tracked(of.apply(this, arguments)); } catch (e) { bump(-1); throw e; }" & vbCrLf
+        script = script & "    };" & vbCrLf
+        script = script & "    // fetch() resolves when headers arrive; the body may still be downloading." & vbCrLf
+        script = script & "    // Count body reads as pending work so the quiet window starts after the body is in." & vbCrLf
+        script = script & "    ['json', 'text', 'blob', 'arrayBuffer', 'formData'].forEach(function (m) {" & vbCrLf
+        script = script & "      var orig = window.Response && Response.prototype[m];" & vbCrLf
+        script = script & "      if (!orig) return;" & vbCrLf
+        script = script & "      Response.prototype[m] = function () {" & vbCrLf
+        script = script & "        bump(1);" & vbCrLf
+        script = script & "        try { return tracked(orig.apply(this, arguments)); } catch (e) { bump(-1); throw e; }" & vbCrLf
+        script = script & "      };" & vbCrLf
+        script = script & "    });" & vbCrLf
+        script = script & "  }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "  var oo = XMLHttpRequest.prototype.open, os = XMLHttpRequest.prototype.send;" & vbCrLf
+        script = script & "  XMLHttpRequest.prototype.open = function (method, url) {" & vbCrLf
+        script = script & "    this.__niwSkip = skip(url);" & vbCrLf
+        script = script & "    return oo.apply(this, arguments);" & vbCrLf
+        script = script & "  };" & vbCrLf
+        script = script & "  XMLHttpRequest.prototype.send = function () {" & vbCrLf
+        script = script & "    if (this.__niwSkip) return os.apply(this, arguments);" & vbCrLf
+        script = script & "    var ended = false;" & vbCrLf
+        script = script & "    function end() { if (!ended) { ended = true; bump(-1); } }" & vbCrLf
+        script = script & "    bump(1);" & vbCrLf
+        script = script & "    this.addEventListener('loadend', end);" & vbCrLf
+        script = script & "    try { return os.apply(this, arguments); } catch (e) { end(); throw e; } // e.g. send() before open()" & vbCrLf
+        script = script & "  };" & vbCrLf
+        script = script & vbCrLf
+        script = script & "  new MutationObserver(function () {" & vbCrLf
+        script = script & "    s.lastAct = Date.now();" & vbCrLf
+        script = script & "    if (s.onchange) s.onchange();" & vbCrLf
+        script = script & "  }).observe(document, { childList: true, subtree: true, attributes: true, characterData: true });" & vbCrLf
+        script = script & vbCrLf
+        script = script & "  window.__niw = s;" & vbCrLf
+        script = script & "})(arguments[0]); }" & vbCrLf
+    Case "WaitForIdleNetworkAndDOM.js"
+        script = vbNullString
+        script = script & "// Args (optional): [0] idle ms, [1] max ms. The last argument is always the WebDriver callback." & vbCrLf
+        script = script & "// Returns 'ok', 'timeout', or 'not-armed' (hooks not installed in this document, e.g. the page navigated)." & vbCrLf
+        script = script & "var cb = arguments[arguments.length - 1];" & vbCrLf
+        script = script & "var a = Array.prototype.slice.call(arguments, 0, arguments.length - 1);" & vbCrLf
+        script = script & "var idleTimeout = a[0] != null ? a[0] : 500;" & vbCrLf
+        script = script & "var maxTimeout = a[1] != null ? a[1] : 30000;" & vbCrLf
+        script = script & vbCrLf
+        script = script & "var s = window.__niw;" & vbCrLf
+        script = script & "if (!s) { cb('not-armed'); return; }" & vbCrLf
+        script = script & vbCrLf
+        script = script & "var tm = null, settled = false;" & vbCrLf
+        script = script & "var safety = setTimeout(function () { done('timeout'); }, maxTimeout);" & vbCrLf
+        script = script & vbCrLf
+        script = script & "function done(v) {" & vbCrLf
+        script = script & "  if (settled) return;" & vbCrLf
+        script = script & "  settled = true;" & vbCrLf
+        script = script & "  clearTimeout(tm);" & vbCrLf
+        script = script & "  clearTimeout(safety);" & vbCrLf
+        script = script & "  if (s.onchange === schedule) s.onchange = null; // don't leave a stale handler running on every mutation" & vbCrLf
+        script = script & "  cb(v);" & vbCrLf
         script = script & "}" & vbCrLf
-        script = script & "return waitForIdleJQuery(arguments[0], arguments[1]).then(callback);" & vbCrLf
+        script = script & vbCrLf
+        script = script & "function schedule() {" & vbCrLf
+        script = script & "  clearTimeout(tm);" & vbCrLf
+        script = script & "  if (s.req > 0) return; // the next request end will call us again" & vbCrLf
+        script = script & "  var remaining = Math.max(0, idleTimeout - (Date.now() - s.lastAct));" & vbCrLf
+        script = script & "  tm = setTimeout(function () {" & vbCrLf
+        script = script & "    if (s.req === 0 && Date.now() - s.lastAct >= idleTimeout) done('ok');" & vbCrLf
+        script = script & "    else schedule();" & vbCrLf
+        script = script & "  }, remaining);" & vbCrLf
+        script = script & "}" & vbCrLf
+        script = script & vbCrLf
+        script = script & "s.onchange = schedule;" & vbCrLf
+        script = script & "schedule();" & vbCrLf
     End Select
     getScript = script
 End Function
-
-Private Sub Class_Terminate()
-    'in case this was set to true in EnableBiDi method of WebCapabilities class
-    WebJsonConverter.OptionsKeepStringifiedNumbersAsStrings = False
-End Sub

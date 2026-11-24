@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to manage/set Selenium optional C
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.3
+' SeleniumVBA v7.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -146,7 +146,6 @@ End Sub
 Public Sub EnableBiDiMode()
 Attribute EnableBiDiMode.VB_Description = "Enables BiDirectional WebDriver Protocol"
     Me.SetCapability "webSocketUrl", True
-    WebJsonConverter.OptionsKeepStringifiedNumbersAsStrings = True
 End Sub
 
 '-------------------------------------------------------------------------
@@ -244,6 +243,7 @@ Attribute AddLocalStateFlags.VB_Description = "Adds a list of experimental brows
     Dim varry() As Variant
     Dim addList() As String
     Dim flag As String
+
     varry = flagsList
     addList = paramListToStringArray(varry)
     
@@ -440,9 +440,9 @@ Attribute SetDownloadPrefs.VB_Description = "Sets auto-download preferences and 
     End Select
 End Sub
 
-'@Description("Sets whether or not to allow geolocation awareness")
+'@Description("Sets whether or not to allow geolocation awareness. DEPRECATED - See the AllowGeolocation method of the WebDriver class.")
 Public Sub SetGeolocationAware(Optional ByVal aware As Boolean = True)
-Attribute SetGeolocationAware.VB_Description = "Sets whether or not to allow geolocation awareness"
+Attribute SetGeolocationAware.VB_Description = "Sets whether or not to allow geolocation awareness. DEPRECATED - See the AllowGeolocation method of the WebDriver class."
     'this may be required, for example, if using incognito mode and
     'wanting navigated url to be aware of geolocation
     Select Case browser_

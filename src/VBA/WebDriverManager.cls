@@ -12,7 +12,7 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '@Exposed
 '@folder("SeleniumVBA.Source")
 ' ==========================================================================
-' SeleniumVBA v7.3
+' SeleniumVBA v7.4
 '
 ' A Selenium wrapper for browser automation developed for MS Office VBA
 '
@@ -95,6 +95,8 @@ Attribute VB_Description = "This class is used to maintain Selenium driver/brows
 '
 Option Explicit
 
+Private Declare PtrSafe Function MoveFileExW Lib "kernel32" (ByVal lpExistingFileName As LongPtr, ByVal lpNewFileName As LongPtr, ByVal dwFlags As Long) As Long
+
 Private mDefaultDriverFolder As String
 
 Private Const verBrowserNotFound As String = "-99.0.000.00"
@@ -128,9 +130,9 @@ Public Enum svbaChannel
 End Enum
 
 Private Sub Class_Initialize()
-    Dim oShell As New Shell32.Shell
+    Dim oShell As Shell32.Shell: Set oShell = New Shell32.Shell
     Dim iniFilePath As String
-    
+
     'attempt to read global variable values from optional settings file - if not successful,
     'then assign a system default value (last input parameter of ReadIniFileEntry)
     iniFilePath = getFullLocalPath(thisLibFolderPath, , True) & "\SeleniumVBA.ini"
@@ -142,30 +144,37 @@ Public Property Let DefaultDriverFolder(ByVal folderPath As String)
 Attribute DefaultDriverFolder.VB_Description = "Sets the default driver folder path"
     mDefaultDriverFolder = WebShared.getFullLocalPath(folderPath, , True)
 End Property
-
 Public Property Get DefaultDriverFolder() As String
     DefaultDriverFolder = mDefaultDriverFolder
 End Property
 
-Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal driverPath As String, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem) As String
+Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal driverPath As String, Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem, Optional ByVal browserPath As String = vbNullString) As String
     Dim bverInstalled As String
     Dim dverCompat As String
     Dim respStr As String
     Dim dverInstalled As String
-    
+    Dim fullDriverPath As String
+    Dim fxMajor As String
+    Dim cachedMajor As String, cachedDriver As String, cachedOn As Date
+    Const cacheMaxAgeDays As Long = 7
+    Dim errNum As Long, errSrc As String, errDesc As String
+
+    'any runtime error below (download, extraction, file copy, WMI, Exec...) ends up in the handler,
+    'which honors runSilent - so the auto-check in WebDriver.Start can never break the user's script
+    On Error GoTo failed
+
     'get the installed versions of driver and browser
-    bverInstalled = GetInstalledBrowserVersion(browser)
-    
+    bverInstalled = GetInstalledBrowserVersion(browser, browserPath)
+
     'user might be using a portable browser that will be set in capabilities
     'so if browser is not found in registry, then set browser version to a
     'dummy value and then install latest driver, if not already installed
     If Left$(bverInstalled, 5) = "Error" Then bverInstalled = verBrowserNotFound
-    
+
     dverInstalled = GetInstalledDriverVersion(browser, driverPath)
-    
+
     Select Case browser
     Case svbaBrowser.Edge, svbaBrowser.Chrome
-        
         'because of the way Edge and Chrome maintain synchrony between driver and browser version numbers
         'we can compare installed driver and installed browser version strings to determine compatibility
         'without having to make a url request - only if they are incompatible do we need to make the request
@@ -173,11 +182,19 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             'the installed driver version is sufficiently different than the installed browser version
             'so find the most compatible driver version for installed browser
             If bverInstalled = verBrowserNotFound Then
+                'browser not detected: "latest" is only a guess. The automatic check must not replace a driver
+                'that exists - it may be the right one for a browser we failed to detect (or one behind the
+                'latest stable release). Explicit calls (svbaExactMatch) still update.
+                If dverInstalled <> verDriverNotFound And minCompatibilityLevel < svbaExactMatch Then
+                    AlignDriverWithBrowser = getBrowserString(browser) & " Browser not detected - existing Webdriver left in place." & _
+                        vbNewLine & vbNewLine & "Browser version: Not found" & vbNewLine & "Driver version:    " & dverInstalled
+                    Exit Function
+                End If
                 dverCompat = GetLatestDriverVersion(browser)
             Else
                 dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
             End If
-        
+    
             'check if we have an error and then take appropriate action
             If dverCompat Like "Error*" Then
                 If runSilent Then 'don't throw the error - just report back to caller
@@ -187,12 +204,11 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
                     Err.Raise 1, "WebDriverManager", dverCompat
                 End If
             End If
-            
-            'It's possible that the browser version is a dev version, and there is not
-            'an updated driver version. It's also possible that the browser was not found and
-            'that dverCompat is latest version. Check to make sure dverCompat and dverInstalled
-            'are sufficiently different, then if so, install the "compatible" driver
+        
+            'dverCompat is a validated same-major version (or the latest, if no browser was found);
+            'only install if it differs enough from what's installed.
             If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
+                Debug.Print Now, getBrowserString(browser), "browser=" & bverInstalled, "driver=" & dverInstalled, "installing=" & dverCompat
                 DownloadAndInstallDriver browser, dverCompat, driverPath, platform
                 dverInstalled = dverCompat
                 respStr = "The latest " & getBrowserString(browser) & " Webdriver was installed."
@@ -203,13 +219,28 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
             respStr = getBrowserString(browser) & " Webdriver and Browser are compatible."
         End If
     Case svbaBrowser.Firefox
+        fullDriverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
+        fxMajor = selectVersionPart(bverInstalled, 1)
+
+        'fast path: nothing relevant has changed since the last successful check - skip the network
+        If minCompatibilityLevel < svbaExactMatch And bverInstalled <> verBrowserNotFound Then
+            If readDriverCache(fullDriverPath, cachedMajor, cachedDriver, cachedOn) Then
+                ' cache format looks like: 146|0.37.1|46347
+                If cachedMajor = fxMajor And cachedDriver = dverInstalled And (Date - cachedOn) >= 0 And (Date - cachedOn) < cacheMaxAgeDays Then
+                    AlignDriverWithBrowser = "Firefox Webdriver and Browser are compatible." & vbNewLine & vbNewLine & _
+                        "Browser version: " & bverInstalled & vbNewLine & "Driver version:    " & dverInstalled
+                    Exit Function
+                End If
+            End If
+        End If
+        
         'get the compatible driver version for the installed browser
         If bverInstalled = verBrowserNotFound Then
             dverCompat = GetLatestDriverVersion(browser)
         Else
             dverCompat = GetCompatibleDriverVersion(browser, bverInstalled)
         End If
-                 
+             
         'check if we have an error and then take appropriate action
         If dverCompat Like "Error*" Then
             If runSilent Then 'don't throw the error - just report back to caller
@@ -219,7 +250,7 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
                 Err.Raise 1, "WebDriverManager", dverCompat
             End If
         End If
-        
+    
         If CheckCompatibilityLevel(dverCompat, dverInstalled) < minCompatibilityLevel Then
             'the installed driver version is sufficiently different than the installed browser version
             'so install it
@@ -229,31 +260,47 @@ Friend Function AlignDriverWithBrowser(ByVal browser As svbaBrowser, ByVal drive
         Else
             respStr = getBrowserString(browser) & " Webdriver and Browser are compatible."
         End If
+        
+        'record the successful outcome (only reached when no error was returned/raised above)
+        If bverInstalled <> verBrowserNotFound Then writeDriverCache fullDriverPath, fxMajor, dverInstalled
     End Select
-    
+
     If bverInstalled = verBrowserNotFound Then bverInstalled = "Not found"
-    
+
     respStr = respStr & vbNewLine & vbNewLine & "Browser version: " & bverInstalled & vbNewLine & "Driver version:    " & dverInstalled
-    
+
     AlignDriverWithBrowser = respStr
+    Exit Function
+
+failed:
+    errNum = Err.Number: errSrc = Err.Source: errDesc = Err.Description
+    If runSilent Then
+        If Left$(errDesc, 5) = "Error" Then
+            AlignDriverWithBrowser = errDesc
+        Else
+            AlignDriverWithBrowser = "Error: " & errDesc
+        End If
+    Else
+        Err.Raise errNum, errSrc, errDesc   'raised from inside the handler, so it goes to the caller
+    End If
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed")
-Public Function AlignEdgeDriverWithBrowser(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem) As String
-Attribute AlignEdgeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed"
-    AlignEdgeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Edge, driverPath, minCompatibilityLevel, runSilent, platform)
+'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed. Pass browserPath for a portable/non-default browser")
+Public Function AlignEdgeDriverWithBrowser(Optional ByVal driverPath As String = "msedgedriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem, Optional ByVal browserPath As String = vbNullString) As String
+Attribute AlignEdgeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed. Pass browserPath for a portable/non-default browser"
+    AlignEdgeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Edge, driverPath, minCompatibilityLevel, runSilent, platform, browserPath)
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed")
-Public Function AlignChromeDriverWithBrowser(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem) As String
-Attribute AlignChromeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed"
-    AlignChromeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Chrome, driverPath, minCompatibilityLevel, runSilent, platform)
+'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed. Pass browserPath for a portable/non-default browser")
+Public Function AlignChromeDriverWithBrowser(Optional ByVal driverPath As String = "chromedriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem, Optional ByVal browserPath As String = vbNullString) As String
+Attribute AlignChromeDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed. Pass browserPath for a portable/non-default browser"
+    AlignChromeDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Chrome, driverPath, minCompatibilityLevel, runSilent, platform, browserPath)
 End Function
 
-'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed")
-Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem) As String
-Attribute AlignFirefoxDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed"
-    AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath, minCompatibilityLevel, runSilent, platform)
+'@Description("Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed. Pass browserPath for a portable/non-default browser")
+Public Function AlignFirefoxDriverWithBrowser(Optional ByVal driverPath As String = "geckodriver.exe", Optional ByVal minCompatibilityLevel As svbaCompatibility = svbaExactMatch, Optional ByVal runSilent As Boolean = False, Optional ByVal platform As svbaPlatform = svbaSystem, Optional ByVal browserPath As String = vbNullString) As String
+Attribute AlignFirefoxDriverWithBrowser.VB_Description = "Checks if driver is installed, or if installed driver is compatibile with installed browser, and then installs an updated driver if needed. Pass browserPath for a portable/non-default browser"
+    AlignFirefoxDriverWithBrowser = AlignDriverWithBrowser(svbaBrowser.Firefox, driverPath, minCompatibilityLevel, runSilent, platform, browserPath)
 End Function
 
 '@Description("Returns the installed Driver version")
@@ -262,8 +309,6 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     Dim wsh As IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
     Dim fso As FileSystemObject
     Dim resp As Variant
-    Dim i As Long
-    Dim ver As String
 
     If IsMissing(driverPath) Then
         Select Case browser
@@ -279,7 +324,6 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
     driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
     
     Set fso = New FileSystemObject
-    
     If Not fso.FileExists(driverPath) Then
         GetInstalledDriverVersion = verDriverNotFound
         Exit Function
@@ -293,10 +337,8 @@ Attribute GetInstalledDriverVersion.VB_Description = "Returns the installed Driv
             Exit Function
         End If
     End If
-    
-    'following for Firefox only
-    Set wsh = New IWshRuntimeLibrary.WshShell
-    resp = wsh.Exec(Chr$(34) & driverPath & Chr$(34) & " --version").StdOut.ReadAll
+
+    resp = runHiddenCapture(driverPath, "--version")
     GetInstalledDriverVersion = findVersionInString(resp, browser)
 End Function
 
@@ -305,39 +347,44 @@ Public Function CheckCompatibilityLevel(ByVal versionString1 As String, ByVal ve
 Attribute CheckCompatibilityLevel.VB_Description = "Returns the compatibility level between a pair of version strings"
     Dim vermajor1 As Variant, verminor1 As Variant, verbuildmajor1 As Variant, verbuildminor1 As Variant
     Dim vermajor2 As Variant, verminor2 As Variant, verbuildmajor2 As Variant, verbuildminor2 As Variant
-    
-    If versionString1 = "driver not found" Then CheckCompatibilityLevel = -1: Exit Function
+
+    'a missing/unknown version on either side can never be compatible - say so explicitly
+    'rather than relying on the sentinel values' major parts never matching a real version
+    If isUnknownVersion(versionString1) Or isUnknownVersion(versionString2) Then
+        CheckCompatibilityLevel = svbaNotCompatible
+        Exit Function
+    End If
+
     vermajor1 = selectVersionPart(versionString1, 1)
     verminor1 = selectVersionPart(versionString1, 2)
     verbuildmajor1 = selectVersionPart(versionString1, 3)
     If countVersionParts(versionString1) > 3 Then verbuildminor1 = selectVersionPart(versionString1, 4) Else verbuildminor1 = "0"
-    
-    If versionString2 = "driver not found" Then CheckCompatibilityLevel = -1: Exit Function
+
     vermajor2 = selectVersionPart(versionString2, 1)
     verminor2 = selectVersionPart(versionString2, 2)
     verbuildmajor2 = selectVersionPart(versionString2, 3)
     If countVersionParts(versionString2) > 3 Then verbuildminor2 = selectVersionPart(versionString2, 4) Else verbuildminor2 = "0"
-    
+
     If vermajor1 <> vermajor2 Then
         CheckCompatibilityLevel = svbaNotCompatible
         Exit Function
     End If
-    
+
     If verminor1 <> verminor2 Then
         CheckCompatibilityLevel = svbaMajor
         Exit Function
     End If
-    
+
     If verbuildmajor1 <> verbuildmajor2 Then
         CheckCompatibilityLevel = svbaMinor
         Exit Function
     End If
-    
+
     If verbuildminor1 <> verbuildminor2 Then
         CheckCompatibilityLevel = svbaBuildMajor
         Exit Function
     End If
-    
+
     CheckCompatibilityLevel = svbaExactMatch
 End Function
 
@@ -346,176 +393,186 @@ Public Function GetLatestDriverVersion(ByVal browser As svbaBrowser, Optional By
 Attribute GetLatestDriverVersion.VB_Description = "Returns the latest Driver version"
     Dim Url As String
     Dim respTxt As Variant
-    Dim json As Dictionary
-    
+
     Select Case browser
     Case svbaBrowser.Edge
         Url = "https://msedgedriver.microsoft.com/LATEST_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
-        respTxt = requestData(Url)
-        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
-        GetLatestDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
+        GetLatestDriverVersion = validateVersionResponse(requestData(Url), browser)
     Case svbaBrowser.Chrome
         Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & UCase$(getChannelString(channel)) 'STABLE, BETA, DEV, CANARY
-        respTxt = requestData(Url)
-        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
-        GetLatestDriverVersion = respTxt
+        GetLatestDriverVersion = validateVersionResponse(requestData(Url), browser)
     Case svbaBrowser.Firefox
         Url = "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
         respTxt = requestData(Url)
-        If respTxt = "Release Not Found" Then GetLatestDriverVersion = "Error: Release Not Found": Exit Function
-        GetLatestDriverVersion = findLatestFirefoxVersion(respTxt)
+        'pass network errors through rather than letting the parser mask them as "Release Not Found"
+        If respTxt Like "Error*" Or respTxt = "Release Not Found" Then
+            GetLatestDriverVersion = validateVersionResponse(respTxt, browser)
+            Exit Function
+        End If
+        GetLatestDriverVersion = validateVersionResponse(findLatestFirefoxVersion(respTxt), browser)
     End Select
 End Function
 
 '@Description("Returns the most recent compatible Driver version given the installed Browser version")
 Public Function GetCompatibleDriverVersion(ByVal browser As svbaBrowser, ByVal browserVersion As String) As String
 Attribute GetCompatibleDriverVersion.VB_Description = "Returns the most recent compatible Driver version given the installed Browser version"
-    Dim htmlDoc As New HTMLDocument
-    Dim table As HTMLTable
-    Dim row As HTMLTableRow
     Dim verMajor As String
     Dim browserBuild  As String
     Dim respTxt As Variant
     Dim Url As String
-    
-    'This function, if called from WebDriver class as part of auto-updater, needs to execution as silently
-    'as possible - we don't want the non-mission-critical error in driver check/updating to get in the way of user
-    'running WebDriver. For example, user may be running on local urls, and so in no internet connection, user can still work
-    
+    Dim exactVer As String
+    Dim result As Variant
+
+    'This function, if called from WebDriver class as part of auto-updater, needs to execute as silently
+    'as possible - errors are returned as "Error..." strings rather than raised.
+    '
+    'For Chrome and Edge the driver MAJOR version must equal the browser major version, so this function
+    'never falls back to an older major - if no same-major driver is available it returns an error and
+    'the caller leaves the currently installed driver in place.
+
     'for chrome info:
     'https://chromedriver.chromium.org/downloads/version-selection
-    'https://groups.google.com/g/chromedriver-users/c/clpipqvOGjE
     'https://github.com/GoogleChromeLabs/chrome-for-testing#json-api-endpoints
-    
+
     'for edge info:
-    'https://blogs.windows.com/msedgedev/2019/11/04/edge-chromium-release-candidate-get-ready/
     'https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+    
+    'Chrome/Edge: the browser version is used to build URLs and in numeric comparisons - make sure
+    'it is a well-formed 4-part version first (guards against an odd registry fallback value)
+    If browser = svbaBrowser.Chrome Or browser = svbaBrowser.Edge Then
+        If Left$(validateVersionResponse(browserVersion, browser), 5) = "Error" Then
+            GetCompatibleDriverVersion = "Error: Unrecognized " & getBrowserString(browser) & " version: " & browserVersion
+            Exit Function
+        End If
+    End If
     
     Select Case browser
     Case svbaBrowser.Edge
-        
         verMajor = selectVersionPart(browserVersion, 1)
 
-        'search for major version, decrementing by one until success
-        Do While verMajor >= 75
-            Url = "https://msedgedriver.microsoft.com/LATEST_RELEASE_" & verMajor & "_WINDOWS"
-            
-            respTxt = requestData(Url)
-            
-            If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
-            
-            If respTxt <> "Release Not Found" Then Exit Do
-            
-            verMajor = verMajor - 1
-        Loop
-        
-        GetCompatibleDriverVersion = Replace$(respTxt, vbNewLine, vbNullString)
+        '1) latest driver release for the browser's major version
+        Url = "https://msedgedriver.microsoft.com/LATEST_RELEASE_" & verMajor & "_WINDOWS"
+        respTxt = requestData(Url)
+        If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
+
+        If respTxt <> "Release Not Found" Then
+            GetCompatibleDriverVersion = validateCompatibleVersion(respTxt, browser, browserVersion)
+            Exit Function
+        End If
+
+        '2) LATEST file not (yet) published for this major, e.g. on release day. Microsoft publishes a
+        'driver for every Edge build, so check whether the exact-match driver package exists (HEAD only)
+        exactVer = validateVersionResponse(browserVersion, browser)
+        If Left$(exactVer, 5) = "Error" Then GetCompatibleDriverVersion = "Error: Release Not Found": Exit Function
+
+        result = urlExists("https://msedgedriver.microsoft.com/" & exactVer & "/edgedriver_" & getPlatformString(svbaSystem) & ".zip")
+        If VarType(result) = vbString Then GetCompatibleDriverVersion = result: Exit Function ' Return the error
+
+        If result Then
+            GetCompatibleDriverVersion = exactVer
+        Else
+            GetCompatibleDriverVersion = "Error: No Edge driver published yet for browser version " & exactVer
+        End If
         Exit Function
+
     Case svbaBrowser.Chrome
         browserBuild = filterVersionParts(browserVersion, 3)
         verMajor = selectVersionPart(browserVersion, 1)
-        
+
         If compareVersions(browserBuild, "115.0.5763") >= 0 Then
-            'use new api...
-            'as of 8/22/2023, this special end-point was added that
-            'shortcuts using latest-patch-versions-per-build end-point!!
+            'new Chrome for Testing api - latest patch for this exact build
             Url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_" & browserBuild
-            
             respTxt = requestData(Url)
-            
             If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
             
             If respTxt = "Release Not Found" Then
-                'in theory, we should never get here, but just in case...
-                'if an exact match to the browser build was not found above, then
-                'search for the maximum version that is less than the specified browser build
+                'no exact build match - take the newest build <= browser build from the per-build json
+                '(the major check below rejects a result that slipped back into the previous major)
                 Url = "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build.json"
                 respTxt = requestData(Url)
-                
                 If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
-                
-                GetCompatibleDriverVersion = findLatestChromeVersionFromBuild(respTxt, browserBuild)
-                Exit Function
+                respTxt = findLatestChromeVersionFromBuild(respTxt, browserBuild)
             End If
-            
-            GetCompatibleDriverVersion = respTxt
+
+            GetCompatibleDriverVersion = validateCompatibleVersion(respTxt, browser, browserVersion)
             Exit Function
+
         ElseIf verMajor = 115 Then
-            'we are in the "gap" between the two api's
-            'builds 115.0.5739 to 115.0.5762 do not have a corresponding ChromeDriver
-            'so get the last known major version from 114...
+            'known gap: builds 115.0.5739 to 115.0.5762 have no corresponding ChromeDriver,
+            'and 114.0.5735.90 is the documented driver for them - intentional cross-major exception
             GetCompatibleDriverVersion = "114.0.5735.90"
             Exit Function
+
         Else
-            'use old api
-            'first see if we can find an exact build match
+            'legacy api (pre-115) - first try an exact build match
             Url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & browserBuild
-            
             respTxt = requestData(Url)
-            
             If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
-            
+
             If respTxt = "Release Not Found" Then
-                'if exact build match failed, then maybe we have a Dev or Canary channel
-                'so search for major version match, decrementing by one until success
-                Do While verMajor >= 70
-                    Url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
-                    respTxt = requestData(Url)
-                    
-                    If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
-                    
-                    If respTxt <> "Release Not Found" Then Exit Do
-                    verMajor = verMajor - 1
-                Loop
+                'no exact build match (e.g. Dev/Canary) - fall back to the latest driver for the SAME major only
+                Url = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_" & verMajor
+                respTxt = requestData(Url)
+                If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
             End If
-            GetCompatibleDriverVersion = respTxt
+
+            GetCompatibleDriverVersion = validateCompatibleVersion(respTxt, browser, browserVersion)
             Exit Function
         End If
+
     Case svbaBrowser.Firefox
+        'geckodriver is not tied to the browser major - each release supports a range of Firefox versions
         'Firefox browser version has this pattern: 117.0 (x64 en-US)
         verMajor = selectVersionPart(browserVersion, 1)
-        
-        'the rules are different for Firefox driver - we must lookup the browser version in a compatibility matrix
-        'to get the most recent driver version compatible with the installed browser
-        Url = "https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html"
-        
+        If Not IsNumeric(verMajor) Then GetCompatibleDriverVersion = "Error: Unrecognized Firefox version: " & browserVersion: Exit Function
+
+        Url = "https://raw.githubusercontent.com/mozilla-firefox/firefox/main/testing/geckodriver/doc/Support.md"
         respTxt = requestData(Url)
-        
-        If respTxt = "Release Not Found" Then respTxt = "Error - Release Not Found"
-        
+        If respTxt = "Release Not Found" Then respTxt = "Error: Release Not Found"
         If respTxt Like "Error*" Then GetCompatibleDriverVersion = respTxt: Exit Function
-        
-        'search the table for the first driver version entry (most recent) for a given browser version
-        htmlDoc.body.innerHTML = respTxt
-        Set table = htmlDoc.getElementsByTagName("table")(0)
-        
-        table.deleteTHead
-        
-        For Each row In table.rows
-            If CInt(verMajor) >= CInt(Split(row.cells(2).innerText)(0)) Then
-                GetCompatibleDriverVersion = Trim$(row.cells(0).innerText)
-                Exit Function
-            End If
-        Next row
-        
-        GetCompatibleDriverVersion = "Error: Release Not Found"
+
+        GetCompatibleDriverVersion = validateVersionResponse(findCompatibleGeckodriverInSupportMd(respTxt, CLng(verMajor)), browser)
     End Select
 End Function
 
-'@Description("Returns the installed Browser version")
-Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser) As String
-Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Browser version"
-    Dim wsh As New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
+'@Description("Returns the installed Browser version, or the version of the browser executable at browserPath if given")
+Public Function GetInstalledBrowserVersion(ByVal browser As svbaBrowser, Optional ByVal browserPath As String = vbNullString) As String
+Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Browser version, or the version of the browser executable at browserPath if given"
+    Dim wsh As IWshRuntimeLibrary.WshShell
+    Set wsh = New IWshRuntimeLibrary.WshShell 'CreateObject("WScript.Shell")
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
     Dim regkey As String
     Dim regKeyAlt As String
     Dim resp As String
+    Dim exePath As String
     
-    'Notes for FF - when first installed using the FF installer only the HKLM key exists - but a subsequent update from the browser creates the HKCU version as well
-    'HKEY_CURRENT_USER\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion
-    'also, if running in 32-bit tB IDE the HKLM version redirects to potentially non-existent:
-    'HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Mozilla\Mozilla Firefox\CurrentVersion
-    'but the HKCU version works
-
+    'a specific browser executable was given (e.g. a portable browser set in capabilities): its version is
+    'the only one that matters - don't fall back to the installed browser, which Selenium won't launch
+    If browserPath <> vbNullString Then
+        browserPath = WebShared.getFullLocalPath(browserPath, , False)
+        resp = getBrowserVersionFromPath(browser, browserPath)
+        If resp = vbNullString Then resp = "Error: Could not determine the " & getBrowserString(browser) & " version from " & browserPath
+        GetInstalledBrowserVersion = resp
+        Exit Function
+    End If
+    
+    'Chrome/Edge: prefer the version stamped on the browser executable - that is what Selenium will launch.
+    'Direct registry version (below) is written by the browser when it RUNS, so after a background update applied while
+    'the browser was closed it still reports the old version until the next launch
+    If browser = svbaBrowser.Chrome Or browser = svbaBrowser.Edge Then
+        exePath = getBrowserExePath(browser)
+        If exePath <> vbNullString Then
+            On Error Resume Next
+            resp = findVersionInString(fso.GetFileVersion(exePath), browser)
+            On Error GoTo 0
+            If resp <> vbNullString Then
+                GetInstalledBrowserVersion = resp
+                Exit Function
+            End If
+        End If
+    End If
+    
+    ' Get version directly from registry - only path for Firefox, fallback for Edge/Chrome
     Select Case browser
     Case svbaBrowser.Chrome
         regkey = "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon\version"
@@ -524,6 +581,10 @@ Attribute GetInstalledBrowserVersion.VB_Description = "Returns the installed Bro
         regkey = "HKEY_CURRENT_USER\Software\Microsoft\Edge\BLBeacon\version"
         regKeyAlt = "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}\pv"
     Case svbaBrowser.Firefox
+        'Notes for FF - when first installed using the FF installer only the HKLM key exists - but a subsequent update from the browser creates the HKCU version as well
+        'also, if running in 32-bit tB IDE the HKLM version redirects to potentially non-existent:
+        'HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Mozilla\Mozilla Firefox\CurrentVersion
+        'but the HKCU version works in this case...
         regkey = "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion"
         regKeyAlt = "HKEY_CURRENT_USER\SOFTWARE\Mozilla\Mozilla Firefox\CurrentVersion"
     End Select
@@ -544,124 +605,133 @@ End Function
 '@Description("Downloads and installs the specified Driver version")
 Public Sub DownloadAndInstallDriver(ByVal browser As svbaBrowser, ByVal driverVersion As String, Optional ByVal driverPath As Variant, Optional ByVal platform As svbaPlatform = svbaSystem)
 Attribute DownloadAndInstallDriver.VB_Description = "Downloads and installs the specified Driver version"
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
     Dim Url As String
-    Dim fso As New FileSystemObject
-    Dim shll As New Shell32.Shell
-    Dim driverFolder As String
-    Dim driverFileName As String
-    Dim tmpInstallFolder As String
-    Dim createdTmpFolder As Boolean
-    Dim tmpInstallZipPath As String
-    Dim tmpZipDriverFilename As String
-    Dim tmpInstallDriverpath As String
-    Dim driverBuild As String
-    Dim respTxt As String
+    Dim zipName As String
+    Dim zipMember As String
+    Dim exeName As String
+    Dim tmpFolder As String
+    Dim tmpZipPath As String
+    Dim tmpDriverPath As String
+    Dim backupPath As String
+    Dim installedVer As String
     Dim platformString As String
-    
-    If Left$(driverVersion, 5) = "Error" Then Err.Raise 1, , "Error in DownloadAndInstallDriver: driverVersion not valid"
-    
+    Dim checkedVersion As String
+    Dim errNum As Long, errSrc As String, errDesc As String
+    Dim dlErr As String
+
+    'validate/normalize the requested version before it is used to build a download URL
+    checkedVersion = validateVersionResponse(driverVersion, browser)
+    If Left$(checkedVersion, 5) = "Error" Then Err.Raise 1, "WebDriverManager", _
+        "Error in DownloadAndInstallDriver: driverVersion not valid (" & driverVersion & ")"
+    driverVersion = checkedVersion
+
     If IsMissing(driverPath) Then
         Select Case browser
-        Case svbaBrowser.Chrome
-            driverPath = ".\chromedriver.exe"
-        Case svbaBrowser.Edge
-            driverPath = ".\msedgedriver.exe"
-        Case svbaBrowser.Firefox
-            driverPath = ".\geckodriver.exe"
+        Case svbaBrowser.Chrome: driverPath = ".\chromedriver.exe"
+        Case svbaBrowser.Edge: driverPath = ".\msedgedriver.exe"
+        Case svbaBrowser.Firefox: driverPath = ".\geckodriver.exe"
         End Select
     End If
-    
-    platformString = getPlatformString(platform)
-    
     driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
-    
-    driverFolder = fso.GetParentFolderName(driverPath)
-    driverFileName = fso.GetFileName(driverPath)
-    
-    tmpInstallFolder = driverFolder & "\tmp\"
-    
+
+    platformString = getPlatformString(platform)
+
     Select Case browser
     Case svbaBrowser.Chrome
-        driverBuild = filterVersionParts(driverVersion, 3)
-        If compareVersions(driverBuild, "115.0.5763") >= 0 Then
-            'use the new download api
+        If compareVersions(filterVersionParts(driverVersion, 3), "115.0.5763") >= 0 Then
+            'Chrome for Testing download api
             Url = "https://storage.googleapis.com/chrome-for-testing-public/" & driverVersion & "/" & platformString & "/chromedriver-" & platformString & ".zip"
-            tmpInstallZipPath = tmpInstallFolder & "chromedriver-" & platformString & ".zip"
-            tmpZipDriverFilename = "chromedriver-" & platformString & "\chromedriver.exe"
-            tmpInstallDriverpath = tmpInstallFolder & "chromedriver.exe"
+            zipName = "chromedriver-" & platformString & ".zip"
+            zipMember = "chromedriver-" & platformString & "\chromedriver.exe"
         Else
-            'use the old download api
-            'no 64-bit version available for drivers before 115.0.5763
+            'legacy download api - no 64-bit version available for drivers before 115.0.5763
             Url = "https://chromedriver.storage.googleapis.com/" & driverVersion & "/chromedriver_win32.zip"
-            tmpInstallZipPath = tmpInstallFolder & "chromedriver_win32.zip"
-            tmpZipDriverFilename = "chromedriver.exe"
-            tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
+            zipName = "chromedriver_win32.zip"
+            zipMember = "chromedriver.exe"
         End If
     Case svbaBrowser.Edge
         Url = "https://msedgedriver.microsoft.com/" & driverVersion & "/edgedriver_" & platformString & ".zip"
-        tmpInstallZipPath = tmpInstallFolder & "edgedriver_" & platformString & ".zip"
-        tmpZipDriverFilename = "msedgedriver.exe"
-        tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
+        zipName = "edgedriver_" & platformString & ".zip"
+        zipMember = "msedgedriver.exe"
     Case svbaBrowser.Firefox
         Url = "https://github.com/mozilla/geckodriver/releases/download/v" & driverVersion & "/geckodriver-v" & driverVersion & "-" & platformString & ".zip"
-        tmpInstallZipPath = tmpInstallFolder & "geckodriver-v" & driverVersion & "-" & platformString & ".zip"
-        tmpZipDriverFilename = "geckodriver.exe"
-        tmpInstallDriverpath = tmpInstallFolder & tmpZipDriverFilename
+        zipName = "geckodriver-v" & driverVersion & "-" & platformString & ".zip"
+        zipMember = "geckodriver.exe"
     End Select
-    
-    'if tmp folder doesn't exist then create it - remember for clean up
-    createdTmpFolder = False
-    If Not fso.FolderExists(tmpInstallFolder) Then
-        createdTmpFolder = True
-        fso.CreateFolder tmpInstallFolder
-    End If
-    
-    If Not WebShared.downloadToFile(Url, tmpInstallZipPath) Then
-        Err.Raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
-    End If
-    
-    'make sure driver zip file was created successfully
-    If Not fso.FileExists(tmpInstallZipPath) Then
-        'clean up first
-        If createdTmpFolder Then fso.DeleteFolder Left$(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
-        Err.Raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
-    End If
-    
-    If fso.FileExists(tmpInstallDriverpath) Then fso.DeleteFile tmpInstallDriverpath, True
+    exeName = Mid$(zipMember, InStrRev(zipMember, "\") + 1)
 
-    shll.Namespace(tmpInstallFolder).CopyHere shll.Namespace(tmpInstallZipPath).Items.Item(tmpZipDriverFilename)
+    On Error GoTo failed
 
-    'check if driver exists and if it does, make sure it isn't in use before overwrite
+    'private, uniquely-named staging folder - no collision with user folders or concurrent installs
+    tmpFolder = createUniqueTempFolder()
+    tmpZipPath = tmpFolder & "\" & zipName
+    tmpDriverPath = tmpFolder & "\" & exeName
+
+    If Not downloadToFile(Url, tmpZipPath, , dlErr) Then Err.Raise 1, "WebDriverManager", "Error: Driver download not successful - " & dlErr
+    If Not fso.FileExists(tmpZipPath) Then Err.Raise 1, "WebDriverManager", "Error: Driver Download Not Successful"
+
+    extractDriverFromZip tmpZipPath, tmpFolder, zipMember
+    If Not fso.FileExists(tmpDriverPath) Then Err.Raise 1, "WebDriverManager", "Error: Driver not found in downloaded package"
+
+    'remove backups left by earlier installs whose driver processes have since exited
+    deleteDriverBackups driverPath
+
+    'move the current driver aside instead of killing the processes using it - Windows allows renaming
+    'a running exe (but not overwriting or deleting it), and running sessions keep working off the renamed file
     If fso.FileExists(driverPath) Then
-        If isProcessRunning(driverFileName) Then WebShared.taskTerminate "im", driverFileName: WebShared.SleepWinAPI 100
+        backupPath = uniqueBackupPath(driverPath)
+        rename driverPath, backupPath
     End If
 
-    'copy file from temp folder to driver path
-    fso.CopyFile tmpInstallDriverpath, driverPath, True
-    
-    'if created tmp folder, then delete it
-    If createdTmpFolder Then fso.DeleteFolder Left$(tmpInstallFolder, Len(tmpInstallFolder) - 1), True
+    fso.CopyFile tmpDriverPath, driverPath, True
+
+    'post-install check: the file now at driverPath must report exactly the requested version
+    installedVer = GetInstalledDriverVersion(browser, driverPath)
+    If CheckCompatibilityLevel(installedVer, driverVersion) <> svbaExactMatch Then
+        Err.Raise 1, "WebDriverManager", "Error: Installed driver reports version '" & installedVer & "', expected " & driverVersion
+    End If
+
+    'success - remove the backup now if nothing is using it (otherwise the next install/delete will)
+    If backupPath <> vbNullString Then deleteFileSafe backupPath
+    deleteFolderSafe tmpFolder
+    Exit Sub
+
+failed:
+    errNum = Err.Number: errSrc = Err.Source: errDesc = Err.Description
+    On Error GoTo -1            'leave the active-handler state so the cleanup below can trap its own errors
+    On Error Resume Next
+    'roll back: if the previous driver was moved aside, put it back
+    If backupPath <> vbNullString Then
+        If fso.FileExists(backupPath) Then
+            If fso.FileExists(driverPath) Then fso.DeleteFile driverPath, True
+            rename backupPath, driverPath
+        End If
+    End If
+    deleteFolderSafe tmpFolder
+    On Error GoTo 0
+    Err.Raise errNum, errSrc, errDesc
 End Sub
 
 '@Description("Returns the folder path to Florent Breheret's SeleniumBasic application in local AppData, assuming that it is installed")
 Public Function GetSeleniumBasicFolderPath() As String
 Attribute GetSeleniumBasicFolderPath.VB_Description = "Returns the folder path to Florent Breheret's SeleniumBasic application in local AppData, assuming that it is installed"
     'this may be of use for updating drivers for SeleniumBasic
-    Dim fso As New FileSystemObject
-    GetSeleniumBasicFolderPath = Environ$("LocalAppData") & "\SeleniumBasic\"
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    GetSeleniumBasicFolderPath = expandEnvironVariable("%LocalAppData%") & "\SeleniumBasic\"
     If Not fso.FolderExists(GetSeleniumBasicFolderPath) Then Err.Raise 1, , "Error in GetSeleniumBasicFolderPath: SeleniumBasic not installed in the expected location"
 End Function
 
 '@Description("Returns the folder path to the Temp folder in local AppData")
 Public Function GetUserTempFolderPath() As String
 Attribute GetUserTempFolderPath.VB_Description = "Returns the folder path to the Temp folder in local AppData"
-    GetUserTempFolderPath = Environ$("LocalAppData") & "\Temp\"
+    GetUserTempFolderPath = expandEnvironVariable("%LocalAppData%") & "\Temp\"
 End Function
 
 '@Description("Returns the folder path to the local Downloads folder")
 Public Function GetDownloadsFolderPath() As String
 Attribute GetDownloadsFolderPath.VB_Description = "Returns the folder path to the local Downloads folder"
-    Dim oShell As New Shell32.Shell
+    Dim oShell As Shell32.Shell: Set oShell = New Shell32.Shell
     GetDownloadsFolderPath = oShell.Namespace("shell:Downloads").Self.Path
 End Function
 
@@ -685,51 +755,466 @@ End Sub
 
 '---------------------- Private Helper Functions ----------------------
 
-Private Sub deleteDriver(ByVal driverPath As String)
-    Dim fso As New FileSystemObject
-    Dim driverFileName As String
-    'check if driver exists and if it does, make sure it isn't in use before deleting
-    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
-    driverFileName = fso.GetFileName(driverPath)
-    If fso.FileExists(driverPath) Then
-        If isProcessRunning(driverFileName) Then WebShared.taskTerminate "im", driverFileName
-        WebShared.SleepWinAPI 100
-        fso.DeleteFile driverPath, True
-    End If
-End Sub
+Private Function getBrowserVersionFromPath(ByVal browser As svbaBrowser, ByVal exePath As String) As String
+    'reads the version of a specific browser executable (e.g. a portable browser set in capabilities).
+    'order: version resource stamped on the exe, then a fallback that doesn't depend on it:
+    '  Chrome/Edge - the versioned folder next to the exe (e.g. Application\157.0.4341.60\)
+    '  Firefox     - Version= in the [App] section of application.ini next to firefox.exe
+    'returns vbNullString if the version can't be determined
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim oRegExp As RegExp: Set oRegExp = New RegExp
+    Dim folder As String
+    Dim ver As String
+    Dim sf As Variant
+    Dim txt As String
+    Dim matches As MatchCollection
 
-Private Function isProcessRunning(ByVal process As String) As Boolean
-    Dim services As Object
-    Dim processList As Object
-    
-    Set services = GetObject("winmgmts:")
-    Set processList = services.ExecQuery("select * from win32_process where name='" & process & "'")
-    
-    isProcessRunning = (processList.Count > 0)
+    If Not fso.FileExists(exePath) Then Exit Function
+    folder = fso.GetParentFolderName(exePath)
+
+    '1) version resource on the exe
+    On Error Resume Next
+    ver = fso.GetFileVersion(exePath)
+    On Error GoTo 0
+
+    Select Case browser
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        ver = findVersionInString(ver, browser)              'must be a full 4-part version
+        If ver <> vbNullString Then getBrowserVersionFromPath = ver: Exit Function
+
+        '2) Chromium keeps its binaries in a folder named after the version, next to the exe.
+        'if more than one exists (an update staged but not yet applied) take the highest
+        On Error Resume Next
+        For Each sf In fso.GetFolder(folder).SubFolders
+            If Left$(validateVersionResponse(sf.Name, browser), 5) <> "Error" Then
+                If ver = vbNullString Then
+                    ver = sf.Name
+                ElseIf compareVersions(sf.Name, ver) > 0 Then
+                    ver = sf.Name
+                End If
+            End If
+        Next sf
+        On Error GoTo 0
+        getBrowserVersionFromPath = ver
+
+    Case svbaBrowser.Firefox
+        oRegExp.Pattern = "^\d+(\.\d+)+"                        'only the major is used downstream
+        If oRegExp.test(ver) Then getBrowserVersionFromPath = oRegExp.execute(ver)(0): Exit Function
+
+        '2) application.ini ships with every Firefox build, installed or portable
+        On Error Resume Next
+        With fso.OpenTextFile(folder & "\application.ini")
+            txt = .ReadAll
+            .Close
+        End With
+        On Error GoTo 0
+        oRegExp.Multiline = True
+        oRegExp.IgnoreCase = True
+        oRegExp.Pattern = "^\s*Version\s*=\s*(\d+(\.\d+)*)"   'anchored, so MinVersion=/MaxVersion= don't match
+        Set matches = oRegExp.execute(txt)
+        If matches.Count > 0 Then getBrowserVersionFromPath = matches(0).SubMatches(0)
+    End Select
 End Function
 
-Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20) As Variant
+Private Function getBrowserExePath(ByVal browser As svbaBrowser) As String
+    'returns the full path of the installed Chrome/Edge executable, or vbNullString if not found
+    'order: App Paths registration (per-user, then machine), then the standard install folders
+    Dim wsh As IWshRuntimeLibrary.WshShell: Set wsh = New IWshRuntimeLibrary.WshShell
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim exeName As String
+    Dim relPath As String
+    Dim candidates As Variant
+    Dim c As Variant
+    Dim p As String
+
+    Select Case browser
+    Case svbaBrowser.Chrome
+        exeName = "chrome.exe"
+        relPath = "\Google\Chrome\Application\chrome.exe"
+    Case svbaBrowser.Edge
+        exeName = "msedge.exe"
+        relPath = "\Microsoft\Edge\Application\msedge.exe"
+    Case Else
+        Exit Function
+    End Select
+
+    'environment variables are left unexpanded here and expanded (Unicode-safe) in the loop below
+    candidates = Array( _
+        regReadSafe(wsh, "HKCU\Software\Microsoft\Windows\CurrentVersion\App Paths\" & exeName & "\"), _
+        regReadSafe(wsh, "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\" & exeName & "\"), _
+        "%ProgramW6432%" & relPath, _
+        "%ProgramFiles(x86)%" & relPath, _
+        "%ProgramFiles%" & relPath, _
+        "%LocalAppData%" & relPath)
+
+    For Each c In candidates
+        'expand variables (also covers App Paths values that contain them), then strip any quotes
+        p = Trim$(Replace$(expandEnvironVariable(CStr(c)), """", vbNullString))
+        'skips blanks and paths whose variable is undefined (left as "%Var%\..." by the expansion)
+        If p Like "?:\*" Then
+            If fso.FileExists(p) Then getBrowserExePath = p: Exit Function
+        End If
+    Next c
+End Function
+
+Private Function regReadSafe(ByVal wsh As IWshRuntimeLibrary.WshShell, ByVal key As String) As String
+    'returns vbNullString if the key/value doesn't exist
+    On Error Resume Next
+    regReadSafe = wsh.RegRead(key)
+End Function
+
+Private Function readDriverCache(ByVal fullDriverPath As String, ByRef browserMajor As String, _
+                                 ByRef driverVersion As String, ByRef checkedOn As Date) As Boolean
+    'returns False on any problem - a bad cache just means "make the request"
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim cachePath As String
+    Dim parts As Variant
+    Dim d As String
+
+    On Error GoTo fail
+    cachePath = fullDriverPath & ".svba-cache"
+    If Not fso.FileExists(cachePath) Then Exit Function
+
+    Dim txt As String
+    With fso.OpenTextFile(cachePath)
+        txt = .ReadAll
+        .Close
+    End With
+    parts = Split(Trim$(txt), "|")
+    
+    If UBound(parts) <> 2 Then Exit Function
+
+    d = parts(2)
+    If Len(d) = 0 Or d Like "*[!0-9]*" Then Exit Function      'must be all digits (a serial day number)
+
+    browserMajor = parts(0)
+    driverVersion = parts(1)
+    checkedOn = CDate(CLng(d))
+    readDriverCache = True
+fail:
+End Function
+
+Private Sub writeDriverCache(ByVal fullDriverPath As String, ByVal browserMajor As String, ByVal driverVersion As String)
+    'best effort - failing to write the cache must never break the caller
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    On Error Resume Next
+    With fso.CreateTextFile(fullDriverPath & ".svba-cache", True)
+        'date stored as its serial day number - an integer, so no locale, calendar or separator is involved
+        .Write browserMajor & "|" & driverVersion & "|" & CStr(CLng(Date))
+        .Close
+    End With
+End Sub
+
+Private Function findCompatibleGeckodriverInSupportMd(ByVal mdText As String, ByVal firefoxMajor As Long) As String
+    'parses the HTML table embedded in geckodriver's Support.md and returns the first (most recent)
+    'geckodriver release whose [min, max] Firefox range contains firefoxMajor
+    'tolerant of omitted closing tags (</td>, </tr>), tag attributes, and whitespace/line breaks;
+    'header rows use <th> and are skipped automatically
+    Dim oRegExp As RegExp: Set oRegExp = New RegExp
+    Dim matches As MatchCollection
+    Dim match As match
+    Dim sep As String
+    Dim maxFx As String
+
+    sep = "\s*(?:</td>\s*)?<td[^>]*>\s*"   'cell boundary, with or without a closing </td>
+
+    oRegExp.Global = True
+    oRegExp.IgnoreCase = True
+    oRegExp.Pattern = "<tr[^>]*>\s*<td[^>]*>\s*(\d+\.\d+\.\d+)" & _
+                      sep & "[^<]*" & _
+                      sep & "(\d+)[^<]*" & _
+                      sep & "([^<\s]+)"
+    '  SubMatches(0) = geckodriver version, (1) = min Firefox major, (2) = max Firefox ("n/a" or a number)
+
+    Set matches = oRegExp.execute(mdText)
+    If matches.Count = 0 Then findCompatibleGeckodriverInSupportMd = "Error: Could not parse geckodriver support table": Exit Function
+
+    For Each match In matches
+        If firefoxMajor >= CLng(match.SubMatches(1)) Then
+            maxFx = match.SubMatches(2)
+            If Not IsNumeric(maxFx) Then
+                findCompatibleGeckodriverInSupportMd = match.SubMatches(0): Exit Function
+            ElseIf firefoxMajor <= CLng(maxFx) Then
+                findCompatibleGeckodriverInSupportMd = match.SubMatches(0): Exit Function
+            End If
+        End If
+    Next match
+
+    findCompatibleGeckodriverInSupportMd = "Error: No geckodriver release supports Firefox " & firefoxMajor
+End Function
+
+Private Function isUnknownVersion(ByVal versionString As String) As Boolean
+    versionString = Trim$(versionString)
+    isUnknownVersion = (versionString = vbNullString) _
+                    Or (versionString = verDriverNotFound) _
+                    Or (versionString = verBrowserNotFound) _
+                    Or (versionString Like "Error*")
+End Function
+
+'---------------------- Response Validation ----------------------
+Private Function validateVersionResponse(ByVal respTxt As Variant, ByVal browser As svbaBrowser) As String
+    'normalizes a version string received from (or parsed out of) a server response and confirms
+    'that the ENTIRE response is a well-formed version - returns the clean version or an "Error..." string.
+    'guards against captive portals/proxies/content filters that answer HTTP 200 with an HTML page,
+    'and against stray BOM/CR/LF/whitespace that would otherwise end up inside a download URL
+    Dim s As String
+    Dim excerpt As String
+    Dim expectedParts As Long
+    Dim oRegExp As RegExp
+
+    If IsEmpty(respTxt) Or IsNull(respTxt) Then validateVersionResponse = "Error: Empty response from server": Exit Function
+    s = CStr(respTxt)
+
+    'pass through errors already produced upstream (e.g. by requestData)
+    If s Like "Error*" Then validateVersionResponse = s: Exit Function
+    If s = "Release Not Found" Then validateVersionResponse = "Error: Release Not Found": Exit Function
+
+    'strip BOM, nulls and all whitespace - a legitimate version contains none of these
+    s = Replace$(s, ChrW$(&HFEFF&), vbNullString)
+    s = Replace$(s, vbNullChar, vbNullString)
+    s = Replace$(s, vbCr, vbNullString)
+    s = Replace$(s, vbLf, vbNullString)
+    s = Replace$(s, vbTab, vbNullString)
+    s = Replace$(s, " ", vbNullString)
+
+    Select Case browser
+    Case svbaBrowser.Chrome, svbaBrowser.Edge
+        expectedParts = 4   'e.g. 131.0.6778.85
+    Case svbaBrowser.Firefox
+        expectedParts = 3   'e.g. 0.36.0
+    End Select
+
+    Set oRegExp = New RegExp
+    oRegExp.Pattern = "^\d+(\.\d+){" & (expectedParts - 1) & "}$"
+
+    If oRegExp.test(s) Then
+        validateVersionResponse = s
+    Else
+        'include a short single-line excerpt to help diagnose (e.g. a proxy login page)
+        excerpt = Replace$(Replace$(CStr(respTxt), vbCr, " "), vbLf, " ")
+        validateVersionResponse = "Error: Unexpected response from " & getBrowserString(browser) & _
+            " driver server: " & Left$(excerpt, 80)
+    End If
+End Function
+
+Private Function validateCompatibleVersion(ByVal respTxt As Variant, ByVal browser As svbaBrowser, ByVal browserVersion As String) As String
+    'validates a driver version string AND enforces that its major version matches the browser's -
+    'Chromium-based drivers refuse to start a browser of a different major version, so installing
+    'one is never better than leaving the current driver alone and reporting an error
+    Dim ver As String
+    Dim browserMajor As String
+
+    ver = validateVersionResponse(respTxt, browser)
+    If Left$(ver, 5) = "Error" Then validateCompatibleVersion = ver: Exit Function
+
+    browserMajor = selectVersionPart(browserVersion, 1)
+    If selectVersionPart(ver, 1) <> browserMajor Then
+        validateCompatibleVersion = "Error: No " & getBrowserString(browser) & _
+            " driver published yet for browser major version " & browserMajor & " (server returned " & ver & ")"
+        Exit Function
+    End If
+
+    validateCompatibleVersion = ver
+End Function
+
+Private Function urlExists(ByVal Url As String) As Variant
+    'HEAD request - returns True/False, or an "Error..." string if the server could not be reached
+    Dim resp As Variant
+    resp = requestData(Url, , "HEAD")
+    If resp = "Release Not Found" Then
+        urlExists = False
+    ElseIf resp Like "Error*" Then
+        urlExists = resp
+    Else
+        urlExists = True
+    End If
+End Function
+
+' Extracts a single member from a zip into destFolder, flattened.
+' Prefers bundled tar.exe (bsdtar): synchronous and not flagged by AV.
+' Falls back to Shell32 if tar.exe is missing or fails.
+' NOTE: zipPath must be located in destFolder (true for DownloadAndInstallDriver)
+Private Sub extractDriverFromZip(ByVal zipPath As String, ByVal destFolder As String, ByVal member As String)
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim destNoSlash As String
+    Dim memberFwd As String
+    Dim stripCount As Long
+    Dim tarPath As String
+
+    destNoSlash = destFolder
+    If Right$(destNoSlash, 1) = "\" Then destNoSlash = Left$(destNoSlash, Len(destNoSlash) - 1)
+
+    'zip entries use "/"; strip leading dirs so the exe lands flat
+    memberFwd = Replace(member, "\", "/")
+    stripCount = Len(memberFwd) - Len(Replace(memberFwd, "/", ""))
+
+    tarPath = getTarPath()
+
+    If tarPath <> vbNullString Then
+        Dim wsh As IWshRuntimeLibrary.WshShell: Set wsh = New IWshRuntimeLibrary.WshShell
+        Dim cmd As String
+        Dim prevDir As String
+        Dim rc As Long
+
+        'tar.exe parses its command line in the ANSI code page, so a path containing characters outside
+        'it (e.g. a Unicode user name in %TEMP%) can't be opened. Run tar from INSIDE destFolder with only
+        'relative, ASCII arguments instead - the working directory itself is set via a Unicode API.
+        cmd = """" & tarPath & """ -xf """ & fso.GetFileName(zipPath) & """"
+        If stripCount > 0 Then cmd = cmd & " --strip-components=" & stripCount
+        cmd = cmd & " """ & memberFwd & """"
+
+        rc = -1
+        prevDir = wsh.CurrentDirectory
+        On Error Resume Next
+        wsh.CurrentDirectory = destNoSlash
+        If Err.Number = 0 Then rc = wsh.Run(cmd, 0, True)   'hidden, synchronous
+        Err.Clear
+        wsh.CurrentDirectory = prevDir                      'process-wide setting - always restore
+        On Error GoTo 0
+
+        If rc = 0 Then Exit Sub
+        'tar failed - fall through to the Shell32 method
+    End If
+
+    'Shell32 compressed-folder copy (legacy systems, or tar failure)
+    Dim shll As Shell32.Shell: Set shll = New Shell32.Shell
+    Dim target As String
+    Dim waited As Long
+    target = destNoSlash & "\" & fso.GetFileName(memberFwd)
+    shll.Namespace(destNoSlash).CopyHere shll.Namespace(zipPath).Items.Item(member)
+    'CopyHere may be async - wait until the expected file appears
+    Do While Not fso.FileExists(target)
+        WebShared.SleepWinAPI 50
+        waited = waited + 50
+        If waited > 5000 Then Err.Raise 1, "WebDriverManager", "Error: zip extraction failed or timed out"
+    Loop
+End Sub
+
+Private Function getTarPath() As String
+    'returns the fully-qualified path to the Windows-bundled tar.exe (bsdtar), or vbNullString if absent
+    'tar.exe ships with Windows 10 1803+ / Windows 11 in both System32 and SysWOW64, so this
+    'resolves correctly whether the host process is 32- or 64-bit (WOW64 file system redirection)
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim candidate As String
+    candidate = expandEnvironVariable("%SystemRoot%") & "\System32\tar.exe"
+    If fso.FileExists(candidate) Then getTarPath = candidate
+End Function
+
+Private Sub deleteDriver(ByVal driverPath As String)
+    'removes the driver without terminating processes that may be using it: move it aside first
+    '(allowed even while running), then try to delete the moved copy - if a driver process still has it
+    'open, the copy is left behind and cleaned up by the next install/delete
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim backupPath As String
+
+    driverPath = WebShared.getFullLocalPath(driverPath, mDefaultDriverFolder, False)
+    deleteDriverBackups driverPath
+
+    If fso.FileExists(driverPath) Then
+        backupPath = uniqueBackupPath(driverPath)
+        rename driverPath, backupPath
+        deleteFileSafe backupPath
+    End If
+
+    deleteFileSafe driverPath & ".svba-cache"   'Firefox check cache, if present
+End Sub
+
+Private Function createUniqueTempFolder() As String
+    'creates and returns a uniquely-named folder under %TEMP% (no trailing backslash)
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim base As String
+    Dim p As String
+    Dim i As Long
+
+    base = expandEnvironVariable("%TEMP%")
+    If Left$(base, 1) = "%" Then base = expandEnvironVariable("%LocalAppData%") & "\Temp"
+
+    Randomize
+    For i = 1 To 20
+        p = base & "\SeleniumVBA_" & Format$(Now, "yyyymmddhhnnss") & "_" & CStr(Int(Rnd * 1000000))
+        On Error Resume Next
+        fso.CreateFolder p          'fails if the name is taken (e.g. a concurrent install) - just retry
+        If Err.Number = 0 Then createUniqueTempFolder = p: Exit Function
+        Err.Clear
+        On Error GoTo 0
+    Next i
+    Err.Raise 1, "WebDriverManager", "Error: Could not create a temporary folder in " & base
+End Function
+
+Private Function uniqueBackupPath(ByVal driverPath As String) As String
+    'e.g. C:\...\chromedriver.exe.20261119154900.old  (plus a counter if that name is taken)
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim stem As String
+    Dim i As Long
+
+    stem = driverPath & "." & Format$(Now, "yyyymmddhhnnss")
+    uniqueBackupPath = stem & ".old"
+    Do While fso.FileExists(uniqueBackupPath)
+        i = i + 1
+        uniqueBackupPath = stem & "_" & i & ".old"
+    Loop
+End Function
+
+Private Sub deleteDriverBackups(ByVal driverPath As String)
+    'best effort: deletes <driver>.<stamp>.old files; ones still held by a running driver are skipped
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    Dim baseName As String
+    Dim f As Variant
+    Dim names As Collection: Set names = New Collection
+    Dim n As Variant
+
+    On Error Resume Next
+    baseName = LCase$(fso.GetFileName(driverPath))
+    For Each f In fso.GetFolder(fso.GetParentFolderName(driverPath)).Files
+        'plain string tests rather than Like, so "[", "#", "?" in a file name can't act as wildcards
+        If Left$(LCase$(f.Name), Len(baseName) + 1) = baseName & "." And LCase$(Right$(f.Name, 4)) = ".old" Then
+            names.Add f.Path        'collect first - don't delete while enumerating
+        End If
+    Next f
+    For Each n In names
+        deleteFileSafe CStr(n)
+    Next n
+End Sub
+
+Private Sub deleteFileSafe(ByVal filePath As String)
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    On Error Resume Next
+    If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
+End Sub
+
+Private Sub deleteFolderSafe(ByVal folderPath As String)
+    Dim fso As FileSystemObject: Set fso = New FileSystemObject
+    If folderPath = vbNullString Then Exit Sub
+    On Error Resume Next
+    If fso.FolderExists(folderPath) Then fso.DeleteFolder folderPath, True
+End Sub
+
+Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20, Optional ByVal method As String = "GET") As Variant
     'see https://github.com/GCuser99/SeleniumVBA/discussions/29#discussioncomment-3673682
-    Dim client As New MSXML2.XMLHTTP60
+    Dim client As MSXML2.XMLHTTP60: Set client = New MSXML2.XMLHTTP60
     Dim try As Long
-        
+    Dim status As Long
+
     'try until a connection to server is established, up to a maximum # of tries
     For try = 1 To maxTries
-    
+
         On Error Resume Next
-        client.Open "GET", Url, False
-        
-        client.Send
-        
-        While client.readyState <> 4
-            DoEvents
-        Wend
-        
+        Err.Clear
+        client.Open method, Url, False
+        'XMLHTTP60 goes through the WinINet cache - ask for a fresh answer ("LATEST" files change over time)
+        client.setRequestHeader "Cache-Control", "no-cache"
+        client.setRequestHeader "Pragma", "no-cache"
+        client.send                 'synchronous: returns when the request has completed or failed
+        status = client.status      'raises if no response was received at all
+        If Err.Number <> 0 And status = 0 Then
+            requestData = "Error: " & Err.Description
+            Exit Function
+        End If
         On Error GoTo 0
-        
-        Select Case client.Status
+
+        Select Case status
         Case 200
-            requestData = client.ResponseText
+            requestData = client.responseText
             Exit Function
         Case 404
             requestData = "Release Not Found"
@@ -739,14 +1224,12 @@ Private Function requestData(ByVal Url As String, Optional maxTries As Long = 20
             Exit Function
         Case 12029, 12031
             'Don't exit loop - make another try to see if we can connect
-            'RequestData = "Error: Cannot Connect to Server"
+            WebShared.SleepWinAPI 50
         Case Else 'an unexpected error
-            Debug.Print "Please report this error to developers: RequestData Status= " & client.Status & ", " & "Response= " & client.ResponseText
-            requestData = "Error: Status= " & client.Status & ", " & "Response= " & client.ResponseText
+            requestData = "Error: Status= " & status & ", " & "Response= " & client.responseText
             Exit Function
         End Select
-        
-        Debug.Print "try: ", try, client.Status, client.ResponseText, Url
+
     Next try
     'if here then had too many 12029/12031's
     requestData = "Error: Cannot Connect to Server"
@@ -794,47 +1277,57 @@ End Function
 '---------------------- RegExp Json Parser Functions ----------------------
 
 Private Function findLatestChromeVersionFromBuild(ByVal jsonString As String, ByVal browserBuild As String) As String
-    'this function assumes that input json is ordered from oldest to newest build/version numbers
-    'it finds the MOST RECENT version of chrome driver that is compatible with the input browser build
-    Dim oRegExp As New RegExp
-    Dim oMatches As MatchCollection
-    Dim oMatch As match
-    Dim lastVersion As String
+    'finds the MOST RECENT chrome driver version whose build is <= the input browser build
+    'does not assume any ordering of the json entries
+    'returns vbNullString if no qualifying build is found (caller's validation turns that into an error)
+    Dim oRegExp As RegExp: Set oRegExp = New RegExp
+    Dim matches As MatchCollection
+    Dim match As match
+    Dim bestBuild As String
+    Dim bestVersion As String
 
     oRegExp.Global = True
     oRegExp.Pattern = """(\d+\.\d+\.\d+)"":{""version"":""(\d+\.\d+\.\d+\.\d+)"""
-    Set oMatches = oRegExp.execute(jsonString)
-    'find the maximum build that is less than or equal to installed browser build
-    For Each oMatch In oMatches
-        If compareVersions(oMatch.SubMatches(0), browserBuild) = 1 Then
-            findLatestChromeVersionFromBuild = lastVersion
-            Exit Function
+    Set matches = oRegExp.execute(jsonString)
+
+    For Each match In matches
+        If compareVersions(match.SubMatches(0), browserBuild) <= 0 Then
+            If bestBuild = vbNullString Then
+                bestBuild = match.SubMatches(0)
+                bestVersion = match.SubMatches(1)
+            ElseIf compareVersions(match.SubMatches(0), bestBuild) > 0 Then
+                bestBuild = match.SubMatches(0)
+                bestVersion = match.SubMatches(1)
+            End If
         End If
-        lastVersion = oMatch.SubMatches(1)
-    Next oMatch
-    'if here then return last version in the file
-    findLatestChromeVersionFromBuild = lastVersion
+    Next match
+
+    findLatestChromeVersionFromBuild = bestVersion
 End Function
 
 Private Function findLatestFirefoxVersion(ByVal jsonString As String) As String
-    'this function finds the latest Firefox driver version number
-    Dim oRegExp As New RegExp
-    Dim oMatches As MatchCollection
-    
-    oRegExp.Global = False
-    oRegExp.Pattern = "geckodriver-v(\d+\.\d+\.\d+)-win32\.zip"
+    'finds the latest geckodriver version from the GitHub "latest release" json
+    'primary: the release tag (e.g. "tag_name":"v0.37.1"); fallback: the win32 asset name
+    Dim oRegExp As RegExp: Set oRegExp = New RegExp
+    Dim matches As MatchCollection
 
-    Set oMatches = oRegExp.execute(jsonString)
-    
-    If oMatches.Count = 0 Then findLatestFirefoxVersion = "Error: Release Not Found": Exit Function
-    
-    findLatestFirefoxVersion = oMatches(0).SubMatches(0)
+    oRegExp.Global = False
+    oRegExp.Pattern = """tag_name""\s*:\s*""v?(\d+\.\d+\.\d+)"""
+    Set matches = oRegExp.execute(jsonString)
+
+    If matches.Count = 0 Then
+        oRegExp.Pattern = "geckodriver-v(\d+\.\d+\.\d+)-win32\.zip"
+        Set matches = oRegExp.execute(jsonString)
+    End If
+
+    If matches.Count = 0 Then findLatestFirefoxVersion = "Error: Release Not Found": Exit Function
+    findLatestFirefoxVersion = matches(0).SubMatches(0)
 End Function
 
 Private Function findVersionInString(ByVal stringToSearch As String, ByVal browser As svbaBrowser) As String
     'this function parses the input string for the version number substring
-    Dim oRegExp As New RegExp
-    Dim oMatches As MatchCollection
+    Dim oRegExp As RegExp
+    Dim matches As MatchCollection
     Dim searchPattern As String
 
     Select Case browser
@@ -843,16 +1336,13 @@ Private Function findVersionInString(ByVal stringToSearch As String, ByVal brows
     Case svbaBrowser.Firefox
         searchPattern = "\d+\.\d+\.\d+"
     End Select
-    
-    On Error GoTo EH
+
+    Set oRegExp = New RegExp
     oRegExp.Global = False
     oRegExp.Pattern = searchPattern
 
-    Set oMatches = oRegExp.execute(stringToSearch)
-    If oMatches.Count > 0 Then findVersionInString = oMatches(0)
-    Exit Function
-EH:
-    Err.Raise 1, , "Error in findVersionInString of WebDriverManager: VBScript_RegExp failed - make sure that it is installed on your Windows system and is not being blocked by AV software."
+    Set matches = oRegExp.execute(stringToSearch)
+    If matches.Count > 0 Then findVersionInString = matches(0)
 End Function
 
 '---------------------- Version String Math Functions ----------------------
@@ -866,18 +1356,18 @@ Private Function compareVersions(ByVal ver1 As String, ByVal ver2 As String) As 
     Dim ver1parts As Variant
     Dim ver2parts As Variant
     Dim i As Long
-    
+
     If ver1 = ver2 Then
         compareVersions = 0
         Exit Function
     End If
-        
-    'normalize version strings before compare
     
+    'normalize version strings before compare
+
     'append 0 to string if ends in "."
     If Right$(ver1, 1) = "." Then ver1 = ver1 & "0"
     If Right$(ver2, 1) = "." Then ver2 = ver2 & "0"
-    
+
     'make sure the version strings have same number of parts
     ver1PartsCount = countVersionParts(ver1)
     ver2PartsCount = countVersionParts(ver2)
@@ -892,21 +1382,21 @@ Private Function compareVersions(ByVal ver1 As String, ByVal ver2 As String) As 
             Next i
         End If
     End If
-    
+
     'after normalization, check again if strings are equal
     If ver1 = ver2 Then
         compareVersions = 0
         Exit Function
     End If
-    
+
     'split the strings into part arrays
-    ver1parts = Split(ver1, ".")
-    ver2parts = Split(ver2, ".")
-    
+    ver1parts = VBA.Split(ver1, ".")
+    ver2parts = VBA.Split(ver2, ".")
+
     'compare each part until unequal, return 1 if ver1 > ver2, -1 otherwise
     For i = 0 To UBound(ver1parts)
-        If CInt(ver1parts(i)) <> CInt(ver2parts(i)) Then
-            compareVersions = Sgn(CInt(ver1parts(i)) - CInt(ver2parts(i)))
+        If CLng(ver1parts(i)) <> CLng(ver2parts(i)) Then
+            compareVersions = Sgn(CLng(ver1parts(i)) - CLng(ver2parts(i)))
             Exit Function
         End If
     Next i
@@ -918,7 +1408,7 @@ End Function
 Private Function filterVersionParts(ByVal versionString As String, ByVal numberOfPartsToKeep As Long) As String
     Dim verParts As Variant
     Dim i As Long
-    verParts = Split(versionString, ".")
+    verParts = VBA.Split(versionString, ".")
     If numberOfPartsToKeep >= UBound(verParts) + 1 Then
         filterVersionParts = versionString
         Exit Function
@@ -932,7 +1422,7 @@ End Function
 
 Private Function selectVersionPart(ByVal versionString As String, ByVal partNumber As Long) As String
     Dim verParts As Variant
-    verParts = Split(versionString, ".")
+    verParts = VBA.Split(versionString, ".")
     If partNumber > UBound(verParts) + 1 Then
         selectVersionPart = vbNullString
         Exit Function
@@ -941,6 +1431,56 @@ Private Function selectVersionPart(ByVal versionString As String, ByVal partNumb
 End Function
 
 Private Function countVersionParts(ByVal versionString As String) As Long
-    countVersionParts = UBound(Split(versionString, ".")) + 1
+    countVersionParts = UBound(VBA.Split(versionString, ".")) + 1
 End Function
 
+Private Sub rename(ByVal sourcePath As String, ByVal destPath As String)
+    'internal use only: renames a driver file to/from its .old backup in the SAME folder.
+    'both arguments are full absolute paths built by this class.
+    'Unicode-safe (W API) and works on a running exe, which Windows allows to be renamed.
+    'flags = 0: no REPLACE_EXISTING (fails rather than overwrites if destPath exists) and no
+    'COPY_ALLOWED (can never silently turn into copy+delete, which would fail on a running exe)
+    Dim lastErr As Long
+    If MoveFileExW(StrPtr(sourcePath), StrPtr(destPath), 0) = 0 Then
+        lastErr = Err.LastDllError
+        Err.Raise 1, "WebDriverManager", "Error: Could not rename '" & sourcePath & "' to '" & _
+            destPath & "' (Win32 error " & lastErr & ")"
+    End If
+End Sub
+
+Private Function runHiddenCapture(ByVal exePath As String, ByVal args As String) As String
+    'runs a console program with no visible window and returns what it wrote to stdout
+    '(stdout goes through a temp file - WshShell.Run can hide the window but can't capture output)
+    Dim wsh As New IWshRuntimeLibrary.WshShell
+    Dim fso As New FileSystemObject
+    Dim tmpFolder As String
+    Dim outFile As String
+    Dim cmd As String
+    Dim errNum As Long, errSrc As String, errDesc As String
+
+    On Error GoTo failed
+    tmpFolder = createUniqueTempFolder()
+    outFile = tmpFolder & "\stdout.txt"
+
+    'cmd /c ""<exe>" <args> > "<file>"" - cmd strips the outer quotes, the inner ones survive.
+    'stdout only (2>nul), matching what Exec(...).StdOut.ReadAll returned before
+    cmd = """" & expandEnvironVariable("%ComSpec%") & """ /d /c """"" & exePath & """ " & args & _
+          " > """ & outFile & """ 2>nul"""
+    wsh.Run cmd, 0, True                'hidden, wait for exit
+
+    On Error Resume Next                'no/empty output => "" (ReadAll raises on an empty file)
+    With fso.OpenTextFile(outFile)
+        runHiddenCapture = .ReadAll
+        .Close
+    End With
+    On Error GoTo 0
+
+    deleteFolderSafe tmpFolder
+    Exit Function
+
+failed:
+    errNum = Err.Number: errSrc = Err.Source: errDesc = Err.Description
+    On Error GoTo -1
+    deleteFolderSafe tmpFolder
+    Err.Raise errNum, errSrc, errDesc
+End Function
